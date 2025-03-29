@@ -1,0 +1,15 @@
+# Output and deps
+/dist/
+/node_modules/
+
+# IDE / Editor configs
+.idea/
+.vscode/
+
+# Local-only config
+.npmrc
+
+# Logs & temp
+*.log
+.DS_Store
+.env
