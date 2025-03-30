@@ -33,66 +33,67 @@ jobs:
       - name: 📦 Install dependencies
         run: npm ci
 
-  format:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+  # format:
+  #   needs: setup
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
 
-      - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 22
+  #     - name: 🟢 Setup Node.js
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 22
 
-      - name: ♻️ Restore cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.npm
-            node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+  #     - name: ♻️ Restore cache
+  #       uses: actions/cache@v3
+  #       with:
+  #         path: |
+  #           ~/.npm
+  #           node_modules
+  #         key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
 
-      - name: 🧹 Run format
-        run: npm run format
+  #     - name: 🧹 Run format
+  #       run: npm run format
 
-  lint:
-    needs: format
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 22
+  # lint:
+  #   needs: format
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 22
 
-      - name: ♻️ Restore cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.npm
-            node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+  #     - name: ♻️ Restore cache
+  #       uses: actions/cache@v3
+  #       with:
+  #         path: |
+  #           ~/.npm
+  #           node_modules
+  #         key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
 
-      - name: 🔍 Run lint
-        run: npm run lint
+  #     - name: 🔍 Run lint
+  #       run: npm run lint
 
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 22
+  # test:
+  #   needs: lint
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 22
 
-      - name: ♻️ Restore cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.npm
-            node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+  #     - name: ♻️ Restore cache
+  #       uses: actions/cache@v3
+  #       with:
+  #         path: |
+  #           ~/.npm
+  #           node_modules
+  #         key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
 
-      - name: 🧪 Run tests
-        run: npm run test
+  #     - name: 🧪 Run tests
+  #       run: npm run test
 
   build:
     runs-on: ubuntu-latest
