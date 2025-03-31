@@ -11,15 +11,12 @@ jobs:
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v3
-
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 22
-
       - name: 📦 Install dependencies
         run: npm ci
-
       - name: ♻️ Save cache after install
         uses: actions/cache/save@v3
         with:
@@ -134,6 +131,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v3
         with:
           node-version: 22
@@ -150,8 +149,12 @@ jobs:
       - name: 📦 Install dependencies if cache missed
         if: steps.cache-restore.outputs.cache-hit != 'true'
         run: npm ci
-      - name: 🔨 Rebuild before push
+      - name: 🔨 Build project
         run: npm run build
+      - name: 📈 Bump version
+        run: |
+          npm version patch -m "Bump version to %s for dist" --no-git-tag-version
+          git add package.json package-lock.json
       - name: 🚀 Push to dist branch
         run: |
           git config user.name "github-actions[bot]"
@@ -160,7 +163,29 @@ jobs:
           git switch --orphan dist
           git reset --hard
           cp -r dist/* .
+          cp package.json .
           rm -rf dist src .github node_modules package-lock.json
           git add .
-          git commit -m "Build artifacts from main"
+          git commit -m "Build artifacts from main (version $(node -p "require('./package.json').version"))"
           git push --force origin dist
+      - name: 🔙 Push updated version back to main
+        run: |
+          git switch main
+          git commit -m "Bump version to $(node -p "require('./package.json').version")"
+          git push origin main
+
+  publish:
+    needs: [push_dist]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: dist
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
+      - name: 📤 Publish to npm with tag
+        run: npm publish --tag beta --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
