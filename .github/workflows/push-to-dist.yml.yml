@@ -156,22 +156,31 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           npm version patch -m "Bump version to %s for dist" --no-git-tag-version
+          VERSION=$(node -p "require('./package.json').version")
+          echo $VERSION > /tmp/version.txt
+          cp package.json /tmp/pkg.json
           git add package.json package-lock.json
-          git commit -m "Bump version to $(node -p "require('./package.json').version")"
+          git commit -m "Bump version to $VERSION"
+
       - name: 🚀 Push to dist branch
         run: |
           git fetch origin
           git switch --orphan dist
           git reset --hard
+
           cp -r dist/* .
-          cp package.json .
+          cp /tmp/pkg.json .
+
           rm -rf dist src .github node_modules package-lock.json
+
+          VERSION=$(cat /tmp/version.txt)
           git add .
-          git commit -m "Build artifacts from main (version $(node -p "require('./package.json').version"))"
+          git commit -m "Build artifacts from main (version $VERSION)"
           git push --force origin dist
+
       - name: 🔙 Push updated version back to main
         run: |
-          git switch main
+          git switch -f origin/main
           git push origin main
 
   publish:
@@ -186,6 +195,6 @@ jobs:
           node-version: 22
           registry-url: 'https://registry.npmjs.org'
       - name: 📤 Publish to npm with tag
-        run: npm publish --access public
+        run: npm publish --tag beta --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
