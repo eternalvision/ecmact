@@ -179,7 +179,7 @@ jobs:
         with:
           node-version: 22
           registry-url: 'https://registry.npmjs.org'
-      - name: 🔍 Debug: Check package.json
+      - name: 🔍 Debug and Check package.json
         run: ls -la && cat package.json || echo "package.json not found"
       - name: 📤 Publish to npm with tag
         run: npm publish --tag beta --access public
