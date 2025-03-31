@@ -155,17 +155,25 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
           npm version patch -m "Bump version to %s for dist" --no-git-tag-version
           git add package.json package-lock.json
           git commit -m "Bump version before dist branch"
 
-          VERSION=$(node -p "require('./package.json').version")
+          mkdir temp_dist
+          cp -r dist temp_dist/
+          cp package.json temp_dist/
+
           git fetch origin
           git switch --orphan dist
           git reset --hard
-          cp -r dist/* .
-          cp package.json ./package.json
-          rm -rf dist src .github node_modules package-lock.json
+
+          cp -r temp_dist/dist/* .
+          cp temp_dist/package.json .
+
+          rm -rf temp_dist
+          rm -rf src .github node_modules package-lock.json
+
           git add .
           git commit -m "Build artifacts from main (version $VERSION)"
           git push --force origin dist
