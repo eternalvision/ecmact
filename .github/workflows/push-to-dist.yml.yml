@@ -153,13 +153,13 @@ jobs:
         run: npm run build
       - name: 📈 Bump version and commit
         run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           npm version patch -m "Bump version to %s for dist" --no-git-tag-version
           git add package.json package-lock.json
           git commit -m "Bump version to $(node -p "require('./package.json').version")"
       - name: 🚀 Push to dist branch
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
           git fetch origin
           git switch --orphan dist
           git reset --hard
@@ -186,6 +186,6 @@ jobs:
           node-version: 22
           registry-url: 'https://registry.npmjs.org'
       - name: 📤 Publish to npm with tag
-        run: npm publish --tag beta --access public
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
