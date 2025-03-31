@@ -151,10 +151,11 @@ jobs:
         run: npm ci
       - name: 🔨 Build project
         run: npm run build
-      - name: 📈 Bump version
+      - name: 📈 Bump version and commit
         run: |
           npm version patch -m "Bump version to %s for dist" --no-git-tag-version
           git add package.json package-lock.json
+          git commit -m "Bump version to $(node -p "require('./package.json').version")"
       - name: 🚀 Push to dist branch
         run: |
           git config user.name "github-actions[bot]"
@@ -171,7 +172,6 @@ jobs:
       - name: 🔙 Push updated version back to main
         run: |
           git switch main
-          git commit -m "Bump version to $(node -p "require('./package.json').version")"
           git push origin main
 
   publish:
