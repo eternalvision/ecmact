@@ -8,8 +8,6 @@ on:
 jobs:
   setup:
     runs-on: ubuntu-latest
-    outputs:
-      cache-key: ${{ steps.cache-deps.outputs.cache-key }}
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v3
@@ -23,7 +21,6 @@ jobs:
         run: npm ci
 
       - name: ♻️ Save cache after install
-        id: cache-deps
         uses: actions/cache/save@v3
         with:
           path: |
@@ -41,14 +38,18 @@ jobs:
         with:
           node-version: 22
       - name: ♻️ Restore cache
+        id: cache-restore
         uses: actions/cache/restore@v3
         with:
           path: |
             ~/.npm
             node_modules
-          key: ${{ needs.setup.outputs.cache-key }}
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}
           restore-keys: |
             ${{ runner.os }}-node-
+      - name: 📦 Install dependencies if cache missed
+        if: steps.cache-restore.outputs.cache-hit != 'true'
+        run: npm ci
       - name: 🧹 Run format
         run: npm run format
 
@@ -62,14 +63,18 @@ jobs:
         with:
           node-version: 22
       - name: ♻️ Restore cache
+        id: cache-restore
         uses: actions/cache/restore@v3
         with:
           path: |
             ~/.npm
             node_modules
-          key: ${{ needs.setup.outputs.cache-key }}
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}
           restore-keys: |
             ${{ runner.os }}-node-
+      - name: 📦 Install dependencies if cache missed
+        if: steps.cache-restore.outputs.cache-hit != 'true'
+        run: npm ci
       - name: 🔍 Run lint
         run: npm run lint
 
@@ -83,14 +88,18 @@ jobs:
         with:
           node-version: 22
       - name: ♻️ Restore cache
+        id: cache-restore
         uses: actions/cache/restore@v3
         with:
           path: |
             ~/.npm
             node_modules
-          key: ${{ needs.setup.outputs.cache-key }}
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}
           restore-keys: |
             ${{ runner.os }}-node-
+      - name: 📦 Install dependencies if cache missed
+        if: steps.cache-restore.outputs.cache-hit != 'true'
+        run: npm ci
       - name: 🧪 Run tests
         run: npm run test
 
@@ -103,14 +112,18 @@ jobs:
         with:
           node-version: 22
       - name: ♻️ Restore cache
+        id: cache-restore
         uses: actions/cache/restore@v3
         with:
           path: |
             ~/.npm
             node_modules
-          key: ${{ needs.setup.outputs.cache-key }}
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}
           restore-keys: |
             ${{ runner.os }}-node-
+      - name: 📦 Install dependencies if cache missed
+        if: steps.cache-restore.outputs.cache-hit != 'true'
+        run: npm ci
       - name: 🔨 Build project
         run: npm run build
 
@@ -125,14 +138,18 @@ jobs:
         with:
           node-version: 22
       - name: ♻️ Restore cache
+        id: cache-restore
         uses: actions/cache/restore@v3
         with:
           path: |
             ~/.npm
             node_modules
-          key: ${{ needs.setup.outputs.cache-key }}
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}
           restore-keys: |
             ${{ runner.os }}-node-
+      - name: 📦 Install dependencies if cache missed
+        if: steps.cache-restore.outputs.cache-hit != 'true'
+        run: npm ci
       - name: 🔨 Rebuild before push
         run: npm run build
       - name: 🚀 Push to dist branch
