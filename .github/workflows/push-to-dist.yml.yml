@@ -40,13 +40,15 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 22
-      - uses: actions/cache@v3
+      - name: ♻️ Restore cache
+        uses: actions/cache/restore@v3
         with:
           path: |
             ~/.npm
             node_modules
           key: ${{ needs.setup.outputs.cache-key }}
-
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: 🧹 Run format
         run: npm run format
 
@@ -59,13 +61,15 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 22
-      - uses: actions/cache@v3
+      - name: ♻️ Restore cache
+        uses: actions/cache/restore@v3
         with:
           path: |
             ~/.npm
             node_modules
           key: ${{ needs.setup.outputs.cache-key }}
-
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: 🔍 Run lint
         run: npm run lint
 
@@ -78,13 +82,15 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 22
-      - uses: actions/cache@v3
+      - name: ♻️ Restore cache
+        uses: actions/cache/restore@v3
         with:
           path: |
             ~/.npm
             node_modules
           key: ${{ needs.setup.outputs.cache-key }}
-
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: 🧪 Run tests
         run: npm run test
 
@@ -96,13 +102,15 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 22
-      - uses: actions/cache@v3
+      - name: ♻️ Restore cache
+        uses: actions/cache/restore@v3
         with:
           path: |
             ~/.npm
             node_modules
           key: ${{ needs.setup.outputs.cache-key }}
-
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: 🔨 Build project
         run: npm run build
 
@@ -116,16 +124,17 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 22
-      - uses: actions/cache@v3
+      - name: ♻️ Restore cache
+        uses: actions/cache/restore@v3
         with:
           path: |
             ~/.npm
             node_modules
           key: ${{ needs.setup.outputs.cache-key }}
-
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: 🔨 Rebuild before push
         run: npm run build
-
       - name: 🚀 Push to dist branch
         run: |
           git config user.name "github-actions[bot]"
