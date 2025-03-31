@@ -1,0 +1,50 @@
+{
+  "name": "ecmact",
+  "version": "1.0.2",
+  "description": "Dynamic components library using Vite Vanilla and Web Components",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.es.js",
+  "types": "dist/types/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js",
+      "types": "./dist/types/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest",
+    "lint": "eslint . --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.{ts,js,json,css,md}\"",
+    "release": "npm publish --access public"
+  },
+  "keywords": [
+    "vite",
+    "web-components",
+    "dynamic-components",
+    "vanilla-js",
+    "shadow-dom"
+  ],
+  "author": "Alexandr Priadchenko",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint-plugin-prettier": "^5.2.5",
+    "jiti": "^2.4.2",
+    "prettier": "^3.5.3",
+    "typescript-eslint": "^8.28.0",
+    "vite": "^6.2.4",
+    "vite-plugin-dts": "^4.5.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eternalvision/ecmact.git"
+  }
+}
