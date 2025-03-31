@@ -9,7 +9,7 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
-      cache-hit: ${{ steps.cache-deps.outputs.cache-hit }}
+      cache-key: ${{ steps.cache-deps.outputs.cache-key }}
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v3
@@ -19,103 +19,95 @@ jobs:
         with:
           node-version: 22
 
-      - name: ♻️ Cache dependencies
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: ♻️ Save cache after install
         id: cache-deps
-        uses: actions/cache@v3
+        uses: actions/cache/save@v3
         with:
           path: |
             ~/.npm
             node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
 
-      - name: 📦 Install dependencies
-        run: npm ci
+  format:
+    needs: setup
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 22
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
 
-  # format:
-  #   needs: setup
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
+      - name: 🧹 Run format
+        run: npm run format
 
-  #     - name: 🟢 Setup Node.js
-  #       uses: actions/setup-node@v3
-  #       with:
-  #         node-version: 22
+  lint:
+    needs: setup
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 22
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
 
-  #     - name: ♻️ Restore cache
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: |
-  #           ~/.npm
-  #           node_modules
-  #         key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+      - name: 🔍 Run lint
+        run: npm run lint
 
-  #     - name: 🧹 Run format
-  #       run: npm run format
+  test:
+    needs: setup
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 22
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
 
-  # lint:
-  #   needs: format
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: actions/setup-node@v3
-  #       with:
-  #         node-version: 22
-
-  #     - name: ♻️ Restore cache
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: |
-  #           ~/.npm
-  #           node_modules
-  #         key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-
-  #     - name: 🔍 Run lint
-  #       run: npm run lint
-
-  # test:
-  #   needs: lint
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: actions/setup-node@v3
-  #       with:
-  #         node-version: 22
-
-  #     - name: ♻️ Restore cache
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: |
-  #           ~/.npm
-  #           node_modules
-  #         key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-
-  #     - name: 🧪 Run tests
-  #       run: npm run test
+      - name: 🧪 Run tests
+        run: npm run test
 
   build:
+    needs: [setup, format, lint, test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: 22
-
-      - name: ♻️ Restore cache
-        uses: actions/cache@v3
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.npm
             node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          key: ${{ needs.setup.outputs.cache-key }}
 
       - name: 🔨 Build project
         run: npm run build
 
   push_dist:
-    needs: build
+    needs: [build, setup]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -124,14 +116,12 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 22
-
-      - name: ♻️ Restore cache
-        uses: actions/cache@v3
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.npm
             node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          key: ${{ needs.setup.outputs.cache-key }}
 
       - name: 🔨 Rebuild before push
         run: npm run build
