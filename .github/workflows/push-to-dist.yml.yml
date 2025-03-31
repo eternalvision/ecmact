@@ -180,7 +180,7 @@ jobs:
 
       - name: 🔙 Push updated version back to main
         run: |
-          git switch -f origin/main
+          git checkout -f main
           git push origin main
 
   publish:
