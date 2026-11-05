@@ -4,7 +4,38 @@
 
 # ECMact
 
-Small component library on top of native Web Components. Components are custom elements with a Shadow DOM, created through a single `em` factory.
+ECMact is a small component library built on native Web Components. Every component is a custom element with an open Shadow DOM, created through a single factory, `em`. There is no virtual DOM, no template language and no build-time step: components are plain function calls that return real DOM elements.
+
+- Zero runtime dependencies
+- Content, attributes and styles are written through DOM APIs, never through `innerHTML` (unless you ask for it)
+- In-place updates: `setState` reuses the DOM node, so focus and input state survive
+- Full TypeScript support, with attributes, events, styles and `ref` typed per HTML tag
+- ES and CommonJS builds, bundled type declarations, `sideEffects: false`
+
+## Table of contents
+
+- [Install](#install)
+- [Quick start](#quick-start)
+- [How it works](#how-it-works)
+- [Creating components](#creating-components)
+- [Props reference](#props-reference)
+- [Content and children](#content-and-children)
+- [Attributes](#attributes)
+- [Styles](#styles)
+- [Events](#events)
+- [Refs](#refs)
+- [State and updates](#state-and-updates)
+- [Mounting](#mounting)
+- [Composition](#composition)
+- [TypeScript](#typescript)
+- [Security model](#security-model)
+- [Server-side rendering](#server-side-rendering)
+- [Browser support](#browser-support)
+- [Limitations](#limitations)
+- [Migrating from 1.x](#migrating-from-1x)
+- [Development](#development)
+- [Release](#release)
+- [License](#license)
 
 ## Install
 
@@ -12,7 +43,19 @@ Small component library on top of native Web Components. Components are custom e
 npm install ecmact
 ```
 
-## Usage
+Requires a browser (or DOM implementation) with Custom Elements v1 and Shadow DOM. The package ships ES2022 code.
+
+```ts
+import { em, mount } from 'ecmact';
+```
+
+CommonJS is supported as well:
+
+```js
+const { em, mount } = require('ecmact');
+```
+
+## Quick start
 
 ```ts
 import { em, mount } from 'ecmact';
@@ -31,35 +74,347 @@ const card = em.Card({
 mount('body', card);
 ```
 
-## API
+## How it works
 
-### `em.<Name>(props)`
+`em.Card(props)` does three things:
 
-Returns a custom element `em-<name>` (registered on first access). The name must match `/^[A-Za-z][A-Za-z0-9_-]*$/`, otherwise a `TypeError` is thrown.
+1. On first access of the name `Card`, registers a custom element `em-card` (once per lowercase name).
+2. Creates an `<em-card>` element.
+3. Assigns `props`, which renders one inner element (a `div` by default) into the element's Shadow DOM.
 
-| Prop        | Type                             | Description                                                               |
-| ----------- | -------------------------------- | ------------------------------------------------------------------------- |
-| `tag`       | `string`                         | Element rendered inside the shadow root. Default `div`.                   |
-| `content`   | `string`                         | Text content. Never parsed as HTML.                                       |
-| `html`      | `string`                         | Raw HTML. Opt-in, do not pass untrusted input.                            |
-| `children`  | `Node[]`                         | Nodes appended after the content.                                         |
-| `style`     | `Partial<CSSStyleDeclaration>`   | Inline styles, applied through the CSSOM.                                 |
-| `ref`       | `(element: HTMLElement) => void` | Called once when the inner element is created.                            |
-| `on<event>` | `(event: Event) => void`         | Event listener, e.g. `onclick`, `oninput`. Event name is lowercased.      |
-| any other   | `string \| number \| boolean`    | Set as an attribute. `true` sets an empty attribute, `false`/`null` skip. |
+```
+<em-card>                  custom element (the host, returned by em.Card)
+  #shadow-root (open)
+    <div style="...">      inner element, rendered from props
+      text content
+      ...children
+    </div>
+</em-card>
+```
 
-### `component.setState(partial)`
+The returned value is a real `HTMLElement`. You can append it anywhere, query it, add your own listeners to it and read `element.shadowRoot`. The inner element is `element.shadowRoot.firstElementChild`.
 
-Merges `partial` into the current props and updates the inner element in place. The element is reused while `tag` stays the same, so focus and input values survive updates. Attributes, styles and listeners that are no longer present are removed.
+Rendering is synchronous. Setting props, or calling `setState`, updates the DOM immediately; there is no scheduler and no batching.
 
-### `mount(target, ...nodes)`
+## Creating components
 
-Appends nodes to `target` (a CSS selector or an `Element`) and returns the container. Throws if the selector matches nothing.
+```ts
+const card = em.Card({ content: 'Hello' });
+const title = em.Title({ tag: 'h1', content: 'Welcome' });
+const link = em.Link({ tag: 'a', href: '/docs', content: 'Docs' });
+```
 
-## Notes
+`em` is a Proxy: any property name is a component factory. The name only decides the custom element name; what is rendered is decided by `tag`.
 
-- The library can be imported without a DOM (SSR, Node tooling). Components can only be created in a browser-like environment.
-- Content lives in a Shadow DOM: global styles do not apply, and form controls inside it do not participate in an outer `<form>`.
+- `em.Card`, `em.card` and `em.CARD` all produce `<em-card>` elements of the same class.
+- A name must match `/^[A-Za-z][A-Za-z0-9_-]*$/`, otherwise a `TypeError` is thrown.
+- `em.then` and symbol properties return `undefined`, so `await em` and `String(em)` are safe.
+- Factories can be called with no arguments: `em.Card()` renders an empty `div`.
+
+Use a distinct name per kind of component. Names are a convention for your own readability and for devtools; they do not carry props or behavior.
+
+## Props reference
+
+| Prop        | Type                          | Default | Description                                                     |
+| ----------- | ----------------------------- | ------- | --------------------------------------------------------------- |
+| `tag`       | `string`                      | `'div'` | Tag name of the inner element.                                  |
+| `content`   | `string`                      | `''`    | Text content. Never parsed as HTML.                             |
+| `html`      | `string`                      | -       | Raw HTML for the inner element. Opt-in, trusted input only.     |
+| `children`  | `Node[]`                      | `[]`    | Nodes appended after the content.                               |
+| `style`     | object of CSS properties      | -       | Inline styles, camelCase keys.                                  |
+| `ref`       | `(element) => void`           | -       | Called once, when the inner element is created.                 |
+| `on<event>` | `(event) => void`             | -       | Event listener on the inner element, lowercase, e.g. `onclick`. |
+| any other   | `string \| number \| boolean` | -       | Set as an HTML attribute on the inner element.                  |
+
+All props apply to the inner element, not to the `<em-*>` host.
+
+## Content and children
+
+`content` is always inserted as a text node, so markup in it is shown literally:
+
+```ts
+em.Card({ content: '<b>not bold</b>' });
+```
+
+`children` is an array of DOM nodes, appended after the content:
+
+```ts
+em.Card({
+  content: 'Parent text',
+  children: [em.Card({ content: 'Child 1' }), em.Card({ content: 'Child 2' })],
+});
+```
+
+`html` replaces the inner element's contents with parsed HTML. Children are appended after it. Use it only for trusted markup (see [Security model](#security-model)):
+
+```ts
+em.Card({ html: '<strong>trusted</strong> markup', children: [em.Card({ content: 'after' })] });
+```
+
+When `html` is set, `content` is ignored.
+
+Children passed to `children` are moved, not cloned: a node can have only one parent. On every update the inner element's children are replaced with the current `content` or `html` and the current `children` array.
+
+## Attributes
+
+Any prop that is not a reserved key (`tag`, `content`, `html`, `style`, `children`, `ref`) and does not start with `on` is set on the inner element with `setAttribute`.
+
+| Value                            | Result                              |
+| -------------------------------- | ----------------------------------- |
+| `string`, `number`               | `setAttribute(key, String(value))`  |
+| `true`                           | empty attribute, e.g. `disabled=""` |
+| `false`, `null`, `undefined`     | attribute not set / removed         |
+| anything else (object, function) | ignored                             |
+
+```ts
+em.Field({
+  tag: 'input',
+  type: 'email',
+  placeholder: 'you@example.com',
+  required: true,
+  maxlength: 64,
+  'data-testid': 'email',
+  'aria-label': 'Email',
+});
+```
+
+Attribute names are HTML attribute names, not DOM property names: use `class`, not `className`, and `for`, not `htmlFor`. Names are written as given; HTML treats them case-insensitively.
+
+On `setState`, attributes that are no longer present, or whose value became `false`, `null` or `undefined`, are removed from the element.
+
+Values are set through the DOM, so quotes and markup inside a value cannot break out of the attribute.
+
+## Styles
+
+`style` takes an object of CSS properties in camelCase. Keys are converted to kebab-case and applied through the CSSOM (`element.style.setProperty`).
+
+```ts
+em.Card({
+  style: {
+    display: 'flex',
+    backgroundColor: '#fafafa',
+    borderRadius: '8px',
+    zIndex: 2,
+  },
+});
+```
+
+- Values must be strings or numbers. Numbers are passed as is, without units: `zIndex: 2` works, `width: 10` does not mean `10px`. Use strings for lengths.
+- Other values (`undefined`, objects) are skipped.
+- On `setState`, properties that are no longer in `style` are removed; the rest are updated.
+- Styles apply to the inner element only. There are no selectors, pseudo-classes or media queries. For those, use a stylesheet that targets the host (`em-card`) with CSS custom properties, or a `ref` that adds a `<style>` to `element.getRootNode()`.
+
+Because the content lives in a Shadow DOM, global stylesheets do not reach it.
+
+## Events
+
+Props starting with `on` whose value is a function become event listeners on the inner element. The event name is the rest of the key, lowercased.
+
+```ts
+em.Field({
+  tag: 'input',
+  oninput: (event) => console.log((event.target as HTMLInputElement).value),
+  onkeydown: (event) => event.key === 'Enter' && submit(),
+});
+```
+
+- Non-function `on*` values are ignored (an `onclick` string is never evaluated).
+- Listeners are replaced on every update: old ones are removed, current ones are added. There are no duplicate handlers, and removing the prop removes the listener.
+- Listeners are registered without options. For `once`, `passive` or `capture`, or for custom events, add the listener yourself in a `ref`:
+
+```ts
+em.Card({
+  ref: (element) => element.addEventListener('wheel', onWheel, { passive: true }),
+});
+```
+
+- Events bubble out of the Shadow DOM according to normal rules (`click`, `input` and other composed events reach listeners on the `<em-*>` host and its ancestors, with the event target retargeted to the host).
+
+## Refs
+
+`ref` receives the inner element once, right after it is created. It is called again only if the element is recreated (when `tag` changes).
+
+```ts
+let input!: HTMLInputElement;
+
+const field = em.Field({
+  tag: 'input',
+  ref: (element) => (input = element),
+});
+
+input.focus();
+```
+
+Refs are the escape hatch for anything the props do not cover: listener options, live form values, focus, measurements, third-party widgets.
+
+## State and updates
+
+Each component exposes its props and an update method.
+
+| Member                        | Description                                             |
+| ----------------------------- | ------------------------------------------------------- |
+| `component.props`             | Getter: the current props object.                       |
+| `component.props = p`         | Setter: replaces all props and re-renders.              |
+| `component.setState(partial)` | Merges `partial` into the current props and re-renders. |
+
+```ts
+const counter = em.Counter({ content: '0' });
+
+counter.setState({ content: '1' });
+counter.setState({ style: { color: 'red' } });
+```
+
+`setState` shallow-merges: nested objects such as `style` are replaced, not merged. To change one style property, pass the whole style object.
+
+Updates are in place:
+
+- The inner element is reused while `tag` stays the same. Focus, selection, scroll position and the live value of form controls are preserved.
+- Attributes, styles and listeners are diffed against the previous render, and stale ones are removed.
+- If `tag` changes, a new inner element is created (and `ref` is called again).
+- The text content and the `children` are always rebuilt.
+
+Components do not track state for you. `setState` is a rendering call, not a store: keep your application state wherever you like and call `setState` when it changes.
+
+An `<em-*>` element created outside the library (for example `document.createElement('em-card')`) renders an empty `div` when it is connected.
+
+## Mounting
+
+```ts
+mount(target, ...nodes);
+```
+
+| Argument | Type                | Description                             |
+| -------- | ------------------- | --------------------------------------- |
+| `target` | `string \| Element` | CSS selector or element to append into. |
+| `nodes`  | `Node[]`            | Components or any other DOM nodes.      |
+
+Returns the container. Throws `Error: ecmact: mount target "<selector>" not found` if the selector matches nothing, so a typo in a selector fails loudly instead of rendering nothing.
+
+```ts
+mount('#app', header, content, footer);
+mount(document.body, toast);
+```
+
+`mount` is a thin wrapper over `Element.append`; you can always use the DOM directly.
+
+## Composition
+
+Components are values. Compose them with ordinary functions:
+
+```ts
+import { em, mount } from 'ecmact';
+
+const Item = (label: string, onRemove: () => void) =>
+  em.Item({
+    tag: 'li',
+    style: { display: 'flex', gap: '8px' },
+    children: [
+      em.Label({ tag: 'span', content: label }),
+      em.Remove({ tag: 'button', content: 'x', onclick: onRemove }),
+    ],
+  });
+
+const List = (items: string[]) => {
+  const list = em.List({ tag: 'ul' });
+  const render = () =>
+    list.setState({
+      children: items.map((label, index) =>
+        Item(label, () => {
+          items.splice(index, 1);
+          render();
+        }),
+      ),
+    });
+  render();
+  return list;
+};
+
+mount('#app', List(['one', 'two', 'three']));
+```
+
+Since children are rebuilt on every update, create child components inside the render step (as above) when they depend on state, or keep references and update them with `setState` individually.
+
+## TypeScript
+
+The package ships its own declarations. Props are typed by the inner tag, which is inferred from the `tag` prop (and defaults to `'div'`).
+
+```ts
+const link = em.Link({ tag: 'a', href: '/docs', target: '_blank' });
+
+em.Link({ tag: 'a', src: 'x.png' });
+em.Field({ tag: 'input', type: 'bogus' });
+em.Card({ onclik: () => {} });
+```
+
+The last three calls are compile errors: `src` is not an attribute of `a`, `'bogus'` is not an input type, and `onclik` is not an event.
+
+What is typed:
+
+- **Return type.** `em.X({ tag: 'a' })` is `Component<'a'>`; `setState` accepts `Partial<ComponentProps<'a'>>`.
+- **Attributes by tag.** Global attributes (`id`, `class`, `title`, `lang`, `dir`, `hidden`, `inert`, `tabindex`, `role`, `slot`, `part`, `accesskey`, `translate`, `spellcheck`, `draggable`, `contenteditable`, `inputmode`) plus `data-*` and `aria-*` apply to every tag. Tag-specific attributes are defined for: `a`, `img`, `input`, `button`, `form`, `label`, `select`, `option`, `optgroup`, `textarea`, `fieldset`, `output`, `progress`, `meter`, `link`, `script`, `iframe`, `video`, `audio`, `source`, `track`, `canvas`, `td`, `th`, `col`, `colgroup`, `ol`, `li`, `details`, `dialog`, `blockquote`, `q`, `time`, `meta`, `slot`, `data`, `del`, `ins`. Other standard tags accept the global attributes only.
+- **Custom tags.** A tag that is not a standard HTML tag (for example `'x-widget'`, or a plain `string`) accepts any attribute.
+- **Events.** `on<event>` props are typed from `HTMLElementEventMap`; the handler receives the right event type. Unknown `on*` names are errors on standard tags and allowed on custom tags.
+- **Styles.** `style` accepts the string-valued properties of `CSSStyleDeclaration`, with `string | number` values.
+- **`ref`.** The element type follows the tag: `HTMLInputElement` for `'input'`, `HTMLElement` for custom tags.
+
+Attribute value types follow HTML semantics: booleans for boolean attributes, numbers for numeric ones, string unions for enumerated ones.
+
+When the tag is not known at compile time, widen it to `string`; props then become permissive and `setState({ tag })` accepts any tag:
+
+```ts
+const dynamic = em.Dynamic({ tag: tagName as string, content: 'x' });
+dynamic.setState({ tag: 'section' });
+```
+
+Exported types:
+
+```ts
+import type { Component, ComponentProps, AttributeMap, GlobalAttributes, TagName } from 'ecmact';
+```
+
+## Security model
+
+- `content` is inserted as a text node; markup in it is inert.
+- Attribute values and style values are set through `setAttribute` and the CSSOM, never concatenated into HTML, so they cannot inject markup or break out of an attribute or a `<style>` block.
+- `on*` props only accept functions; strings are ignored, so attribute-style handlers such as `onclick="..."` are never created.
+- `html` is the one raw-HTML entry point. It uses `innerHTML` and does not sanitize. Pass only markup you control, or sanitize it first (for example with DOMPurify).
+- `tag` is passed to `document.createElement`; it cannot inject markup. It should still not come from untrusted input, since it decides which element is created (for example `script` or `iframe`).
+- Attributes that carry URLs (`href`, `src`, `action`) are set as given. `javascript:` URLs are not filtered; validate user-supplied URLs.
+
+## Server-side rendering
+
+Importing `ecmact` is safe without a DOM (Node, SSR bundlers, tooling): no browser globals are touched at import time. Creating components requires `document` and `customElements`, so call `em.*` and `mount` only in the browser, or in a DOM environment such as happy-dom or jsdom. There is no server-side serialization of components.
+
+## Browser support
+
+Any evergreen browser with Custom Elements v1, Shadow DOM and ES2022 class fields (including private `#fields`). No polyfills are included.
+
+## Limitations
+
+- **Attributes, not properties.** Props map to attributes. For form controls, `value` and `checked` set the default value/state; after the user interacts with the control, changing the attribute no longer changes what is displayed. Set live values through a `ref` (`input.value = '...'`).
+- **Shadow DOM by default.** Global CSS does not apply inside components, and form controls inside a Shadow DOM do not take part in an outer `<form>`'s submission or validation. Label/`for` and `id` references do not cross the shadow boundary.
+- **One inner element.** A component renders a single element. Compose several components for more complex structures.
+- **Full rebuild of children.** Children and text are rebuilt on every update; there is no keyed child diffing.
+- **No lifecycle hooks, context or store.** The library is a rendering layer.
+- **Handlers without options.** Listener options require a `ref`.
+
+## Migrating from 1.x
+
+2.0.0 fixes the package entry points (1.x published `exports` that pointed to missing files) and closes several injection paths. Breaking changes:
+
+| 1.x                                                              | 2.x                                                        |
+| ---------------------------------------------------------------- | ---------------------------------------------------------- |
+| `content` was inserted as HTML                                   | `content` is text; use `html` for trusted markup           |
+| Attribute and style values were concatenated into an HTML string | Set through DOM APIs                                       |
+| `mount` silently did nothing for a missing selector              | `mount` throws                                             |
+| `mount` accepted a selector only                                 | accepts a selector or an `Element`, returns the container  |
+| `slots` and `customEvents` props (not implemented)               | removed                                                    |
+| `ref` was declared but never called                              | `ref` is called when the inner element is created          |
+| `em.then` / symbols registered elements or threw                 | return `undefined`; invalid names throw `TypeError`        |
+| Every `setState` rebuilt the whole shadow tree                   | in-place update, element reused while `tag` is unchanged   |
+| Children were rendered through a `<slot>`                        | children are appended to the inner element                 |
+| Props were loosely typed                                         | attributes, events, styles and `ref` typed by tag          |
+| `dist/es/index.js`, `dist/cjs/index.js`                          | `dist/index.js`, `dist/index.cjs`, declarations in `dist/` |
 
 ## Development
 
@@ -71,11 +426,47 @@ npm test
 npm run build
 ```
 
-Tests run on Vitest with happy-dom and enforce 100% coverage.
+| Script                 | Description                                          |
+| ---------------------- | ---------------------------------------------------- |
+| `npm run build`        | Vite library build: ES, CJS and `.d.ts` into `dist/` |
+| `npm test`             | Vitest with happy-dom and V8 coverage                |
+| `npm run typecheck`    | `tsc --noEmit` over `src` and `tests`                |
+| `npm run lint`         | ESLint (flat config, typescript-eslint, prettier)    |
+| `npm run lint:fix`     | ESLint with autofix                                  |
+| `npm run format`       | Prettier write                                       |
+| `npm run format:check` | Prettier check                                       |
+
+Tests enforce 100% statement, branch, function and line coverage; the run fails if coverage drops. Type-level behavior (attributes, events, styles, `ref` by tag) is covered by `tests/types.test.ts` and checked by `npm run typecheck`.
+
+Source layout:
+
+```
+src/
+  index.ts           public exports
+  em.ts              Proxy factory and custom element registration
+  component.ts       custom element class: props, setState, rendering entry
+  types/             ComponentProps, attribute tables, render state
+  utils/
+    render.ts        creates or reuses the inner element and fills it
+    syncAttributes.ts  attribute diffing
+    applyStyle.ts    style diffing through the CSSOM
+    setEventListeners.ts  listener diffing
+    mount.ts         mount helper
+tests/               Vitest suites (runtime and type-level)
+```
 
 ## Release
 
-Push a tag matching `v*`. The release workflow publishes to npm with provenance via trusted publishing; configure the trusted publisher for `ecmact` on npmjs.com first.
+Releases are published from CI. Bump the version, push, and push a matching tag:
+
+```bash
+npm version <patch|minor|major>
+git push --follow-tags
+```
+
+A tag matching `v*` triggers the release workflow, which runs format check, lint, typecheck and tests, then publishes to npm with provenance via trusted publishing. Configure a trusted publisher for `ecmact` on npmjs.com (repository `eternalvision/ecmact`, workflow `release.yml`) before the first release.
+
+The CI workflow runs the full check (format, lint, typecheck, tests with coverage, build, production audit) on every push to `main` and on pull requests.
 
 ## License
 
