@@ -1,112 +1,82 @@
 <p align="center">
-  <img src="./public/ecmact.png" alt="ECMact Logo" width="300" />
+  <img src="https://raw.githubusercontent.com/eternalvision/ecmact/main/public/ecmact.png" alt="ECMact" width="300" />
 </p>
 
-# ECMACT
+# ECMact
 
-ECMact is a lightweight component-based UI library using native Web Components. It provides a declarative API for creating dynamic and reactive DOM elements with built-in style and event handling.
+Small component library on top of native Web Components. Components are custom elements with a Shadow DOM, created through a single `em` factory.
 
----
-
-## 🚀 Installation
+## Install
 
 ```bash
 npm install ecmact
 ```
 
----
+## Usage
 
-## ✨ Usage Example
-
-```js
+```ts
 import { em, mount } from 'ecmact';
 
 let count = 0;
 
 const card = em.Card({
-  content: 'Click me!',
+  content: 'Click me',
+  style: { padding: '20px', backgroundColor: '#cceeff', cursor: 'pointer' },
   onclick: () => {
     count++;
-    card.setState({
-      content: `You clicked ${count} time${count === 1 ? '' : 's'}`,
-    });
-  },
-  style: {
-    padding: '20px',
-    backgroundColor: '#cceeff',
-    borderRadius: '10px',
-    textAlign: 'center',
-    cursor: 'pointer',
+    card.setState({ content: `Clicked ${count} time${count === 1 ? '' : 's'}` });
   },
 });
 
 mount('body', card);
 ```
 
----
+## API
 
-## 🧱 API
+### `em.<Name>(props)`
 
-### `em.[ComponentName](props)`
+Returns a custom element `em-<name>` (registered on first access). The name must match `/^[A-Za-z][A-Za-z0-9_-]*$/`, otherwise a `TypeError` is thrown.
 
-Creates a new component instance. You can use any name (e.g. `Card`, `Paragraph`, `Button`, etc.) — it automatically registers a custom element `em-[componentname]`.
+| Prop        | Type                             | Description                                                               |
+| ----------- | -------------------------------- | ------------------------------------------------------------------------- |
+| `tag`       | `string`                         | Element rendered inside the shadow root. Default `div`.                   |
+| `content`   | `string`                         | Text content. Never parsed as HTML.                                       |
+| `html`      | `string`                         | Raw HTML. Opt-in, do not pass untrusted input.                            |
+| `children`  | `Node[]`                         | Nodes appended after the content.                                         |
+| `style`     | `Partial<CSSStyleDeclaration>`   | Inline styles, applied through the CSSOM.                                 |
+| `ref`       | `(element: HTMLElement) => void` | Called once when the inner element is created.                            |
+| `on<event>` | `(event: Event) => void`         | Event listener, e.g. `onclick`, `oninput`. Event name is lowercased.      |
+| any other   | `string \| number \| boolean`    | Set as an attribute. `true` sets an empty attribute, `false`/`null` skip. |
 
-#### `props` (object)
+### `component.setState(partial)`
 
-| Property                | Type          | Description                                             |
-| ----------------------- | ------------- | ------------------------------------------------------- |
-| `tag`                   | `string`      | The HTML tag to render (optional, default is `"div"`).  |
-| `content`               | `string`      | Inner text/HTML content (optional).                     |
-| `children`              | `component[]` | Nested components (optional).                           |
-| `style`                 | `object`      | CSS styles as an object (optional).                     |
-| `props`                 | `object`      | HTML element attributes (e.g.`placeholder`,`src`, etc). |
-| `onclick`(or any event) | `function`    | Event listeners (optional).                             |
+Merges `partial` into the current props and updates the inner element in place. The element is reused while `tag` stays the same, so focus and input values survive updates. Attributes, styles and listeners that are no longer present are removed.
 
----
+### `mount(target, ...nodes)`
 
-### `mount(target, ...components)`
+Appends nodes to `target` (a CSS selector or an `Element`) and returns the container. Throws if the selector matches nothing.
 
-Mounts one or more components into the DOM.
+## Notes
 
-- `target`: A CSS selector or DOM element (e.g. `"body"` or `"#app"`).
-- `components`: Any number of components created via `em.ComponentName()`.
+- The library can be imported without a DOM (SSR, Node tooling). Components can only be created in a browser-like environment.
+- Content lives in a Shadow DOM: global styles do not apply, and form controls inside it do not participate in an outer `<form>`.
 
----
+## Development
 
-## 🧠 Component State
-
-Each component has a `setState(newProps)` method that updates its props and re-renders the content.
-
-```js
-card.setState({ content: 'Updated!' });
+```bash
+npm ci
+npm run lint
+npm run typecheck
+npm test
+npm run build
 ```
 
----
+Tests run on Vitest with happy-dom and enforce 100% coverage.
 
-## 🧩 Example Components
+## Release
 
-```js
-const heading = em.Heading({
-  tag: 'h1',
-  content: 'Welcome to ECMact',
-  style: { textAlign: 'center', color: '#333' },
-});
+Push a tag matching `v*`. The release workflow publishes to npm with provenance via trusted publishing; configure the trusted publisher for `ecmact` on npmjs.com first.
 
-const button = em.Button({
-  content: 'Click me',
-  onclick: () => alert('Hello!'),
-  style: { padding: '10px', backgroundColor: '#4CAF50', color: '#fff' },
-});
-```
+## License
 
----
-
-## 🧪 Development
-
-The `ecmact` core is built using:
-
-- Native Web Components (`HTMLElement`)
-- Shadow DOM encapsulation
-- Custom event + style handling
-
-You can extend components easily or register custom ones using the same proxy-based approach.
+MIT
