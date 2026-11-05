@@ -1,30 +1,19 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "target": "ES2022",
     "module": "ESNext",
-    "declaration": true,
-    "declarationDir": "dist/types",
-    "emitDeclarationOnly": false,
-    "resolveJsonModule": true,
-    "outDir": "dist",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "strict": true,
-    "noImplicitAny": false,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmitOnError": false,
-    "jsx": "react-jsx",
-    "moduleResolution": "node",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
     "isolatedModules": true,
-    "baseUrl": "./",
-    "paths": {
-      "@utils": ["src/utils"],
-      "@types": ["src/types"]
-    },
-    "types": ["node"],
-    "sourceMap": true
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "types": []
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist", "tests"]
+  "include": ["src", "tests"]
 }

@@ -1,2 +1,2 @@
 export { em } from './em';
-export { mount } from '@utils';
+export { mount } from './utils';

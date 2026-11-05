@@ -6,5 +6,5 @@ export interface ComponentProps {
   slots?: Record<string, string>;
   ref?: (element: HTMLElement) => void;
   customEvents?: Record<string, (event: Event) => void>;
-  [key: string]: any;
+  [key: string]: unknown;
 }

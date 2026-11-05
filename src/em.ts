@@ -1,5 +1,5 @@
 import { component } from './component';
-import type { ComponentProps } from '@types';
+import type { ComponentProps } from './types';
 
 interface ComponentRegistry {
   [key: string]: (props: ComponentProps) => component;

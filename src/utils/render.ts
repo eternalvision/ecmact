@@ -1,9 +1,16 @@
+import type { ComponentProps } from '../types';
 import { generateAttributes } from './generateAttributes';
 
-export const render = ({ props, shadowRoot, generateStyle }) => {
+interface RenderOptions {
+  props: ComponentProps;
+  shadowRoot: ShadowRoot;
+  generateStyle: () => string;
+}
+
+export const render = ({ props, shadowRoot, generateStyle }: RenderOptions) => {
   const { content = '', tag = 'div', children = [] } = props;
 
-  shadowRoot!.innerHTML = `
+  shadowRoot.innerHTML = `
       ${generateStyle()}
       <${tag} ${generateAttributes({ props })}>
         ${content.length > 0 ? content : ''}
@@ -11,6 +18,6 @@ export const render = ({ props, shadowRoot, generateStyle }) => {
       </${tag}>
     `;
 
-  const slot = shadowRoot!.querySelector('slot') as HTMLSlotElement;
-  children.forEach((child: any) => slot.appendChild(child));
+  const slot = shadowRoot.querySelector('slot');
+  children.forEach((child) => slot?.appendChild(child));
 };

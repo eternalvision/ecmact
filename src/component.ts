@@ -1,19 +1,20 @@
-import type { ComponentProps } from '@types';
-import { setEventListeners, generateStyle, render } from '@utils';
+import type { ComponentProps } from './types';
+import { setEventListeners, generateStyle, render } from './utils';
 
 export class component extends HTMLElement {
   private _props: ComponentProps;
+  readonly #root: ShadowRoot;
 
   constructor(props: ComponentProps = {}) {
     super();
-    this.attachShadow({ mode: 'open' });
+    this.#root = this.attachShadow({ mode: 'open' });
     this._props = props;
   }
 
   #setEventListeners() {
     return setEventListeners({
       props: this.props,
-      shadowRoot: this.shadowRoot,
+      shadowRoot: this.#root,
     });
   }
 
@@ -25,7 +26,7 @@ export class component extends HTMLElement {
   #render() {
     return render({
       props: this._props,
-      shadowRoot: this.shadowRoot,
+      shadowRoot: this.#root,
       generateStyle: () => this.#generateStyle(),
     });
   }
