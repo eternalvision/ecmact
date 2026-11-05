@@ -3,8 +3,8 @@ import { render } from './utils';
 
 const Base = typeof HTMLElement === 'undefined' ? (class {} as typeof HTMLElement) : HTMLElement;
 
-export class Component extends Base {
-  #props: ComponentProps;
+export class Component<K extends string = string> extends Base {
+  #props: ComponentProps<K>;
   readonly #root: ShadowRoot;
   readonly #state: RenderState = {
     element: null,
@@ -13,7 +13,7 @@ export class Component extends Base {
     listeners: new Map(),
   };
 
-  constructor(props: ComponentProps = {}) {
+  constructor(props: ComponentProps<K> = {} as ComponentProps<K>) {
     super();
     this.#root = this.attachShadow({ mode: 'open' });
     this.#props = props;
@@ -23,20 +23,20 @@ export class Component extends Base {
     if (!this.#state.element) this.#render();
   }
 
-  setState(newProps: Partial<ComponentProps>) {
-    this.props = { ...this.#props, ...newProps };
+  setState(newProps: Partial<ComponentProps<K>>) {
+    this.props = { ...this.#props, ...newProps } as ComponentProps<K>;
   }
 
   get props() {
     return this.#props;
   }
 
-  set props(newProps: ComponentProps) {
+  set props(newProps: ComponentProps<K>) {
     this.#props = newProps;
     this.#render();
   }
 
   #render() {
-    render(this.#root, this.#props, this.#state);
+    render(this.#root, this.#props as ComponentProps, this.#state);
   }
 }

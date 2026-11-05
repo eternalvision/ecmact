@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { em, type Component } from '../src';
 
-const inner = (component: Component) => component.shadowRoot!.firstElementChild as HTMLElement;
+const inner = (component: HTMLElement) => component.shadowRoot!.firstElementChild as HTMLElement;
 
 describe('render', () => {
   it('renders a div with text content by default', () => {
@@ -59,7 +59,13 @@ describe('attributes', () => {
   });
 
   it('sets boolean true as empty attribute and skips false, null and objects', () => {
-    const input = em.Field({ tag: 'input', disabled: true, hidden: false, id: null, data: {} });
+    const input = em.Field({
+      tag: 'input',
+      disabled: true,
+      hidden: false,
+      id: null as unknown as string,
+      data: {},
+    } as never);
     expect(inner(input).getAttribute('disabled')).toBe('');
     expect(inner(input).hasAttribute('hidden')).toBe(false);
     expect(inner(input).hasAttribute('id')).toBe(false);
@@ -87,13 +93,13 @@ describe('attributes', () => {
 
 describe('style', () => {
   it('applies camelCase styles as css properties', () => {
-    const card = em.Card({ style: { backgroundColor: 'red', zIndex: 2 as unknown as string } });
+    const card = em.Card({ style: { backgroundColor: 'red', zIndex: 2 } });
     expect(inner(card).style.getPropertyValue('background-color')).toBe('red');
     expect(inner(card).style.getPropertyValue('z-index')).toBe('2');
   });
 
   it('ignores non-primitive style values', () => {
-    const card = em.Card({ style: { color: undefined, margin: {} as unknown as string } });
+    const card = em.Card({ style: { color: undefined, margin: {} as never } });
     expect(inner(card).getAttribute('style') ?? '').toBe('');
   });
 
@@ -170,7 +176,12 @@ describe('state', () => {
   });
 
   it('recreates the element when the tag changes', () => {
-    const card = em.Card({ tag: 'div', onclick: vi.fn(), title: 'a', style: { color: 'red' } });
+    const card = em.Card({
+      tag: 'div' as string,
+      onclick: vi.fn(),
+      title: 'a',
+      style: { color: 'red' },
+    });
     const before = inner(card);
     card.setState({ tag: 'section' });
     expect(inner(card)).not.toBe(before);

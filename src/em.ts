@@ -1,7 +1,7 @@
 import { Component } from './component';
 import type { ComponentProps } from './types';
 
-type ComponentFactory = (props?: ComponentProps) => Component;
+type ComponentFactory = <K extends string = 'div'>(props?: ComponentProps<K>) => Component<K>;
 
 type ComponentRegistry = Record<string, ComponentFactory>;
 
@@ -21,8 +21,8 @@ const em: ComponentRegistry = new Proxy({} as ComponentRegistry, {
       customElements.define(tagName, class extends Component {});
     }
 
-    return (props: ComponentProps = {}) => {
-      const element = document.createElement(tagName) as Component;
+    return <K extends string = 'div'>(props: ComponentProps<K> = {} as ComponentProps<K>) => {
+      const element = document.createElement(tagName) as Component<K>;
       element.props = props;
       return element;
     };

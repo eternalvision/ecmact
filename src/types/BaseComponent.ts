@@ -1,17 +1,45 @@
+import type { AttributeMap, GlobalAttributes } from './attributes';
+
 export type TagName = keyof HTMLElementTagNameMap | (string & {});
 
-export type EventHandler = (event: Event) => void;
+type ElementOf<K extends string> = K extends keyof HTMLElementTagNameMap
+  ? HTMLElementTagNameMap[K]
+  : HTMLElement;
 
-export interface ComponentProps {
-  tag?: TagName;
+type StyleProps = {
+  [
+    P in keyof CSSStyleDeclaration as P extends string
+      ? CSSStyleDeclaration[P] extends string
+        ? P
+        : never
+      : never
+  ]?: string | number;
+};
+
+type EventHandlers = {
+  [E in keyof HTMLElementEventMap as `on${E}`]?:
+    ((event: HTMLElementEventMap[E]) => void) | undefined;
+};
+
+interface BaseProps<K extends string> {
+  tag?: K;
   content?: string;
   html?: string;
-  style?: Partial<CSSStyleDeclaration>;
+  style?: StyleProps;
   children?: Node[];
-  ref?: (element: HTMLElement) => void;
-  [handler: `on${string}`]: EventHandler | undefined;
-  [attribute: string]: unknown;
+  ref?: (element: ElementOf<K>) => void;
 }
+
+type TagAttributes<K extends string> = K extends keyof AttributeMap
+  ? AttributeMap[K]
+  : K extends keyof HTMLElementTagNameMap
+    ? unknown
+    : { [attribute: string]: unknown };
+
+export type ComponentProps<K extends string = string> = BaseProps<K> &
+  GlobalAttributes &
+  EventHandlers &
+  TagAttributes<K>;
 
 export interface RenderState {
   element: HTMLElement | null;
