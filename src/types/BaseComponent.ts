@@ -1,10 +1,21 @@
+export type TagName = keyof HTMLElementTagNameMap | (string & {});
+
+export type EventHandler = (event: Event) => void;
+
 export interface ComponentProps {
+  tag?: TagName;
   content?: string;
-  tag?: string;
+  html?: string;
   style?: Partial<CSSStyleDeclaration>;
-  children?: HTMLElement[];
-  slots?: Record<string, string>;
+  children?: Node[];
   ref?: (element: HTMLElement) => void;
-  customEvents?: Record<string, (event: Event) => void>;
-  [key: string]: unknown;
+  [handler: `on${string}`]: EventHandler | undefined;
+  [attribute: string]: unknown;
+}
+
+export interface RenderState {
+  element: HTMLElement | null;
+  attributes: Set<string>;
+  styles: Set<string>;
+  listeners: Map<string, EventListener>;
 }

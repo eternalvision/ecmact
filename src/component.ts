@@ -1,55 +1,42 @@
-import type { ComponentProps } from './types';
-import { setEventListeners, generateStyle, render } from './utils';
+import type { ComponentProps, RenderState } from './types';
+import { render } from './utils';
 
-export class component extends HTMLElement {
-  private _props: ComponentProps;
+const Base = typeof HTMLElement === 'undefined' ? (class {} as typeof HTMLElement) : HTMLElement;
+
+export class Component extends Base {
+  #props: ComponentProps;
   readonly #root: ShadowRoot;
+  readonly #state: RenderState = {
+    element: null,
+    attributes: new Set(),
+    styles: new Set(),
+    listeners: new Map(),
+  };
 
   constructor(props: ComponentProps = {}) {
     super();
     this.#root = this.attachShadow({ mode: 'open' });
-    this._props = props;
-  }
-
-  #setEventListeners() {
-    return setEventListeners({
-      props: this.props,
-      shadowRoot: this.#root,
-    });
-  }
-
-  #generateStyle() {
-    const { style = {}, tag = 'div' } = this.props;
-    return generateStyle({ style, tag });
-  }
-
-  #render() {
-    return render({
-      props: this._props,
-      shadowRoot: this.#root,
-      generateStyle: () => this.#generateStyle(),
-    });
+    this.#props = props;
   }
 
   connectedCallback() {
-    this.#render();
-    this.#setEventListeners();
+    if (!this.#state.element) this.#render();
   }
 
   setState(newProps: Partial<ComponentProps>) {
-    this.props = {
-      ...this._props,
-      ...newProps,
-    };
+    this.props = { ...this.#props, ...newProps };
   }
 
   get props() {
-    return this._props;
+    return this.#props;
   }
 
   set props(newProps: ComponentProps) {
-    this._props = newProps;
+    this.#props = newProps;
     this.#render();
-    this.#setEventListeners();
+  }
+
+  #render() {
+    render(this.#root, this.#props, this.#state);
   }
 }

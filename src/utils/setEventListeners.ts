@@ -1,15 +1,21 @@
 import type { ComponentProps } from '../types';
 
-interface SetEventListenersOptions {
-  props: ComponentProps;
-  shadowRoot: ShadowRoot;
-}
+export const setEventListeners = (
+  element: HTMLElement,
+  props: ComponentProps,
+  previous: Map<string, EventListener>,
+) => {
+  previous.forEach((listener, event) => element.removeEventListener(event, listener));
 
-export const setEventListeners = ({ props, shadowRoot }: SetEventListenersOptions) => {
+  const next = new Map<string, EventListener>();
+
   Object.entries(props).forEach(([key, value]) => {
     if (key.startsWith('on') && typeof value === 'function') {
-      const event = key.slice(2).toLowerCase();
-      shadowRoot.querySelector(props.tag || 'div')?.addEventListener(event, value as EventListener);
+      next.set(key.slice(2).toLowerCase(), value as EventListener);
     }
   });
+
+  next.forEach((listener, event) => element.addEventListener(event, listener));
+
+  return next;
 };

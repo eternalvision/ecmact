@@ -1,1 +1,1 @@
-export type { ComponentProps } from './BaseComponent';
+export type { ComponentProps, EventHandler, RenderState, TagName } from './BaseComponent';

@@ -1,5 +1,5 @@
-export { setEventListeners } from './setEventListeners';
-export { generateStyle } from './generateStyle';
-export { generateAttributes } from './generateAttributes';
-export { render } from './render';
+export { applyStyle } from './applyStyle';
 export { mount } from './mount';
+export { render } from './render';
+export { setEventListeners } from './setEventListeners';
+export { syncAttributes } from './syncAttributes';
