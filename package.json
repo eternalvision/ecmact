@@ -2,29 +2,32 @@
   "name": "ecmact",
   "version": "1.0.1",
   "description": "Dynamic components library using Vite Vanilla and Web Components",
-  "main": "dist/index.cjs.js",
-  "module": "dist/index.es.js",
-  "types": "dist/types/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "type": "module",
   "exports": {
     ".": {
-      "import": "./dist/index.es.js",
-      "require": "./dist/index.cjs.js",
-      "types": "./dist/types/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     }
   },
   "files": [
     "dist"
   ],
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=22.12.0"
   },
   "scripts": {
     "build": "vite build",
-    "test": "vitest",
-    "lint": "eslint . --ext .ts --fix",
-    "format": "prettier --write \"src/**/*.{ts,js,json,css,md}\"",
-    "release": "npm publish --access public"
+    "typecheck": "tsc",
+    "test": "vitest run --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "vite",
@@ -38,7 +41,9 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^22.20.5",
+    "@vitest/coverage-v8": "^5.1.0",
     "eslint": "^10.14.0",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.7",
     "happy-dom": "^21.0.4",
     "jiti": "^2.7.0",
@@ -52,5 +57,10 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/eternalvision/ecmact.git"
-  }
+  },
+  "sideEffects": false,
+  "bugs": {
+    "url": "https://github.com/eternalvision/ecmact/issues"
+  },
+  "homepage": "https://github.com/eternalvision/ecmact#readme"
 }
