@@ -62,5 +62,9 @@
   "bugs": {
     "url": "https://github.com/eternalvision/ecmact/issues"
   },
-  "homepage": "https://github.com/eternalvision/ecmact#readme"
+  "homepage": "https://github.com/eternalvision/ecmact#readme",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
 }
