@@ -1626,8 +1626,8 @@ Releases are published from CI with npm trusted publishing and provenance. Each 
 
 | Package         | Tag pattern            | Workflow             |
 | --------------- | ---------------------- | -------------------- |
-| `ecmact`        | `v2.3.0`               | `release.yml`        |
-| `create-ecmact` | `create-ecmact-v0.2.1` | `release-create.yml` |
+| `ecmact`        | `v2.4.0`               | `release.yml`        |
+| `create-ecmact` | `create-ecmact-v0.3.0` | `release-create.yml` |
 
 ```bash
 npm version <patch|minor|major> --no-git-tag-version
