@@ -3,6 +3,7 @@ import dts from 'vite-plugin-dts';
 
 export default defineConfig({
   publicDir: false,
+  resolve: { tsconfigPaths: true },
   plugins: [dts({ entryRoot: 'src', include: ['src'], tsconfigPath: 'tsconfig.json' })],
   test: {
     environment: 'happy-dom',

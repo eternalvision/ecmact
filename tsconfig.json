@@ -16,7 +16,12 @@
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": []
+    "types": [],
+    "paths": {
+      "@em": ["./src/index.ts"],
+      "@em/*": ["./src/*"],
+      "@tests/*": ["./tests/*"]
+    }
   },
   "include": ["src", "tests", "vite.config.ts", "eslint.config.ts"]
 }
