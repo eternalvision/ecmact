@@ -1,6 +1,6 @@
-import type { Component } from './component';
-import { createFactory, isIgnoredKey } from './em';
-import type { ComponentProps } from './types';
+import type { Component } from '@em/component';
+import { createFactory, isIgnoredKey } from '@em/em';
+import type { ComponentProps } from '@em/types';
 
 type TagFactories = {
   [K in keyof HTMLElementTagNameMap]: (props?: Omit<ComponentProps<K>, 'tag'>) => Component<K>;

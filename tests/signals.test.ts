@@ -8,7 +8,7 @@ import {
   untracked,
   type ReadonlySignal,
   type Signal,
-} from '../src/signals';
+} from '@em/signals';
 
 describe('signal', () => {
   it('holds a value', () => {

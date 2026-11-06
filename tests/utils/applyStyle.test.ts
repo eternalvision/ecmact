@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { applyStyle } from '../../src/utils/applyStyle';
-import { resetWarnings } from '../../src/utils/warn';
+import { applyStyle } from '@em/utils/applyStyle';
+import { resetWarnings } from '@em/utils/warn';
 
 let spy: ReturnType<typeof vi.spyOn>;
 

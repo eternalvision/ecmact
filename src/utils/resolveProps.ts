@@ -1,5 +1,5 @@
-import { isSignal } from '../signals';
-import type { ComponentProps, ResolvedProps } from '../types';
+import { isSignal } from '@em/signals';
+import type { ComponentProps, ResolvedProps } from '@em/types';
 
 const unwrap = (value: unknown) => (isSignal(value) ? value.value : value);
 

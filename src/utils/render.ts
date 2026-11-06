@@ -1,9 +1,9 @@
-import type { ResolvedProps, RenderState } from '../types';
-import { applyStyle } from './applyStyle';
-import { applyStyleSheets } from './applyStyleSheets';
-import { setEventListeners } from './setEventListeners';
-import { syncAttributes } from './syncAttributes';
-import { warn } from './warn';
+import type { ResolvedProps, RenderState } from '@em/types';
+import { applyStyle } from '@em/utils/applyStyle';
+import { applyStyleSheets } from '@em/utils/applyStyleSheets';
+import { setEventListeners } from '@em/utils/setEventListeners';
+import { syncAttributes } from '@em/utils/syncAttributes';
+import { warn } from '@em/utils/warn';
 
 const createElement = (tag: string, state: RenderState) => {
   state.attributes = new Set();

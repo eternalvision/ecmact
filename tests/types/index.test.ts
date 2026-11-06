@@ -5,7 +5,7 @@ import type {
   GlobalAttributes,
   RenderState,
   TagName,
-} from '../../src/types';
+} from '@em/types';
 
 describe('types', () => {
   it('re-exports the public types', () => {

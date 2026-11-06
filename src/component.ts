@@ -1,8 +1,8 @@
-import { getConfig, type ErrorPhase } from './config';
-import { contextRequestEvent, type ContextRequest } from './context';
-import { effect, untracked } from './signals';
-import type { ComponentProps, RenderState, ResolvedProps } from './types';
-import { propsEqual, render, resolveProps, warn } from './utils';
+import { getConfig, type ErrorPhase } from '@em/config';
+import { contextRequestEvent, type ContextRequest } from '@em/context';
+import { effect, untracked } from '@em/signals';
+import type { ComponentProps, RenderState, ResolvedProps } from '@em/types';
+import { propsEqual, render, resolveProps, warn } from '@em/utils';
 
 const Base =
   typeof HTMLElement === 'undefined' ? (Object as unknown as typeof HTMLElement) : HTMLElement;

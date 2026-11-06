@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import * as utils from '../../src/utils';
+import * as utils from '@em/utils';
 
 describe('utils', () => {
   it('exports the internal helpers', () => {

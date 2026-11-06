@@ -1,5 +1,5 @@
-import type { ResolvedProps } from '../types';
-import { warn } from './warn';
+import type { ResolvedProps } from '@em/types';
+import { warn } from '@em/utils/warn';
 
 const reservedKeys = new Set([
   'tag',

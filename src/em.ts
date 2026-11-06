@@ -1,5 +1,5 @@
-import { Component } from './component';
-import type { ComponentProps } from './types';
+import { Component } from '@em/component';
+import type { ComponentProps } from '@em/types';
 
 type ComponentFactory = <K extends string = 'div'>(props?: ComponentProps<K>) => Component<K>;
 

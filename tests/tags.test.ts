@@ -1,6 +1,6 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest';
-import { tags, type Component } from '../src';
-import { inner } from './helpers';
+import { tags, type Component } from '@em';
+import { inner } from '@tests/helpers';
 
 describe('tags', () => {
   it('renders the named tag', () => {

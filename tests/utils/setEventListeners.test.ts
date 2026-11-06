@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { setEventListeners } from '../../src/utils/setEventListeners';
-import { resetWarnings } from '../../src/utils/warn';
+import { setEventListeners } from '@em/utils/setEventListeners';
+import { resetWarnings } from '@em/utils/warn';
 
 let spy: ReturnType<typeof vi.spyOn>;
 

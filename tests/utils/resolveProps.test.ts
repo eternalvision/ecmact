@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { computed, signal } from '../../src';
-import { resolveProps } from '../../src/utils/resolveProps';
+import { computed, signal } from '@em';
+import { resolveProps } from '@em/utils/resolveProps';
 
 describe('resolveProps', () => {
   it('passes plain values through', () => {

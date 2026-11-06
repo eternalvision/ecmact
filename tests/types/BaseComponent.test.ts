@@ -7,7 +7,7 @@ import {
   type Component,
   type ComponentProps,
   type ResolvedProps,
-} from '../../src';
+} from '@em';
 
 describe('ComponentProps', () => {
   it('types event handlers by event name', () => {

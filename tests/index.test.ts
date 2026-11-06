@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import * as lib from '../src';
+import * as lib from '@em';
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -28,7 +28,7 @@ describe('public API', () => {
   it('can be imported without a DOM', async () => {
     vi.stubGlobal('HTMLElement', undefined);
     vi.resetModules();
-    const withoutDom = await import('../src');
+    const withoutDom = await import('@em');
     expect(Object.keys(withoutDom).sort()).toEqual([
       'batch',
       'computed',

@@ -1,5 +1,5 @@
-import { getConfig, type StyleSource } from '../config';
-import type { RenderState } from '../types';
+import { getConfig, type StyleSource } from '@em/config';
+import type { RenderState } from '@em/types';
 
 const sharedCache = new WeakMap<StyleSource[], CSSStyleSheet[]>();
 const hoisted = new WeakSet<StyleSource[]>();

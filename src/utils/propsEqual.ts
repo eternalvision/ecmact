@@ -1,4 +1,4 @@
-import type { ResolvedProps } from '../types';
+import type { ResolvedProps } from '@em/types';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;

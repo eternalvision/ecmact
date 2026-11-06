@@ -1,7 +1,7 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
-import { em, type Component } from '../src';
-import { createFactory, isIgnoredKey } from '../src/em';
-import { inner } from './helpers';
+import { em, type Component } from '@em';
+import { createFactory, isIgnoredKey } from '@em/em';
+import { inner } from '@tests/helpers';
 
 describe('em', () => {
   it('registers a lowercase custom element once per name', () => {

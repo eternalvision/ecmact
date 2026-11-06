@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { configure, getConfig, resetConfig } from '../src/config';
+import { configure, getConfig, resetConfig } from '@em/config';
 
 afterEach(() => {
   resetConfig();

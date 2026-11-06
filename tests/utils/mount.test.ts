@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { em, mount } from '../../src';
+import { em, mount } from '@em';
 
 afterEach(() => {
   document.body.replaceChildren();

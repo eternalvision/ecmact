@@ -1,8 +1,8 @@
-import type { Component } from '../component';
-import type { ErrorHandler } from '../config';
-import type { Provision } from '../context';
-import type { ReadonlySignal } from '../signals';
-import type { AttributeMap, GlobalAttributes } from './attributes';
+import type { Component } from '@em/component';
+import type { ErrorHandler } from '@em/config';
+import type { Provision } from '@em/context';
+import type { ReadonlySignal } from '@em/signals';
+import type { AttributeMap, GlobalAttributes } from '@em/types/attributes';
 
 export type TagName = keyof HTMLElementTagNameMap | (string & {});
 

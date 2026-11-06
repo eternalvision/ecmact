@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { syncAttributes } from '../../src/utils/syncAttributes';
-import { resetWarnings } from '../../src/utils/warn';
+import { syncAttributes } from '@em/utils/syncAttributes';
+import { resetWarnings } from '@em/utils/warn';
 
 let spy: ReturnType<typeof vi.spyOn>;
 

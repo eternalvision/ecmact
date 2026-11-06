@@ -1,17 +1,17 @@
-export { em } from './em';
-export { tags } from './tags';
-export { configure } from './config';
-export { consume, createContext, provide } from './context';
-export { batch, computed, effect, isSignal, signal, untracked } from './signals';
-export type { ReadonlySignal, Signal } from './signals';
-export type { Config, ErrorHandler, ErrorInfo, ErrorPhase, StyleSource } from './config';
-export type { Context, Provision } from './context';
-export { mount } from './utils';
-export type { Component } from './component';
+export { em } from '@em/em';
+export { tags } from '@em/tags';
+export { configure } from '@em/config';
+export { consume, createContext, provide } from '@em/context';
+export { batch, computed, effect, isSignal, signal, untracked } from '@em/signals';
+export type { ReadonlySignal, Signal } from '@em/signals';
+export type { Config, ErrorHandler, ErrorInfo, ErrorPhase, StyleSource } from '@em/config';
+export type { Context, Provision } from '@em/context';
+export { mount } from '@em/utils';
+export type { Component } from '@em/component';
 export type {
   AttributeMap,
   ComponentProps,
   GlobalAttributes,
   ResolvedProps,
   TagName,
-} from './types';
+} from '@em/types';

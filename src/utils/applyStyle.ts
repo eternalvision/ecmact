@@ -1,5 +1,5 @@
-import type { ResolvedProps } from '../types';
-import { warn } from './warn';
+import type { ResolvedProps } from '@em/types';
+import { warn } from '@em/utils/warn';
 
 const toKebabCase = (key: string) => key.replace(/([A-Z])/g, '-$1').toLowerCase();
 

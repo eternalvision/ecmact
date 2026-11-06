@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { propsEqual } from '../../src/utils/propsEqual';
+import { propsEqual } from '@em/utils/propsEqual';
 
 describe('propsEqual', () => {
   it('is true for the same values', () => {

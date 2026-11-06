@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { computed, consume, createContext, effect, em, provide, signal, tags } from '../src';
-import { resetConfig, configure } from '../src/config';
-import { resetWarnings } from '../src/utils/warn';
-import { inner } from './helpers';
+import { computed, consume, createContext, effect, em, provide, signal, tags } from '@em';
+import { resetConfig, configure } from '@em/config';
+import { resetWarnings } from '@em/utils/warn';
+import { inner } from '@tests/helpers';
 
 let spy: ReturnType<typeof vi.spyOn>;
 

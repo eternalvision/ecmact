@@ -1,6 +1,6 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
-import { em } from '../../src';
-import type { AttributeMap, GlobalAttributes } from '../../src/types';
+import { em } from '@em';
+import type { AttributeMap, GlobalAttributes } from '@em/types';
 
 describe('AttributeMap', () => {
   it('only describes standard tags', () => {

@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render } from '../../src/utils/render';
-import { resetWarnings } from '../../src/utils/warn';
-import type { ResolvedProps } from '../../src';
-import { createRoot, createState } from '../helpers';
+import { render } from '@em/utils/render';
+import { resetWarnings } from '@em/utils/warn';
+import type { ResolvedProps } from '@em';
+import { createRoot, createState } from '@tests/helpers';
 
 let spy: ReturnType<typeof vi.spyOn>;
 

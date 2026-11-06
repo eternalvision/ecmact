@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { configure } from '../../src';
-import { resetConfig } from '../../src/config';
-import { applyStyleSheets } from '../../src/utils/applyStyleSheets';
-import { createRoot, createState } from '../helpers';
+import { configure } from '@em';
+import { resetConfig } from '@em/config';
+import { applyStyleSheets } from '@em/utils/applyStyleSheets';
+import { createRoot, createState } from '@tests/helpers';
 
 const rules = (sheet: CSSStyleSheet) => Array.from(sheet.cssRules, (rule) => rule.cssText).join('');
 const property = '@property --tw-x { syntax: "*"; inherits: false; }';

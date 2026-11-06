@@ -1,4 +1,4 @@
-import type { RenderState } from '../src/types';
+import type { RenderState } from '@em/types';
 
 export const createState = (): RenderState => ({
   element: null,

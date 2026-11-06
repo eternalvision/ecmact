@@ -1,9 +1,9 @@
-export { applyStyle } from './applyStyle';
-export { applyStyleSheets } from './applyStyleSheets';
-export { mount } from './mount';
-export { propsEqual } from './propsEqual';
-export { render } from './render';
-export { resolveProps } from './resolveProps';
-export { setEventListeners } from './setEventListeners';
-export { syncAttributes } from './syncAttributes';
-export { resetWarnings, warn } from './warn';
+export { applyStyle } from '@em/utils/applyStyle';
+export { applyStyleSheets } from '@em/utils/applyStyleSheets';
+export { mount } from '@em/utils/mount';
+export { propsEqual } from '@em/utils/propsEqual';
+export { render } from '@em/utils/render';
+export { resolveProps } from '@em/utils/resolveProps';
+export { setEventListeners } from '@em/utils/setEventListeners';
+export { syncAttributes } from '@em/utils/syncAttributes';
+export { resetWarnings, warn } from '@em/utils/warn';

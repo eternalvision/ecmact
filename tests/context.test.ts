@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { consume, createContext, provide } from '../src';
-import { contextRequestEvent } from '../src/context';
+import { consume, createContext, provide } from '@em';
+import { contextRequestEvent } from '@em/context';
 
 describe('createContext', () => {
   it('creates contexts with a name and a unique id', () => {
