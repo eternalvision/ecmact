@@ -23,6 +23,7 @@ ECMact is a small component library built on native Web Components. Every compon
 - [Tag factories](#tag-factories)
 - [Props reference](#props-reference)
 - [Content and children](#content-and-children)
+- [Lists and keys](#lists-and-keys)
 - [Attributes](#attributes)
 - [Styles](#styles)
 - [Stylesheets and Tailwind CSS](#stylesheets-and-tailwind-css)
@@ -152,24 +153,25 @@ Use `em.<Name>` for components that deserve their own name in devtools (`em.User
 
 ## Props reference
 
-| Prop           | Type                                            | Default | Description                                                     |
-| -------------- | ----------------------------------------------- | ------- | --------------------------------------------------------------- |
-| `tag`          | `string`                                        | `'div'` | Tag name of the inner element.                                  |
-| `content`      | `string`                                        | `''`    | Text content. Never parsed as HTML.                             |
-| `html`         | `string`                                        | -       | Raw HTML for the inner element. Opt-in, trusted input only.     |
-| `children`     | `Node[]`                                        | `[]`    | Nodes appended after the content.                               |
-| `style`        | object of CSS properties                        | -       | Inline styles, camelCase keys.                                  |
-| `css`          | `string`                                        | -       | Stylesheet text scoped to this component's shadow root.         |
-| `ref`          | `(element) => void`                             | -       | Called once, when the inner element is created.                 |
-| `shadow`       | `boolean`                                       | `true`  | `false` renders into the light DOM. Read on the first render.   |
-| `mounted`      | `(element, component) => void \| (() => void)`  | -       | Called when connected to the document; may return a cleanup.    |
-| `unmounted`    | `(element, component) => void`                  | -       | Called when the component is disconnected from the document.    |
-| `beforeUpdate` | `(next, current, component) => boolean \| void` | -       | Return `false` to cancel an update.                             |
-| `updated`      | `(element, component, previous) => void`        | -       | Called after every render except the first.                     |
-| `error`        | `(error, info) => void`                         | -       | Receives errors from hooks, handlers and rendering.             |
-| `provide`      | `Provision[]`                                   | -       | Values this component offers to the components below it.        |
-| `on<event>`    | `(event) => void`                               | -       | Event listener on the inner element, lowercase, e.g. `onclick`. |
-| any other      | `string \| number \| boolean`                   | -       | Set as an HTML attribute on the inner element.                  |
+| Prop           | Type                                                           | Default | Description                                                                        |
+| -------------- | -------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------- |
+| `tag`          | `string`                                                       | `'div'` | Tag name of the inner element.                                                     |
+| `content`      | `string`                                                       | `''`    | Text content. Never parsed as HTML.                                                |
+| `html`         | `string`                                                       | -       | Raw HTML for the inner element. Opt-in, trusted input only.                        |
+| `children`     | `(Node \| string \| number \| boolean \| null \| undefined)[]` | `[]`    | Nodes and text appended after the content. Empty values are skipped.               |
+| `key`          | `string \| number`                                             | -       | Identity of a component among its siblings, see [Lists and keys](#lists-and-keys). |
+| `style`        | object of CSS properties                                       | -       | Inline styles, camelCase keys.                                                     |
+| `css`          | `string`                                                       | -       | Stylesheet text scoped to this component's shadow root.                            |
+| `ref`          | `(element) => void`                                            | -       | Called once, when the inner element is created.                                    |
+| `shadow`       | `boolean`                                                      | `true`  | `false` renders into the light DOM. Read on the first render.                      |
+| `mounted`      | `(element, component) => void \| (() => void)`                 | -       | Called when connected to the document; may return a cleanup.                       |
+| `unmounted`    | `(element, component) => void`                                 | -       | Called when the component is disconnected from the document.                       |
+| `beforeUpdate` | `(next, current, component) => boolean \| void`                | -       | Return `false` to cancel an update.                                                |
+| `updated`      | `(element, component, previous) => void`                       | -       | Called after every render except the first.                                        |
+| `error`        | `(error, info) => void`                                        | -       | Receives errors from hooks, handlers and rendering.                                |
+| `provide`      | `Provision[]`                                                  | -       | Values this component offers to the components below it.                           |
+| `on<event>`    | `(event) => void`                                              | -       | Event listener on the inner element, lowercase, e.g. `onclick`.                    |
+| any other      | `string \| number \| boolean`                                  | -       | Set as an HTML attribute on the inner element.                                     |
 
 All props except `shadow`, `error`, `provide` and the lifecycle hooks apply to the inner element, not to the `<em-*>` host.
 
@@ -181,14 +183,36 @@ All props except `shadow`, `error`, `provide` and the lifecycle hooks apply to t
 em.Card({ content: '<b>not bold</b>' });
 ```
 
-`children` is an array of DOM nodes, appended after the content:
+`children` is an array of DOM nodes and text, appended after the content. Strings and numbers become text nodes, so text and elements can be mixed freely:
 
 ```ts
-em.Card({
-  content: 'Parent text',
-  children: [em.Card({ content: 'Child 1' }), em.Card({ content: 'Child 2' })],
+em.Paragraph({
+  tag: 'p',
+  children: ['See ', tags.a({ href: '/docs', content: 'the docs' }), ' for ', 3, ' examples.'],
 });
 ```
+
+`false`, `true`, `null` and `undefined` are skipped, which makes conditional rendering a plain expression:
+
+```ts
+tags.div({
+  children: [
+    tags.h2({ content: 'Inbox' }),
+    unread > 0 && tags.span({ content: `${unread} new` }),
+    loading ? 'Loading...' : null,
+  ],
+});
+```
+
+A signal among the children is read for its current value, so text can follow state. The array itself is not a signal:
+
+```ts
+const name = signal('Ada');
+
+tags.p({ children: ['Hello, ', name, '!'] });
+```
+
+`content` is a shorthand for a first text child: `content: 'a', children: ['b']` renders `ab`.
 
 `html` replaces the inner element's contents with parsed HTML. Children are appended after it. Use it only for trusted markup (see [Security model](#security-model)):
 
@@ -198,11 +222,59 @@ em.Card({ html: '<strong>trusted</strong> markup', children: [em.Card({ content:
 
 When `html` is set, `content` is ignored.
 
-Children passed to `children` are moved, not cloned: a node can have only one parent. On every update the inner element's children are replaced with the current `content` or `html` and the current `children` array.
+Nodes passed to `children` are moved, not cloned: a node can have only one parent.
+
+On every update the children are reconciled against what is already rendered rather than thrown away:
+
+- Text nodes are reused by position and only rewritten when the text changed.
+- Elements that are the same node as before stay where they are, and unchanged runs of nodes are not moved.
+- Components with a `key` are matched to their previous instance, see [Lists and keys](#lists-and-keys).
+- Everything else that was rendered before and is no longer in the list is removed.
+
+With `html`, the inner element's contents are replaced by the parsed HTML on every update, and the children are appended after it as plain nodes.
+
+## Lists and keys
+
+A component created in `children` is a new instance every time the list is built, so without further help every update replaces all of them: focus, typed input and any other state inside list items would be lost. Give each item a `key` that identifies it among its siblings, and ECMact keeps the existing instance instead:
+
+```ts
+const todos = signal([
+  { id: 1, title: 'Write docs' },
+  { id: 2, title: 'Ship it' },
+]);
+
+const list = tags.ul({
+  mounted: (_, component) =>
+    effect(() =>
+      component.setState({
+        children: todos.value.map((todo) => tags.li({ key: todo.id, content: todo.title })),
+      }),
+    ),
+});
+```
+
+When a new child has the same `key` and the same component name as one that is already rendered:
+
+- the existing instance stays in the DOM, with its inner element, focus, selection, typed input and subscriptions;
+- it receives the new props, like `component.props = newProps`, so `beforeUpdate`, `updated` and the usual diffing apply to it;
+- the new instance you created is discarded and never connected;
+- if the new props include a `ref`, it is called with the element that survived, so a map of refs by key stays correct.
+
+Items are matched by key, so reordering, inserting and removing are cheap: only nodes that are out of order are moved, the rest are untouched. Items that are new get inserted, and items whose key is gone are removed (their `unmounted` hooks run).
+
+Rules and limits:
+
+- Keys only have to be unique among siblings. Use stable ids from your data, not array indexes, unless the list never reorders.
+- `1` and `'1'` are different keys.
+- A duplicate key in the same list logs a warning, and the duplicates are rendered as separate items.
+- Children without a key (and plain DOM elements) are never reused: they are replaced by the new ones.
+- A moved node is re-inserted in the DOM, and browsers drop focus from an element that is re-inserted. Keep items in the order the user sees them if focus must survive a reorder.
+- `key` is not rendered as an attribute and is not reactive.
+- The new instance is created and rendered before it is discarded, so creating items has a cost even when they are reused. For very large lists, build only the items that changed.
 
 ## Attributes
 
-Any prop that is not a reserved key (`tag`, `content`, `html`, `style`, `css`, `children`, `ref`, `shadow`, `mounted`, `unmounted`, `beforeUpdate`, `updated`, `error`, `provide`) and does not start with `on` is set on the inner element with `setAttribute`.
+Any prop that is not a reserved key (`tag`, `content`, `html`, `style`, `css`, `children`, `ref`, `shadow`, `key`, `mounted`, `unmounted`, `beforeUpdate`, `updated`, `error`, `provide`) and does not start with `on` is set on the inner element with `setAttribute`.
 
 | Value                            | Result                              |
 | -------------------------------- | ----------------------------------- |
@@ -443,6 +515,7 @@ Each component exposes its props and an update method.
 | `component.props`             | Getter: the current props object.                       |
 | `component.props = p`         | Setter: replaces all props and re-renders.              |
 | `component.setState(partial)` | Merges `partial` into the current props and re-renders. |
+| `component.element`           | The inner element, or `null` before the first render.   |
 
 ```ts
 const counter = em.Counter({ content: '0' });
@@ -458,7 +531,7 @@ Updates are in place:
 - The inner element is reused while `tag` stays the same. Focus, selection, scroll position and the live value of form controls are preserved.
 - Attributes, styles and listeners are diffed against the previous render, and stale ones are removed.
 - If `tag` changes, a new inner element is created (and `ref` is called again).
-- The text content and the `children` are always rebuilt.
+- The text content and the `children` are reconciled: text nodes are reused, keyed components are kept, the rest is replaced (see [Lists and keys](#lists-and-keys)).
 
 Components do not track state for you. `setState` is a rendering call, not a store: keep your application state wherever you like and call `setState` when it changes.
 
@@ -568,7 +641,7 @@ These props accept a signal (or a computed signal) instead of a plain value:
 - `style`, either as a signal of a whole style object, or an object whose values are signals
 - every attribute (`class`, `title`, `disabled`, `type`, `data-*`, `aria-*`, ...), typed with the same value type as the plain attribute
 
-Not reactive: `tag`, `children`, event handlers, `ref`, `shadow` and the lifecycle hooks. Use `setState` for those.
+Not reactive: `tag`, the `children` list itself (text items in it can be signals), `key`, event handlers, `ref`, `shadow` and the lifecycle hooks. Use `setState` for those.
 
 ```ts
 const theme = signal<'light' | 'dark'>('light');
@@ -607,7 +680,7 @@ const clock = tags.time({
 });
 ```
 
-For children that depend on a list, rebuild them in an effect:
+For children that depend on a list, rebuild them in an effect and give the items a `key`, so existing items are kept (see [Lists and keys](#lists-and-keys)):
 
 ```ts
 const items = signal(['one', 'two']);
@@ -615,7 +688,9 @@ const items = signal(['one', 'two']);
 const list = tags.ul({
   mounted: (_, component) =>
     effect(() =>
-      component.setState({ children: items.value.map((label) => tags.li({ content: label })) }),
+      component.setState({
+        children: items.value.map((label) => tags.li({ key: label, content: label })),
+      }),
     ),
 });
 ```
@@ -844,7 +919,7 @@ const List = (items: string[]) => {
 mount('#app', List(['one', 'two', 'three']));
 ```
 
-Since children are rebuilt on every update, create child components inside the render step (as above) when they depend on state, or keep references and update them with `setState` individually.
+Children are reconciled on every update. Create child components inside the render step (as above) when they depend on state and give them a `key` to keep their state across updates (see [Lists and keys](#lists-and-keys)), or keep references and update them with `setState` individually.
 
 ## TypeScript
 
@@ -883,7 +958,15 @@ dynamic.setState({ tag: 'section' });
 Exported types:
 
 ```ts
-import type { Component, ComponentProps, AttributeMap, GlobalAttributes, TagName } from 'ecmact';
+import type {
+  Component,
+  ComponentProps,
+  ResolvedProps,
+  Child,
+  AttributeMap,
+  GlobalAttributes,
+  TagName,
+} from 'ecmact';
 ```
 
 ## Security model
@@ -908,7 +991,7 @@ Any evergreen browser with Custom Elements v1 and Shadow DOM. The published code
 - **Attributes, not properties.** Props map to attributes. For form controls, `value` and `checked` set the default value/state; after the user interacts with the control, changing the attribute no longer changes what is displayed. Set live values through a `ref` (`input.value = '...'`).
 - **Shadow DOM by default.** Global CSS does not apply inside components, and form controls inside a Shadow DOM do not take part in an outer `<form>`'s submission or validation. Label/`for` and `id` references do not cross the shadow boundary. Use `shadow: false` where that matters. The choice is made on the first render and cannot be changed afterwards.
 - **One inner element.** A component renders a single element. Compose several components for more complex structures.
-- **Children are not reactive props.** Rebuild them in an effect (see [Signals and lifecycle](#signals-and-lifecycle)). Children and text are rebuilt on every update; there is no keyed child diffing.
+- **Children are not a reactive prop.** The list is rebuilt in an effect (see [Signals and lifecycle](#signals-and-lifecycle)); text items in it can be signals. Keyed reconciliation matches components by `key` and name, it does not diff plain elements and it is not tuned for lists of thousands of items.
 - **Minimal lifecycle.** There are `mounted`, `unmounted`, `beforeUpdate` and `updated` hooks. State is whatever signals or objects you keep; there is no built-in store, router or message catalog (see [Recipes](#recipes)).
 - **Handlers without options.** Listener options require a `ref`.
 - **Configuration is read at render time.** `configure` does not update components that are already rendered.
