@@ -9,6 +9,7 @@ afterEach(() => {
 describe('public API', () => {
   it('exports the documented runtime values', () => {
     expect(Object.keys(lib).sort()).toEqual([
+      'ThemeProvider',
       'batch',
       'computed',
       'configure',
@@ -20,13 +21,16 @@ describe('public API', () => {
       'effect',
       'em',
       'isSignal',
+      'keyframes',
       'mount',
       'provide',
       'resource',
       'signal',
       'styled',
       'tags',
+      'themeContext',
       'untracked',
+      'useTheme',
     ]);
   });
 
@@ -35,6 +39,7 @@ describe('public API', () => {
     vi.resetModules();
     const withoutDom = await import('@em');
     expect(Object.keys(withoutDom).sort()).toEqual([
+      'ThemeProvider',
       'batch',
       'computed',
       'configure',
@@ -46,13 +51,16 @@ describe('public API', () => {
       'effect',
       'em',
       'isSignal',
+      'keyframes',
       'mount',
       'provide',
       'resource',
       'signal',
       'styled',
       'tags',
+      'themeContext',
       'untracked',
+      'useTheme',
     ]);
   });
 });

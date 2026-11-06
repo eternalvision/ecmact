@@ -1,39 +1,19 @@
 import type { Component } from '@em/core/component';
 import { createFactory, isIgnoredKey } from '@em/core/em';
-import { computed, isSignal, type ReadonlySignal } from '@em/signals/signals';
-import type { ComponentProps, ResolvedProps } from '@em/types';
 import { resolveProps } from '@em/props/resolveProps';
+import { computed, effect, signal, type ReadonlySignal } from '@em/signals/signals';
+import { join, type Interpolation } from '@em/styled/template';
+import { themeContext, type Theme } from '@em/styled/theme';
+import { consume } from '@em/core/context';
+import type { ComponentProps, ResolvedProps } from '@em/types';
 
 /** The attribute that the styles of a styled component select the inner element by. */
 const marker = 'data-styled';
 
 /**
- * Something a template can contain: a value, a signal, a function of the props, or a `css` fragment.
- * `false`, `null` and `undefined` leave nothing behind.
- *
- * @template P - The props that functions receive.
- */
-export type Interpolation<P> =
-  | string
-  | number
-  | false
-  | null
-  | undefined
-  | ReadonlySignal<string | number | false | null | undefined>
-  | CssFragment
-  | ((props: P) => Interpolation<P>);
-
-/** A piece of CSS made with `css`, to share between styled components. */
-export interface CssFragment {
-  /** The text between the interpolations. */
-  readonly strings: readonly string[];
-  /** The interpolations. */
-  readonly values: readonly unknown[];
-}
-
-/**
  * The props of a styled component: the props of its tag plus the transient ones, whose names start with `$`.
- * Transient props reach the style functions but never the element.
+ * Transient props reach the style functions but never the element. Two more props are consumed too: `theme`
+ * overrides the theme from the context, and `as` renders another tag with the same styles.
  *
  * @template K - The tag.
  * @template X - The transient props.
@@ -43,6 +23,11 @@ export type StyledProps<
   X extends object = Record<never, never>,
 > = ComponentProps<K> & {
   [P in keyof X]: X[P] | ReadonlySignal<Exclude<X[P], undefined>>;
+} & {
+  /** Renders this tag instead, keeping the styles. */
+  as?: string;
+  /** The theme for this component, instead of the one from the `ThemeProvider` above it. */
+  theme?: Theme | ReadonlySignal<Theme>;
 };
 
 /**
@@ -58,102 +43,233 @@ export type StyledComponent<K extends string, X extends object = Record<never, n
 ) => Component<K>;
 
 /**
+ * The props that functions in a template or in `attrs` receive: the resolved props, the transient ones and the theme.
+ *
+ * @template K - The tag.
+ * @template X - The transient props.
+ */
+export type StyleProps<K extends string, X extends object> = ResolvedProps<K> &
+  X & {
+    /** The theme from the context, or the `theme` prop. An empty object without either. */
+    theme: Theme;
+  };
+
+/**
+ * Props that `attrs` supplies: static, or computed from the props when the component is created.
+ *
+ * @template K - The tag.
+ * @template X - The transient props.
+ */
+export type Attrs<K extends string, X extends object> =
+  Partial<StyledProps<K, X>> | ((props: StyleProps<K, X>) => Partial<StyledProps<K, X>>);
+
+/**
  * The tagged template that turns CSS into a styled component for a tag.
  *
  * @template K - The tag.
- * @template X - The transient props, whose names start with `$`.
- * @param strings - The text between the interpolations.
- * @param values - The interpolations.
- * @returns A function that creates the component.
+ * @template B - The transient props of the component that is extended, if any.
  */
-export type StyledTag<K extends string> = <X extends object = Record<never, never>>(
-  strings: TemplateStringsArray,
-  ...values: Interpolation<ResolvedProps<K> & X>[]
-) => StyledComponent<K, X>;
+export interface StyledTag<K extends string, B extends object = Record<never, never>> {
+  /**
+   * Turns CSS into a component.
+   *
+   * @template X - The transient props, whose names start with `$`.
+   * @param strings - The text between the interpolations.
+   * @param values - The interpolations.
+   * @returns A function that creates the component.
+   */
+  <X extends object = Record<never, never>>(
+    strings: TemplateStringsArray,
+    ...values: Interpolation<StyleProps<K, B & X>>[]
+  ): StyledComponent<K, B & X>;
+  /**
+   * Sets default props. Props passed to the component win over them. A function is called once, when the
+   * component is created, with the props it was given.
+   *
+   * @template X - The transient props that `attrs` adds.
+   * @param attrs - The default props, or a function that returns them.
+   * @returns A template function that creates components with those defaults.
+   */
+  attrs<X extends object = Record<never, never>>(
+    attrs: Attrs<K, B & NoInfer<X>>,
+  ): StyledTag<K, B & X>;
+}
 
-/** `styled('button')` or `styled.button`: one tagged template per HTML tag. */
-export type Styled = (<K extends string>(tag: K) => StyledTag<K>) & {
+/**
+ * `styled('button')`, `styled.button` or `styled(Button)` to extend a styled component.
+ */
+export type Styled = {
+  <K extends string>(tag: K): StyledTag<K>;
+  <K extends string, X extends object>(component: StyledComponent<K, X>): StyledTag<K, X>;
+} & {
   [K in keyof HTMLElementTagNameMap]: StyledTag<K>;
 };
 
-/**
- * Tells whether an interpolation is a `css` fragment.
- *
- * @param value - The interpolation.
- * @returns `true` for fragments.
- */
-const isFragment = (value: unknown): value is CssFragment =>
-  typeof value === 'object' && value !== null && 'strings' in value && 'values' in value;
+/** One tagged template of a component. */
+interface Layer {
+  /** The text between the interpolations. */
+  strings: readonly string[];
+  /** The interpolations. */
+  values: readonly unknown[];
+}
+
+/** Everything that defines a styled component, so that another one can extend it. */
+interface Definition {
+  /** The tag the component renders by default. */
+  tag: string;
+  /** The templates, from the extended component to the extending one. */
+  layers: Layer[];
+  /** The `attrs`, from the extended component to the extending one. */
+  attrs: Attrs<string, object>[];
+}
+
+const definitions = new WeakMap<object, Definition>();
 
 /**
- * Turns an interpolation into text, calling functions with the props and reading signals.
+ * Splits the props that go to the element from the ones that only the styles read.
  *
- * @param value - The interpolation.
- * @param props - The resolved props.
- * @returns The text.
+ * @param props - The props as passed.
+ * @returns The props for the element.
  */
-const toText = (value: Interpolation<never>, props: never): string => {
-  if (typeof value === 'function') return toText(value(props), props);
-  if (isSignal(value)) return toText(value.value, props);
-  if (isFragment(value)) return join(value.strings, value.values as Interpolation<never>[], props);
-  return value === false || value === null || value === undefined ? '' : String(value);
-};
-
-/**
- * Joins the text of a template with its interpolations.
- *
- * @param strings - The text between the interpolations.
- * @param values - The interpolations.
- * @param props - The resolved props.
- * @returns The CSS.
- */
-const join = (strings: readonly string[], values: readonly Interpolation<never>[], props: never) =>
-  strings.reduce(
-    (text, part, index) =>
-      text + part + (index < values.length ? toText(values[index] as never, props) : ''),
-    '',
+const forElement = (props: Record<string, unknown>) =>
+  Object.fromEntries(
+    Object.entries(props).filter(
+      ([key]) => !key.startsWith('$') && key !== 'theme' && key !== 'as',
+    ),
   );
 
 /**
- * Writes a piece of CSS that styled components can share.
+ * Applies the `attrs` of a definition as defaults under the props that were passed.
  *
- * @example
- * const focus = css`&:focus-visible { outline: 2px solid ${(props) => props.$accent}; }`;
- * const Button = styled.button`${focus} padding: 0.5rem;`;
- *
- * @template P - The props that its functions receive.
- * @param strings - The text between the interpolations.
- * @param values - The interpolations.
- * @returns The fragment.
+ * @param attrs - The `attrs`, outermost last.
+ * @param props - The props that were passed.
+ * @returns The props with the defaults filled in.
  */
-export const css = <P = never>(
-  strings: TemplateStringsArray,
-  ...values: Interpolation<P>[]
-): CssFragment => ({ strings: [...strings], values });
+const withAttrs = (attrs: Attrs<string, object>[], props: Record<string, unknown>) => {
+  const resolved = resolveProps(props as ComponentProps);
+  const defaults = attrs.reduce<Record<string, unknown>>(
+    (merged, entry) => ({
+      ...merged,
+      ...(typeof entry === 'function'
+        ? entry({ ...resolved, ...merged, theme: resolved.theme ?? {} } as never)
+        : entry),
+    }),
+    {},
+  );
+  return { ...defaults, ...props };
+};
 
 /**
- * Makes the template function for one tag.
+ * Ends a template with a semicolon when its last declaration has none, so that the template that comes after it
+ * in an extended component does not run into it.
+ *
+ * @param text - The CSS of one template.
+ * @returns The CSS, ending in `;` or `}`, or empty.
+ */
+const terminate = (text: string) => {
+  const trimmed = text.trim();
+  return trimmed === '' || /[;}]$/.test(trimmed) ? trimmed : `${trimmed};`;
+};
+
+/**
+ * Creates the function that makes the components of one definition.
+ *
+ * @param definition - What defines the component.
+ * @returns The styled component.
+ */
+const build = (definition: Definition): StyledComponent<string> => {
+  /**
+   * Creates one component: applies the `attrs`, picks the tag and attaches the styles.
+   *
+   * @param given - The props that were passed.
+   * @returns The component.
+   */
+  const component: StyledComponent<string> = (given = {} as never) => {
+    const props = withAttrs(definition.attrs, given as Record<string, unknown>);
+    const tag = typeof props.as === 'string' ? props.as : definition.tag;
+    const theme = signal<Theme>({});
+    const own = props.mounted as
+      ((element: HTMLElement, host: Component) => void | (() => void)) | undefined;
+    const sheet = computed(() => {
+      const resolved = resolveProps(props as ComponentProps);
+      const view = { ...resolved, theme: resolved.theme ?? theme.value };
+      const rules = new Set<string>();
+      const body = definition.layers
+        .map((layer) =>
+          terminate(
+            join(layer.strings, layer.values as Interpolation<never>[], view as never, rules),
+          ),
+        )
+        .join('\n');
+      const extra = typeof resolved.css === 'string' ? resolved.css : '';
+      return `${[...rules].join('\n')}\n[${marker}] {\n${body}\n}\n${extra}`;
+    });
+    return createFactory(`styled-${tag}`)({
+      ...forElement(props),
+      tag,
+      [marker]: '',
+      css: sheet,
+      /**
+       * Follows the theme of the context while the component is in the document, then runs the user's hook.
+       *
+       * @param element - The inner element.
+       * @param host - The component.
+       * @returns A cleanup that stops following the theme and runs the user's cleanup.
+       */
+      mounted: (element: HTMLElement, host: Component) => {
+        const provided = consume(themeContext, host);
+        const stop = effect(() => {
+          theme.value = provided?.value ?? {};
+        });
+        const cleanup = own?.(element, host);
+        return () => {
+          stop();
+          cleanup?.();
+        };
+      },
+    } as never) as never;
+  };
+  definitions.set(component, definition);
+  return component;
+};
+
+/**
+ * Makes the template function for a definition without templates yet.
  *
  * @param tag - The tag.
+ * @param base - The definition that is extended, or `undefined` for a plain tag.
+ * @param attrs - The `attrs` collected so far.
  * @returns The tagged template.
  */
-const forTag =
-  (tag: string): StyledTag<string> =>
-  (strings, ...values) => {
-    const factory = createFactory(`styled-${tag}`);
-    return (props = {} as never) => {
-      const own: Record<string, unknown> = {};
-      Object.entries(props).forEach(([key, value]) => {
-        if (!key.startsWith('$')) own[key] = value;
-      });
-      const sheet = computed(() => {
-        const resolved = resolveProps(props as ComponentProps);
-        const extra = typeof resolved.css === 'string' ? resolved.css : '';
-        return `[${marker}] {\n${join(strings, values as Interpolation<never>[], resolved as never)}\n}\n${extra}`;
-      });
-      return factory({ ...own, tag, [marker]: '', css: sheet } as never);
-    };
-  };
+const forDefinition = (
+  tag: string,
+  base: Definition | undefined,
+  attrs: Attrs<string, object>[],
+): StyledTag<string> => {
+  const template = ((strings: TemplateStringsArray, ...values: unknown[]) =>
+    build({
+      tag,
+      layers: [...(base?.layers ?? []), { strings: [...strings], values }],
+      attrs: [...(base?.attrs ?? []), ...attrs],
+    })) as StyledTag<string>;
+  template.attrs = ((more: Attrs<string, object>) =>
+    forDefinition(tag, base, [...attrs, more])) as StyledTag<string>['attrs'];
+  return template;
+};
+
+/**
+ * Starts a template for a tag or for a styled component to extend.
+ *
+ * @param target - A tag name, or a component made by `styled`.
+ * @returns The template function.
+ * @throws {TypeError} If the function was not made by `styled`.
+ */
+const call = (target: string | StyledComponent<string>) => {
+  if (typeof target === 'string') return forDefinition(target, undefined, []);
+  const base = definitions.get(target);
+  if (!base) throw new TypeError('ecmact: styled() takes a tag name or a component made by styled');
+  return forDefinition(base.tag, base, []);
+};
 
 /**
  * Answers `styled.<tag>` with the template function for that tag.
@@ -164,15 +280,9 @@ const forTag =
  * @returns The template function, or the function's own property.
  */
 const lookup = (target: object, tag: string | symbol, receiver: unknown) =>
-  isIgnoredKey(tag) || tag in target ? Reflect.get(target, tag, receiver) : forTag(tag);
-
-/**
- * Starts a template for a tag, for `styled('button')`.
- *
- * @param tag - The tag.
- * @returns The template function.
- */
-const call = (tag: string) => forTag(tag);
+  isIgnoredKey(tag) || tag in target
+    ? Reflect.get(target, tag, receiver)
+    : forDefinition(tag, undefined, []);
 
 /**
  * Styled components: CSS written in a tagged template becomes a component with the styles attached, and the

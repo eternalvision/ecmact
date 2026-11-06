@@ -1,15 +1,19 @@
 export { em } from '@em/core/em';
 export { tags } from '@em/core/tags';
 export { configure } from '@em/core/config';
-export { css, styled } from '@em/styled/styled';
+export { styled } from '@em/styled/styled';
 export type {
-  CssFragment,
-  Interpolation,
+  Attrs,
   Styled,
   StyledComponent,
   StyledProps,
   StyledTag,
+  StyleProps,
 } from '@em/styled/styled';
+export { css, keyframes } from '@em/styled/template';
+export type { CssFragment, Interpolation, Keyframes } from '@em/styled/template';
+export { ThemeProvider, themeContext, useTheme } from '@em/styled/theme';
+export type { Theme, ThemeProviderProps } from '@em/styled/theme';
 export { defineWidget } from '@em/widget/widget';
 export type { WidgetContext, WidgetOptions } from '@em/widget/widget';
 export { consume, createContext, provide } from '@em/core/context';

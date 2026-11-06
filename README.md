@@ -761,8 +761,79 @@ const Link = styled.a<{ $accent: string }>`
 ```
 
 - **One element per tag.** All components made with `styled.button` share one custom element, `em-styled-button`, and differ only in their styles.
-- **No class names and no theming object.** Pass a theme through [context](#context) or CSS custom properties, which cross the shadow boundary: `color: var(--accent, #1665e0)`.
-- **Extending a styled component** (`styled(Button)`) is not supported. Compose with `css` fragments instead.
+
+### Attributes, extending and `as`
+
+```ts
+const Field = styled.input.attrs({ type: 'text', placeholder: 'Name' })`
+  padding: 0.5rem;
+`;
+
+const DangerButton = styled(Button)`
+  background: crimson;
+`;
+
+Button({ as: 'a', href: '/docs', content: 'Docs' });
+```
+
+- **`.attrs`** sets default props. Props passed to the component win over them, which differs from styled-components, where `attrs` win. A function receives the props the component was given and is called once, when the component is created: `styled.input.attrs<{ $size?: string }>((props) => ({ type: 'text', $size: props.$size ?? '1em' }))`. Chained `.attrs` merge, the later one winning. Type the transient props that `attrs` adds with the generic, as above.
+- **`styled(Component)`** extends a component made by `styled`: it keeps the tag, the templates and the `attrs`, and its own template comes after, so its declarations win. The transient props of both are available. Anything else throws a `TypeError`.
+- **`as`** renders another tag with the same styles. It is consumed by the component and never reaches the element.
+- A template may end without a final semicolon: the semicolon is added before the next template of an extended component.
+
+### Animations
+
+`keyframes` writes the frames of an animation. The `@keyframes` rule is placed next to the styles of every component that uses it, because an animation defined outside a shadow root does not exist inside it:
+
+```ts
+import { keyframes, styled } from 'ecmact';
+
+const spin = keyframes`
+  from { rotate: 0deg; }
+  to { rotate: 360deg; }
+`;
+
+const Spinner = styled.div`
+  animation: ${spin} 1s linear infinite;
+`;
+```
+
+The animation name is derived from the frames, so equal frames share a name and a rule is added once per component. The values in a `keyframes` template are static strings or numbers.
+
+### Themes
+
+`ThemeProvider` offers a theme to every styled component below it, and the template reads it as `props.theme`:
+
+```ts
+import { signal, styled, ThemeProvider } from 'ecmact';
+
+const Button = styled.button`
+  background: ${(props) => props.theme.accent};
+  color: ${(props) => props.theme.onAccent};
+`;
+
+const theme = signal({ accent: '#1665e0', onAccent: 'white' });
+
+mount('#app', ThemeProvider({ theme, children: [Button({ content: 'Save' })] }));
+
+theme.value = { accent: '#d6336c', onAccent: 'white' };
+```
+
+- The theme is a plain object, or a signal of one. Changing the signal restyles every component below the provider.
+- A provider inside another replaces the theme for its own subtree. The provider is a `div` with `display: contents`, so it does not change the layout.
+- The `theme` prop of one component overrides the theme from the provider, and is not put on the element. Without a provider and without the prop, `props.theme` is an empty object.
+- `props.theme` is typed as `Record<string, unknown>`, so wrap what you read in `String(...)` or `Number(...)` where the template needs text, or read the value into a typed constant yourself.
+- `useTheme(element)` reads the theme signal that applies to an element in the document (or `undefined`), for code that is not a styled component. `themeContext` is the context it uses.
+- `attrs` functions see the `theme` prop but not the theme from the context, which is only known once the component is in the document.
+- For a theme that is only colors and sizes, CSS custom properties are simpler: they cross the shadow boundary, so `color: var(--accent, #1665e0)` works with nothing but a style on an ancestor.
+
+### What is different from styled-components
+
+- No selectors of other components (`${Link}:hover &`): every component has its own shadow root, and a selector cannot cross it. Style the state in the component itself, or pass a prop.
+- No `createGlobalStyle`: global styles are the opposite of isolation. Use [shared stylesheets](#shared-stylesheets) for what every component needs.
+- No `withConfig` and `shouldForwardProp`: `$`-prefixed props are not forwarded, which covers the same need.
+- Props passed to `attrs` components win over the defaults, and `attrs` functions run once.
+- Works with signals: a signal in a template or in a prop restyles the component with no re-render of anything else.
 
 ## Global configuration
 
