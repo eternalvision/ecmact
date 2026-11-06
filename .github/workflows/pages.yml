@@ -6,6 +6,7 @@ on:
     paths:
       - 'packages/create-ecmact/template/**'
       - 'src/**'
+      - 'packages/site/**'
       - '.github/workflows/pages.yml'
       - '.github/pages/**'
   workflow_dispatch:
@@ -31,20 +32,21 @@ jobs:
       - uses: actions/configure-pages@v6
       - run: npm ci
       - run: npm run build:all
-      - name: Build the starter and the widget demo
+      - name: Assemble the site, the starter and the widget demo
         run: |
           npm pack --pack-destination "$RUNNER_TEMP" --silent
           scaffold() {
             node packages/create-ecmact/bin/create-ecmact.mjs "$RUNNER_TEMP/$1" --template "$2" --yes
             (cd "$RUNNER_TEMP/$1" && npm install "$RUNNER_TEMP"/ecmact-*.tgz --no-audit --no-fund)
           }
+          mkdir -p "$RUNNER_TEMP/site/starter" "$RUNNER_TEMP/site/widget"
+          cp -r packages/site/dist/. "$RUNNER_TEMP/site/"
+          cp packages/site/dist/index.html "$RUNNER_TEMP/site/404.html"
           scaffold ecmact-app app
-          (cd "$RUNNER_TEMP/ecmact-app" && npx vite build --base=/ecmact/)
+          (cd "$RUNNER_TEMP/ecmact-app" && npx vite build --base=/ecmact/starter/)
+          cp -r "$RUNNER_TEMP/ecmact-app/dist/." "$RUNNER_TEMP/site/starter/"
           scaffold ecmact-widget widget
           (cd "$RUNNER_TEMP/ecmact-widget" && npx vite build --base=/ecmact/widget/ && npx vite build --config vite.widget.config.ts)
-          mkdir -p "$RUNNER_TEMP/site/widget"
-          cp -r "$RUNNER_TEMP/ecmact-app/dist/." "$RUNNER_TEMP/site/"
-          cp "$RUNNER_TEMP/site/index.html" "$RUNNER_TEMP/site/404.html"
           cp -r "$RUNNER_TEMP/ecmact-widget/dist/." "$RUNNER_TEMP/site/widget/"
           mv "$RUNNER_TEMP/site/widget/widget/price-widget.js" "$RUNNER_TEMP/site/widget/price-widget.js"
           rm -rf "$RUNNER_TEMP/site/widget/widget"

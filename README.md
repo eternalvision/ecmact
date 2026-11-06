@@ -8,14 +8,14 @@
   <a href="https://www.npmjs.com/package/create-ecmact"><img src="https://img.shields.io/npm/v/create-ecmact?logo=npm&color=CB3837&label=create-ecmact" alt="create-ecmact version" /></a>
   <a href="https://github.com/eternalvision/ecmact/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/eternalvision/ecmact/ci.yml?branch=main&logo=github&label=CI" alt="CI" /></a>
   <a href="https://github.com/eternalvision/ecmact/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/ecmact" alt="license" /></a>
-  <a href="https://eternalvision.github.io/ecmact/"><img src="https://img.shields.io/badge/demo-live-1e7bff" alt="live demo" /></a>
+  <a href="https://eternalvision.github.io/ecmact/"><img src="https://img.shields.io/badge/website-docs%20and%20demos-1e7bff" alt="website" /></a>
 </p>
 
 # ECMact
 
 Reactive interfaces in plain TypeScript that you can embed into any site.
 
-ECMact is a small component library built on native Web Components. Every component is a custom element, rendered into an open Shadow DOM by default (or into the light DOM with `shadow: false`), created through a single factory, `em`. There is no virtual DOM, no template language and no build-time step: components are plain function calls that return real DOM elements.
+ECMact is a small component library built on native Web Components. The [website](https://eternalvision.github.io/ecmact/) has the same documentation with live, editable-by-reading examples. Every component is a custom element, rendered into an open Shadow DOM by default (or into the light DOM with `shadow: false`), created through a single factory, `em`. There is no virtual DOM, no template language and no build-time step: components are plain function calls that return real DOM elements.
 
 - Zero runtime dependencies
 - Content, attributes and styles are written through DOM APIs, never through `innerHTML` (unless you ask for it)
@@ -745,7 +745,7 @@ mount('#app', Button({ content: 'Save', $primary: true }), Button({ content: 'Ca
 - **Props in the template.** Functions receive the resolved props: signals in them are already unwrapped. Signals used in the template, or in the props a function reads, update the styles by themselves.
 - **Transient props start with `$`.** They reach the functions in the template but are never set on the element, so `$primary` does not end up as an attribute. Type them with the generic: `styled.button<{ $primary?: boolean }>`. Props without `$` go to the element as usual, and are available to the functions too.
 - **The styles live in the component's shadow root.** They cannot leak out and the page's CSS cannot reach in. Declarations apply to the inner element; nested rules and `&` use native CSS nesting (Chrome 120, Safari 17.2, Firefox 117 and newer).
-- **Without a shadow root the styles do nothing**, with a warning: `shadow: false` ignores `css`, and styled components are made of `css`. Use them with the default Shadow DOM.
+- **Styled components always get a shadow root**, even when the app is configured with `configure({ shadow: false })`, because their styles need one. Pass `shadow: false` to one of them and it renders unstyled, with a warning: `css` is ignored without a shadow root.
 - **`css` prop of your own** is appended after the styles of the template.
 - **Sharing.** `css` writes a fragment that several components can include:
 
@@ -1352,7 +1352,7 @@ A request body that is a stream can be read once, so retrying such a request is 
 An async result is a signal source: `resource` is the tool that turns a request into signals, and `api` supplies the request.
 
 ```ts
-import { createHttp, resource, tags } from 'ecmact';
+import { createHttp, effect, resource, tags } from 'ecmact';
 
 const api = createHttp({ baseURL: '/api' });
 
@@ -1360,12 +1360,16 @@ const users = resource(({ signal }) =>
   api.get<User[]>('/users', { signal }).then((response) => response.data),
 );
 
-tags.ul({
-  children: computed(() => (users.data.value ?? []).map((user) => tags.li({ content: user.name }))),
+const list = tags.ul();
+
+effect(() => {
+  list.setState({
+    children: (users.data.value ?? []).map((user) => tags.li({ content: user.name })),
+  });
 });
 ```
 
-`resource` passes an `AbortSignal` and aborts a request that a newer one replaces, so a slow answer cannot overwrite a fresh one.
+`children` is not a reactive prop (only text items in it can be signals), so a list of components is rebuilt by an effect that calls `setState`. `resource` passes an `AbortSignal` and aborts a request that a newer one replaces, so a slow answer cannot overwrite a fresh one.
 
 ### Differences from axios
 
@@ -1938,10 +1942,11 @@ Contributing needs Node 22.22.2 or newer (the JSDoc lint plugin, Vite 8 and Vite
 
 The repository is an npm workspace. The library is the root package; tools live under `packages/`:
 
-| Path                      | Package         | What it is                                          |
-| ------------------------- | --------------- | --------------------------------------------------- |
-| `.` (`src/`, `tests/`)    | `ecmact`        | The library                                         |
-| `packages/create-ecmact/` | `create-ecmact` | The `npm create ecmact` scaffolder and its template |
+| Path                      | Package         | What it is                                                                                                      |
+| ------------------------- | --------------- | --------------------------------------------------------------------------------------------------------------- |
+| `.` (`src/`, `tests/`)    | `ecmact`        | The library                                                                                                     |
+| `packages/create-ecmact/` | `create-ecmact` | The `npm create ecmact` scaffolder and its template                                                             |
+| `packages/site/`          | `ecmact-site`   | The public website: documentation and live demos, written with ECMact itself. Private, deployed to GitHub Pages |
 
 Every package follows the same rules: aliases, tests that mirror `src/`, 100% coverage.
 
@@ -2077,7 +2082,7 @@ Releases are published from CI with npm trusted publishing and provenance. Each 
 
 | Package         | Tag pattern            | Workflow             |
 | --------------- | ---------------------- | -------------------- |
-| `ecmact`        | `v2.6.0`               | `release.yml`        |
+| `ecmact`        | `v2.6.1`               | `release.yml`        |
 | `create-ecmact` | `create-ecmact-v0.3.0` | `release-create.yml` |
 
 ```bash

@@ -41,6 +41,31 @@ export default defineConfig([
     },
   },
   {
+    files: ['packages/site/src/demos/**/*.ts'],
+    rules: {
+      'jsdoc/require-jsdoc': [
+        'error',
+        {
+          publicOnly: false,
+          require: {
+            FunctionDeclaration: true,
+            ArrowFunctionExpression: false,
+            FunctionExpression: false,
+            MethodDefinition: true,
+            ClassDeclaration: true,
+          },
+          contexts: [
+            'TSInterfaceDeclaration',
+            'TSTypeAliasDeclaration',
+            'TSInterfaceBody > TSPropertySignature',
+            'TSInterfaceBody > TSMethodSignature',
+            'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ArrowFunctionExpression',
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['scripts/**/*.mjs', 'packages/*/bin/*.mjs'],
     extends: [jsdoc.configs['flat/recommended-error']],
     rules: {

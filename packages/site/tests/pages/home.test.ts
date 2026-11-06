@@ -1,0 +1,49 @@
+import { afterEach, describe, expect, it } from 'vitest';
+import { features, useCases } from '@site/content/features';
+import { home } from '@site/pages/home';
+import { disposeRouters, makeRouter } from '@tests/helpers';
+
+afterEach(() => {
+  disposeRouters();
+  document.body.replaceChildren();
+});
+
+describe('home', () => {
+  const build = () => {
+    const router = makeRouter('/');
+    const page = home(router);
+    document.body.append(page);
+    return { page, router };
+  };
+
+  it('has the hero with the promise, the install command and the calls to action', () => {
+    const { page } = build();
+    expect(page.querySelector('.hero h1')?.textContent).toContain('native Web Components');
+    expect(page.querySelector('.install code')?.textContent).toContain('npm create ecmact@latest');
+    const actions = [...page.querySelectorAll('.hero .actions a')].map((a) => a.textContent);
+    expect(actions).toEqual(['Get started', 'See live examples', 'GitHub', 'npm']);
+    expect(page.querySelectorAll('.badges a')).toHaveLength(4);
+  });
+
+  it('states the facts', () => {
+    const { page } = build();
+    expect(page.querySelectorAll('.fact')).toHaveLength(4);
+  });
+
+  it('has a card for every feature, each leading to its page', () => {
+    const { page, router } = build();
+    const cards = [...page.querySelectorAll<HTMLAnchorElement>('.card')];
+    expect(cards).toHaveLength(features.length);
+    cards[0]!.click();
+    expect(router.location.value.path).toBe(`/docs/${features[0]!.page}`);
+  });
+
+  it('runs two demos, embeds, shows a whole app and lists the use cases', () => {
+    const { page } = build();
+    expect(page.querySelectorAll('.demo')).toHaveLength(2);
+    expect(page.querySelector('.split h2')?.textContent).toBe('Built to be embedded');
+    expect(page.querySelectorAll('.use')).toHaveLength(useCases.length);
+    expect(page.textContent).toContain('A whole app, one import');
+    expect(page.querySelector('.closing .install')).not.toBeNull();
+  });
+});

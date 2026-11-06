@@ -6,7 +6,7 @@
   <a href="https://www.npmjs.com/package/create-ecmact"><img src="https://img.shields.io/npm/v/create-ecmact?logo=npm&color=CB3837&label=npm" alt="npm version" /></a>
   <a href="https://www.npmjs.com/package/create-ecmact"><img src="https://img.shields.io/npm/dm/create-ecmact?logo=npm&color=CB3837" alt="npm downloads" /></a>
   <a href="https://www.npmjs.com/package/ecmact"><img src="https://img.shields.io/npm/v/ecmact?logo=npm&color=CB3837&label=ecmact" alt="ecmact version" /></a>
-  <a href="https://eternalvision.github.io/ecmact/"><img src="https://img.shields.io/badge/demo-live-1e7bff" alt="live demo" /></a>
+  <a href="https://eternalvision.github.io/ecmact/"><img src="https://img.shields.io/badge/website-docs%20and%20demos-1e7bff" alt="website" /></a>
 </p>
 
 # create-ecmact
