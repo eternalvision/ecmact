@@ -1,4 +1,4 @@
-import { computed, createHttp, effect, em, resource, signal, tags, type HttpError } from 'ecmact';
+import { computed, createHttp, each, em, resource, signal, tags, type HttpError } from 'ecmact';
 
 const css = `
   :host, div { display: block; }
@@ -98,7 +98,31 @@ export const create = () => {
     }
   };
 
-  const list = tags.ul({ shadow: false });
+  const list = each(
+    computed(() => current()),
+    (post) =>
+      tags.li({
+        shadow: false,
+        children: [
+          tags.span({ shadow: false, content: post.title }),
+          tags.button({
+            shadow: false,
+            type: 'button',
+            content: 'Delete',
+            disabled: posts.loading,
+            onclick: () => {
+              const index = current().findIndex((item) => item.id === post.id);
+              void attempt(
+                (posts) => posts.filter((item) => item.id !== post.id),
+                (posts) => [...posts.slice(0, index), post, ...posts.slice(index)],
+                () => api.delete(`/posts/${post.id}`),
+              );
+            },
+          }),
+        ],
+      }),
+    { shadow: false, tag: 'ul', by: (post) => post.id },
+  );
   const input = tags.input({
     shadow: false,
     placeholder: 'Title of a new post',
@@ -109,34 +133,6 @@ export const create = () => {
   return em.Posts({
     shadow: true,
     css,
-    mounted: () =>
-      effect(() =>
-        list.setState({
-          children: current().map((post) =>
-            tags.li({
-              shadow: false,
-              key: post.id,
-              children: [
-                tags.span({ shadow: false, content: post.title }),
-                tags.button({
-                  shadow: false,
-                  type: 'button',
-                  content: 'Delete',
-                  disabled: posts.loading,
-                  onclick: () => {
-                    const index = current().findIndex((item) => item.id === post.id);
-                    void attempt(
-                      (list) => list.filter((item) => item.id !== post.id),
-                      (list) => [...list.slice(0, index), post, ...list.slice(index)],
-                      () => api.delete(`/posts/${post.id}`),
-                    );
-                  },
-                }),
-              ],
-            }),
-          ),
-        }),
-      ),
     children: [
       tags.form({
         shadow: false,

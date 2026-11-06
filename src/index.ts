@@ -1,6 +1,8 @@
 export { em } from '@em/core/em';
 export { tags } from '@em/core/tags';
 export { configure } from '@em/core/config';
+export { each } from '@em/core/each';
+export type { EachOptions } from '@em/core/each';
 export { toFormData } from '@em/http/body';
 export { CanceledError, HttpError, isCancel, isHttpError } from '@em/http/error';
 export type { HttpErrorCode } from '@em/http/error';

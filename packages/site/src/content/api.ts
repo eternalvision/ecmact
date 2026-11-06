@@ -22,6 +22,12 @@ export const api: Record<string, ApiEntry[]> = {
       page: 'components',
     },
     {
+      name: 'each',
+      summary:
+        'A keyed list that follows an array or a signal of an array: `each(items, render, options)`.',
+      page: 'components',
+    },
+    {
       name: 'mount',
       summary: 'Appends components to a container given as a selector or an element.',
       page: 'components',
@@ -150,6 +156,7 @@ export const areasRu: Record<string, string> = {
 export const apiRu: Record<string, string> = {
   em: 'Фабрика компонентов-кастомных элементов: `em.Name(props)`.',
   tags: 'Фабрики стандартных тегов: `tags.div(props)`.',
+  each: 'Список с ключами, который следует за массивом или сигналом массива: `each(items, render, options)`.',
   mount: 'Добавляет компоненты в контейнер, заданный селектором или элементом.',
   configure:
     'Глобальные значения по умолчанию: Shadow DOM, общие таблицы стилей, обработчик ошибок, предупреждения.',

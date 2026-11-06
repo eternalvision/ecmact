@@ -65,6 +65,7 @@ See [Limitations](#limitations) for the full list.
 - [Props reference](#props-reference)
 - [Content and children](#content-and-children)
 - [Lists and keys](#lists-and-keys)
+  - [The each helper](#the-each-helper)
   - [Performance of large lists](#performance-of-large-lists)
 - [Attributes](#attributes)
   - [Form controls](#form-controls)
@@ -376,6 +377,44 @@ Rules and limits:
 - A moved node is re-inserted in the DOM, and browsers drop focus from an element that is re-inserted. Keep items in the order the user sees them if focus must survive a reorder.
 - `key` is not rendered as an attribute and is not reactive.
 - The new instance is created and rendered before it is discarded, so creating items has a cost even when they are reused. For very large lists, build only the items that changed.
+
+### The each helper
+
+`each` builds such a list for you. It takes an array, or a signal of an array, and a function that makes one component for each item, and returns the list element. It follows the signal while it is in the document, keys the items, and reconciles the list when the array changes:
+
+```ts
+import { each, signal, tags } from 'ecmact';
+
+const todos = signal([
+  { id: 1, title: 'Write docs' },
+  { id: 2, title: 'Ship it' },
+]);
+
+const list = each(todos, (todo) => tags.li({ content: todo.title }), {
+  tag: 'ul',
+  class: 'todos',
+  by: (todo) => todo.id,
+  empty: 'Nothing to do',
+});
+
+todos.value = [...todos.value, { id: 3, title: 'Celebrate' }];
+```
+
+`each(items, render, options?)`:
+
+| Argument  | Meaning                                                                                                                                                                  |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `items`   | An array or a signal of an array (`ReadonlySignal<readonly T[]>`, so a `computed` or `store.select(...)` works).                                                         |
+| `render`  | `(item, index) => Component`. Makes the component of one item. It must return a component, because a key belongs to a component.                                         |
+| `options` | The props of the list element (`tag`, `class`, `style`, `shadow`, `mounted`, ...) except its content, and two more: `by` and `empty`.                                    |
+| `by`      | `(item, index) => string \| number`. The key of an item. Without it a string or a number is its own key and anything else is keyed by its position. Give it for objects. |
+| `empty`   | What to show while there are no items: text or a node.                                                                                                                   |
+
+- The list is an ordinary component, a `div` unless `tag` says otherwise, so it takes the same props, lifecycle hooks and `shadow` rules as any other. A `mounted` you pass still runs, and its cleanup too.
+- A component whose key is still there is kept and updated in place, with its state and focus, and only what changed is added, moved or removed. See [Lists and keys](#lists-and-keys) for the rules of keys.
+- A key you set on the component that `render` returns is kept as it is.
+- Put a new array into the signal. An array that is changed in place is not noticed.
+- While the list is outside the document it does not follow the signal; it catches up when it comes back.
 
 ### Performance of large lists
 
@@ -2082,7 +2121,7 @@ Releases are published from CI with npm trusted publishing and provenance. Each 
 
 | Package         | Tag pattern            | Workflow             |
 | --------------- | ---------------------- | -------------------- |
-| `ecmact`        | `v2.6.1`               | `release.yml`        |
+| `ecmact`        | `v2.7.0`               | `release.yml`        |
 | `create-ecmact` | `create-ecmact-v0.3.0` | `release-create.yml` |
 
 ```bash

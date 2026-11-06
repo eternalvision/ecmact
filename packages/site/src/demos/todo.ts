@@ -1,4 +1,4 @@
-import { createStore, em, tags } from 'ecmact';
+import { createStore, each, em, tags } from 'ecmact';
 
 const css = `
   :host, div { display: block; }
@@ -66,7 +66,7 @@ interface TodoState {
 }
 
 /**
- * A to-do list: a store holds the data, a keyed list shows it, and a signal selected from the store drives the counter.
+ * A to-do list: a store holds the data, `each` shows it as a keyed list, and a signal selected from the store drives the counter.
  *
  * @returns The demo.
  */
@@ -88,7 +88,6 @@ export const create = () => {
   const item = (todo: Todo) =>
     em.Item({
       shadow: false,
-      key: todo.id,
       tag: 'li',
       children: [
         tags.input({
@@ -107,7 +106,11 @@ export const create = () => {
       ],
     });
 
-  const list = tags.ul({ shadow: false });
+  const list = each(
+    store.select((state) => state.todos),
+    item,
+    { shadow: false, tag: 'ul', by: (todo) => todo.id },
+  );
   const input = tags.input({
     shadow: false,
     placeholder: 'What needs doing?',
@@ -117,14 +120,6 @@ export const create = () => {
   return em.Todo({
     shadow: true,
     css,
-    mounted: () =>
-      store.watch(
-        (state) => state.todos,
-        (todos) => list.setState({ children: todos.map(item) }),
-        {
-          fireImmediately: true,
-        },
-      ),
     children: [
       tags.form({
         shadow: false,

@@ -128,6 +128,31 @@ status.setState({ content: 'Saving...', style: { opacity: 0.6 } });
       'Give each component in a list a `key`. The list is then reconciled by key: components are matched, moved with a minimal number of moves and kept, with their state, when the list changes.',
     ),
     demo('todo'),
+    h3('The each helper'),
+    p(
+      '`each(items, render, options)` builds such a list for you. It takes an array or a signal of an array and a function that makes one component per item, keys the items, follows the signal while the list is in the document and reconciles the list when the array changes. The list is an ordinary component, a `div` unless `tag` says otherwise.',
+    ),
+    code(
+      'ts',
+      `
+import { each, signal, tags } from 'ecmact';
+
+const todos = signal([{ id: 1, title: 'Write docs' }]);
+
+const list = each(todos, (todo) => tags.li({ content: todo.title }), {
+  tag: 'ul',
+  by: (todo) => todo.id,
+  empty: 'Nothing to do',
+});
+
+todos.value = [...todos.value, { id: 2, title: 'Ship it' }];
+`,
+    ),
+    ul(
+      '`by` gives an item its key. Without it a string or a number is its own key and anything else is keyed by its position, so give `by` for objects.',
+      '`empty` is shown while there are no items. Everything else in the options is a prop of the list element.',
+      '`render` must return a component, because a key belongs to a component. Put a new array into the signal: an array that is changed in place is not noticed.',
+    ),
     h3('Performance of large lists'),
     p(
       'Measured in Chromium, a thousand rows (three components each) take about 95 ms to create. If you keep one component per key in a `Map` and pass the same instances again, swapping and removing rows is 6 to 8 times cheaper than recreating them. Ten thousand rows take about a second to create: paginate or render only the rows in view.',
