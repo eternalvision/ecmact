@@ -24,7 +24,7 @@ const texts = (page: DocPage) =>
 
 export const validatePage = (page: DocPage, slug: string) => {
   const problems: string[] = [];
-  const known = new Set(['/', '/examples', ...docs.map((doc) => `/docs/${doc.slug}`)]);
+  const known = new Set(['/', '/examples', '/widgets', ...docs.map((doc) => `/docs/${doc.slug}`)]);
   if (page.slug !== slug) problems.push(`slug is ${page.slug}, expected ${slug}`);
   if (page.title.trim() === '') problems.push('empty title');
   if (!page.summary.endsWith('.')) problems.push('the summary does not end with a full stop');

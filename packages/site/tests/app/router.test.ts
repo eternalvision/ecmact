@@ -32,6 +32,12 @@ describe('createSiteRouter', () => {
     router.dispose();
   });
 
+  it('shows the widget gallery', () => {
+    const { router, outlet } = open('/ecmact/widgets');
+    expect(outlet.querySelector('h1')?.textContent).toBe('Widgets');
+    router.dispose();
+  });
+
   it('shows a documentation page', () => {
     const { router, outlet } = open('/ecmact/docs/signals');
     expect(outlet.querySelector('article h1')?.textContent).toBe('Signals');

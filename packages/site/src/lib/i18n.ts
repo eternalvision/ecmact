@@ -7,15 +7,6 @@ export type Locale = 'en' | 'ru';
 export const locales: Locale[] = ['en', 'ru'];
 
 /**
- * Picks the language from the language of the browser: Russian for any Russian locale, English otherwise.
- *
- * @param language - The value of `navigator.language`.
- * @returns The locale.
- */
-export const detectLocale = (language: string | undefined): Locale =>
-  language?.toLowerCase().startsWith('ru') ? 'ru' : 'en';
-
-/**
  * Reads a language that the address asks for, as in `?lang=ru`.
  *
  * @param search - The query string of the address.
@@ -26,10 +17,10 @@ export const readLocaleParam = (search: string): Locale | undefined => {
   return locales.find((locale) => locale === value);
 };
 
-/** The language of the site, kept in `localStorage`. Until the visitor chooses, it follows the browser. */
+/** The language of the site, kept in `localStorage`. It is English until the visitor chooses another language. */
 export const localeStore = createStore(
   persist(
-    combine({ locale: detectLocale(globalThis.navigator?.language) as Locale }, (set) => ({
+    combine({ locale: 'en' as Locale }, (set) => ({
       /**
        * Moves to the next language.
        */

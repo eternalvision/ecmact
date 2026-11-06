@@ -1,15 +1,27 @@
+import * as context from '@site/demos/context';
+import contextSource from '@site/demos/context.ts?raw';
 import * as counter from '@site/demos/counter';
 import counterSource from '@site/demos/counter.ts?raw';
 import * as form from '@site/demos/form';
 import formSource from '@site/demos/form.ts?raw';
+import * as github from '@site/demos/github';
+import githubSource from '@site/demos/github.ts?raw';
 import * as http from '@site/demos/http';
 import httpSource from '@site/demos/http.ts?raw';
+import * as lifecycle from '@site/demos/lifecycle';
+import lifecycleSource from '@site/demos/lifecycle.ts?raw';
+import * as posts from '@site/demos/posts';
+import postsSource from '@site/demos/posts.ts?raw';
 import * as store from '@site/demos/store';
 import storeSource from '@site/demos/store.ts?raw';
 import * as styled from '@site/demos/styled';
 import styledSource from '@site/demos/styled.ts?raw';
 import * as todo from '@site/demos/todo';
 import todoSource from '@site/demos/todo.ts?raw';
+import * as weather from '@site/demos/weather';
+import weatherSource from '@site/demos/weather.ts?raw';
+import * as widget from '@site/demos/widget';
+import widgetSource from '@site/demos/widget.ts?raw';
 
 /** A live demo: a component, and the source that makes it. */
 export interface Demo {
@@ -86,6 +98,59 @@ export const demos: Demo[] = [
     page: 'forms',
     create: form.create,
     source: cleanSource(formSource),
+  },
+  {
+    id: 'github',
+    title: 'GitHub API',
+    description:
+      'A repository card from the GitHub API, with a debounced input and a rate-limit interceptor.',
+    page: 'http',
+    create: github.create,
+    source: cleanSource(githubSource),
+  },
+  {
+    id: 'weather',
+    title: 'Weather API',
+    description:
+      'The open-meteo.com API through resource(): a signal picks the city, the old request is aborted.',
+    page: 'data',
+    create: weather.create,
+    source: cleanSource(weatherSource),
+  },
+  {
+    id: 'posts',
+    title: 'Create, read, delete',
+    description:
+      'Optimistic updates against jsonplaceholder, with interceptors that count and time the requests.',
+    page: 'http',
+    create: posts.create,
+    source: cleanSource(postsSource),
+  },
+  {
+    id: 'lifecycle',
+    title: 'Lifecycle hooks',
+    description:
+      'mounted, unmounted, beforeUpdate and updated on a clock you can remove and freeze.',
+    page: 'lifecycle',
+    create: lifecycle.create,
+    source: cleanSource(lifecycleSource),
+  },
+  {
+    id: 'context',
+    title: 'Context',
+    description: 'Nested providers: each label asks the nearest one above it for its color.',
+    page: 'context',
+    create: context.create,
+    source: cleanSource(contextSource),
+  },
+  {
+    id: 'widget',
+    title: 'defineWidget',
+    description:
+      'A custom element configured by attributes, themed by a custom property, speaking through events.',
+    page: 'widgets',
+    create: widget.create,
+    source: cleanSource(widgetSource),
   },
 ];
 

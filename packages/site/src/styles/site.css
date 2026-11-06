@@ -983,3 +983,44 @@ tr:last-child td {
     transition: none !important;
   }
 }
+
+.host {
+  margin: 2.2rem 0;
+}
+
+.host-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.8rem 1.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.host-head > div {
+  flex: 1 1 24rem;
+  min-width: 0;
+}
+
+.host-head h2 {
+  margin: 0 0 0.3rem;
+}
+
+.host-head p {
+  margin: 0;
+}
+
+.host-frame {
+  display: block;
+  width: 100%;
+  height: 34rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+}
+
+@media (max-width: 640px) {
+  .host-frame {
+    height: 38rem;
+  }
+}

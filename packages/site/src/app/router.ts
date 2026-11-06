@@ -6,6 +6,7 @@ import { docsPage } from '@site/pages/docs';
 import { examples } from '@site/pages/examples';
 import { home } from '@site/pages/home';
 import { notFound } from '@site/pages/notFound';
+import { widgetsPage } from '@site/pages/widgets';
 
 /**
  * Lists the routes of the site: the home page, the examples, the documentation and the redirect from `/docs` to
@@ -28,6 +29,13 @@ export const siteRoutes = (router: () => Router): Route[] => {
    * @returns The page.
    */
   const examplesView = () => examples();
+
+  /**
+   * Shows the gallery of widgets.
+   *
+   * @returns The page.
+   */
+  const widgetsView = () => widgetsPage();
 
   /**
    * Shows the page for an address that matches nothing. The redirect of `/docs` normally comes first.
@@ -57,6 +65,7 @@ export const siteRoutes = (router: () => Router): Route[] => {
   return [
     { path: '/', view: homeView },
     { path: '/examples', view: examplesView },
+    { path: '/widgets', view: widgetsView },
     { path: '/docs', view: notFoundView, beforeEnter: firstDoc },
     { path: '/docs/:slug', view: docView },
   ];

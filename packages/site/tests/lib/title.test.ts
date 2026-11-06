@@ -15,6 +15,11 @@ describe('metaFor', () => {
     expect(metaFor('/examples').title).toBe('Examples - ECMact');
   });
 
+  it('describes the widget gallery', () => {
+    expect(metaFor('/widgets').title).toBe('Widgets - ECMact');
+    expect(metaFor('/widgets').description).toContain('hostile CSS');
+  });
+
   it('describes a documentation page by its own title and summary', () => {
     const meta = metaFor('/docs/routing');
     expect(meta.title).toBe('Routing - ECMact docs');

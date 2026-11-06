@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>dev.local - status</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        font-family: 'SF Mono', 'Courier New', monospace;
+      }
+      body {
+        margin: 0;
+        background: #020a05;
+        color: #33ff66;
+        line-height: 1.6;
+        text-shadow: 0 0 6px rgba(51, 255, 102, 0.55);
+      }
+      body::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background: repeating-linear-gradient(transparent 0 2px, rgba(0, 0, 0, 0.28) 2px 3px);
+      }
+      main {
+        max-width: 56rem;
+        margin: 0 auto;
+        padding: 1.4rem 1.2rem 3rem;
+      }
+      pre {
+        margin: 0 0 1rem;
+        font-size: 0.8rem;
+        color: #1f9a46;
+      }
+      h1,
+      h2 {
+        margin: 1.4rem 0 0.4rem;
+        font-size: 1rem;
+        font-weight: 400;
+      }
+      h1::before,
+      h2::before {
+        content: '$ ';
+        color: #1f9a46;
+      }
+      p {
+        margin: 0 0 0.8rem;
+        color: #2bd75b;
+      }
+      button {
+        padding: 0.3rem 0.9rem;
+        border: 1px solid #33ff66;
+        background: #000;
+        color: #33ff66;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+      a {
+        color: #7dffa0;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+        gap: 1rem;
+        align-items: start;
+      }
+      repo-card,
+      weather-now,
+      poll-widget {
+        --w-font: 'SF Mono', 'Courier New', monospace;
+        --w-bg: #021209;
+        --w-fg: #33ff66;
+        --w-muted: #1f9a46;
+        --w-accent: #7dffa0;
+        --w-border: #0f6a2e;
+        --w-radius: 0;
+      }
+      weather-now {
+        --w-bg: #04210f;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <pre>dev.local  //  status board  //  uptime 417d</pre>
+      <p>
+        A terminal-themed dashboard. The page paints a scanline over everything and styles every
+        <code>button</code>, <code>p</code> and <code>a</code>. Each card below is an ECMact widget
+        with its own Shadow DOM, fed by a public API, and recolored only through custom properties.
+      </p>
+      <h1>repos --watch</h1>
+      <div class="grid">
+        <repo-card repo="vitejs/vite"></repo-card>
+        <repo-card repo="eternalvision/ecmact"></repo-card>
+      </div>
+      <h2>weather --server-room</h2>
+      <div class="grid">
+        <weather-now city="Reykjavik" unit="c"></weather-now>
+        <poll-widget
+          poll="term-tabs"
+          question="Tabs or spaces?"
+          options="Tabs, Spaces, Whatever prettier says"
+          seed="7, 11, 31"
+        ></poll-widget>
+      </div>
+      <p><button type="button">reload</button></p>
+    </main>
+    <script src="../embed/ecmact-widgets.js"></script>
+  </body>
+</html>

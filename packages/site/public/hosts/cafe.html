@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Maison Aurélie - a bistro</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #f6efe0;
+        color: #3a2c1a;
+        font-family: Georgia, 'Times New Roman', serif;
+        line-height: 1.7;
+      }
+      header {
+        padding: 2.2rem 1.5rem 1rem;
+        text-align: center;
+        border-bottom: 1px solid #d9c9a3;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 2.2rem;
+        font-weight: 400;
+        letter-spacing: 0.35em;
+        text-transform: uppercase;
+        color: #8c6a2b;
+      }
+      header p {
+        margin: 0.3rem 0 0;
+        font-style: italic;
+        color: #8a7658;
+      }
+      main {
+        max-width: 56rem;
+        margin: 0 auto;
+        padding: 1.6rem 1.5rem 3rem;
+      }
+      h2 {
+        margin: 2rem 0 0.5rem;
+        font-weight: 400;
+        font-size: 1.25rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #8c6a2b;
+        border-bottom: 1px solid #d9c9a3;
+        padding-bottom: 0.3rem;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+      button {
+        padding: 0.6rem 1.6rem;
+        border: 1px solid #8c6a2b;
+        background: transparent;
+        color: #8c6a2b;
+        font: inherit;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #8c6a2b;
+        color: #fff;
+      }
+      input {
+        font: inherit;
+        padding: 0.4rem;
+        border: 0;
+        border-bottom: 2px solid #8c6a2b;
+        background: #fffaf0;
+      }
+      b,
+      span,
+      div {
+        color: #3a2c1a;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+        gap: 1.4rem;
+        align-items: start;
+      }
+      .note {
+        padding: 0.8rem 1rem;
+        border-left: 3px solid #b8893b;
+        background: #fffaf0;
+        font-size: 0.92rem;
+        color: #6c5a3c;
+      }
+      price-calculator,
+      countdown-timer,
+      poll-widget {
+        --w-font: Georgia, 'Times New Roman', serif;
+        --w-fg: #3a2c1a;
+        --w-bg: #fffaf0;
+        --w-muted: #8a7658;
+        --w-accent: #b8893b;
+        --w-border: #d9c9a3;
+        --w-radius: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Maison Aurélie</h1>
+      <p>Bistro and caterer, since 1987</p>
+    </header>
+    <main>
+      <p class="note">
+        This page styles every <code>button</code>, <code>input</code>, <code>b</code>,
+        <code>span</code> and <code>div</code> globally, in serif and gold. The three widgets below
+        are ECMact components loaded with one script tag. They keep their own markup and take only
+        the colors and the font that this page hands them as CSS custom properties.
+      </p>
+      <h2>Spring menu</h2>
+      <p>Our chefs are finishing the spring tasting menu. Reservations open soon.</p>
+      <div class="grid">
+        <countdown-timer to="2027-03-01T10:00:00" label="Reservations open in"></countdown-timer>
+        <button type="button">Book a table</button>
+      </div>
+      <h2>Catering for your event</h2>
+      <div class="grid">
+        <price-calculator
+          currency="EUR"
+          base="45"
+          title="Tasting menu for your guests"
+        ></price-calculator>
+        <poll-widget
+          poll="cafe-dessert"
+          question="Which dessert should join the menu?"
+          options="Tarte Tatin, Paris-Brest, Crème brûlée"
+          seed="14, 9, 21"
+        ></poll-widget>
+      </div>
+    </main>
+    <script src="../embed/ecmact-widgets.js"></script>
+  </body>
+</html>

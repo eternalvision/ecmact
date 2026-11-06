@@ -1,27 +1,9 @@
-import { afterEach, describe, expect, it } from 'vitest';
-import {
-  applyLocale,
-  currentLocale,
-  detectLocale,
-  localeStore,
-  locales,
-  readLocaleParam,
-} from '@site/lib/i18n';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { applyLocale, currentLocale, localeStore, locales, readLocaleParam } from '@site/lib/i18n';
 import { resetLocale } from '@tests/helpers';
 
 afterEach(async () => {
   await resetLocale();
-});
-
-describe('detectLocale', () => {
-  it('picks Russian for any Russian locale and English for the rest', () => {
-    expect(detectLocale('ru')).toBe('ru');
-    expect(detectLocale('ru-RU')).toBe('ru');
-    expect(detectLocale('RU-ru')).toBe('ru');
-    expect(detectLocale('en-US')).toBe('en');
-    expect(detectLocale('de')).toBe('en');
-    expect(detectLocale(undefined)).toBe('en');
-  });
 });
 
 describe('readLocaleParam', () => {
@@ -37,8 +19,13 @@ describe('readLocaleParam', () => {
 });
 
 describe('localeStore', () => {
-  it('starts with the language of the browser, English here', () => {
-    expect(currentLocale()).toBe('en');
+  it('starts in English, whatever the language of the browser is', async () => {
+    vi.stubGlobal('navigator', { language: 'ru-RU' });
+    vi.resetModules();
+    localStorage.clear();
+    const fresh = await import('@site/lib/i18n');
+    expect(fresh.currentLocale()).toBe('en');
+    vi.unstubAllGlobals();
   });
 
   it('cycles through the languages and wraps around', () => {

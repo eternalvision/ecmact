@@ -6,7 +6,7 @@ export interface Messages {
   nav: {
     docs: string;
     examples: string;
-    widget: string;
+    widgets: string;
     starter: string;
     menu: string;
     close: string;
@@ -62,6 +62,21 @@ export interface Messages {
   examples: { title: string; lead: string };
   /** The page for an unknown address. */
   notFound: { title: string; lead: string; home: string; docs: string };
+  /** The widget gallery. */
+  widgets: {
+    title: string;
+    lead: string;
+    openFull: string;
+    hosts: Record<string, { title: string; text: string }>;
+    embedTitle: string;
+    embedLead: string;
+    referenceTitle: string;
+    referenceLead: string;
+    columns: { widget: string; attributes: string; events: string; description: string };
+    descriptions: Record<string, string>;
+    themeTitle: string;
+    themeLead: string;
+  };
   /** The titles of the demos, by id. */
   demos: Record<string, { title: string; description: string }>;
   /** The home page. */
@@ -79,7 +94,7 @@ export interface Messages {
     embedTitle: string;
     embedText: string;
     embedTicks: string[];
-    embedDemo: string;
+    embedGallery: string;
     embedForeign: string;
     embedGuide: string;
     wholeTitle: string;
@@ -95,6 +110,8 @@ export interface Messages {
     summary: string;
     examplesTitle: string;
     examplesDescription: string;
+    widgetsTitle: string;
+    widgetsDescription: string;
     notFound: string;
     docsSuffix: string;
   };
@@ -105,7 +122,7 @@ const en: Messages = {
   nav: {
     docs: 'Docs',
     examples: 'Examples',
-    widget: 'Widget demo',
+    widgets: 'Widgets',
     starter: 'Starter',
     menu: 'Menu',
     close: 'Close',
@@ -169,6 +186,50 @@ const en: Messages = {
     home: 'Back to the home page',
     docs: 'Read the docs',
   },
+  widgets: {
+    title: 'Widgets',
+    lead: 'Five widgets, built once, embedded into four unrelated sites. Every page below is a separate document with its own stylesheet, and every stylesheet is hostile: it restyles buttons, inputs and text globally. The widgets keep their own markup and take only what the page hands them as CSS custom properties.',
+    openFull: 'Open the page on its own',
+    hosts: {
+      cafe: {
+        title: 'A bistro: serif, cream and gold',
+        text: 'Countdown, catering calculator and a dessert poll, recolored to gold with square corners. The page styles every button and input in serif.',
+      },
+      terminal: {
+        title: 'A dev dashboard: phosphor green',
+        text: 'Two GitHub repository cards, a weather card and a poll, in monochrome green with a scanline over everything. The cards are fed by public APIs.',
+      },
+      zine: {
+        title: 'A zine: brutalist yellow and black',
+        text: 'Price calculator, countdown and poll with thick borders and no radius, on a page that forces Courier with !important.',
+      },
+      kids: {
+        title: 'A kids club: pastel and playful',
+        text: 'Weather, countdown and poll with 36px corners and a pink accent, on a page that paints every span and div purple with !important.',
+      },
+    },
+    embedTitle: 'What every host page does',
+    embedLead: 'The same two lines, whatever the page looks like:',
+    referenceTitle: 'The five widgets',
+    referenceLead:
+      'Attributes configure a widget, events carry results out, custom properties dress it. Every widget understands the same custom properties.',
+    columns: {
+      widget: 'Widget',
+      attributes: 'Attributes',
+      events: 'Events',
+      description: 'What it does',
+    },
+    descriptions: {
+      'price-calculator': 'A seat slider with a monthly and a yearly price and a quote button.',
+      'weather-now': 'The current weather of a city, from the open-meteo.com API.',
+      'repo-card': 'The numbers of a public GitHub repository, from the GitHub API.',
+      'poll-widget': 'A one-question poll whose votes stay in the browser.',
+      'countdown-timer': 'A flip-clock countdown to a moment.',
+    },
+    themeTitle: 'Custom properties',
+    themeLead:
+      'Set them on the widget element or on any ancestor. A widget reads them with its own defaults, so setting none gives its original look.',
+  },
   demos: {
     counter: {
       title: 'Signals',
@@ -195,6 +256,35 @@ const en: Messages = {
     form: {
       title: 'Form fields in a Shadow DOM',
       description: 'Components that take part in native form validation and FormData.',
+    },
+    github: {
+      title: 'GitHub API',
+      description:
+        'A repository card from the GitHub API, with a debounced input and a rate-limit interceptor.',
+    },
+    weather: {
+      title: 'Weather API',
+      description:
+        'The open-meteo.com API through resource(): a signal picks the city, the old request is aborted.',
+    },
+    posts: {
+      title: 'Create, read, delete',
+      description:
+        'Optimistic updates against jsonplaceholder, with interceptors that count and time the requests.',
+    },
+    lifecycle: {
+      title: 'Lifecycle hooks',
+      description:
+        'mounted, unmounted, beforeUpdate and updated on a clock you can remove and freeze.',
+    },
+    context: {
+      title: 'Context',
+      description: 'Nested providers: each label asks the nearest one above it for its color.',
+    },
+    widget: {
+      title: 'defineWidget',
+      description:
+        'A custom element configured by attributes, themed by a custom property, speaking through events.',
     },
   },
   home: {
@@ -223,7 +313,7 @@ const en: Messages = {
       'Settings come in as attributes, results leave as DOM events',
       'Themed from outside with CSS custom properties',
     ],
-    embedDemo: 'Open the widget demo',
+    embedGallery: 'Open the widget gallery',
     embedForeign: 'See it on a foreign page',
     embedGuide: 'Read the guide',
     wholeTitle: 'A whole app, one import',
@@ -241,6 +331,9 @@ const en: Messages = {
     examplesTitle: 'Examples',
     examplesDescription:
       'Live ECMact demos with their source: signals, stores, styled components, an HTTP client and forms.',
+    widgetsTitle: 'Widgets',
+    widgetsDescription:
+      'The same ECMact widgets embedded into four unrelated sites, each with its own hostile CSS.',
     notFound: 'Not found',
     docsSuffix: 'docs',
   },
@@ -251,7 +344,7 @@ const ru: Messages = {
   nav: {
     docs: 'Документация',
     examples: 'Примеры',
-    widget: 'Демо виджета',
+    widgets: 'Виджеты',
     starter: 'Стартер',
     menu: 'Меню',
     close: 'Закрыть',
@@ -315,6 +408,51 @@ const ru: Messages = {
     home: 'На главную',
     docs: 'Читать документацию',
   },
+  widgets: {
+    title: 'Виджеты',
+    lead: 'Пять виджетов, написанных один раз и встроенных в четыре никак не связанных сайта. Каждая страница ниже - отдельный документ со своей таблицей стилей, и каждая таблица враждебна: она глобально перекрашивает кнопки, поля ввода и текст. Виджеты сохраняют свою разметку и берут только то, что страница отдаёт им через CSS custom properties.',
+    openFull: 'Открыть страницу отдельно',
+    hosts: {
+      cafe: {
+        title: 'Бистро: засечки, крем и золото',
+        text: 'Обратный отсчёт, калькулятор кейтеринга и опрос о десертах, перекрашенные в золото с квадратными углами. Страница стилизует все кнопки и поля шрифтом с засечками.',
+      },
+      terminal: {
+        title: 'Дашборд разработчика: зелёный люминофор',
+        text: 'Две карточки репозиториев GitHub, карточка погоды и опрос в монохромном зелёном со строчной сеткой поверх всего. Карточки питаются от публичных API.',
+      },
+      zine: {
+        title: 'Зин: брутализм, жёлтое и чёрное',
+        text: 'Калькулятор цены, отсчёт и опрос с толстыми рамками и без скруглений на странице, которая принудительно ставит Courier через !important.',
+      },
+      kids: {
+        title: 'Детский клуб: пастель и игра',
+        text: 'Погода, отсчёт и опрос со скруглением 36px и розовым акцентом на странице, которая красит каждый span и div в фиолетовый через !important.',
+      },
+    },
+    embedTitle: 'Что делает каждая хост-страница',
+    embedLead: 'Те же две строки, как бы страница ни выглядела:',
+    referenceTitle: 'Пять виджетов',
+    referenceLead:
+      'Атрибуты настраивают виджет, события выносят результаты наружу, custom properties его одевают. Все виджеты понимают одни и те же custom properties.',
+    columns: {
+      widget: 'Виджет',
+      attributes: 'Атрибуты',
+      events: 'События',
+      description: 'Что делает',
+    },
+    descriptions: {
+      'price-calculator':
+        'Ползунок количества мест с ценой за месяц и за год и кнопкой запроса расчёта.',
+      'weather-now': 'Текущая погода в городе, из API open-meteo.com.',
+      'repo-card': 'Показатели публичного репозитория GitHub, из GitHub API.',
+      'poll-widget': 'Опрос с одним вопросом, голоса остаются в браузере.',
+      'countdown-timer': 'Обратный отсчёт до момента в стиле перекидных часов.',
+    },
+    themeTitle: 'Custom properties',
+    themeLead:
+      'Задавайте их на элементе виджета или на любом предке. Виджет читает их со своими значениями по умолчанию, поэтому без них он выглядит исходно.',
+  },
   demos: {
     counter: {
       title: 'Сигналы',
@@ -341,6 +479,36 @@ const ru: Messages = {
     form: {
       title: 'Поля формы в Shadow DOM',
       description: 'Компоненты, которые участвуют в нативной валидации формы и в FormData.',
+    },
+    github: {
+      title: 'GitHub API',
+      description:
+        'Карточка репозитория из GitHub API: ввод с задержкой и интерцептор лимита запросов.',
+    },
+    weather: {
+      title: 'API погоды',
+      description:
+        'API open-meteo.com через resource(): сигнал выбирает город, старый запрос прерывается.',
+    },
+    posts: {
+      title: 'Создать, прочитать, удалить',
+      description:
+        'Оптимистичные обновления на jsonplaceholder, интерцепторы считают запросы и замеряют время.',
+    },
+    lifecycle: {
+      title: 'Хуки жизненного цикла',
+      description:
+        'mounted, unmounted, beforeUpdate и updated на часах, которые можно убрать и заморозить.',
+    },
+    context: {
+      title: 'Контекст',
+      description:
+        'Вложенные провайдеры: каждая подпись спрашивает у ближайшего над ней свой цвет.',
+    },
+    widget: {
+      title: 'defineWidget',
+      description:
+        'Кастомный элемент: настраивается атрибутами, красится CSS-свойством, отвечает событиями.',
     },
   },
   home: {
@@ -369,7 +537,7 @@ const ru: Messages = {
       'Настройки приходят атрибутами, результаты уходят DOM-событиями',
       'Оформление снаружи через CSS custom properties',
     ],
-    embedDemo: 'Открыть демо виджета',
+    embedGallery: 'Открыть галерею виджетов',
     embedForeign: 'Посмотреть на чужой странице',
     embedGuide: 'Читать руководство',
     wholeTitle: 'Целое приложение, один импорт',
@@ -386,6 +554,9 @@ const ru: Messages = {
     examplesTitle: 'Примеры',
     examplesDescription:
       'Живые демо ECMact с исходниками: сигналы, сторы, styled-компоненты, HTTP-клиент и формы.',
+    widgetsTitle: 'Виджеты',
+    widgetsDescription:
+      'Одни и те же виджеты ECMact, встроенные в четыре несвязанных сайта, у каждого своя враждебная таблица стилей.',
     notFound: 'Не найдено',
     docsSuffix: 'документация',
   },

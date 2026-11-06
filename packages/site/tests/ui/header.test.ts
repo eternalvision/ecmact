@@ -36,7 +36,7 @@ describe('Header', () => {
     document.body.append(header);
     expect(header.querySelector('.logo')).not.toBeNull();
     const labels = [...header.querySelectorAll('.nav a')].map((a) => a.textContent);
-    expect(labels).toEqual(['Docs', 'Examples', 'Widget demo', 'Starter', 'GitHub', 'npm']);
+    expect(labels).toEqual(['Docs', 'Examples', 'Widgets', 'Starter', 'GitHub', 'npm']);
     expect(header.querySelector('.nav .chip')).not.toBeNull();
   });
 
@@ -62,7 +62,7 @@ describe('Header in Russian', () => {
     const header = Header(makeRouter('/'));
     document.body.append(header);
     const labels = [...header.querySelectorAll('.nav a')].map((a) => a.textContent);
-    expect(labels.slice(0, 4)).toEqual(['Документация', 'Примеры', 'Демо виджета', 'Стартер']);
+    expect(labels.slice(0, 4)).toEqual(['Документация', 'Примеры', 'Виджеты', 'Стартер']);
     expect(header.querySelector('.menu')?.textContent).toBe('Меню');
     expect([...header.querySelectorAll('.nav .chip')].map((chip) => chip.textContent)).toEqual([
       'EN',

@@ -1725,7 +1725,7 @@ mount(document.body, toast);
 
 ## Embedding as a widget
 
-Live: the [widget demo](https://eternalvision.github.io/ecmact/widget/) and a [page that is not ours](https://eternalvision.github.io/ecmact/widget/embed.html), which loads the built script with one script tag and keeps its own fonts and colors.
+Live: the [widget demo](https://eternalvision.github.io/ecmact/widget/) and a [page that is not ours](https://eternalvision.github.io/ecmact/widget/embed.html), which loads the built script with one script tag and keeps its own fonts and colors. The [widget gallery](https://eternalvision.github.io/ecmact/widgets) goes further: five widgets, two of them fed by public APIs, embedded into four unrelated sites (a bistro, a dev dashboard, a brutalist zine, a kids club), each with its own hostile CSS, and themed through `--w-*` custom properties. Its source is in `packages/site/src/widgets`.
 
 `defineWidget` registers a custom element that renders an ECMact component tree. The page that embeds it needs no framework and no build step: a script tag and the element are enough.
 

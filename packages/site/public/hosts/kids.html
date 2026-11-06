@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pip &amp; Pop - a club for curious kids</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(160deg, #ffe0f0, #d9ecff 55%, #e5ffe0);
+        color: #5b3b8c;
+        font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', cursive;
+        line-height: 1.6;
+      }
+      header {
+        padding: 1.6rem 1rem 0.4rem;
+        text-align: center;
+      }
+      header h1 {
+        margin: 0;
+        font-size: clamp(2rem, 8vw, 3.4rem);
+        color: #ff4fa3;
+        text-shadow:
+          3px 3px 0 #fff,
+          6px 6px 0 #ffd23f;
+      }
+      main {
+        max-width: 56rem;
+        margin: 0 auto;
+        padding: 1rem 1rem 3rem;
+      }
+      h2 {
+        margin: 1.6rem 0 0.6rem;
+        font-size: 1.5rem;
+        color: #3a8fe8;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+      button {
+        padding: 0.7rem 1.6rem;
+        border: 0;
+        border-radius: 999px;
+        background: #ffd23f;
+        color: #5b3b8c;
+        font: inherit;
+        font-weight: 700;
+        box-shadow: 0 5px 0 #e0a800;
+        cursor: pointer;
+      }
+      button:active {
+        transform: translateY(3px);
+        box-shadow: 0 2px 0 #e0a800;
+      }
+      span,
+      b,
+      div,
+      input,
+      label {
+        color: #5b3b8c !important;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+        gap: 1.4rem;
+        align-items: start;
+      }
+      .note {
+        padding: 0.8rem 1.1rem;
+        border-radius: 22px;
+        background: #fff;
+        border: 3px dashed #ff4fa3;
+        font-size: 0.95rem;
+      }
+      weather-now,
+      poll-widget,
+      countdown-timer {
+        --w-font: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', cursive;
+        --w-radius: 36px;
+        --w-accent: #ff4fa3;
+        --w-fg: #5b3b8c;
+        --w-bg: #fff;
+        --w-muted: #8c74b5;
+        --w-border: #ff4fa3;
+      }
+      weather-now {
+        --w-fg: #fff;
+        --w-bg: linear-gradient(160deg, #ff8ccb, #ffb86b);
+      }
+      countdown-timer {
+        --w-bg: #3a8fe8;
+        --w-fg: #fff;
+        --w-muted: #d9ecff;
+        --w-border: #fff;
+        --w-accent: #ffd23f;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Pip &amp; Pop</h1>
+      <p>The club for curious kids</p>
+    </header>
+    <main>
+      <p class="note">
+        A playful page with a hostile stylesheet: it paints <code>span</code>, <code>b</code>,
+        <code>div</code> and <code>input</code> purple with <code>!important</code>, and rounds
+        every button into a pill. The weather, the poll and the countdown are ECMact widgets: they
+        ignore it, and wear this page's pink and its rounded corners through custom properties.
+      </p>
+      <h2>Today at the club</h2>
+      <div class="grid">
+        <weather-now city="Lisbon" unit="c"></weather-now>
+        <countdown-timer to="2027-06-25T08:00:00" label="Summer holidays in"></countdown-timer>
+      </div>
+      <h2>Vote for the mascot</h2>
+      <div class="grid">
+        <poll-widget
+          poll="kids-mascot"
+          question="Best club mascot?"
+          options="Cat, Dog, Capybara, Axolotl"
+          seed="9, 11, 24, 17"
+        ></poll-widget>
+        <p><button type="button">Join the club</button></p>
+      </div>
+    </main>
+    <script src="../embed/ecmact-widgets.js"></script>
+  </body>
+</html>

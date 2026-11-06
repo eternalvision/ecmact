@@ -12,7 +12,7 @@ export const page: DocPage = {
       '`defineWidget` registers a custom element that renders an ECMact component tree. The page that embeds it needs no framework and no build step: a script tag and the element are enough. This is what ECMact is best at.',
     ),
     p(
-      'Try it: the [widget demo](https://eternalvision.github.io/ecmact/widget/) and a [page that is not ours](https://eternalvision.github.io/ecmact/widget/embed.html), which loads the built script with one tag and keeps its own fonts and colors.',
+      'Try it: the [widget demo](https://eternalvision.github.io/ecmact/widget/) and a [page that is not ours](https://eternalvision.github.io/ecmact/widget/embed.html), which loads the built script with one tag and keeps its own fonts and colors. The [widget gallery](/widgets) embeds five widgets into four unrelated sites with hostile CSS of their own.',
     ),
     code(
       'ts',

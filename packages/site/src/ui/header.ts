@@ -72,7 +72,7 @@ export const Header = (router: Router) => {
             children: [
               link(router, '/docs', m.docs),
               link(router, '/examples', m.examples),
-              outside(external.widget, m.widget),
+              link(router, '/widgets', m.widgets),
               outside(external.starter, m.starter),
               outside(external.github, 'GitHub'),
               outside(external.npm, 'npm'),

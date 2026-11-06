@@ -24,6 +24,9 @@ export const metaFor = (path: string, locale: Locale = 'en'): PageMeta => {
   if (path === '/examples') {
     return { title: `${m.examplesTitle} - ${site}`, description: m.examplesDescription };
   }
+  if (path === '/widgets') {
+    return { title: `${m.widgetsTitle} - ${site}`, description: m.widgetsDescription };
+  }
   const doc = path.startsWith('/docs/')
     ? findDoc(path.slice('/docs/'.length).replace(/\/$/, ''), locale)
     : undefined;

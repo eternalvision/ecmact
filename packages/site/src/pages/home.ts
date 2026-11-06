@@ -235,7 +235,7 @@ const embedding = (router: Router) =>
       el(
         'p',
         { class: 'actions' },
-        outside(external.widget, m().embedDemo, 'button'),
+        action(router, '/widgets', m().embedGallery, 'button'),
         outside(`${external.widget}embed.html`, m().embedForeign, 'button ghost'),
         action(router, '/docs/widgets', m().embedGuide, 'button ghost'),
       ),
