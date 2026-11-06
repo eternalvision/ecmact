@@ -27,12 +27,15 @@ ECMact is a small component library built on native Web Components. Every compon
 - [Styles](#styles)
 - [Stylesheets and Tailwind CSS](#stylesheets-and-tailwind-css)
 - [Global configuration](#global-configuration)
+- [Warnings](#warnings)
 - [Events](#events)
 - [Refs](#refs)
 - [Lifecycle](#lifecycle)
 - [Shadow DOM and light DOM](#shadow-dom-and-light-dom)
 - [State and updates](#state-and-updates)
 - [Signals](#signals)
+- [Context](#context)
+- [Error handling](#error-handling)
 - [Recipes](#recipes)
 - [Mounting](#mounting)
 - [Composition](#composition)
@@ -163,10 +166,12 @@ Use `em.<Name>` for components that deserve their own name in devtools (`em.User
 | `unmounted`    | `(element, component) => void`                  | -       | Called when the component is disconnected from the document.    |
 | `beforeUpdate` | `(next, current, component) => boolean \| void` | -       | Return `false` to cancel an update.                             |
 | `updated`      | `(element, component, previous) => void`        | -       | Called after every render except the first.                     |
+| `error`        | `(error, info) => void`                         | -       | Receives errors from hooks, handlers and rendering.             |
+| `provide`      | `Provision[]`                                   | -       | Values this component offers to the components below it.        |
 | `on<event>`    | `(event) => void`                               | -       | Event listener on the inner element, lowercase, e.g. `onclick`. |
 | any other      | `string \| number \| boolean`                   | -       | Set as an HTML attribute on the inner element.                  |
 
-All props except `shadow` and the lifecycle hooks apply to the inner element, not to the `<em-*>` host.
+All props except `shadow`, `error`, `provide` and the lifecycle hooks apply to the inner element, not to the `<em-*>` host.
 
 ## Content and children
 
@@ -197,7 +202,7 @@ Children passed to `children` are moved, not cloned: a node can have only one pa
 
 ## Attributes
 
-Any prop that is not a reserved key (`tag`, `content`, `html`, `style`, `css`, `children`, `ref`, `shadow`, `mounted`, `unmounted`, `beforeUpdate`, `updated`) and does not start with `on` is set on the inner element with `setAttribute`.
+Any prop that is not a reserved key (`tag`, `content`, `html`, `style`, `css`, `children`, `ref`, `shadow`, `mounted`, `unmounted`, `beforeUpdate`, `updated`, `error`, `provide`) and does not start with `on` is set on the inner element with `setAttribute`.
 
 | Value                            | Result                              |
 | -------------------------------- | ----------------------------------- |
@@ -472,12 +477,31 @@ configure({
 });
 ```
 
-| Option   | Type                          | Default | Description                                                           |
-| -------- | ----------------------------- | ------- | --------------------------------------------------------------------- |
-| `shadow` | `boolean`                     | `true`  | Default for the `shadow` prop. A component's own `shadow` still wins. |
-| `styles` | `(string \| CSSStyleSheet)[]` | `[]`    | Shared stylesheets adopted by every shadow component.                 |
+| Option     | Type                          | Default | Description                                                           |
+| ---------- | ----------------------------- | ------- | --------------------------------------------------------------------- |
+| `shadow`   | `boolean`                     | `true`  | Default for the `shadow` prop. A component's own `shadow` still wins. |
+| `styles`   | `(string \| CSSStyleSheet)[]` | `[]`    | Shared stylesheets adopted by every shadow component.                 |
+| `onError`  | `(error, info) => void`       | -       | Default error handler, see [Error handling](#error-handling).         |
+| `warnings` | `boolean`                     | `true`  | Development warnings in the console, see [Warnings](#warnings).       |
 
 Configuration is read when a component renders. Components that were already rendered keep what they had, so configure before the first component is created. There is no configuration file: ECMact has no build step of its own, so a file would have nothing to read it.
+
+## Warnings
+
+ECMact logs a `console.warn` for usage that is silently ignored, so mistakes do not go unnoticed. Each distinct message is logged once.
+
+| Message                                                  | Cause                                                                |
+| -------------------------------------------------------- | -------------------------------------------------------------------- |
+| `attribute "x" was ignored, object values cannot be set` | An attribute prop is an object, function or other unsupported value. |
+| `style "x" was ignored, object values cannot be set`     | A style value is not a string or a number.                           |
+| `handler "onclick" is not a function and was ignored`    | An `on*` prop is not a function.                                     |
+| `content is ignored when html is set`                    | Both `content` and `html` were passed.                               |
+| `css is ignored when shadow is false`                    | `css` was passed to a light DOM component.                           |
+| `shadow cannot change after the first render`            | `shadow` (or the configured default) changed after the first render. |
+
+`undefined`, `null` and `false` never warn: they are the normal way to switch a prop off (`disabled: isBusy && true`, `onclick: enabled ? handler : undefined`).
+
+Turn the warnings off with `configure({ warnings: false })`, for example in production builds.
 
 ## Signals
 
@@ -679,6 +703,92 @@ tags.span({ content: computed(() => `${count.value} items, ${total.value} total`
 
 Any component in any file that reads `count` or `total` stays up to date, with no provider and no prop drilling.
 
+## Context
+
+Context passes a value to every component below another one, without handing it down through props. It is built on a DOM event that bubbles through ancestors and shadow roots, so it follows the element tree, not the document.
+
+```ts
+import { computed, consume, createContext, em, provide, signal, tags } from 'ecmact';
+import type { Signal } from 'ecmact';
+
+const Theme = createContext<Signal<'light' | 'dark'>>('theme');
+
+const theme = signal<'light' | 'dark'>('light');
+
+const badge = tags.span({
+  content: 'status',
+  mounted: (_, component) => {
+    const current = consume(Theme, component);
+    if (current) {
+      component.setState({ class: computed(() => `badge badge-${current.value}`) });
+    }
+  },
+});
+
+const app = em.App({
+  provide: [provide(Theme, theme)],
+  children: [badge],
+});
+```
+
+| Function                    | Description                                                                                            |
+| --------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `createContext<T>(name)`    | Creates a context key. The name is for debugging; two contexts with the same name are still different. |
+| `provide(context, value)`   | Pairs a context with a value. Pass a list of them in the `provide` prop.                               |
+| `consume(context, element)` | Returns the value from the nearest provider above `element`, or `undefined` if there is none.          |
+
+- `consume` is synchronous. Call it from `mounted` (or any later time), when the component is already inside the tree it belongs to.
+- The nearest provider of a given context wins. A provider does not answer its own `consume` call, so a component can read an outer value and offer a new one for the same context.
+- Providers only answer the contexts they were given; other requests continue to outer providers.
+- A provider answers for elements inside it whether or not it is connected to a document, and always uses its current `provide` prop.
+- Context carries values, not reactivity. To make consumers update, provide a signal and read it inside `computed` or an effect, as above.
+- `consume` works on any element, not only components, so it can be used from plain DOM code inside a provider.
+
+## Error handling
+
+An error thrown in one of your callbacks would otherwise break the render that called it. Pass an error handler to keep a component working and to find out what happened.
+
+```ts
+import { configure, em } from 'ecmact';
+
+configure({
+  onError: (error, { component, phase, event }) =>
+    report(error, { tag: component.localName, phase, event }),
+});
+
+const widget = em.Widget({
+  onclick: () => {
+    throw new Error('click failed');
+  },
+  error: (error, info) => console.error(info.phase, error),
+});
+```
+
+The handler receives the error and an `info` object:
+
+| Field       | Description                                                  |
+| ----------- | ------------------------------------------------------------ |
+| `component` | The component the error came from.                           |
+| `phase`     | Where it happened, see below.                                |
+| `event`     | For the `event` phase, the lowercase event name (`'click'`). |
+
+| Phase          | Source                                                                       |
+| -------------- | ---------------------------------------------------------------------------- |
+| `render`       | Rendering the component, including a throwing `ref`.                         |
+| `event`        | A listener passed as an `on<event>` prop.                                    |
+| `mounted`      | The `mounted` hook.                                                          |
+| `cleanup`      | The cleanup function returned by `mounted`.                                  |
+| `unmounted`    | The `unmounted` hook.                                                        |
+| `beforeUpdate` | The `beforeUpdate` hook. A failed `beforeUpdate` does not cancel the update. |
+| `updated`      | The `updated` hook.                                                          |
+
+- The `error` prop of a component wins over `configure({ onError })`.
+- With no handler at all, errors are rethrown, exactly as if there were no error handling. Nothing is swallowed silently.
+- If the handler throws, that error propagates.
+- A handled error does not stop later steps: for example `unmounted` still runs after a failing cleanup.
+- Only synchronous errors are caught. A rejected promise from an `async` handler is not seen, handle it inside the handler.
+- Errors in effects you create yourself are not component errors: they surface from the signal write that triggered them, as described in [Signals](#signals).
+
 ## Mounting
 
 ```ts
@@ -797,7 +907,7 @@ Any evergreen browser with Custom Elements v1, Shadow DOM and ES2022 class field
 - **Shadow DOM by default.** Global CSS does not apply inside components, and form controls inside a Shadow DOM do not take part in an outer `<form>`'s submission or validation. Label/`for` and `id` references do not cross the shadow boundary. Use `shadow: false` where that matters. The choice is made on the first render and cannot be changed afterwards.
 - **One inner element.** A component renders a single element. Compose several components for more complex structures.
 - **Children are not reactive props.** Rebuild them in an effect (see [Signals and lifecycle](#signals-and-lifecycle)). Children and text are rebuilt on every update; there is no keyed child diffing.
-- **Minimal lifecycle.** There are `mounted`, `unmounted`, `beforeUpdate` and `updated` hooks. State is whatever signals or objects you keep; there is no built-in store, router or message catalog.
+- **Minimal lifecycle.** There are `mounted`, `unmounted`, `beforeUpdate` and `updated` hooks. State is whatever signals or objects you keep; there is no built-in store, router or message catalog (see [Recipes](#recipes)).
 - **Handlers without options.** Listener options require a `ref`.
 - **Configuration is read at render time.** `configure` does not update components that are already rendered.
 
@@ -829,33 +939,48 @@ npm test
 npm run build
 ```
 
-| Script                 | Description                                          |
-| ---------------------- | ---------------------------------------------------- |
-| `npm run build`        | Vite library build: ES, CJS and `.d.ts` into `dist/` |
-| `npm test`             | Vitest with happy-dom and V8 coverage                |
-| `npm run typecheck`    | `tsc --noEmit` over `src` and `tests`                |
-| `npm run lint`         | ESLint (flat config, typescript-eslint, prettier)    |
-| `npm run lint:fix`     | ESLint with autofix                                  |
-| `npm run format`       | Prettier write                                       |
-| `npm run format:check` | Prettier check                                       |
+| Script                   | Description                                                 |
+| ------------------------ | ----------------------------------------------------------- |
+| `npm run build`          | Vite library build: ES, CJS and `.d.ts` into `dist/`        |
+| `npm test`               | Structure check, then Vitest with happy-dom and V8 coverage |
+| `npm run test:structure` | Checks that `tests/` mirrors `src/`                         |
+| `npm run typecheck`      | `tsc --noEmit` over `src` and `tests`                       |
+| `npm run lint`           | ESLint (flat config, typescript-eslint, prettier)           |
+| `npm run lint:fix`       | ESLint with autofix                                         |
+| `npm run format`         | Prettier write                                              |
+| `npm run format:check`   | Prettier check                                              |
 
-Tests enforce 100% statement, branch, function and line coverage; the run fails if coverage drops. Type-level behavior (attributes, events, styles, `ref` by tag) is covered by `tests/types.test.ts` and checked by `npm run typecheck`.
+### Test rules
+
+- **`tests/` mirrors `src/`, one test file per source file.** `src/utils/render.ts` is tested by `tests/utils/render.test.ts`, `src/signals.ts` by `tests/signals.test.ts`, and so on, including `index.ts` files and files that contain only types (their tests are type-level, checked by `npm run typecheck`).
+- **100% coverage** of statements, branches, functions and lines. The run fails if coverage drops.
+- Both are enforced: `npm test` first runs `npm run test:structure`, which fails on a source file without a test and on a test without a source file. Adding a file to `src/` means adding its test in the same change.
+- Shared test helpers live in `tests/helpers.ts`; it is not a test file and is not mirrored.
 
 Source layout:
 
 ```
 src/
-  index.ts           public exports
-  em.ts              Proxy factory and custom element registration
-  component.ts       custom element class: props, setState, rendering entry
-  types/             ComponentProps, attribute tables, render state
+  index.ts              public exports
+  em.ts                 Proxy factory and custom element registration
+  tags.ts               tag factories
+  component.ts          custom element class: props, signals, hooks, context, errors
+  config.ts             configure() and its defaults
+  context.ts            createContext, provide, consume
+  signals.ts            signal, computed, effect, batch, untracked
+  types/                ComponentProps, attribute tables, render state
   utils/
-    render.ts        creates or reuses the inner element and fills it
-    syncAttributes.ts  attribute diffing
-    applyStyle.ts    style diffing through the CSSOM
-    setEventListeners.ts  listener diffing
-    mount.ts         mount helper
-tests/               Vitest suites (runtime and type-level)
+    render.ts           creates or reuses the inner element and fills it
+    resolveProps.ts     unwraps signals in props
+    propsEqual.ts       compares resolved props
+    syncAttributes.ts   attribute diffing
+    applyStyle.ts       style diffing through the CSSOM
+    applyStyleSheets.ts css prop and shared stylesheets
+    setEventListeners.ts listener diffing, error reporting
+    mount.ts            mount helper
+    warn.ts             development warnings
+tests/                  mirrors src/, plus helpers.ts
+scripts/check-tests.mjs the structure check
 ```
 
 ## Release
