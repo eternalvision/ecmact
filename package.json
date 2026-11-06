@@ -1,7 +1,7 @@
 {
   "name": "ecmact",
   "version": "2.1.0",
-  "description": "Dynamic components library using Vite Vanilla and Web Components",
+  "description": "Small component library on native Web Components with typed props, signals and context",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -11,14 +11,12 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "dist"
   ],
-  "engines": {
-    "node": ">=22.12.0"
-  },
   "scripts": {
     "build": "vite build",
     "typecheck": "tsc",
@@ -31,17 +29,18 @@
     "test:structure": "node scripts/check-tests.mjs"
   },
   "keywords": [
-    "vite",
     "web-components",
-    "dynamic-components",
-    "vanilla-js",
-    "shadow-dom"
+    "custom-elements",
+    "shadow-dom",
+    "signals",
+    "reactive",
+    "typescript",
+    "ui"
   ],
   "author": "Alexandr Priadchenko",
   "license": "MIT",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/node": "^22.20.5",
     "@vitest/coverage-v8": "^5.1.0",
     "eslint": "^10.14.0",
     "eslint-config-prettier": "^10.1.8",
