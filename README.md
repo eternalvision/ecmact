@@ -22,6 +22,7 @@ ECMact is a small component library built on native Web Components. Every compon
 - In-place updates: `setState` reuses the DOM node, so focus and input state survive
 - Full TypeScript support, with attributes, events, styles, `ref` and lifecycle hooks typed per HTML tag
 - Signals, computed values and effects; props can be bound to them and update the DOM on their own
+- Styled components: CSS in tagged templates, with props and signals, scoped to the component
 - Optional light DOM rendering and lifecycle hooks (`mounted` with cleanup, `unmounted`, `beforeUpdate`, `updated`)
 - ES and CommonJS builds, bundled type declarations, `sideEffects: false`
 
@@ -69,6 +70,7 @@ See [Limitations](#limitations) for the full list.
   - [Fields inside a form](#fields-inside-a-form)
 - [Styles](#styles)
 - [Stylesheets and Tailwind CSS](#stylesheets-and-tailwind-css)
+- [Styled components](#styled-components)
 - [Global configuration](#global-configuration)
 - [Warnings](#warnings)
 - [Events](#events)
@@ -711,6 +713,56 @@ Updates are in place:
 Components do not track state for you. `setState` is a rendering call, not a store: keep your application state wherever you like and call `setState` when it changes.
 
 An `<em-*>` element created outside the library (for example `document.createElement('em-card')`) renders an empty `div` when it is connected.
+
+## Styled components
+
+`styled` turns CSS written in a tagged template into a component, in the style of styled-components. It is built into ECMact and works with its signals and Shadow DOM; the React library of the same name does not run on custom elements and is not involved.
+
+```ts
+import { css, signal, styled } from 'ecmact';
+
+const Button = styled.button<{ $primary?: boolean }>`
+  padding: 0.5rem 1rem;
+  border: 0;
+  border-radius: 8px;
+  color: white;
+  background: ${(props) => (props.$primary ? '#1665e0' : '#6b7a90')};
+
+  &:hover {
+    filter: brightness(1.1);
+  }
+`;
+
+mount('#app', Button({ content: 'Save', $primary: true }), Button({ content: 'Cancel' }));
+```
+
+`styled.<tag>` (any HTML tag) or `styled('tag')` returns a template function; the template returns a function that creates the component. The result is an ordinary ECMact component: it takes the props of its tag (`content`, `onclick`, `ref`, hooks, signals) and can be mounted, nested and updated with `setState`.
+
+- **The template can contain** plain values, signals, functions of the props, and fragments made with `css`. `false`, `null` and `undefined` leave nothing behind, so `${(props) => props.$wide && 'width: 100%;'}` works. Functions may return any of these again.
+- **Props in the template.** Functions receive the resolved props: signals in them are already unwrapped. Signals used in the template, or in the props a function reads, update the styles by themselves.
+- **Transient props start with `$`.** They reach the functions in the template but are never set on the element, so `$primary` does not end up as an attribute. Type them with the generic: `styled.button<{ $primary?: boolean }>`. Props without `$` go to the element as usual, and are available to the functions too.
+- **The styles live in the component's shadow root.** They cannot leak out and the page's CSS cannot reach in. Declarations apply to the inner element; nested rules and `&` use native CSS nesting (Chrome 120, Safari 17.2, Firefox 117 and newer).
+- **Without a shadow root the styles do nothing**, with a warning: `shadow: false` ignores `css`, and styled components are made of `css`. Use them with the default Shadow DOM.
+- **`css` prop of your own** is appended after the styles of the template.
+- **Sharing.** `css` writes a fragment that several components can include:
+
+```ts
+const focusRing = css<{ $accent: string }>`
+  &:focus-visible {
+    outline: 2px solid ${(props) => props.$accent};
+    outline-offset: 2px;
+  }
+`;
+
+const Link = styled.a<{ $accent: string }>`
+  color: inherit;
+  ${focusRing}
+`;
+```
+
+- **One element per tag.** All components made with `styled.button` share one custom element, `em-styled-button`, and differ only in their styles.
+- **No class names and no theming object.** Pass a theme through [context](#context) or CSS custom properties, which cross the shadow boundary: `color: var(--accent, #1665e0)`.
+- **Extending a styled component** (`styled(Button)`) is not supported. Compose with `css` fragments instead.
 
 ## Global configuration
 
@@ -1591,6 +1643,7 @@ src/
   signals.ts            signal, computed, effect, batch, untracked
   resource.ts           async data as signals
   widget.ts             defineWidget: custom elements for embedding
+  styled.ts             styled and css: tagged templates for styles
   router/
     match.ts            path patterns
     flatten.ts          nested routes turned into a flat list
@@ -1628,7 +1681,7 @@ Releases are published from CI with npm trusted publishing and provenance. Each 
 
 | Package         | Tag pattern            | Workflow             |
 | --------------- | ---------------------- | -------------------- |
-| `ecmact`        | `v2.4.0`               | `release.yml`        |
+| `ecmact`        | `v2.5.0`               | `release.yml`        |
 | `create-ecmact` | `create-ecmact-v0.3.0` | `release-create.yml` |
 
 ```bash

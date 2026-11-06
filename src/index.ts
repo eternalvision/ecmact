@@ -1,6 +1,15 @@
 export { em } from '@em/em';
 export { tags } from '@em/tags';
 export { configure } from '@em/config';
+export { css, styled } from '@em/styled';
+export type {
+  CssFragment,
+  Interpolation,
+  Styled,
+  StyledComponent,
+  StyledProps,
+  StyledTag,
+} from '@em/styled';
 export { defineWidget } from '@em/widget';
 export type { WidgetContext, WidgetOptions } from '@em/widget';
 export { consume, createContext, provide } from '@em/context';

@@ -15,6 +15,7 @@ describe('public API', () => {
       'consume',
       'createContext',
       'createRouter',
+      'css',
       'defineWidget',
       'effect',
       'em',
@@ -23,6 +24,7 @@ describe('public API', () => {
       'provide',
       'resource',
       'signal',
+      'styled',
       'tags',
       'untracked',
     ]);
@@ -39,6 +41,7 @@ describe('public API', () => {
       'consume',
       'createContext',
       'createRouter',
+      'css',
       'defineWidget',
       'effect',
       'em',
@@ -47,6 +50,7 @@ describe('public API', () => {
       'provide',
       'resource',
       'signal',
+      'styled',
       'tags',
       'untracked',
     ]);
