@@ -205,6 +205,7 @@ const build = (definition: Definition): StyledComponent<string> => {
       return `${[...rules].join('\n')}\n[${marker}] {\n${body}\n}\n${extra}`;
     });
     return createFactory(`styled-${tag}`)({
+      shadow: true,
       ...forElement(props),
       tag,
       [marker]: '',

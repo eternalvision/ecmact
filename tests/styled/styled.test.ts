@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { css, keyframes, signal, styled, ThemeProvider, type ReadonlySignal } from '@em';
+import { configure, css, keyframes, signal, styled, ThemeProvider, type ReadonlySignal } from '@em';
+import { resetConfig } from '@em/core/config';
 import { inner } from '@tests/helpers';
 
 const sheet = (component: { props: { css?: unknown } }) =>
@@ -9,6 +10,7 @@ const text = (css: string) =>
   Object.assign([css], { raw: [css] }) as unknown as TemplateStringsArray;
 
 afterEach(() => {
+  resetConfig();
   document.body.replaceChildren();
 });
 
@@ -120,6 +122,26 @@ describe('styled', () => {
   it('is not confused by symbols and then', () => {
     expect((styled as unknown as { then?: unknown }).then).toBeUndefined();
     expect((styled as unknown as Record<symbol, unknown>)[Symbol.iterator]).toBeUndefined();
+  });
+});
+
+describe('shadow root', () => {
+  it('is used by default, even when the app renders into the light DOM', () => {
+    configure({ shadow: false });
+    const box = styled.div`
+      margin: 0;
+    `();
+    document.body.append(box);
+    expect(box.shadowRoot).not.toBeNull();
+    expect(box.shadowRoot!.adoptedStyleSheets).toHaveLength(1);
+  });
+
+  it('can be switched off per component', () => {
+    const box = styled.div`
+      margin: 0;
+    `({ shadow: false });
+    document.body.append(box);
+    expect(box.shadowRoot).toBeNull();
   });
 });
 
