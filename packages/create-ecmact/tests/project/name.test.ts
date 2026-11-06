@@ -26,9 +26,10 @@ describe('toPackageName', () => {
 
   it('stays fast on a long hostile name', () => {
     const started = Date.now();
+    toPackageName(`a${'-'.repeat(80000)}b`);
     toPackageName(`${'-'.repeat(50000)}a${'-'.repeat(50000)}!`);
     toPackageName('!'.repeat(50000));
-    expect(Date.now() - started).toBeLessThan(1000);
+    expect(Date.now() - started).toBeLessThan(500);
   });
 
   it('falls back to a default name', () => {

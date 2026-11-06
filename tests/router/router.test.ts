@@ -64,6 +64,13 @@ describe('location', () => {
     expect(Date.now() - started).toBeLessThan(1000);
   });
 
+  it('stays fast when a long run of slashes is not at the end of the base', () => {
+    window.history.replaceState(null, '', '/other');
+    const started = Date.now();
+    make({ routes: [], base: `${'/'.repeat(100000)}x` });
+    expect(Date.now() - started).toBeLessThan(500);
+  });
+
   it('maps the base itself to the root', () => {
     window.history.replaceState(null, '', '/app');
     expect(make({ routes: [], base: '/app/' }).location.value.path).toBe('/');
