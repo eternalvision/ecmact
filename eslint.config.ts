@@ -1,4 +1,5 @@
 import js from '@eslint/js';
+import jsdoc from 'eslint-plugin-jsdoc';
 import prettier from 'eslint-plugin-prettier/recommended';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
@@ -9,6 +10,43 @@ export default defineConfig([
   tseslint.configs.strict,
   tseslint.configs.stylistic,
   prettier,
+  {
+    files: ['src/**/*.ts', 'packages/*/src/**/*.ts'],
+    extends: [jsdoc.configs['flat/recommended-typescript-error']],
+    rules: {
+      'jsdoc/tag-lines': ['error', 'never', { startLines: 1, tags: { example: { lines: 'any' } } }],
+      'jsdoc/require-param': ['error', { checkDestructured: false }],
+      'jsdoc/check-param-names': ['error', { checkDestructured: false }],
+      'jsdoc/require-jsdoc': [
+        'error',
+        {
+          publicOnly: false,
+          require: {
+            FunctionDeclaration: true,
+            ArrowFunctionExpression: true,
+            FunctionExpression: true,
+            MethodDefinition: true,
+            ClassDeclaration: true,
+          },
+          contexts: ['Property > ArrowFunctionExpression', 'Property > FunctionExpression'],
+        },
+      ],
+    },
+  },
+  {
+    files: ['scripts/**/*.mjs', 'packages/*/bin/*.mjs'],
+    extends: [jsdoc.configs['flat/recommended-error']],
+    rules: {
+      'jsdoc/tag-lines': ['error', 'never', { startLines: 1, tags: { example: { lines: 'any' } } }],
+      'jsdoc/require-jsdoc': [
+        'error',
+        {
+          publicOnly: false,
+          require: { FunctionDeclaration: true, ArrowFunctionExpression: true },
+        },
+      ],
+    },
+  },
   {
     files: ['scripts/**/*.mjs', 'packages/*/bin/*.mjs'],
     languageOptions: { globals: { console: 'readonly', process: 'readonly', URL: 'readonly' } },
