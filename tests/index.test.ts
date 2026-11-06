@@ -9,6 +9,8 @@ afterEach(() => {
 describe('public API', () => {
   it('exports the documented runtime values', () => {
     expect(Object.keys(lib).sort()).toEqual([
+      'CanceledError',
+      'HttpError',
       'ThemeProvider',
       'batch',
       'combine',
@@ -16,6 +18,7 @@ describe('public API', () => {
       'configure',
       'consume',
       'createContext',
+      'createHttp',
       'createJSONStorage',
       'createRouter',
       'createStore',
@@ -24,6 +27,9 @@ describe('public API', () => {
       'devtools',
       'effect',
       'em',
+      'http',
+      'isCancel',
+      'isHttpError',
       'isSignal',
       'keyframes',
       'mount',
@@ -35,6 +41,7 @@ describe('public API', () => {
       'styled',
       'tags',
       'themeContext',
+      'toFormData',
       'untracked',
       'useTheme',
     ]);
@@ -45,6 +52,8 @@ describe('public API', () => {
     vi.resetModules();
     const withoutDom = await import('@em');
     expect(Object.keys(withoutDom).sort()).toEqual([
+      'CanceledError',
+      'HttpError',
       'ThemeProvider',
       'batch',
       'combine',
@@ -52,6 +61,7 @@ describe('public API', () => {
       'configure',
       'consume',
       'createContext',
+      'createHttp',
       'createJSONStorage',
       'createRouter',
       'createStore',
@@ -60,6 +70,9 @@ describe('public API', () => {
       'devtools',
       'effect',
       'em',
+      'http',
+      'isCancel',
+      'isHttpError',
       'isSignal',
       'keyframes',
       'mount',
@@ -71,6 +84,7 @@ describe('public API', () => {
       'styled',
       'tags',
       'themeContext',
+      'toFormData',
       'untracked',
       'useTheme',
     ]);

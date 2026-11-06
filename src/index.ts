@@ -1,6 +1,26 @@
 export { em } from '@em/core/em';
 export { tags } from '@em/core/tags';
 export { configure } from '@em/core/config';
+export { toFormData } from '@em/http/body';
+export { CanceledError, HttpError, isCancel, isHttpError } from '@em/http/error';
+export type { HttpErrorCode } from '@em/http/error';
+export { createHttp, http } from '@em/http/http';
+export type { HttpInstance } from '@em/http/http';
+export type {
+  HeaderMap,
+  HeaderValue,
+  HttpErrorLike,
+  HttpHeaders,
+  HttpMethod,
+  HttpRequestConfig,
+  HttpResponse,
+  ParamsSerializerOptions,
+  ProgressEvent,
+  RequestTransform,
+  ResponseTransform,
+  ResponseType,
+  RetryOptions,
+} from '@em/http/types';
 export { combine } from '@em/store/combine';
 export { devtools } from '@em/store/devtools';
 export type { DevtoolsOptions } from '@em/store/devtools';

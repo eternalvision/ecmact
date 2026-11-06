@@ -22,7 +22,8 @@ ECMact is a small component library built on native Web Components. Every compon
 - In-place updates: `setState` reuses the DOM node, so focus and input state survive
 - Full TypeScript support, with attributes, events, styles, `ref` and lifecycle hooks typed per HTML tag
 - Signals, computed values and effects; props can be bound to them and update the DOM on their own
-- Styled components: CSS in tagged templates, with props and signals, scoped to the component
+- Styled components: CSS in tagged templates, with props, signals, themes and animations, scoped to the component
+- A zustand-style store (`persist`, `devtools`, selectors as signals) and an axios-style HTTP client on `fetch` (interceptors, retries, cancellation), both built in
 - Optional light DOM rendering and lifecycle hooks (`mounted` with cleanup, `unmounted`, `beforeUpdate`, `updated`)
 - ES and CommonJS builds, bundled type declarations, `sideEffects: false`
 
@@ -79,6 +80,8 @@ See [Limitations](#limitations) for the full list.
 - [Shadow DOM and light DOM](#shadow-dom-and-light-dom)
 - [State and updates](#state-and-updates)
 - [Signals](#signals)
+- [State management](#state-management)
+- [HTTP client](#http-client)
 - [Context](#context)
 - [Error handling](#error-handling)
 - [Routing](#routing)
@@ -1076,6 +1079,301 @@ tags.span({ content: computed(() => `${count.value} items, ${total.value} total`
 
 Any component in any file that reads `count` or `total` stays up to date, with no provider and no prop drilling.
 
+## State management
+
+`createStore` makes a store: a state, the functions that change it, and ways to follow it. It is modeled on zustand and works with ECMact's signals, so components follow a store without any glue. The store is plain JavaScript and works anywhere; only `select` and `state` use signals.
+
+```ts
+import { createStore, mount, tags } from 'ecmact';
+
+interface CounterState {
+  count: number;
+  inc: () => void;
+}
+
+const counter = createStore<CounterState>((set) => ({
+  count: 0,
+  inc: () => set((state) => ({ count: state.count + 1 })),
+}));
+
+mount(
+  '#app',
+  tags.button({
+    content: counter.select((state) => `count is ${state.count}`),
+    onclick: () => counter.getState().inc(),
+  }),
+);
+```
+
+`createStore(creator)` calls `creator(set, get, api)` once and uses what it returns as the state. The state is usually an object holding the values and the actions that change them, but it can be anything, a number included.
+
+| Member                             | Description                                                                                                                |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `getState()`                       | The current state. Do not mutate it: pass a new object to `setState`.                                                      |
+| `getInitialState()`                | The state the store was created with.                                                                                      |
+| `setState(partial, replace?)`      | Shallow-merges an object (or the object that a function of the state returns) into the state. `replace: true` replaces it. |
+| `subscribe(listener)`              | Calls `listener(state, previous)` after every change. Returns a function that stops it.                                    |
+| `watch(selector, listener, opts?)` | Like `subscribe`, but only when the selected value changes. Options: `equalityFn`, `fireImmediately`.                      |
+| `select(selector, equalityFn?)`    | A signal of a part of the state, for props and effects. It changes only when the selected value does.                      |
+| `state`                            | The whole state as a signal.                                                                                               |
+| `onReady(callback)`                | For middleware: runs once the state exists.                                                                                |
+
+- **`setState` merges** objects shallowly, replaces a state that is not an object, and does nothing, and notifies nobody, when the new state is the same value (`Object.is`) as the old one. A third argument names the change for `devtools`.
+- **`set` and `get` in the creator** must not be called while the creator is still running, only afterwards, for example in an action.
+- **Selecting.** `store.select((state) => state.count)` returns a signal. Bind it to a prop and the component updates when the count changes, and not when something else in the store does. A selector that builds a new object or array each time would change on every update; pass `shallow` as the second argument so that only a change of content counts:
+
+```ts
+import { shallow } from 'ecmact';
+
+const position = store.select((state) => ({ x: state.x, y: state.y }), shallow);
+```
+
+- **Following without components.** `watch` and `subscribe` are for code that is not a component, such as saving to a server. `store.watch((state) => state.token, (token) => api.setToken(token), { fireImmediately: true })`.
+- **Selectors are long-lived.** A signal made by `select` follows the store until the store is gone. Create it once, next to the component that needs it, rather than on every render.
+
+`shallow(a, b)` compares one level deep: objects and arrays by their own keys and values, maps and sets by their entries, everything else with `Object.is`.
+
+### Middleware
+
+A middleware wraps the creator. Apply it around the creator, in the order that makes sense: the outermost one sees the others' changes.
+
+```ts
+import { combine, createStore, devtools, persist } from 'ecmact';
+
+const cart = createStore(
+  devtools(
+    persist(
+      combine({ items: [] as string[] }, (set) => ({
+        add: (item: string) =>
+          set((state) => ({ items: [...state.items, item] }), false, 'cart/add'),
+      })),
+      { name: 'cart', partialize: (state) => ({ items: state.items }) },
+    ),
+    { name: 'cart' },
+  ),
+);
+```
+
+**`combine(initial, creator)`** takes the initial values separately, so their types are inferred and only the actions are written out. The creator's `set` and `get` know the initial values.
+
+**`persist(creator, options)`** keeps the state in a storage and reads it back when the store is created. The initial state is not written until the first change.
+
+| Option               | Description                                                                                                                   |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `name`               | The key in the storage. Required, and unique to the store.                                                                    |
+| `storage`            | `createJSONStorage(() => sessionStorage)`, or any `{ getItem, setItem, removeItem }`. Defaults to `localStorage` as JSON.     |
+| `partialize`         | Picks what to persist. Actions are functions and are dropped by JSON anyway; use `partialize` to leave out values too.        |
+| `version`, `migrate` | A stored state with another version is ignored, unless `migrate(persisted, version)` converts it. The result is written back. |
+| `merge`              | Combines the stored state with the current one. Defaults to a shallow merge.                                                  |
+| `skipHydration`      | Does not read the storage on creation. Call `store.persist.rehydrate()` yourself, for example after the page has loaded.      |
+| `onRehydrateStorage` | `(state) => (state, error) => void`: called before the storage is read, and returns what to call after.                       |
+
+`store.persist` has `getOptions()`, `setOptions(partial)`, `clearStorage()`, `rehydrate()`, `hasHydrated()`, `onHydrate(listener)` and `onFinishHydration(listener)`. Storages may be asynchronous: hydration then ends in a later microtask, and `hasHydrated()` tells when. A storage that cannot be reached (private mode, an unavailable `localStorage`) makes `createJSONStorage` return `undefined`, and the store works without persistence.
+
+**`devtools(creator, options?)`** connects the store to the Redux DevTools browser extension: every change is sent as an action named by the third argument of `setState` (or `anonymousActionType`, default `anonymous`), and jumping in time in the extension sets the state. Options: `name`, `enabled`, `anonymousActionType`. Without the extension it does nothing.
+
+Differences from zustand: there is no React hook, `select` returns a signal instead; `subscribeWithSelector` is built in as `watch`; there is no `immer` middleware, because ECMact has no dependencies, but any function that returns the next state works with `setState((state) => produce(state, ...))`.
+
+Writing a middleware is writing a function from a creator to a creator. Replace `api.setState` to intercept changes, and use `api.onReady` for what needs the state to exist:
+
+```ts
+const logger =
+  <T>(creator: StateCreator<T>): StateCreator<T> =>
+  (set, get, api) =>
+    creator(
+      ((partial, replace, action) => {
+        set(partial as never, replace as never, action);
+        console.log(action ?? 'change', get());
+      }) as typeof set,
+      get,
+      api,
+    );
+```
+
+## HTTP client
+
+`createHttp` makes a client that is used like axios: the same method shortcuts, config, interceptors and errors, on top of `fetch`. It has no dependencies and runs wherever `fetch` does (browsers, Node 18 and newer, workers).
+
+```ts
+import { createHttp } from 'ecmact';
+
+const api = createHttp({ baseURL: 'https://api.example.com', timeout: 5000 });
+
+const { data } = await api.get<User[]>('/users', { params: { page: 1 } });
+await api.post('/users', { name: 'Ada' });
+```
+
+`http` is a ready-made client with the library defaults. Use `createHttp` in an application, so that `baseURL` and the headers belong to your API.
+
+| Call                               | Description                                                                        |
+| ---------------------------------- | ---------------------------------------------------------------------------------- |
+| `api(config)`, `api(url, config?)` | Send a request.                                                                    |
+| `api.request(config)`              | Same as `api(config)`.                                                             |
+| `get`, `delete`, `head`, `options` | `(url, config?)`.                                                                  |
+| `post`, `put`, `patch`             | `(url, data?, config?)`.                                                           |
+| `postForm`, `putForm`, `patchForm` | Like `post`, `put` and `patch`, but an object is sent as `multipart/form-data`.    |
+| `api.getUri(config?)`              | The URL a config would request, with the base and the query string. Sends nothing. |
+| `api.defaults`, `api.interceptors` | Defaults to change in place, and the interceptors.                                 |
+
+The type parameters are `get<T, D>`: `T` is the type of `response.data` and `D` the type of the request data.
+
+### Response
+
+A request resolves with:
+
+| Field        | Description                                               |
+| ------------ | --------------------------------------------------------- |
+| `data`       | The body, after `transformResponse`.                      |
+| `status`     | The HTTP status.                                          |
+| `statusText` | The status text.                                          |
+| `headers`    | The response headers, as an object with lower-case names. |
+| `config`     | The config of the request.                                |
+| `duration`   | How long the request took, in milliseconds.               |
+
+### Config
+
+Every option can be given per request, or as a default of the instance, except `url`, `method` and `data`, which belong to one request.
+
+| Option                                              | Description                                                                                                                                                        |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `url`, `method`                                     | The URL, and the method (`get` by default, lower or upper case).                                                                                                   |
+| `baseURL`                                           | Prepended to a relative `url`. `allowAbsoluteUrls: false` prefixes absolute URLs too.                                                                              |
+| `headers`                                           | Header names are case-insensitive; `null`, `undefined` and `false` remove a header. In defaults, `common`, `get`, `post`, ... hold headers for all methods or one. |
+| `params`                                            | An object or `URLSearchParams`. Arrays are `a[]=1&a[]=2`, nested objects `a[b]=1`, dates ISO text, `null` and `undefined` are skipped.                             |
+| `paramsSerializer`                                  | A function `(params) => string`, or `{ serialize, encode, indexes }` (`indexes: true` gives `a[0]=1`, `null` gives `a=1&a=2`).                                     |
+| `data`                                              | An object (sent as JSON), string, `FormData`, `URLSearchParams`, `Blob`, buffer or stream.                                                                         |
+| `transformRequest`                                  | A function `(data, headers) => body`, or a list. The default turns objects into JSON and sets `Content-Type`.                                                      |
+| `transformResponse`                                 | A function `(data, headers, status, config) => data`, or a list. The default parses JSON; text that is not JSON stays text.                                        |
+| `timeout`                                           | Milliseconds before the request is aborted. `0`, the default, means none. `timeoutErrorMessage` sets the message.                                                  |
+| `clarifyTimeoutError`                               | Reports a timeout as `ETIMEDOUT` instead of `ECONNABORTED`.                                                                                                        |
+| `signal`                                            | An `AbortSignal` that cancels the request.                                                                                                                         |
+| `responseType`                                      | `json` (default), `text`, `blob`, `arraybuffer`, `formdata` or `stream`.                                                                                           |
+| `validateStatus`                                    | `(status) => boolean`. Defaults to 200 to 299. `null` accepts every status.                                                                                        |
+| `auth`                                              | `{ username, password }`: a Basic `Authorization` header.                                                                                                          |
+| `withCredentials`                                   | Sends cookies and credentials to other origins. Default `false`.                                                                                                   |
+| `maxRedirects`                                      | `0` does not follow redirects; any other value follows them.                                                                                                       |
+| `onDownloadProgress`                                | `({ loaded, total, progress }) => void`, while the body arrives. `total` and `progress` are `undefined` when the size is unknown.                                  |
+| `xsrfCookieName`, `xsrfHeaderName`, `withXSRFToken` | Copies the XSRF cookie into a header for same-origin requests (or others, when `withXSRFToken` allows).                                                            |
+| `retry`                                             | A number of retries, or `{ retries, delay, retryOn }`. See below.                                                                                                  |
+| `redact`                                            | Names of config keys and headers to mask in `error.toJSON()`.                                                                                                      |
+| `fetch`                                             | The `fetch` to use. Defaults to the global one. Handy for tests and for polyfills.                                                                                 |
+
+**Precedence.** The library defaults come first, then `createHttp(config)` and `api.defaults`, then the config of the request; the last one wins. Headers are merged bucket by bucket, so a request can add one header without losing the defaults. Setting `api.defaults.headers.common.Authorization` sends the token to every host the instance talks to: give such an instance one `baseURL`, or set the header per request.
+
+### Errors
+
+A request rejects with an `HttpError` when the status fails `validateStatus`, when nothing answered, on a timeout, when it was cancelled, and for an invalid URL.
+
+| Field / method | Description                                                                             |
+| -------------- | --------------------------------------------------------------------------------------- |
+| `message`      | What happened.                                                                          |
+| `code`         | See the table below.                                                                    |
+| `status`       | The HTTP status, when the server answered.                                              |
+| `response`     | The response (with `data`, `status`, `headers`), when the server answered.              |
+| `config`       | The config of the request.                                                              |
+| `cause`        | The error that was wrapped, such as the `TypeError` of `fetch`.                         |
+| `toJSON()`     | The message, code, status and config as plain data. Keys listed in `redact` are masked. |
+
+| Code               | Meaning                                                        |
+| ------------------ | -------------------------------------------------------------- |
+| `ERR_BAD_REQUEST`  | A 4xx status.                                                  |
+| `ERR_BAD_RESPONSE` | A 5xx status, or any status that `validateStatus` rejected.    |
+| `ERR_NETWORK`      | No answer: the network is down, the host is unreachable, CORS. |
+| `ECONNABORTED`     | The timeout ran out (`ETIMEDOUT` with `clarifyTimeoutError`).  |
+| `ERR_CANCELED`     | The `signal` aborted. The error is a `CanceledError`.          |
+| `ERR_INVALID_URL`  | No URL, or a malformed `http:`/`https:` URL.                   |
+
+```ts
+import { isCancel, isHttpError } from 'ecmact';
+
+try {
+  await api.get('/users/1');
+} catch (error) {
+  if (isCancel(error)) return;
+  if (isHttpError(error)) {
+    if (error.response) console.log(error.status, error.response.data);
+    else console.log(error.code);
+  }
+}
+```
+
+### Interceptors
+
+Request interceptors receive the config before the request is sent and run in reverse order of adding, the last added first. Response interceptors receive the response and run in the order of adding. Both take a second argument that handles errors, and an interceptor can recover by returning a value or rethrow.
+
+```ts
+api.interceptors.request.use((config) => ({
+  ...config,
+  headers: { ...config.headers, Authorization: `Bearer ${session.token}` },
+}));
+
+const id = api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (isHttpError(error) && error.status === 401) await session.refresh();
+    throw error;
+  },
+);
+
+api.interceptors.response.eject(id);
+api.interceptors.request.clear();
+```
+
+- `use(fulfilled?, rejected?, { runWhen })` returns an id. `runWhen(config)` returning `false` skips a request interceptor for that request.
+- `eject(id)` removes one interceptor (an unknown id does nothing) and `clear()` removes all.
+- Interceptors may be asynchronous. A thrown error skips the later fulfilled handlers and goes to the next rejected one.
+- A request interceptor that returns a different config replaces it entirely.
+
+### Cancelling, timeouts and retries
+
+```ts
+const controller = new AbortController();
+const pending = api.get('/slow', { signal: controller.signal });
+controller.abort();
+
+await api.get('/slow', { timeout: 3000 });
+```
+
+Cancelling uses `AbortSignal` only; there is no `CancelToken`. A request cancelled before it is sent never reaches the network. A timeout also aborts the request.
+
+`retry` repeats a failed request. The default policy retries network failures, timeouts and 5xx statuses of idempotent methods (`get`, `head`, `options`, `put`, `delete`), never a cancellation, and waits `300 * 2 ** attempt` milliseconds. Axios has nothing like this built in.
+
+```ts
+await api.get('/flaky', { retry: 3 });
+await api.post('/orders', order, {
+  retry: { retries: 2, delay: 500, retryOn: (error) => error.status === 503 },
+});
+```
+
+A request body that is a stream can be read once, so retrying such a request is up to you.
+
+### With components
+
+An async result is a signal source: `resource` is the tool that turns a request into signals, and `api` supplies the request.
+
+```ts
+import { createHttp, resource, tags } from 'ecmact';
+
+const api = createHttp({ baseURL: '/api' });
+
+const users = resource(({ signal }) =>
+  api.get<User[]>('/users', { signal }).then((response) => response.data),
+);
+
+tags.ul({
+  children: computed(() => (users.data.value ?? []).map((user) => tags.li({ content: user.name }))),
+});
+```
+
+`resource` passes an `AbortSignal` and aborts a request that a newer one replaces, so a slow answer cannot overwrite a fresh one.
+
+### Differences from axios
+
+- It is built on `fetch`: there is no Node `http` adapter, `proxy`, `httpAgent`, `maxContentLength` or `maxBodyLength`, and no upload progress, because `fetch` cannot report it. Download progress is reported while the body is read.
+- `CancelToken`, `axios.all` and `axios.spread` are not provided; use `AbortController` and `Promise.all`.
+- `transitional` flags are not provided: JSON that cannot be parsed stays text, and a status passed to `validateStatus: undefined` uses the default.
+- Added: `retry`, `clarifyTimeoutError` as an option, and `duration` on every response.
+
 ## Context
 
 Context passes a value to every component below another one, without handing it down through props. It is built on a DOM event that bubbles through ancestors and shadow roots, so it follows the element tree, not the document.
@@ -1654,7 +1952,7 @@ Inside `src/` and `tests/` (of every package), import through aliases instead of
 | Alias            | Resolves to                         | Example                                                                       |
 | ---------------- | ----------------------------------- | ----------------------------------------------------------------------------- |
 | `@em`            | `src/index.ts`                      | `import { em } from '@em';`                                                   |
-| `@em/<path>`     | `src/<path>`                        | `import { render } from '@em/utils/render';`                                  |
+| `@em/<path>`     | `src/<path>`                        | `import { render } from '@em/render/render';`                                 |
 | `@tests/<path>`  | `tests/<path>`                      | `import { inner } from '@tests/helpers';`                                     |
 | `@create/<path>` | `packages/create-ecmact/src/<path>` | `import { run } from '@create/index';` (only inside `packages/create-ecmact`) |
 
@@ -1696,7 +1994,7 @@ export const mergeJson = (base: Json, overlay: Json): Json => {
 
 ### Test rules
 
-- **`tests/` mirrors `src/`, one test file per source file.** `src/utils/render.ts` is tested by `tests/utils/render.test.ts`, `src/signals.ts` by `tests/signals.test.ts`, and so on, including `index.ts` files and files that contain only types (their tests are type-level, checked by `npm run typecheck`).
+- **`tests/` mirrors `src/`, one test file per source file.** `src/render/render.ts` is tested by `tests/render/render.test.ts`, `src/signals/signals.ts` by `tests/signals/signals.test.ts`, and so on, including `index.ts` files and files that contain only types (their tests are type-level, checked by `npm run typecheck`).
 - **100% coverage** of statements, branches, functions and lines. The run fails if coverage drops.
 - Both are enforced: `npm test` first runs `npm run test:structure`, which fails on a source file without a test and on a test without a source file. Adding a file to `src/` means adding its test in the same change.
 - Shared test helpers live in `tests/helpers.ts`; it is not a test file and is not mirrored.
@@ -1705,45 +2003,72 @@ Source layout of the library:
 
 ```
 src/
-  index.ts              public exports
-  em.ts                 Proxy factory and custom element registration
-  tags.ts               tag factories
-  component.ts          custom element class: props, signals, hooks, context, errors
-  config.ts             configure() and its defaults
-  context.ts            createContext, provide, consume
-  signals.ts            signal, computed, effect, batch, untracked
-  resource.ts           async data as signals
-  widget.ts             defineWidget: custom elements for embedding
-  styled.ts             styled and css: tagged templates for styles
+  index.ts                public exports
+  core/
+    em.ts                 Proxy factory and custom element registration
+    tags.ts               tag factories
+    component.ts          custom element class: props, signals, hooks, context, errors
+    config.ts             configure() and its defaults
+    context.ts            createContext, provide, consume
+  signals/signals.ts      signal, computed, effect, batch, untracked
+  render/                 filling the inner element
+    render.ts             creates or reuses the inner element and fills it
+    reconcileChildren.ts  text, keyed components and minimal moves
+    syncAttributes.ts     attribute diffing
+    syncProperties.ts     value, checked, selected and indeterminate as properties
+    applyStyle.ts         style diffing through the CSSOM
+    applyStyleSheets.ts   css prop and shared stylesheets
+    setEventListeners.ts  listener diffing, error reporting
+  props/
+    resolveProps.ts       unwraps signals in props
+    propsEqual.ts         compares resolved props
+  forms/formControl.ts    value, validity and reset of a control, for form fields
   router/
-    match.ts            path patterns
-    flatten.ts          nested routes turned into a flat list
-    guards.ts           runs beforeEach and beforeEnter guards
-    router.ts           createRouter: location, outlet, link, navigate
-  types/                ComponentProps, attribute tables, render state
+    match.ts              path patterns
+    flatten.ts            nested routes turned into a flat list
+    guards.ts             runs beforeEach and beforeEnter guards
+    router.ts             createRouter: location, outlet, link, navigate
+  data/resource.ts        async data as signals
+  store/
+    store.ts              createStore
+    shallow.ts            shallow comparison
+    combine.ts            initial values plus actions
+    persist.ts            persist, createJSONStorage
+    devtools.ts           Redux DevTools connection
+  http/
+    http.ts               createHttp: shortcuts, defaults, interceptors
+    dispatch.ts           the request itself, on fetch
+    config.ts             library defaults and merging
+    headers.ts            headers: merging, case-insensitive building
+    url.ts                base URL and query string
+    body.ts               request and response bodies, form data, progress
+    interceptors.ts       the list of interceptors
+    retry.ts              retrying failed requests
+    error.ts              HttpError, CanceledError
+    types.ts              config and response types
+  styled/
+    styled.ts             styled: components from tagged templates
+    template.ts           css and keyframes, joining templates
+    theme.ts              ThemeProvider, useTheme
+  widget/widget.ts        defineWidget: custom elements for embedding
+  types/                  ComponentProps, attribute tables, render state
   utils/
-    render.ts           creates or reuses the inner element and fills it
-    reconcileChildren.ts text, keyed components and minimal moves
-    registry.ts         which nodes are components
-    resolveProps.ts     unwraps signals in props
-    propsEqual.ts       compares resolved props
-    syncAttributes.ts   attribute diffing
-    syncProperties.ts   value, checked, selected and indeterminate as properties
-    formControl.ts      value, validity and reset of a control, for form fields
-    applyStyle.ts       style diffing through the CSSOM
-    applyStyleSheets.ts css prop and shared stylesheets
-    setEventListeners.ts listener diffing, error reporting
-    mount.ts            mount helper
-    warn.ts             development warnings
-tests/                  mirrors src/, plus helpers.ts
-scripts/check-tests.mjs checks that tests mirror src in every package
-scripts/benchmark.mjs   list benchmark in Chromium (npm run bench, needs playwright)
+    mount.ts              mount helper
+    registry.ts           which nodes are components
+    warn.ts               development warnings
+tests/                    mirrors src/, plus helpers.ts
+scripts/check-tests.mjs   checks that tests mirror src in every package
+scripts/benchmark.mjs     list benchmark in Chromium (npm run bench, needs playwright)
 packages/create-ecmact/
-  src/                  scaffolder (args, prompts, scaffold, package manager)
-  template/base/        the generated project
-  template/tailwind/    files and dependencies added by --tailwind
-  template/widget/      the widget template: files added to the base, and the ones it removes (_remove)
-  tests/                mirrors src/
+  src/
+    index.ts              run: the questions and the flow
+    cli/                  args, prompts
+    project/              scaffold, files, json, name
+    system/               package manager detection
+  template/base/          the generated project
+  template/tailwind/      files and dependencies added by --tailwind
+  template/widget/        the widget template: files added to the base, and the ones it removes (_remove)
+  tests/                  mirrors src/
 ```
 
 ## Release
@@ -1752,7 +2077,7 @@ Releases are published from CI with npm trusted publishing and provenance. Each 
 
 | Package         | Tag pattern            | Workflow             |
 | --------------- | ---------------------- | -------------------- |
-| `ecmact`        | `v2.5.0`               | `release.yml`        |
+| `ecmact`        | `v2.6.0`               | `release.yml`        |
 | `create-ecmact` | `create-ecmact-v0.3.0` | `release-create.yml` |
 
 ```bash
