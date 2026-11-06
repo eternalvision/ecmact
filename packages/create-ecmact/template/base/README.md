@@ -24,14 +24,14 @@ Open the address that Vite prints and edit `src/app.ts`. The same commands work 
 
 ## Project
 
-| Path              | What it holds                                                                 |
-| ----------------- | ----------------------------------------------------------------------------- |
-| `src/main.ts`     | The entry: configures ECMact and mounts the app.                              |
-| `src/app.ts`      | The welcome page.                                                             |
-| `src/components/` | Components: the logo and the counter.                                         |
-| `src/setup.ts`    | `configure()` calls, such as the stylesheets every component shares.          |
-| `src/styles.css`  | Global styles and the color variables (dark, and light by system preference). |
-| `public/logo.svg` | The logo, also used as the favicon.                                           |
+| Path                 | What it holds                                                                 |
+| -------------------- | ----------------------------------------------------------------------------- |
+| `src/main.ts`        | The entry: configures ECMact and mounts the app.                              |
+| `src/app.ts`         | The welcome page.                                                             |
+| `src/components/`    | Components: the logo and the counter.                                         |
+| `src/setup.ts`       | `configure()` calls, such as the stylesheets every component shares.          |
+| `src/styles.css`     | Global styles and the color variables (dark, and light by system preference). |
+| `public/favicon.png` | The favicon.                                                                  |
 
 A component is a function that returns an element, styled by its own `css`. Props accept signals, so `content: computed(() => ...)` updates by itself. See the [documentation](https://github.com/eternalvision/ecmact#readme) for props, signals, routing and data fetching.
 

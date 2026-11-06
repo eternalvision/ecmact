@@ -1,5 +1,14 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/eternalvision/ecmact/main/public/ecmact.png" alt="ECMact" width="300" />
+  <img src="https://raw.githubusercontent.com/eternalvision/ecmact/main/public/ecmact-logo.png" alt="ECMact" width="360" />
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/ecmact"><img src="https://img.shields.io/npm/v/ecmact?logo=npm&color=CB3837&label=npm" alt="npm version" /></a>
+  <a href="https://www.npmjs.com/package/ecmact"><img src="https://img.shields.io/npm/dm/ecmact?logo=npm&color=CB3837" alt="npm downloads" /></a>
+  <a href="https://www.npmjs.com/package/create-ecmact"><img src="https://img.shields.io/npm/v/create-ecmact?logo=npm&color=CB3837&label=create-ecmact" alt="create-ecmact version" /></a>
+  <a href="https://github.com/eternalvision/ecmact/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/eternalvision/ecmact/ci.yml?branch=main&logo=github&label=CI" alt="CI" /></a>
+  <a href="https://github.com/eternalvision/ecmact/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/ecmact" alt="license" /></a>
+  <a href="https://eternalvision.github.io/ecmact/"><img src="https://img.shields.io/badge/demo-live-1e7bff" alt="live demo" /></a>
 </p>
 
 # ECMact
