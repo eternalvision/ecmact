@@ -250,7 +250,9 @@ export const createRouter = ({ routes, base: rawBase = '', notFound }: RouterOpt
          * @param event - The click event.
          */
         onclick: (event: HTMLElementEventMap['click']) => {
-          props.onclick?.(event);
+          const custom = props.onclick;
+          if (typeof custom === 'function') custom(event);
+          else custom?.handler(event);
           const plain = event.button === 0 && !(event.metaKey || event.ctrlKey || event.shiftKey);
           const own = !props.target || props.target === '_self';
           if (event.defaultPrevented || event.altKey || !plain || !own || props.download) return;

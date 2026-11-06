@@ -24,6 +24,7 @@ export class Component<K extends string = string> extends Base {
     attributes: new Set(),
     styles: new Set(),
     listeners: new Map(),
+    properties: new Map(),
     ownSheet: null,
     sheetText: undefined,
     sheetKey: '',

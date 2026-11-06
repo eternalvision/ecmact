@@ -409,6 +409,16 @@ describe('link', () => {
     expect(router.location.value.path).toBe('/');
   });
 
+  it('accepts a custom onclick given with options', () => {
+    const router = make({ routes });
+    const handler = vi.fn((event: Event) => event.preventDefault());
+    const link = router.link({ to: '/about', onclick: { handler } });
+    document.body.append(link);
+    click(inner(link));
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(router.location.value.path).toBe('/');
+  });
+
   it('works without a custom onclick', () => {
     const router = make({ routes });
     const link = router.link({ to: '/about' });

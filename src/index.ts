@@ -26,6 +26,7 @@ export type {
   AttributeMap,
   Child,
   ComponentProps,
+  EventHandlerOptions,
   GlobalAttributes,
   ResolvedProps,
   TagName,

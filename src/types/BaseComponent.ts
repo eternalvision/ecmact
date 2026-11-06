@@ -27,10 +27,30 @@ type StyleProps = {
   ]?: string | number;
 };
 
+/**
+ * A handler with listener options.
+ *
+ * @template E - The event type.
+ */
+export interface EventHandlerOptions<E extends Event = Event> {
+  /**
+   * Called when the event fires.
+   *
+   * @param event - The event.
+   */
+  handler: (event: E) => void;
+  /** Listens in the capture phase. */
+  capture?: boolean;
+  /** Promises not to call `preventDefault`, which lets the browser scroll without waiting. */
+  passive?: boolean;
+}
+
 /** An `on<event>` handler prop for every DOM event, typed with the right event. */
 type EventHandlers = {
   [E in keyof HTMLElementEventMap as `on${E}`]?:
-    ((event: HTMLElementEventMap[E]) => void) | undefined;
+    | ((event: HTMLElementEventMap[E]) => void)
+    | EventHandlerOptions<HTMLElementEventMap[E]>
+    | undefined;
 };
 
 /**
@@ -182,6 +202,8 @@ export interface RenderState {
   styles: Set<string>;
   /** The listeners that were attached, keyed by event name. */
   listeners: Map<string, EventListener>;
+  /** The live values (`value`, `checked`, `selected`, `indeterminate`) written last time, as strings. */
+  properties: Map<string, string>;
   /** The stylesheet created for the `css` prop, when constructable stylesheets are used. */
   ownSheet: CSSStyleSheet | null;
   /** The `css` text of the previous render. */

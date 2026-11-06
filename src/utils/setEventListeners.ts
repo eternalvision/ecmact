@@ -18,6 +18,9 @@ const rethrow: Reporter = (error) => {
   throw error;
 };
 
+/** The listeners that were attached in the capture phase, needed to remove them. */
+const captured = new WeakSet<EventListener>();
+
 /**
  * Wraps a handler so that errors are reported instead of thrown.
  *
@@ -37,8 +40,22 @@ const guarded =
   };
 
 /**
+ * Tells whether a prop value is a handler with options.
+ *
+ * @param value - The prop value.
+ * @returns `true` for an object with a function `handler`.
+ */
+const isDescriptor = (
+  value: unknown,
+): value is { handler: EventListener; capture?: boolean; passive?: boolean } =>
+  typeof value === 'object' &&
+  value !== null &&
+  typeof (value as { handler?: unknown }).handler === 'function';
+
+/**
  * Attaches the `on<event>` handlers from the props and removes the ones attached before.
- * Non-function values are skipped, with a warning unless they are empty.
+ * A handler is a function, or an object with a `handler` and the `capture` and `passive` options.
+ * Other values are skipped, with a warning unless they are empty.
  *
  * @param element - The element to attach to.
  * @param props - The props, where keys starting with `on` are handlers.
@@ -52,21 +69,30 @@ export const setEventListeners = (
   previous: Map<string, EventListener>,
   onError: Reporter = rethrow,
 ) => {
-  previous.forEach((listener, event) => element.removeEventListener(event, listener));
+  previous.forEach((listener, event) =>
+    element.removeEventListener(event, listener, captured.has(listener)),
+  );
 
   const next = new Map<string, EventListener>();
+  const options = new Map<string, AddEventListenerOptions>();
 
   Object.entries(props).forEach(([key, value]) => {
     if (!key.startsWith('on')) return;
     const event = key.slice(2).toLowerCase();
     if (typeof value === 'function') {
       next.set(event, guarded(value as EventListener, event, onError));
+    } else if (isDescriptor(value)) {
+      const { handler, capture, passive } = value;
+      const listener = guarded(handler, event, onError);
+      next.set(event, listener);
+      options.set(event, { capture: capture === true, passive });
+      if (capture === true) captured.add(listener);
     } else if (value !== undefined && value !== null && value !== false) {
       warn(`handler "${key}" is not a function and was ignored`);
     }
   });
 
-  next.forEach((listener, event) => element.addEventListener(event, listener));
+  next.forEach((listener, event) => element.addEventListener(event, listener, options.get(event)));
 
   return next;
 };

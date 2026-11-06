@@ -3,6 +3,7 @@ import { applyStyle } from '@em/utils/applyStyle';
 import { applyStyleSheets } from '@em/utils/applyStyleSheets';
 import { reconcileChildren, toNodes } from '@em/utils/reconcileChildren';
 import { setEventListeners } from '@em/utils/setEventListeners';
+import { syncProperties } from '@em/utils/syncProperties';
 import { syncAttributes } from '@em/utils/syncAttributes';
 import { warn } from '@em/utils/warn';
 
@@ -17,6 +18,7 @@ const createElement = (tag: string, state: RenderState) => {
   state.attributes = new Set();
   state.styles = new Set();
   state.listeners = new Map();
+  state.properties = new Map();
   state.element = document.createElement(tag);
   return state.element;
 };
@@ -61,6 +63,8 @@ export const render = (
     element.innerHTML = html;
     element.append(...toNodes(children));
   }
+
+  state.properties = syncProperties(element, props, state.properties);
 
   if (isNew) ref?.(element);
 

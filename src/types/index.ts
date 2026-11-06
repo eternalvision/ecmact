@@ -3,6 +3,7 @@ export type {
   Child,
   ComponentProps,
   ElementOf,
+  EventHandlerOptions,
   RenderState,
   ResolvedProps,
   TagName,

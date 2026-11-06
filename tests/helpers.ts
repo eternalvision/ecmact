@@ -5,6 +5,7 @@ export const createState = (): RenderState => ({
   attributes: new Set(),
   styles: new Set(),
   listeners: new Map(),
+  properties: new Map(),
   ownSheet: null,
   sheetText: undefined,
   sheetKey: '',

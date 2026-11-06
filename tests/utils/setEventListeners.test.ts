@@ -121,3 +121,52 @@ describe('setEventListeners', () => {
     expect(handler).not.toHaveBeenCalled();
   });
 });
+
+describe('setEventListeners options', () => {
+  it('accepts an object with a handler', () => {
+    const element = document.createElement('div');
+    const handler = vi.fn();
+    setEventListeners(element, { onclick: { handler } }, new Map());
+    element.click();
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it('passes capture and passive to addEventListener', () => {
+    const element = document.createElement('div');
+    const add = vi.spyOn(element, 'addEventListener');
+    setEventListeners(
+      element,
+      { onclick: { handler: () => {}, capture: true, passive: true } },
+      new Map(),
+    );
+    expect(add).toHaveBeenCalledWith('click', expect.any(Function), {
+      capture: true,
+      passive: true,
+    });
+  });
+
+  it('listens in the capture phase and removes the listener from it', () => {
+    const parent = document.createElement('div');
+    const child = document.createElement('span');
+    parent.append(child);
+    const order: string[] = [];
+    const first = setEventListeners(
+      parent,
+      { onclick: { handler: () => order.push('capture'), capture: true } },
+      new Map(),
+    );
+    child.addEventListener('click', () => order.push('target'));
+    child.click();
+    expect(order).toEqual(['capture', 'target']);
+    setEventListeners(parent, {}, first);
+    child.click();
+    expect(order).toEqual(['capture', 'target', 'target']);
+  });
+
+  it('ignores an object without a handler function', () => {
+    const element = document.createElement('div');
+    expect(setEventListeners(element, { onclick: { handler: 1 } } as never, new Map()).size).toBe(
+      0,
+    );
+  });
+});
