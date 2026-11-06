@@ -94,11 +94,40 @@ describe('lifecycle and shadow', () => {
     em.Field({
       tag: 'input',
       shadow: false,
-      mounted: (element) => expectTypeOf(element).toEqualTypeOf<HTMLInputElement>(),
-      unmounted: (element) => expectTypeOf(element).toEqualTypeOf<HTMLInputElement>(),
-      updated: (element) => expectTypeOf(element).toEqualTypeOf<HTMLInputElement>(),
+      mounted: (element, component) => {
+        expectTypeOf(element).toEqualTypeOf<HTMLInputElement>();
+        expectTypeOf(component).toEqualTypeOf<Component<'input'>>();
+        return () => {};
+      },
+      unmounted: (element, component) => {
+        expectTypeOf(element).toEqualTypeOf<HTMLInputElement>();
+        expectTypeOf(component).toEqualTypeOf<Component<'input'>>();
+      },
+      beforeUpdate: (next, current, component) => {
+        expectTypeOf(next).toEqualTypeOf<ComponentProps<'input'>>();
+        expectTypeOf(current).toEqualTypeOf<ComponentProps<'input'>>();
+        expectTypeOf(component).toEqualTypeOf<Component<'input'>>();
+        return next.value !== current.value;
+      },
+      updated: (element, component, previous) => {
+        expectTypeOf(element).toEqualTypeOf<HTMLInputElement>();
+        expectTypeOf(component).toEqualTypeOf<Component<'input'>>();
+        expectTypeOf(previous).toEqualTypeOf<ComponentProps<'input'>>();
+      },
     });
-    em.Card({ mounted: (element) => expectTypeOf(element).toEqualTypeOf<HTMLDivElement>() });
+    em.Card({
+      mounted: (element) => {
+        expectTypeOf(element).toEqualTypeOf<HTMLDivElement>();
+      },
+    });
+    expect(true).toBe(true);
+  });
+
+  it('rejects invalid hook results', () => {
+    // @ts-expect-error mounted may only return a cleanup function
+    em.Card({ mounted: () => 'cleanup' });
+    // @ts-expect-error beforeUpdate may only return a boolean
+    em.Card({ beforeUpdate: () => 'no' });
     expect(true).toBe(true);
   });
 

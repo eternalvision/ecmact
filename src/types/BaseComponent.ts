@@ -1,3 +1,4 @@
+import type { Component } from '../component';
 import type { AttributeMap, GlobalAttributes } from './attributes';
 
 export type TagName = keyof HTMLElementTagNameMap | (string & {});
@@ -29,9 +30,14 @@ interface BaseProps<K extends string> {
   children?: Node[];
   ref?: (element: ElementOf<K>) => void;
   shadow?: boolean;
-  mounted?: (element: ElementOf<K>) => void;
-  unmounted?: (element: ElementOf<K>) => void;
-  updated?: (element: ElementOf<K>) => void;
+  mounted?: (element: ElementOf<K>, component: Component<K>) => void | (() => void);
+  unmounted?: (element: ElementOf<K>, component: Component<K>) => void;
+  beforeUpdate?: (
+    next: ComponentProps<K>,
+    current: ComponentProps<K>,
+    component: Component<K>,
+  ) => boolean | void;
+  updated?: (element: ElementOf<K>, component: Component<K>, previous: ComponentProps<K>) => void;
 }
 
 type TagAttributes<K extends string> = K extends keyof AttributeMap

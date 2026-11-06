@@ -6,6 +6,7 @@ const Base = typeof HTMLElement === 'undefined' ? (class {} as typeof HTMLElemen
 export class Component<K extends string = string> extends Base {
   #props: ComponentProps<K>;
   #root: ParentNode | null = null;
+  #cleanup: (() => void) | void = undefined;
   readonly #state: RenderState = {
     element: null,
     attributes: new Set(),
@@ -20,11 +21,13 @@ export class Component<K extends string = string> extends Base {
 
   connectedCallback() {
     if (!this.#state.element) this.#render();
-    this.#hooks.mounted?.(this.#state.element as HTMLElement);
+    this.#cleanup = this.#hooks.mounted?.(this.#state.element as HTMLElement, this.#self);
   }
 
   disconnectedCallback() {
-    this.#hooks.unmounted?.(this.#state.element as HTMLElement);
+    this.#cleanup?.();
+    this.#cleanup = undefined;
+    this.#hooks.unmounted?.(this.#state.element as HTMLElement, this.#self);
   }
 
   setState(newProps: Partial<ComponentProps<K>>) {
@@ -36,18 +39,30 @@ export class Component<K extends string = string> extends Base {
   }
 
   set props(newProps: ComponentProps<K>) {
+    const current = this.#props;
+    const hooks = newProps as ComponentProps;
+    if (
+      this.#state.element &&
+      hooks.beforeUpdate?.(hooks, current as ComponentProps, this.#self) === false
+    ) {
+      return;
+    }
     this.#props = newProps;
-    this.#render();
+    this.#render(current);
   }
 
   get #hooks() {
     return this.#props as ComponentProps;
   }
 
-  #render() {
+  get #self() {
+    return this as unknown as Component;
+  }
+
+  #render(previous?: ComponentProps<K>) {
     const wasRendered = this.#state.element !== null;
     this.#root ??= this.#hooks.shadow === false ? this : this.attachShadow({ mode: 'open' });
     const element = render(this.#root, this.#hooks, this.#state);
-    if (wasRendered) this.#hooks.updated?.(element);
+    if (wasRendered) this.#hooks.updated?.(element, this.#self, previous as ComponentProps);
   }
 }
