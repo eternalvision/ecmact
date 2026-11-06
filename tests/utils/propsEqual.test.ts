@@ -32,10 +32,15 @@ describe('propsEqual', () => {
     expect(propsEqual({ style: { color: 'red' } }, {})).toBe(false);
   });
 
-  it('compares children arrays by identity', () => {
-    const children = [document.createElement('i')];
-    expect(propsEqual({ children }, { children })).toBe(true);
-    expect(propsEqual({ children }, { children: [...children] })).toBe(false);
+  it('compares children arrays item by item', () => {
+    const [a, b] = [document.createElement('i'), document.createElement('b')];
+    expect(propsEqual({ children: [a, 'x'] }, { children: [a, 'x'] })).toBe(true);
+    expect(propsEqual({ children: [a] }, { children: [b] })).toBe(false);
+    expect(propsEqual({ children: [a] }, { children: [a, b] })).toBe(false);
+  });
+
+  it('is false when only one side has children', () => {
+    expect(propsEqual({ children: [] }, {})).toBe(false);
   });
 
   it('uses Object.is semantics', () => {

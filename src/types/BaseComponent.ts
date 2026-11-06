@@ -6,7 +6,7 @@ import type { AttributeMap, GlobalAttributes } from '@em/types/attributes';
 
 export type TagName = keyof HTMLElementTagNameMap | (string & {});
 
-type ElementOf<K extends string> = K extends keyof HTMLElementTagNameMap
+export type ElementOf<K extends string> = K extends keyof HTMLElementTagNameMap
   ? HTMLElementTagNameMap[K]
   : HTMLElement;
 
@@ -33,9 +33,10 @@ type TagAttributes<K extends string> = K extends keyof AttributeMap
 
 type Reactive<T> = { [P in keyof T]: T[P] | ReadonlySignal<Exclude<T[P], undefined>> };
 
+export type Child = Node | string | number | boolean | null | undefined;
+
 interface StructureProps<K extends string> {
   tag?: K;
-  children?: Node[];
 }
 
 interface ValueProps {
@@ -55,6 +56,7 @@ interface ReactiveValueProps {
 interface BehaviorProps<K extends string> {
   ref?: (element: ElementOf<K>) => void;
   shadow?: boolean;
+  key?: string | number;
   error?: ErrorHandler;
   provide?: Provision[];
   mounted?: (element: ElementOf<K>, component: Component<K>) => void | (() => void);
@@ -67,15 +69,17 @@ interface BehaviorProps<K extends string> {
   updated?: (element: ElementOf<K>, component: Component<K>, previous: ResolvedProps<K>) => void;
 }
 
-export type ResolvedProps<K extends string = string> = StructureProps<K> &
-  ValueProps &
+export type ResolvedProps<K extends string = string> = StructureProps<K> & {
+  children?: Child[];
+} & ValueProps &
   BehaviorProps<K> &
   GlobalAttributes &
   EventHandlers &
   TagAttributes<K>;
 
-export type ComponentProps<K extends string = string> = StructureProps<K> &
-  ReactiveValueProps &
+export type ComponentProps<K extends string = string> = StructureProps<K> & {
+  children?: (Child | ReadonlySignal<string | number>)[];
+} & ReactiveValueProps &
   BehaviorProps<K> &
   Reactive<GlobalAttributes> &
   EventHandlers &

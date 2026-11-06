@@ -156,3 +156,41 @@ describe('reactive props', () => {
     expectTypeOf(card.props.content).toExtend<unknown>();
   });
 });
+
+describe('children and keys', () => {
+  it('accepts nodes, text, numbers, conditionals and signals as children', () => {
+    em.Card({
+      children: [
+        'text',
+        1,
+        document.createElement('i'),
+        false,
+        null,
+        undefined,
+        signal('x'),
+        signal(1),
+      ],
+    });
+    expect(true).toBe(true);
+  });
+
+  it('rejects other values as children', () => {
+    const invalid = () => {
+      // @ts-expect-error objects are not children
+      em.Card({ children: [{}] });
+      // @ts-expect-error a signal of an array is not a list of children
+      em.Card({ children: signal(['a']) });
+    };
+    expect(invalid).toBeTypeOf('function');
+  });
+
+  it('types the key as a string or a number', () => {
+    tags.li({ key: 'a' });
+    tags.li({ key: 1 });
+    const invalid = () => {
+      // @ts-expect-error a key is a string or a number
+      tags.li({ key: {} });
+    };
+    expect(invalid).toBeTypeOf('function');
+  });
+});

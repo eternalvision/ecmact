@@ -1,6 +1,7 @@
 import type { ResolvedProps, RenderState } from '@em/types';
 import { applyStyle } from '@em/utils/applyStyle';
 import { applyStyleSheets } from '@em/utils/applyStyleSheets';
+import { reconcileChildren, toNodes } from '@em/utils/reconcileChildren';
 import { setEventListeners } from '@em/utils/setEventListeners';
 import { syncAttributes } from '@em/utils/syncAttributes';
 import { warn } from '@em/utils/warn';
@@ -38,10 +39,10 @@ export const render = (
   state.listeners = setEventListeners(element, props, state.listeners, onError);
 
   if (html === undefined) {
-    element.replaceChildren(document.createTextNode(content), ...children);
+    reconcileChildren(element, content === '' ? children : [content, ...children]);
   } else {
     element.innerHTML = html;
-    element.append(...children);
+    element.append(...toNodes(children));
   }
 
   if (isNew) ref?.(element);

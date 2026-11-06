@@ -735,3 +735,95 @@ describe('warnings', () => {
     expect(spy).not.toHaveBeenCalled();
   });
 });
+
+describe('element', () => {
+  it('is null before the first render', () => {
+    expect((document.createElement('em-card') as ReturnType<typeof em.Card>).element).toBeNull();
+  });
+
+  it('is the inner element after rendering', () => {
+    const card = em.Card({ content: 'x' });
+    expect(card.element).toBe(inner(card));
+  });
+
+  it('is the new element after the tag changes', () => {
+    const card = em.Card({ tag: 'div' as string });
+    card.setState({ tag: 'section' });
+    expect(card.element?.localName).toBe('section');
+  });
+});
+
+describe('children', () => {
+  const item = (key: number, content: string) => tags.li({ key, content });
+
+  it('renders text mixed with elements', () => {
+    const link = tags.a({ href: '/x', content: 'link' });
+    const paragraph = tags.p({ children: ['See ', link, ' for details'] });
+    expect(inner(paragraph).childNodes).toHaveLength(3);
+    expect(inner(paragraph).textContent).toBe('See  for details');
+  });
+
+  it('does not render the key as an attribute', () => {
+    expect(inner(item(1, 'a')).hasAttribute('key')).toBe(false);
+  });
+
+  it('keeps keyed items and their state when the list changes', () => {
+    const field = (key: number) => em.Field({ key, tag: 'input' });
+    const list = tags.ul({ children: [field(1), field(2)] });
+    const [one, two] = Array.from(inner(list).children) as ReturnType<typeof field>[];
+    (inner(one) as HTMLInputElement).value = 'first';
+    (inner(two) as HTMLInputElement).value = 'second';
+    list.setState({ children: [field(2), field(1), field(3)] });
+    const after = Array.from(inner(list).children);
+    expect(after.slice(0, 2)).toEqual([two, one]);
+    expect(after).toHaveLength(3);
+    expect((inner(one) as HTMLInputElement).value).toBe('first');
+    expect((inner(two) as HTMLInputElement).value).toBe('second');
+  });
+
+  it('updates keyed items with the new props', () => {
+    const list = tags.ul({ children: [item(1, 'a'), item(2, 'b')] });
+    const [first] = Array.from(inner(list).children);
+    list.setState({ children: [item(1, 'changed'), item(2, 'b')] });
+    expect(Array.from(inner(list).children)[0]).toBe(first);
+    expect(first?.shadowRoot?.firstElementChild?.textContent).toBe('changed');
+  });
+
+  it('runs hooks of the surviving item, not of the discarded instance', () => {
+    const mounted = vi.fn();
+    const list = tags.ul({ children: [tags.li({ key: 1, mounted })] });
+    document.body.append(list);
+    list.setState({ children: [tags.li({ key: 1, mounted })] });
+    expect(mounted).toHaveBeenCalledTimes(1);
+  });
+
+  it('follows a signal used as a text child', () => {
+    const name = signal('Ada');
+    const greeting = tags.p({ children: ['Hello, ', name, '!'] });
+    document.body.append(greeting);
+    name.value = 'Grace';
+    expect(inner(greeting).textContent).toBe('Hello, Grace!');
+  });
+
+  it('does not repaint on reconnect when the children did not change', () => {
+    const updated = vi.fn();
+    const greeting = tags.p({ children: ['Hello, ', signal('Ada')], updated });
+    document.body.append(greeting);
+    greeting.remove();
+    document.body.append(greeting);
+    expect(updated).not.toHaveBeenCalled();
+  });
+
+  it('rebuilds a list from a signal inside an effect', () => {
+    const items = signal([1, 2]);
+    const list = tags.ul({
+      mounted: (_, component) =>
+        effect(() => component.setState({ children: items.value.map((id) => item(id, `n${id}`)) })),
+    });
+    document.body.append(list);
+    const [first] = Array.from(inner(list).children);
+    items.value = [1, 2, 3];
+    expect(inner(list).children).toHaveLength(3);
+    expect(Array.from(inner(list).children)[0]).toBe(first);
+  });
+});

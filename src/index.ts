@@ -10,6 +10,7 @@ export { mount } from '@em/utils';
 export type { Component } from '@em/component';
 export type {
   AttributeMap,
+  Child,
   ComponentProps,
   GlobalAttributes,
   ResolvedProps,

@@ -54,6 +54,7 @@ describe('syncAttributes', () => {
       children: [],
       ref: () => {},
       shadow: false,
+      key: 'a',
       mounted: () => {},
       unmounted: () => {},
       beforeUpdate: () => {},

@@ -51,4 +51,23 @@ describe('resolveProps', () => {
     const props = { content: 'a' };
     expect(resolveProps(props)).not.toBe(props);
   });
+
+  it('unwraps signals among the children', () => {
+    const name = signal('Ada');
+    const node = document.createElement('i');
+    expect(resolveProps({ children: ['Hello, ', name, node] }).children).toEqual([
+      'Hello, ',
+      'Ada',
+      node,
+    ]);
+  });
+
+  it('keeps the same children array when it holds no signals', () => {
+    const children = ['a', document.createElement('i')];
+    expect(resolveProps({ children }).children).toBe(children);
+  });
+
+  it('leaves children that are not an array alone', () => {
+    expect(resolveProps({ children: 'x' as never }).children).toBe('x');
+  });
 });

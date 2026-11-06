@@ -1,2 +1,9 @@
 export type { AttributeMap, GlobalAttributes } from '@em/types/attributes';
-export type { ComponentProps, RenderState, ResolvedProps, TagName } from '@em/types/BaseComponent';
+export type {
+  Child,
+  ComponentProps,
+  ElementOf,
+  RenderState,
+  ResolvedProps,
+  TagName,
+} from '@em/types/BaseComponent';

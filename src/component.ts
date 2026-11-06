@@ -1,8 +1,8 @@
 import { getConfig, type ErrorPhase } from '@em/config';
 import { contextRequestEvent, type ContextRequest } from '@em/context';
 import { effect, untracked } from '@em/signals';
-import type { ComponentProps, RenderState, ResolvedProps } from '@em/types';
-import { propsEqual, render, resolveProps, warn } from '@em/utils';
+import type { ComponentProps, ElementOf, RenderState, ResolvedProps } from '@em/types';
+import { propsEqual, registerComponent, render, resolveProps, warn } from '@em/utils';
 
 const Base =
   typeof HTMLElement === 'undefined' ? (Object as unknown as typeof HTMLElement) : HTMLElement;
@@ -27,6 +27,7 @@ export class Component<K extends string = string> extends Base {
   constructor(props: ComponentProps<K> = {} as ComponentProps<K>) {
     super();
     this.#props = props;
+    registerComponent(this);
     this.addEventListener(contextRequestEvent, this.#answer);
   }
 
@@ -68,6 +69,10 @@ export class Component<K extends string = string> extends Base {
       this.#paint(resolved);
       if (this.#stop) this.#watch();
     });
+  }
+
+  get element() {
+    return this.#state.element as ElementOf<K> | null;
   }
 
   get #hooks() {

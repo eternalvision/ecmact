@@ -9,10 +9,17 @@ const resolveStyle = (style: unknown) => {
   return Object.fromEntries(Object.entries(resolved).map(([key, value]) => [key, unwrap(value)]));
 };
 
+const resolveChildren = (children: unknown) =>
+  Array.isArray(children) && children.some(isSignal) ? children.map(unwrap) : children;
+
 export const resolveProps = (props: ComponentProps): ResolvedProps =>
   Object.fromEntries(
     Object.entries(props).map(([key, value]) => [
       key,
-      key === 'style' ? resolveStyle(value) : unwrap(value),
+      key === 'style'
+        ? resolveStyle(value)
+        : key === 'children'
+          ? resolveChildren(value)
+          : unwrap(value),
     ]),
   ) as ResolvedProps;

@@ -186,4 +186,41 @@ describe('render', () => {
     element.click();
     expect(onError).toHaveBeenCalledWith(error, 'click');
   });
+
+  it('renders string and number children as text', () => {
+    const { element } = setup({ children: ['a', 1, 'b'] });
+    expect(element.textContent).toBe('a1b');
+  });
+
+  it('mixes text and elements, after the content', () => {
+    const link = document.createElement('a');
+    link.textContent = 'link';
+    const { element } = setup({ content: 'start ', children: ['before ', link, ' after'] });
+    expect(element.textContent).toBe('start before link after');
+    expect(element.children).toHaveLength(1);
+  });
+
+  it('skips false, true, null and undefined children', () => {
+    const { element } = setup({ children: ['a', false, null, undefined, true, 'b'] });
+    expect(element.textContent).toBe('ab');
+  });
+
+  it('keeps the text nodes between renders', () => {
+    const root = createRoot();
+    const state = createState();
+    const element = render(root, { content: 'a', children: ['b'] }, state);
+    const [first, second] = Array.from(element.childNodes);
+    render(root, { content: 'x', children: ['y'] }, state);
+    expect(Array.from(element.childNodes)).toEqual([first, second]);
+    expect(element.textContent).toBe('xy');
+  });
+
+  it('renders no text node for empty content', () => {
+    expect(setup({ children: [document.createElement('i')] }).element.childNodes).toHaveLength(1);
+  });
+
+  it('appends string children after html', () => {
+    const { element } = setup({ html: '<b>a</b>', children: ['text', false, 2] });
+    expect(element.textContent).toBe('atext2');
+  });
 });

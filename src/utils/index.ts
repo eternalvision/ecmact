@@ -2,6 +2,8 @@ export { applyStyle } from '@em/utils/applyStyle';
 export { applyStyleSheets } from '@em/utils/applyStyleSheets';
 export { mount } from '@em/utils/mount';
 export { propsEqual } from '@em/utils/propsEqual';
+export { reconcileChildren, toNodes } from '@em/utils/reconcileChildren';
+export { isComponent, registerComponent } from '@em/utils/registry';
 export { render } from '@em/utils/render';
 export { resolveProps } from '@em/utils/resolveProps';
 export { setEventListeners } from '@em/utils/setEventListeners';

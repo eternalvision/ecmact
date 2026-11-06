@@ -10,6 +10,7 @@ const reservedKeys = new Set([
   'children',
   'ref',
   'shadow',
+  'key',
   'mounted',
   'unmounted',
   'beforeUpdate',

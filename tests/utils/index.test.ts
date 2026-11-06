@@ -6,13 +6,17 @@ describe('utils', () => {
     expect(Object.keys(utils).sort()).toEqual([
       'applyStyle',
       'applyStyleSheets',
+      'isComponent',
       'mount',
       'propsEqual',
+      'reconcileChildren',
+      'registerComponent',
       'render',
       'resetWarnings',
       'resolveProps',
       'setEventListeners',
       'syncAttributes',
+      'toNodes',
       'warn',
     ]);
   });
