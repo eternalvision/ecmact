@@ -1,7 +1,6 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { tags, type Component } from '../src';
-
-const inner = (component: HTMLElement) => component.shadowRoot!.firstElementChild as HTMLElement;
+import { inner } from './helpers';
 
 describe('tags', () => {
   it('renders the named tag', () => {

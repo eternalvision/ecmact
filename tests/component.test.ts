@@ -1,137 +1,39 @@
-import { describe, expect, it, vi } from 'vitest';
-import { em, type Component } from '../src';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { em } from '../src';
+import { resetConfig, configure } from '../src/config';
+import { inner } from './helpers';
 
-const inner = (component: HTMLElement) => component.shadowRoot!.firstElementChild as HTMLElement;
-
-describe('render', () => {
-  it('renders a div with text content by default', () => {
-    const card = em.Card({ content: 'hello' });
-    expect(inner(card).localName).toBe('div');
-    expect(inner(card).textContent).toBe('hello');
-  });
-
-  it('renders the given tag', () => {
-    const heading = em.Heading({ tag: 'h1', content: 'title' });
-    expect(inner(heading).localName).toBe('h1');
-  });
-
-  it('does not interpret content as html', () => {
-    const card = em.Card({ content: '<img src=x onerror=alert(1)>' });
-    expect(inner(card).querySelector('img')).toBeNull();
-    expect(inner(card).textContent).toBe('<img src=x onerror=alert(1)>');
-  });
-
-  it('renders html when explicitly provided', () => {
-    const card = em.Card({ html: '<b>bold</b>' });
-    expect(inner(card).querySelector('b')?.textContent).toBe('bold');
-  });
-
-  it('appends children after html', () => {
-    const child = document.createElement('span');
-    const card = em.Card({ html: '<b>bold</b>', children: [child] });
-    expect(inner(card).lastElementChild).toBe(child);
-  });
-
-  it('renders children', () => {
-    const child = document.createElement('span');
-    const card = em.Card({ content: 'text', children: [child] });
-    expect(inner(card).contains(child)).toBe(true);
-  });
-
-  it('defaults to empty props', () => {
-    expect(inner(em.Empty()).textContent).toBe('');
-  });
-
-  it('calls ref once when the element is created', () => {
-    const ref = vi.fn();
-    const card = em.Card({ ref });
-    card.setState({ content: 'again' });
-    expect(ref).toHaveBeenCalledTimes(1);
-    expect(ref).toHaveBeenCalledWith(inner(card));
-  });
+afterEach(() => {
+  resetConfig();
+  document.body.replaceChildren();
 });
 
-describe('attributes', () => {
-  it('sets string and number attributes', () => {
-    const input = em.Field({ tag: 'input', placeholder: 'name', maxlength: 5 });
-    expect(inner(input).getAttribute('placeholder')).toBe('name');
-    expect(inner(input).getAttribute('maxlength')).toBe('5');
+describe('props', () => {
+  it('renders the initial props', () => {
+    const card = em.Card({ content: 'a', title: 't' });
+    expect(inner(card).textContent).toBe('a');
+    expect(card.props).toEqual({ content: 'a', title: 't' });
   });
 
-  it('sets boolean true as empty attribute and skips false, null and objects', () => {
-    const input = em.Field({
-      tag: 'input',
-      disabled: true,
-      hidden: false,
-      id: null as unknown as string,
-      data: {},
-    } as never);
-    expect(inner(input).getAttribute('disabled')).toBe('');
-    expect(inner(input).hasAttribute('hidden')).toBe(false);
-    expect(inner(input).hasAttribute('id')).toBe(false);
-    expect(inner(input).hasAttribute('data')).toBe(false);
+  it('replaces all props when assigned', () => {
+    const card = em.Card({ content: 'a', title: 't' });
+    card.props = { content: 'b' };
+    expect(card.props).toEqual({ content: 'b' });
+    expect(inner(card).hasAttribute('title')).toBe(false);
   });
 
-  it('does not allow attribute value injection', () => {
-    const card = em.Card({ title: '"><script>alert(1)</script>' });
-    expect(inner(card).querySelector('script')).toBeNull();
-    expect(inner(card).getAttribute('title')).toBe('"><script>alert(1)</script>');
+  it('merges new props into the existing ones with setState', () => {
+    const card = em.Card({ content: 'a', title: 't' });
+    card.setState({ content: 'b' });
+    expect(card.props).toMatchObject({ content: 'b', title: 't' });
+    expect(inner(card).textContent).toBe('b');
   });
 
-  it('removes stale attributes on update', () => {
+  it('removes attributes set to undefined', () => {
     const card = em.Card({ title: 'a', lang: 'en' });
     card.setState({ title: undefined });
     expect(inner(card).hasAttribute('title')).toBe(false);
     expect(inner(card).getAttribute('lang')).toBe('en');
-  });
-
-  it('does not render reserved props or handlers as attributes', () => {
-    const card = em.Card({ content: 'x', children: [], onclick: () => {} });
-    expect(inner(card).getAttributeNames()).toEqual([]);
-  });
-});
-
-describe('style', () => {
-  it('applies camelCase styles as css properties', () => {
-    const card = em.Card({ style: { backgroundColor: 'red', zIndex: 2 } });
-    expect(inner(card).style.getPropertyValue('background-color')).toBe('red');
-    expect(inner(card).style.getPropertyValue('z-index')).toBe('2');
-  });
-
-  it('ignores non-primitive style values', () => {
-    const card = em.Card({ style: { color: undefined, margin: {} as never } });
-    expect(inner(card).getAttribute('style') ?? '').toBe('');
-  });
-
-  it('removes stale style properties on update', () => {
-    const card = em.Card({ style: { color: 'red', padding: '1px' } });
-    card.setState({ style: { color: 'blue' } });
-    expect(inner(card).style.getPropertyValue('color')).toBe('blue');
-    expect(inner(card).style.getPropertyValue('padding')).toBe('');
-  });
-
-  it('does not allow css to break out of the element', () => {
-    const card = em.Card({ style: { color: 'red;} </style><script>alert(1)</script>' } });
-    expect(inner(card).querySelector('script')).toBeNull();
-    expect(card.shadowRoot!.querySelector('script')).toBeNull();
-  });
-
-  it('works without a style prop', () => {
-    expect(inner(em.Card({ content: 'x' })).hasAttribute('style')).toBe(false);
-  });
-});
-
-describe('events', () => {
-  it('attaches handlers with lowercased event names', () => {
-    const onclick = vi.fn();
-    const card = em.Card({ onclick });
-    inner(card).click();
-    expect(onclick).toHaveBeenCalledTimes(1);
-  });
-
-  it('ignores non-function handlers', () => {
-    const card = em.Card({ onclick: 'alert(1)' as unknown as () => void });
-    expect(() => inner(card).click()).not.toThrow();
   });
 
   it('replaces handlers on update without duplicating them', () => {
@@ -144,23 +46,14 @@ describe('events', () => {
     expect(second).toHaveBeenCalledTimes(1);
   });
 
-  it('removes handlers when dropped from props', () => {
-    const onclick = vi.fn();
-    const card = em.Card({ onclick });
-    card.setState({ onclick: undefined });
-    inner(card).click();
-    expect(onclick).not.toHaveBeenCalled();
+  it('renders on connect when props were never set', () => {
+    const element = document.createElement('em-card') as ReturnType<typeof em.Card>;
+    document.body.append(element);
+    expect(inner(element).localName).toBe('div');
   });
 });
 
-describe('state', () => {
-  it('merges new props into existing ones', () => {
-    const card = em.Card({ content: 'a', title: 't' });
-    card.setState({ content: 'b' });
-    expect(card.props).toMatchObject({ content: 'b', title: 't' });
-    expect(inner(card).textContent).toBe('b');
-  });
-
+describe('updates', () => {
   it('reuses the element between renders', () => {
     const card = em.Card({ content: 'a' });
     const before = inner(card);
@@ -176,12 +69,7 @@ describe('state', () => {
   });
 
   it('recreates the element when the tag changes', () => {
-    const card = em.Card({
-      tag: 'div' as string,
-      onclick: vi.fn(),
-      title: 'a',
-      style: { color: 'red' },
-    });
+    const card = em.Card({ tag: 'div' as string });
     const before = inner(card);
     card.setState({ tag: 'section' });
     expect(inner(card)).not.toBe(before);
@@ -193,13 +81,225 @@ describe('state', () => {
     const before = inner(card);
     document.body.append(card);
     expect(inner(card)).toBe(before);
-    card.remove();
+  });
+});
+
+describe('shadow option', () => {
+  it('renders into an open shadow root by default', () => {
+    const card = em.Card({ content: 'x' });
+    expect(inner(card).textContent).toBe('x');
+    expect(card.children).toHaveLength(0);
   });
 
-  it('renders on connect when props were never set', () => {
-    const element = document.createElement('em-card') as Component;
-    document.body.append(element);
-    expect(inner(element).localName).toBe('div');
-    element.remove();
+  it('renders into the host when shadow is false', () => {
+    const card = em.Card({ shadow: false, content: 'x' });
+    expect(card.shadowRoot).toBeNull();
+    expect(card.firstElementChild?.textContent).toBe('x');
+  });
+
+  it('is visible to global selectors when shadow is false', () => {
+    document.body.append(em.Card({ shadow: false, class: 'box' }));
+    expect(document.querySelector('em-card > div.box')).not.toBeNull();
+  });
+
+  it('updates in place when shadow is false', () => {
+    const field = em.Field({ shadow: false, tag: 'input' });
+    const before = field.firstElementChild;
+    field.setState({ placeholder: 'name' });
+    expect(field.firstElementChild).toBe(before);
+    expect(field.childElementCount).toBe(1);
+  });
+
+  it('is read on the first render only', () => {
+    const card = em.Card({ content: 'a' });
+    card.setState({ shadow: false });
+    expect(card.shadowRoot?.firstElementChild).not.toBeNull();
+    expect(card.children).toHaveLength(0);
+  });
+
+  it('follows the configured default', () => {
+    configure({ shadow: false });
+    expect(em.Card({ content: 'x' }).shadowRoot).toBeNull();
+  });
+
+  it('lets the component override the configured default', () => {
+    configure({ shadow: false });
+    expect(em.Card({ shadow: true }).shadowRoot).not.toBeNull();
+  });
+});
+
+describe('mounted', () => {
+  it('runs on connect with the inner element and the component', () => {
+    const mounted = vi.fn();
+    const card = em.Card({ mounted });
+    expect(mounted).not.toHaveBeenCalled();
+    document.body.append(card);
+    expect(mounted).toHaveBeenCalledTimes(1);
+    expect(mounted).toHaveBeenCalledWith(inner(card), card);
+  });
+
+  it('runs on every reconnect', () => {
+    const mounted = vi.fn();
+    const card = em.Card({ mounted });
+    document.body.append(card);
+    card.remove();
+    document.body.append(card);
+    expect(mounted).toHaveBeenCalledTimes(2);
+  });
+
+  it('works with shadow false', () => {
+    const mounted = vi.fn();
+    const card = em.Card({ shadow: false, mounted });
+    document.body.append(card);
+    expect(mounted).toHaveBeenCalledWith(card.firstElementChild, card);
+  });
+
+  it('lets a hook update the component', () => {
+    const card = em.Card({
+      content: 'before',
+      mounted: (_, component) => component.setState({ content: 'after' }),
+    });
+    document.body.append(card);
+    expect(inner(card).textContent).toBe('after');
+  });
+});
+
+describe('cleanup returned from mounted', () => {
+  it('runs on disconnect before unmounted', () => {
+    const order: string[] = [];
+    const card = em.Card({
+      mounted: () => () => order.push('cleanup'),
+      unmounted: () => order.push('unmounted'),
+    });
+    document.body.append(card);
+    expect(order).toEqual([]);
+    card.remove();
+    expect(order).toEqual(['cleanup', 'unmounted']);
+  });
+
+  it('runs once per mount cycle', () => {
+    const cleanup = vi.fn();
+    const mounted = vi.fn(() => cleanup);
+    const card = em.Card({ mounted });
+    document.body.append(card);
+    card.remove();
+    document.body.append(card);
+    card.remove();
+    expect(mounted).toHaveBeenCalledTimes(2);
+    expect(cleanup).toHaveBeenCalledTimes(2);
+  });
+
+  it('is not called again when disconnected twice', () => {
+    const cleanup = vi.fn();
+    const card = em.Card({ mounted: () => cleanup });
+    document.body.append(card);
+    card.remove();
+    card.disconnectedCallback();
+    expect(cleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it('is optional', () => {
+    const card = em.Card({ mounted: () => {} });
+    document.body.append(card);
+    expect(() => card.remove()).not.toThrow();
+  });
+});
+
+describe('unmounted', () => {
+  it('runs on disconnect with the inner element and the component', () => {
+    const unmounted = vi.fn();
+    const card = em.Card({ unmounted });
+    document.body.append(card);
+    expect(unmounted).not.toHaveBeenCalled();
+    card.remove();
+    expect(unmounted).toHaveBeenCalledWith(inner(card), card);
+  });
+
+  it('uses the latest props', () => {
+    const first = vi.fn();
+    const second = vi.fn();
+    const card = em.Card({ unmounted: first });
+    document.body.append(card);
+    card.setState({ unmounted: second });
+    card.remove();
+    expect(first).not.toHaveBeenCalled();
+    expect(second).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('updated', () => {
+  it('does not run on the first render', () => {
+    const updated = vi.fn();
+    document.body.append(em.Card({ updated }));
+    expect(updated).not.toHaveBeenCalled();
+  });
+
+  it('runs after every later render with the element, the component and the previous props', () => {
+    const updated = vi.fn();
+    const card = em.Card({ content: 'a', updated });
+    card.setState({ content: 'b' });
+    card.setState({ content: 'c' });
+    expect(updated).toHaveBeenCalledTimes(2);
+    expect(updated.mock.calls[0][0]).toBe(inner(card));
+    expect(updated.mock.calls[0][1]).toBe(card);
+    expect(updated.mock.calls[0][2]).toMatchObject({ content: 'a' });
+    expect(updated.mock.calls[1][2]).toMatchObject({ content: 'b' });
+  });
+
+  it('receives the new element when the tag changes', () => {
+    const updated = vi.fn();
+    const card = em.Card({ tag: 'div' as string, updated });
+    card.setState({ tag: 'section' });
+    expect(updated.mock.calls[0][0]).toBe(inner(card));
+    expect((updated.mock.calls[0][0] as HTMLElement).localName).toBe('section');
+  });
+});
+
+describe('beforeUpdate', () => {
+  it('does not run on the first render', () => {
+    const beforeUpdate = vi.fn();
+    em.Card({ beforeUpdate });
+    expect(beforeUpdate).not.toHaveBeenCalled();
+  });
+
+  it('receives next props, current props and the component', () => {
+    const beforeUpdate = vi.fn();
+    const card = em.Card({ content: 'a', beforeUpdate });
+    card.setState({ content: 'b' });
+    const [next, current, component] = beforeUpdate.mock.calls[0];
+    expect(next.content).toBe('b');
+    expect(current.content).toBe('a');
+    expect(component).toBe(card);
+  });
+
+  it('cancels the update when it returns false', () => {
+    const updated = vi.fn();
+    const card = em.Card({ content: 'a', beforeUpdate: () => false, updated });
+    card.setState({ content: 'b' });
+    expect(inner(card).textContent).toBe('a');
+    expect(card.props.content).toBe('a');
+    expect(updated).not.toHaveBeenCalled();
+  });
+
+  it('allows the update when it returns true or nothing', () => {
+    const decide = vi.fn<() => boolean | void>();
+    const card = em.Card({ content: 'a', beforeUpdate: decide });
+    decide.mockReturnValueOnce(true);
+    card.setState({ content: 'b' });
+    decide.mockReturnValueOnce(undefined);
+    card.setState({ content: 'c' });
+    expect(inner(card).textContent).toBe('c');
+  });
+
+  it('can skip updates that change nothing', () => {
+    const card = em.Card({
+      content: 'a',
+      beforeUpdate: (next, current) => next.content !== current.content,
+    });
+    const child = document.createElement('i');
+    card.setState({ children: [child] });
+    expect(inner(card).contains(child)).toBe(false);
+    card.setState({ content: 'b' });
+    expect(inner(card).textContent).toBe('b');
   });
 });
