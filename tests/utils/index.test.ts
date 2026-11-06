@@ -9,9 +9,11 @@ describe('utils', () => {
       'mount',
       'propsEqual',
       'render',
+      'resetWarnings',
       'resolveProps',
       'setEventListeners',
       'syncAttributes',
+      'warn',
     ]);
   });
 });

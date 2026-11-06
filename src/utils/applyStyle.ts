@@ -1,4 +1,5 @@
 import type { ResolvedProps } from '../types';
+import { warn } from './warn';
 
 const toKebabCase = (key: string) => key.replace(/([A-Z])/g, '-$1').toLowerCase();
 
@@ -12,6 +13,8 @@ export const applyStyle = (
   Object.entries(style).forEach(([key, value]) => {
     if (typeof value === 'string' || typeof value === 'number') {
       next.set(toKebabCase(key), String(value));
+    } else if (value !== undefined && value !== null && value !== false) {
+      warn(`style "${key}" was ignored, ${typeof value} values cannot be set`);
     }
   });
 

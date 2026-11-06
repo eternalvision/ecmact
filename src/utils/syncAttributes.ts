@@ -1,4 +1,5 @@
 import type { ResolvedProps } from '../types';
+import { warn } from './warn';
 
 const reservedKeys = new Set([
   'tag',
@@ -13,6 +14,8 @@ const reservedKeys = new Set([
   'unmounted',
   'beforeUpdate',
   'updated',
+  'error',
+  'provide',
 ]);
 
 const toAttributeValue = (value: unknown) => {
@@ -31,7 +34,11 @@ export const syncAttributes = (
   Object.entries(props).forEach(([key, value]) => {
     if (reservedKeys.has(key) || key.startsWith('on')) return;
     const attribute = toAttributeValue(value);
-    if (attribute !== null) next.set(key, attribute);
+    if (attribute !== null) {
+      next.set(key, attribute);
+    } else if (value !== undefined && value !== null && value !== false) {
+      warn(`attribute "${key}" was ignored, ${typeof value} values cannot be set`);
+    }
   });
 
   previous.forEach((key) => {

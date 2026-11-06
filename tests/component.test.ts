@@ -1,9 +1,18 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { computed, effect, em, signal } from '../src';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { computed, consume, createContext, effect, em, provide, signal, tags } from '../src';
 import { resetConfig, configure } from '../src/config';
+import { resetWarnings } from '../src/utils/warn';
 import { inner } from './helpers';
 
+let spy: ReturnType<typeof vi.spyOn>;
+
+beforeEach(() => {
+  spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+});
+
 afterEach(() => {
+  spy.mockRestore();
+  resetWarnings();
   resetConfig();
   document.body.replaceChildren();
 });
@@ -498,5 +507,231 @@ describe('signals', () => {
     effect(run);
     inside.value = 1;
     expect(run).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('error handling', () => {
+  const boom = new Error('boom');
+  const fail = () => {
+    throw boom;
+  };
+
+  it('rethrows hook errors when there is no handler', () => {
+    const card = em.Card({ mounted: fail });
+    expect(() => card.connectedCallback()).toThrow(boom);
+  });
+
+  it('reports a mounted error to the component handler and keeps going', () => {
+    const error = vi.fn();
+    const card = em.Card({ mounted: fail, error });
+    document.body.append(card);
+    expect(error).toHaveBeenCalledWith(boom, {
+      component: card,
+      phase: 'mounted',
+      event: undefined,
+    });
+    card.setState({ content: 'still works' });
+    expect(inner(card).textContent).toBe('still works');
+  });
+
+  it('reports an unmounted error', () => {
+    const error = vi.fn();
+    const card = em.Card({ unmounted: fail, error });
+    document.body.append(card);
+    card.remove();
+    expect(error.mock.calls[0][1]).toMatchObject({ phase: 'unmounted' });
+  });
+
+  it('reports a cleanup error and still runs unmounted', () => {
+    const error = vi.fn();
+    const unmounted = vi.fn();
+    const card = em.Card({ mounted: () => fail, unmounted, error });
+    document.body.append(card);
+    card.remove();
+    expect(error.mock.calls[0][1]).toMatchObject({ phase: 'cleanup' });
+    expect(unmounted).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports a beforeUpdate error and lets the update through', () => {
+    const error = vi.fn();
+    const card = em.Card({ content: 'a', beforeUpdate: fail, error });
+    card.setState({ content: 'b' });
+    expect(error.mock.calls[0][1]).toMatchObject({ phase: 'beforeUpdate' });
+    expect(inner(card).textContent).toBe('b');
+  });
+
+  it('reports an updated error', () => {
+    const error = vi.fn();
+    const card = em.Card({ updated: fail, error });
+    card.setState({ content: 'b' });
+    expect(error.mock.calls[0][1]).toMatchObject({ phase: 'updated' });
+  });
+
+  it('reports a render error and skips updated', () => {
+    const error = vi.fn();
+    const updated = vi.fn();
+    const card = em.Card({ updated, error, ref: fail });
+    expect(error.mock.calls[0][1]).toMatchObject({ phase: 'render' });
+    card.setState({ tag: 'section' as never, ref: fail });
+    expect(error).toHaveBeenCalledTimes(2);
+    expect(updated).not.toHaveBeenCalled();
+  });
+
+  it('reports an event handler error with the event name', () => {
+    const error = vi.fn();
+    const card = em.Card({ onclick: fail, error });
+    inner(card).click();
+    expect(error).toHaveBeenCalledWith(boom, { component: card, phase: 'event', event: 'click' });
+  });
+
+  it('falls back to the configured handler', () => {
+    const onError = vi.fn();
+    configure({ onError });
+    em.Card({ onclick: fail }).shadowRoot!.firstElementChild!.dispatchEvent(new Event('click'));
+    expect(onError).toHaveBeenCalledTimes(1);
+  });
+
+  it('prefers the component handler over the configured one', () => {
+    const onError = vi.fn();
+    const error = vi.fn();
+    configure({ onError });
+    const card = em.Card({ mounted: fail, error });
+    document.body.append(card);
+    expect(error).toHaveBeenCalledTimes(1);
+    expect(onError).not.toHaveBeenCalled();
+  });
+
+  it('reports errors from signal driven updates', () => {
+    const error = vi.fn();
+    const label = signal('a');
+    const card = em.Card({ content: label, updated: fail, error });
+    document.body.append(card);
+    label.value = 'b';
+    expect(error.mock.calls[0][1]).toMatchObject({ phase: 'updated' });
+  });
+});
+
+describe('context', () => {
+  const theme = createContext<string>('theme');
+  const locale = createContext<string>('locale');
+
+  const consumer = (onValue: (value: string | undefined) => void) =>
+    em.Consumer({
+      mounted: (_, component) => {
+        onValue(consume(theme, component));
+      },
+    });
+
+  it('gives consumers the value of the nearest provider above them', () => {
+    const seen: (string | undefined)[] = [];
+    const provider = em.Provider({
+      provide: [provide(theme, 'dark')],
+      children: [consumer((value) => seen.push(value))],
+    });
+    document.body.append(provider);
+    expect(seen).toEqual(['dark']);
+  });
+
+  it('prefers the closer provider', () => {
+    const seen: (string | undefined)[] = [];
+    const inside = em.Inner({
+      provide: [provide(theme, 'inner')],
+      children: [consumer((value) => seen.push(value))],
+    });
+    document.body.append(em.Outer({ provide: [provide(theme, 'outer')], children: [inside] }));
+    expect(seen).toEqual(['inner']);
+  });
+
+  it('passes unrelated contexts on to outer providers', () => {
+    const seen: (string | undefined)[] = [];
+    const reader = em.Reader({
+      mounted: (_, component) => {
+        seen.push(consume(locale, component));
+      },
+    });
+    const inside = em.Inner({ provide: [provide(theme, 'dark')], children: [reader] });
+    document.body.append(em.Outer({ provide: [provide(locale, 'cs')], children: [inside] }));
+    expect(seen).toEqual(['cs']);
+  });
+
+  it('does not answer its own request, only requests from below', () => {
+    const seen: (string | undefined)[] = [];
+    const middle = em.Middle({
+      provide: [provide(theme, 'middle')],
+      mounted: (_, component) => {
+        seen.push(consume(theme, component));
+      },
+    });
+    document.body.append(em.Outer({ provide: [provide(theme, 'outer')], children: [middle] }));
+    expect(seen).toEqual(['outer']);
+  });
+
+  it('returns undefined without a provider', () => {
+    const seen: (string | undefined)[] = [];
+    document.body.append(consumer((value) => seen.push(value)));
+    expect(seen).toEqual([undefined]);
+  });
+
+  it('works for plain elements inside a provider', () => {
+    const provider = em.Provider({ provide: [provide(theme, 'dark')] });
+    document.body.append(provider);
+    const probe = document.createElement('span');
+    inner(provider).append(probe);
+    expect(consume(theme, probe)).toBe('dark');
+  });
+
+  it('answers for elements inside it even while it is not in the document', () => {
+    const provider = em.Provider({ provide: [provide(theme, 'dark')] });
+    const probe = document.createElement('span');
+    inner(provider).append(probe);
+    expect(consume(theme, probe)).toBe('dark');
+  });
+
+  it('follows the current provide prop', () => {
+    const probe = document.createElement('span');
+    const provider = em.Provider({ provide: [provide(theme, 'dark')], children: [probe] });
+    provider.setState({ provide: [provide(theme, 'light')] });
+    expect(consume(theme, probe)).toBe('light');
+  });
+
+  it('can provide a signal that consumers read reactively', () => {
+    const mode = signal('light');
+    const provider = em.Provider({
+      provide: [provide(createContext<typeof mode>('mode'), mode)],
+    });
+    const mark = createContext<typeof mode>('mark');
+    const reactive = em.Provider({ provide: [provide(mark, mode)] });
+    const label = tags.span({
+      mounted: (_, component) => {
+        const value = consume(mark, component)!;
+        component.setState({ content: computed(() => `mode ${value.value}`) });
+      },
+    });
+    inner(reactive).append(label);
+    document.body.append(provider, reactive);
+    expect(inner(label).textContent).toBe('mode light');
+    mode.value = 'dark';
+    expect(inner(label).textContent).toBe('mode dark');
+  });
+});
+
+describe('warnings', () => {
+  it('warns when shadow changes after the first render', () => {
+    const card = em.Card({ content: 'a' });
+    card.setState({ shadow: false });
+    expect(spy).toHaveBeenCalledWith('ecmact: shadow cannot change after the first render');
+  });
+
+  it('warns when the default changes between renders', () => {
+    const card = em.Card({ content: 'a' });
+    configure({ shadow: false });
+    card.setState({ content: 'b' });
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not warn when shadow stays the same', () => {
+    const card = em.Card({ shadow: false, content: 'a' });
+    card.setState({ content: 'b' });
+    expect(spy).not.toHaveBeenCalled();
   });
 });

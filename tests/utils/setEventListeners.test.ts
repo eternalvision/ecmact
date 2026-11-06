@@ -1,5 +1,17 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setEventListeners } from '../../src/utils/setEventListeners';
+import { resetWarnings } from '../../src/utils/warn';
+
+let spy: ReturnType<typeof vi.spyOn>;
+
+beforeEach(() => {
+  spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+});
+
+afterEach(() => {
+  spy.mockRestore();
+  resetWarnings();
+});
 
 describe('setEventListeners', () => {
   it('attaches handlers under the lowercased event name', () => {
@@ -22,11 +34,71 @@ describe('setEventListeners', () => {
     expect(setEventListeners(element, { title: () => {} } as never, new Map()).size).toBe(0);
   });
 
-  it('returns the listeners it attached', () => {
+  it('returns the listeners it attached, keyed by lowercase event name', () => {
     const element = document.createElement('div');
     const handler = vi.fn();
-    const listeners = setEventListeners(element, { onClick: handler }, new Map());
-    expect(listeners.get('click')).toBe(handler);
+    const listeners = setEventListeners(element, { onClick: handler } as never, new Map());
+    expect([...listeners.keys()]).toEqual(['click']);
+    listeners.get('click')!(new Event('click'));
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it('rethrows handler errors when no reporter is given', () => {
+    const element = document.createElement('div');
+    const error = new Error('boom');
+    const listeners = setEventListeners(
+      element,
+      {
+        onclick: () => {
+          throw error;
+        },
+      },
+      new Map(),
+    );
+    expect(() => listeners.get('click')!(new Event('click'))).toThrow(error);
+  });
+
+  it('passes handler errors and the event name to the reporter', () => {
+    const element = document.createElement('div');
+    const error = new Error('boom');
+    const onError = vi.fn();
+    const listeners = setEventListeners(
+      element,
+      {
+        onclick: () => {
+          throw error;
+        },
+      },
+      new Map(),
+      onError,
+    );
+    listeners.get('click')!(new Event('click'));
+    expect(onError).toHaveBeenCalledWith(error, 'click');
+  });
+
+  it('removes the wrapped listeners it attached before', () => {
+    const element = document.createElement('div');
+    const handler = vi.fn();
+    const first = setEventListeners(element, { onclick: handler }, new Map());
+    setEventListeners(element, { onclick: handler }, first);
+    element.click();
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it('warns about handlers that are not functions', () => {
+    const element = document.createElement('div');
+    setEventListeners(element, { onclick: 'alert(1)' } as never, new Map());
+    expect(spy).toHaveBeenCalledWith('ecmact: handler "onclick" is not a function and was ignored');
+  });
+
+  it('stays quiet about empty handlers', () => {
+    const element = document.createElement('div');
+    setEventListeners(
+      element,
+      { onclick: undefined, onfocus: null, onblur: false } as never,
+      new Map(),
+    );
+    expect(spy).not.toHaveBeenCalled();
   });
 
   it('replaces the previous listeners', () => {

@@ -1,7 +1,19 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from '../../src/utils/render';
+import { resetWarnings } from '../../src/utils/warn';
 import type { ResolvedProps } from '../../src';
 import { createRoot, createState } from '../helpers';
+
+let spy: ReturnType<typeof vi.spyOn>;
+
+beforeEach(() => {
+  spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+});
+
+afterEach(() => {
+  spy.mockRestore();
+  resetWarnings();
+});
 
 const setup = (props: ResolvedProps = {}) => {
   const root = createRoot();
@@ -134,5 +146,44 @@ describe('render', () => {
     const element = render(host, {}, createState());
     expect(host.children).toHaveLength(1);
     expect(host.firstElementChild).toBe(element);
+  });
+
+  it('warns when css is used without a shadow root', () => {
+    render(document.createElement('div'), { css: 'div {}' }, createState());
+    expect(spy).toHaveBeenCalledWith('ecmact: css is ignored when shadow is false');
+  });
+
+  it('warns when both content and html are set', () => {
+    setup({ html: '<b></b>', content: 'text' });
+    expect(spy).toHaveBeenCalledWith('ecmact: content is ignored when html is set');
+  });
+
+  it('does not warn for valid combinations', () => {
+    setup({ html: '<b></b>', css: 'div {}' });
+    setup({ content: 'text' });
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('passes the reporter to the event listeners', () => {
+    const error = new Error('boom');
+    const onError = vi.fn();
+    const { element } = (() => {
+      const root = createRoot();
+      const state = createState();
+      return {
+        element: render(
+          root,
+          {
+            onclick: () => {
+              throw error;
+            },
+          },
+          state,
+          onError,
+        ),
+      };
+    })();
+    element.click();
+    expect(onError).toHaveBeenCalledWith(error, 'click');
   });
 });

@@ -6,3 +6,4 @@ export { render } from './render';
 export { resolveProps } from './resolveProps';
 export { setEventListeners } from './setEventListeners';
 export { syncAttributes } from './syncAttributes';
+export { resetWarnings, warn } from './warn';

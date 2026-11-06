@@ -1,5 +1,17 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { applyStyle } from '../../src/utils/applyStyle';
+import { resetWarnings } from '../../src/utils/warn';
+
+let spy: ReturnType<typeof vi.spyOn>;
+
+beforeEach(() => {
+  spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+});
+
+afterEach(() => {
+  spy.mockRestore();
+  resetWarnings();
+});
 
 describe('applyStyle', () => {
   it('applies camelCase keys as kebab-case properties', () => {
@@ -50,5 +62,26 @@ describe('applyStyle', () => {
     applyStyle(element, { color: 'red;} </style><script>alert(1)</script>' }, new Set());
     expect(element.querySelector('script')).toBeNull();
     expect(element.ownerDocument.querySelector('script')).toBeNull();
+  });
+
+  it('warns about values that cannot be applied', () => {
+    const element = document.createElement('div');
+    applyStyle(element, { margin: {} as never, padding: true as never }, new Set());
+    expect(spy).toHaveBeenCalledWith(
+      'ecmact: style "margin" was ignored, object values cannot be set',
+    );
+    expect(spy).toHaveBeenCalledWith(
+      'ecmact: style "padding" was ignored, boolean values cannot be set',
+    );
+  });
+
+  it('stays quiet about undefined, null and false', () => {
+    const element = document.createElement('div');
+    applyStyle(
+      element,
+      { color: undefined, margin: null as never, padding: false as never },
+      new Set(),
+    );
+    expect(spy).not.toHaveBeenCalled();
   });
 });

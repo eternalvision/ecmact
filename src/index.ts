@@ -1,9 +1,11 @@
 export { em } from './em';
 export { tags } from './tags';
 export { configure } from './config';
+export { consume, createContext, provide } from './context';
 export { batch, computed, effect, isSignal, signal, untracked } from './signals';
 export type { ReadonlySignal, Signal } from './signals';
-export type { Config, StyleSource } from './config';
+export type { Config, ErrorHandler, ErrorInfo, ErrorPhase, StyleSource } from './config';
+export type { Context, Provision } from './context';
 export { mount } from './utils';
 export type { Component } from './component';
 export type {

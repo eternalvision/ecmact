@@ -1,5 +1,17 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { syncAttributes } from '../../src/utils/syncAttributes';
+import { resetWarnings } from '../../src/utils/warn';
+
+let spy: ReturnType<typeof vi.spyOn>;
+
+beforeEach(() => {
+  spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+});
+
+afterEach(() => {
+  spy.mockRestore();
+  resetWarnings();
+});
 
 const sync = (element: HTMLElement, props: Record<string, unknown>, previous = new Set<string>()) =>
   syncAttributes(element, props as never, previous);
@@ -83,5 +95,29 @@ describe('syncAttributes', () => {
     const first = sync(element, { title: 'a' });
     sync(element, { title: 'b' }, first);
     expect(element.getAttribute('title')).toBe('b');
+  });
+
+  it('warns about values that cannot be attributes', () => {
+    const element = document.createElement('div');
+    sync(element, { data: {}, action: () => {} });
+    expect(spy).toHaveBeenCalledWith(
+      'ecmact: attribute "data" was ignored, object values cannot be set',
+    );
+    expect(spy).toHaveBeenCalledWith(
+      'ecmact: attribute "action" was ignored, function values cannot be set',
+    );
+  });
+
+  it('stays quiet about false, null and undefined', () => {
+    const element = document.createElement('div');
+    sync(element, { a: false, b: null, c: undefined });
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('stays quiet about the reserved keys', () => {
+    const element = document.createElement('div');
+    sync(element, { error: () => {}, provide: [] });
+    expect(spy).not.toHaveBeenCalled();
+    expect(element.getAttributeNames()).toEqual([]);
   });
 });

@@ -1,7 +1,8 @@
-import { getConfig } from './config';
+import { getConfig, type ErrorPhase } from './config';
+import { contextRequestEvent, type ContextRequest } from './context';
 import { effect, untracked } from './signals';
 import type { ComponentProps, RenderState, ResolvedProps } from './types';
-import { propsEqual, render, resolveProps } from './utils';
+import { propsEqual, render, resolveProps, warn } from './utils';
 
 const Base = typeof HTMLElement === 'undefined' ? (class {} as typeof HTMLElement) : HTMLElement;
 
@@ -25,6 +26,7 @@ export class Component<K extends string = string> extends Base {
   constructor(props: ComponentProps<K> = {} as ComponentProps<K>) {
     super();
     this.#props = props;
+    this.addEventListener(contextRequestEvent, this.#answer);
   }
 
   connectedCallback() {
@@ -34,16 +36,19 @@ export class Component<K extends string = string> extends Base {
         this.#paint(resolved);
       }
       this.#watch();
-      this.#cleanup = this.#hooks.mounted?.(this.#state.element as HTMLElement, this.#self);
+      this.#cleanup = this.#guard('mounted', () =>
+        this.#hooks.mounted?.(this.#element, this.#self),
+      );
     });
   }
 
   disconnectedCallback() {
     this.#stop?.();
     this.#stop = null;
-    this.#cleanup?.();
+    const cleanup = this.#cleanup;
     this.#cleanup = undefined;
-    this.#hooks.unmounted?.(this.#state.element as HTMLElement, this.#self);
+    if (cleanup) this.#guard('cleanup', cleanup);
+    this.#guard('unmounted', () => this.#hooks.unmounted?.(this.#element, this.#self));
   }
 
   setState(newProps: Partial<ComponentProps<K>>) {
@@ -72,8 +77,39 @@ export class Component<K extends string = string> extends Base {
     return this as unknown as Component;
   }
 
+  get #element() {
+    return this.#state.element as HTMLElement;
+  }
+
+  readonly #answer = (event: Event) => {
+    const { context, host, respond } = (event as CustomEvent<ContextRequest>).detail;
+    if (host === this) return;
+    const provision = this.#hooks.provide?.find((candidate) => candidate.context === context);
+    if (!provision) return;
+    event.stopPropagation();
+    respond(provision.value);
+  };
+
+  #report(error: unknown, phase: ErrorPhase, event?: string) {
+    const handler = this.#hooks.error ?? getConfig().onError;
+    if (!handler) throw error;
+    handler(error, { component: this.#self, phase, event });
+  }
+
+  #guard<T>(phase: ErrorPhase, fn: () => T) {
+    try {
+      return fn();
+    } catch (error) {
+      this.#report(error, phase);
+      return undefined;
+    }
+  }
+
   #vetoes(next: ResolvedProps) {
-    return next.beforeUpdate?.(next, this.#last as ResolvedProps, this.#self) === false;
+    const current = this.#last as ResolvedProps;
+    return (
+      this.#guard('beforeUpdate', () => next.beforeUpdate?.(next, current, this.#self)) === false
+    );
   }
 
   #watch() {
@@ -93,12 +129,18 @@ export class Component<K extends string = string> extends Base {
 
   #paint(resolved: ResolvedProps) {
     const previous = this.#last;
-    this.#root ??=
-      (resolved.shadow ?? getConfig().shadow) === false
-        ? this
-        : this.attachShadow({ mode: 'open' });
-    const element = render(this.#root, resolved, this.#state);
+    const wantsShadow = (resolved.shadow ?? getConfig().shadow) !== false;
+    this.#root ??= wantsShadow ? this.attachShadow({ mode: 'open' }) : this;
+    if (previous && wantsShadow !== (this.#root !== this)) {
+      warn('shadow cannot change after the first render');
+    }
+    const root = this.#root;
+    const element = this.#guard('render', () =>
+      render(root, resolved, this.#state, (error, event) => this.#report(error, 'event', event)),
+    );
     this.#last = resolved;
-    if (previous) resolved.updated?.(element, this.#self, previous);
+    if (previous && element) {
+      this.#guard('updated', () => resolved.updated?.(element, this.#self, previous));
+    }
   }
 }

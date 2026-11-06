@@ -1,4 +1,6 @@
 import type { Component } from '../component';
+import type { ErrorHandler } from '../config';
+import type { Provision } from '../context';
 import type { ReadonlySignal } from '../signals';
 import type { AttributeMap, GlobalAttributes } from './attributes';
 
@@ -53,6 +55,8 @@ interface ReactiveValueProps {
 interface BehaviorProps<K extends string> {
   ref?: (element: ElementOf<K>) => void;
   shadow?: boolean;
+  error?: ErrorHandler;
+  provide?: Provision[];
   mounted?: (element: ElementOf<K>, component: Component<K>) => void | (() => void);
   unmounted?: (element: ElementOf<K>, component: Component<K>) => void;
   beforeUpdate?: (
