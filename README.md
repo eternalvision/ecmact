@@ -10,7 +10,7 @@ ECMact is a small component library built on native Web Components. Every compon
 - Content, attributes and styles are written through DOM APIs, never through `innerHTML` (unless you ask for it)
 - In-place updates: `setState` reuses the DOM node, so focus and input state survive
 - Full TypeScript support, with attributes, events, styles, `ref` and lifecycle hooks typed per HTML tag
-- Optional light DOM rendering and lifecycle hooks (`mounted`, `unmounted`, `updated`)
+- Optional light DOM rendering and lifecycle hooks (`mounted` with cleanup, `unmounted`, `beforeUpdate`, `updated`)
 - ES and CommonJS builds, bundled type declarations, `sideEffects: false`
 
 ## Table of contents
@@ -118,20 +118,21 @@ Use a distinct name per kind of component. Names are a convention for your own r
 
 ## Props reference
 
-| Prop        | Type                          | Default | Description                                                     |
-| ----------- | ----------------------------- | ------- | --------------------------------------------------------------- |
-| `tag`       | `string`                      | `'div'` | Tag name of the inner element.                                  |
-| `content`   | `string`                      | `''`    | Text content. Never parsed as HTML.                             |
-| `html`      | `string`                      | -       | Raw HTML for the inner element. Opt-in, trusted input only.     |
-| `children`  | `Node[]`                      | `[]`    | Nodes appended after the content.                               |
-| `style`     | object of CSS properties      | -       | Inline styles, camelCase keys.                                  |
-| `ref`       | `(element) => void`           | -       | Called once, when the inner element is created.                 |
-| `shadow`    | `boolean`                     | `true`  | `false` renders into the light DOM. Read on the first render.   |
-| `mounted`   | `(element) => void`           | -       | Called when the component is connected to the document.         |
-| `unmounted` | `(element) => void`           | -       | Called when the component is disconnected from the document.    |
-| `updated`   | `(element) => void`           | -       | Called after every render except the first.                     |
-| `on<event>` | `(event) => void`             | -       | Event listener on the inner element, lowercase, e.g. `onclick`. |
-| any other   | `string \| number \| boolean` | -       | Set as an HTML attribute on the inner element.                  |
+| Prop           | Type                                            | Default | Description                                                     |
+| -------------- | ----------------------------------------------- | ------- | --------------------------------------------------------------- |
+| `tag`          | `string`                                        | `'div'` | Tag name of the inner element.                                  |
+| `content`      | `string`                                        | `''`    | Text content. Never parsed as HTML.                             |
+| `html`         | `string`                                        | -       | Raw HTML for the inner element. Opt-in, trusted input only.     |
+| `children`     | `Node[]`                                        | `[]`    | Nodes appended after the content.                               |
+| `style`        | object of CSS properties                        | -       | Inline styles, camelCase keys.                                  |
+| `ref`          | `(element) => void`                             | -       | Called once, when the inner element is created.                 |
+| `shadow`       | `boolean`                                       | `true`  | `false` renders into the light DOM. Read on the first render.   |
+| `mounted`      | `(element, component) => void \| (() => void)`  | -       | Called when connected to the document; may return a cleanup.    |
+| `unmounted`    | `(element, component) => void`                  | -       | Called when the component is disconnected from the document.    |
+| `beforeUpdate` | `(next, current, component) => boolean \| void` | -       | Return `false` to cancel an update.                             |
+| `updated`      | `(element, component, previous) => void`        | -       | Called after every render except the first.                     |
+| `on<event>`    | `(event) => void`                               | -       | Event listener on the inner element, lowercase, e.g. `onclick`. |
+| any other      | `string \| number \| boolean`                   | -       | Set as an HTML attribute on the inner element.                  |
 
 All props except `shadow` and the lifecycle hooks apply to the inner element, not to the `<em-*>` host.
 
@@ -164,7 +165,7 @@ Children passed to `children` are moved, not cloned: a node can have only one pa
 
 ## Attributes
 
-Any prop that is not a reserved key (`tag`, `content`, `html`, `style`, `children`, `ref`, `shadow`, `mounted`, `unmounted`, `updated`) and does not start with `on` is set on the inner element with `setAttribute`.
+Any prop that is not a reserved key (`tag`, `content`, `html`, `style`, `children`, `ref`, `shadow`, `mounted`, `unmounted`, `beforeUpdate`, `updated`) and does not start with `on` is set on the inner element with `setAttribute`.
 
 | Value                            | Result                              |
 | -------------------------------- | ----------------------------------- |
@@ -256,30 +257,49 @@ Refs are the escape hatch for anything the props do not cover: listener options,
 
 ## Lifecycle
 
-Three optional hooks run at defined points. Each receives the inner element, typed by tag.
+Four optional hooks run at defined points. All of them receive the host component, typed by tag, so a hook can call `component.setState(...)` without closing over a variable.
 
-| Hook        | When                                                                                   |
-| ----------- | -------------------------------------------------------------------------------------- |
-| `mounted`   | The component is connected to a document. Runs after the first render.                 |
-| `unmounted` | The component is disconnected from a document.                                         |
-| `updated`   | After every render caused by `setState` or by assigning `props`, except the first one. |
+| Hook           | Signature                                       | When                                                                                                  |
+| -------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `mounted`      | `(element, component) => void \| (() => void)`  | The component is connected to a document. Runs after the first render. May return a cleanup function. |
+| `unmounted`    | `(element, component) => void`                  | The component is disconnected from a document. Runs after the cleanup function.                       |
+| `beforeUpdate` | `(next, current, component) => boolean \| void` | Before an update. Return `false` to cancel it. Does not run for the first render.                     |
+| `updated`      | `(element, component, previous) => void`        | After every render caused by `setState` or by assigning `props`, except the first one.                |
+
+`element` is the inner element. `next`, `current` and `previous` are full props objects.
 
 ```ts
 const chart = em.Chart({
-  mounted: (element) => {
-    const observer = new ResizeObserver(() => redraw(element));
+  mounted: (element, component) => {
+    const observer = new ResizeObserver(() => component.setState({ content: size(element) }));
     observer.observe(element);
-    element.dataset.observing = 'true';
+    return () => observer.disconnect();
   },
-  unmounted: (element) => cleanup(element),
-  updated: (element) => redraw(element),
+  beforeUpdate: (next, current) => next.content !== current.content,
+  updated: (element, _component, previous) => redraw(element, previous),
 });
 ```
 
-- `mounted` and `unmounted` follow the custom element lifecycle: moving a component in the DOM (removing and appending it again) calls `unmounted` and then `mounted` again. Do your setup in `mounted` and release it in `unmounted`.
+**Cleanup.** If `mounted` returns a function, it is called when the component is disconnected, before `unmounted`. Each connect gets its own cleanup, so a component that is moved in the DOM sets up and tears down once per move.
+
+**Cancelling updates.** `beforeUpdate` is a veto: when it returns `false`, the new props are discarded entirely. The DOM and `component.props` stay as they were, and `updated` does not run. This means a skipped `setState` is lost, not deferred. Use it to drop updates that cannot change the output:
+
+```ts
+em.Label({
+  content: 'x',
+  beforeUpdate: (next, current) => next.content !== current.content,
+});
+```
+
+`beforeUpdate` is read from the incoming props, which for `setState` are the current props merged with the change, so a hook set at creation keeps applying.
+
+**Details**
+
+- `mounted` and `unmounted` follow the custom element lifecycle: moving a component in the DOM (removing and appending it again) disconnects and connects it. Do setup in `mounted` and release it in the returned cleanup.
 - A component that is created but never attached to a document never calls `mounted`.
 - `updated` also runs when `tag` changes; the argument is then the new inner element.
 - Hooks are read from the current props at the moment they fire, so `setState({ unmounted })` replaces the hook.
+- Calling `setState` from `mounted` renders once more and triggers `updated`; `beforeUpdate` runs for it as well.
 - Hooks are not rendered as attributes.
 
 Use `ref` for code that must run once when the inner element is created, regardless of whether the component is in the document.
@@ -464,7 +484,7 @@ Any evergreen browser with Custom Elements v1, Shadow DOM and ES2022 class field
 - **Shadow DOM by default.** Global CSS does not apply inside components, and form controls inside a Shadow DOM do not take part in an outer `<form>`'s submission or validation. Label/`for` and `id` references do not cross the shadow boundary. Use `shadow: false` where that matters. The choice is made on the first render and cannot be changed afterwards.
 - **One inner element.** A component renders a single element. Compose several components for more complex structures.
 - **Full rebuild of children.** Children and text are rebuilt on every update; there is no keyed child diffing.
-- **Minimal lifecycle, no context or store.** There are `mounted`, `unmounted` and `updated` hooks, but no before-update hooks, context or state container. The library is a rendering layer.
+- **Minimal lifecycle, no context or store.** There are `mounted`, `unmounted`, `beforeUpdate` and `updated` hooks, but no context or state container. The library is a rendering layer.
 - **Handlers without options.** Listener options require a `ref`.
 
 ## Migrating from 1.x
