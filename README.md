@@ -1280,7 +1280,7 @@ Inside `src/` and `tests/` (of every package), import through aliases instead of
 
 ### Documentation comments
 
-Every function in `src/` of every package has a JSDoc comment: a description, then `@param` and `@returns` where they apply (and `@template`, `@throws` and `@example` where useful). That covers declarations, arrow functions assigned to constants, class methods, getters and setters, and functions that are properties of an object. Inline callbacks (the function in `.map(...)`) are not documented. Apart from JSDoc, the code has no comments.
+Every function, interface, type alias and interface member in `src/` of every package has a JSDoc comment. For functions it is: a description, then `@param` and `@returns` where they apply (and `@template`, `@throws` and `@example` where useful). That covers declarations, arrow functions assigned to constants, class methods, getters and setters, and functions that are properties of an object. Inline callbacks (the function in `.map(...)`) are not documented. Interfaces and type aliases get a description, and so do their members (`Config.shadow`, `Router.navigate`, `ResourceOptions.initial`). Inside `AttributeMap` the tag entries and the global attributes are documented; the HTML attributes nested inside a tag entry are not, because their names are the standard HTML ones. Apart from JSDoc, the code has no comments.
 
 ```ts
 /**
@@ -1293,7 +1293,7 @@ Every function in `src/` of every package has a JSDoc comment: a description, th
 export const mergeJson = (base: Json, overlay: Json): Json => {
 ```
 
-- It is enforced: `eslint-plugin-jsdoc` (`jsdoc/require-jsdoc`, `require-param`, `require-returns` and the rest of its recommended TypeScript rules) fails `npm run lint` for a function without a proper comment. Types are never repeated in the comment, TypeScript has them.
+- It is enforced: `eslint-plugin-jsdoc` (`jsdoc/require-jsdoc`, `require-param`, `require-returns` and the rest of its recommended TypeScript rules) fails `npm run lint` for a function, interface, type alias or interface member without a proper comment. Types are never repeated in the comment, TypeScript has them.
 - The comments end up in the published `.d.ts` files, so editors show them when you hover over `signal`, `createRouter` and the rest of the API. They are stripped from the JavaScript bundles (annotations such as `/* @__PURE__ */` stay), so they do not add to the code size.
 - Tests and the generated template are not linted for this, but the template's `createCounter` has one as an example.
 
