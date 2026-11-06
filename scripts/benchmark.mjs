@@ -58,6 +58,12 @@ window.bench = async (name, count, shadow, reuse) => {
 };
 `;
 
+/**
+ * Picks the middle value of a list of numbers.
+ *
+ * @param {number[]} values - The measurements.
+ * @returns {number} The median.
+ */
 const median = (values) => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
 
 const browser = await chromium.launch();
@@ -80,13 +86,19 @@ for (const count of sizes) {
     [true, false],
     [true, true],
   ]) {
-    await tab.evaluate(([n, s, r]) => window.bench('warmup', n, s, r), [count, shadow, reuse]);
+    await tab.evaluate(([n, s, r]) => globalThis.bench('warmup', n, s, r), [count, shadow, reuse]);
     const runs = [];
     for (let round = 0; round < rounds; round++) {
       runs.push(
-        await tab.evaluate(([n, s, r]) => window.bench('run', n, s, r), [count, shadow, reuse]),
+        await tab.evaluate(([n, s, r]) => globalThis.bench('run', n, s, r), [count, shadow, reuse]),
       );
     }
+    /**
+     * Formats the median of one measurement over all runs.
+     *
+     * @param {string} key - The measurement name.
+     * @returns {string} The median in milliseconds.
+     */
     const cell = (key) => median(runs.map((run) => run[key])).toFixed(1);
     console.log(
       `| ${count} | ${reuse ? 'reused' : 'rebuilt'} | ${shadow ? 'yes' : 'no'} | ${cell('create')} | ${cell('update')} | ${cell('swap')} | ${cell('remove')} | ${cell('append')} | ${cell('clear')} |`,
