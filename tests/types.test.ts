@@ -1,5 +1,5 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
-import { em, type Component, type ComponentProps } from '../src';
+import { em, type AttributeMap, type Component, type ComponentProps } from '../src';
 
 describe('tag inference', () => {
   it('defaults to div', () => {
@@ -85,6 +85,42 @@ describe('events and styles', () => {
     em.Card({ style: { color: true } });
     // @ts-expect-error unknown css property
     em.Card({ style: { notAProperty: 'x' } });
+    expect(true).toBe(true);
+  });
+});
+
+describe('lifecycle and shadow', () => {
+  it('types hooks by tag', () => {
+    em.Field({
+      tag: 'input',
+      shadow: false,
+      mounted: (element) => expectTypeOf(element).toEqualTypeOf<HTMLInputElement>(),
+      unmounted: (element) => expectTypeOf(element).toEqualTypeOf<HTMLInputElement>(),
+      updated: (element) => expectTypeOf(element).toEqualTypeOf<HTMLInputElement>(),
+    });
+    em.Card({ mounted: (element) => expectTypeOf(element).toEqualTypeOf<HTMLDivElement>() });
+    expect(true).toBe(true);
+  });
+
+  it('rejects an invalid shadow value', () => {
+    // @ts-expect-error shadow is a boolean
+    em.Card({ shadow: 'no' });
+    expect(true).toBe(true);
+  });
+});
+
+describe('attribute table', () => {
+  it('only describes standard tags', () => {
+    expectTypeOf<keyof AttributeMap>().toExtend<keyof HTMLElementTagNameMap>();
+  });
+
+  it('accepts newer attributes', () => {
+    em.Pop({ popover: 'auto', autofocus: true, enterkeyhint: 'go' });
+    em.Open({ tag: 'button', popovertarget: 'menu', popovertargetaction: 'toggle' });
+    em.Area({ tag: 'area', shape: 'rect', coords: '0,0,1,1', href: '/' });
+    em.Embed({ tag: 'embed', src: 'a.pdf', type: 'application/pdf' });
+    // @ts-expect-error alt is not a base attribute
+    em.Base({ tag: 'base', alt: 'x' });
     expect(true).toBe(true);
   });
 });

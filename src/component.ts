@@ -5,7 +5,7 @@ const Base = typeof HTMLElement === 'undefined' ? (class {} as typeof HTMLElemen
 
 export class Component<K extends string = string> extends Base {
   #props: ComponentProps<K>;
-  readonly #root: ShadowRoot;
+  #root: ParentNode | null = null;
   readonly #state: RenderState = {
     element: null,
     attributes: new Set(),
@@ -15,12 +15,16 @@ export class Component<K extends string = string> extends Base {
 
   constructor(props: ComponentProps<K> = {} as ComponentProps<K>) {
     super();
-    this.#root = this.attachShadow({ mode: 'open' });
     this.#props = props;
   }
 
   connectedCallback() {
     if (!this.#state.element) this.#render();
+    this.#hooks.mounted?.(this.#state.element as HTMLElement);
+  }
+
+  disconnectedCallback() {
+    this.#hooks.unmounted?.(this.#state.element as HTMLElement);
   }
 
   setState(newProps: Partial<ComponentProps<K>>) {
@@ -36,7 +40,14 @@ export class Component<K extends string = string> extends Base {
     this.#render();
   }
 
+  get #hooks() {
+    return this.#props as ComponentProps;
+  }
+
   #render() {
-    render(this.#root, this.#props as ComponentProps, this.#state);
+    const wasRendered = this.#state.element !== null;
+    this.#root ??= this.#hooks.shadow === false ? this : this.attachShadow({ mode: 'open' });
+    const element = render(this.#root, this.#hooks, this.#state);
+    if (wasRendered) this.#hooks.updated?.(element);
   }
 }

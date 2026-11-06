@@ -3,7 +3,7 @@ import { applyStyle } from './applyStyle';
 import { setEventListeners } from './setEventListeners';
 import { syncAttributes } from './syncAttributes';
 
-const createElement = (tag: string, root: ShadowRoot, state: RenderState) => {
+const createElement = (tag: string, root: ParentNode, state: RenderState) => {
   const element = document.createElement(tag);
   root.replaceChildren(element);
   state.attributes = new Set();
@@ -13,7 +13,7 @@ const createElement = (tag: string, root: ShadowRoot, state: RenderState) => {
   return element;
 };
 
-export const render = (root: ShadowRoot, props: ComponentProps, state: RenderState) => {
+export const render = (root: ParentNode, props: ComponentProps, state: RenderState) => {
   const { tag = 'div', content = '', html, style, children = [], ref } = props;
 
   const isNew = state.element?.localName !== tag.toLowerCase();

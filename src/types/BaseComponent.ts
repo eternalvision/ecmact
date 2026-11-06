@@ -28,6 +28,10 @@ interface BaseProps<K extends string> {
   style?: StyleProps;
   children?: Node[];
   ref?: (element: ElementOf<K>) => void;
+  shadow?: boolean;
+  mounted?: (element: ElementOf<K>) => void;
+  unmounted?: (element: ElementOf<K>) => void;
+  updated?: (element: ElementOf<K>) => void;
 }
 
 type TagAttributes<K extends string> = K extends keyof AttributeMap

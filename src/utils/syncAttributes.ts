@@ -1,6 +1,17 @@
 import type { ComponentProps } from '../types';
 
-const reservedKeys = new Set(['tag', 'content', 'html', 'style', 'children', 'ref']);
+const reservedKeys = new Set([
+  'tag',
+  'content',
+  'html',
+  'style',
+  'children',
+  'ref',
+  'shadow',
+  'mounted',
+  'unmounted',
+  'updated',
+]);
 
 const toAttributeValue = (value: unknown) => {
   if (value === true) return '';
