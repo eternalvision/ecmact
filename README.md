@@ -16,8 +16,9 @@ ECMact is a small component library built on native Web Components. Every compon
 
 ## Table of contents
 
-- [Install](#install)
 - [Quick start](#quick-start)
+- [Install](#install)
+- [First component](#first-component)
 - [How it works](#how-it-works)
 - [Creating components](#creating-components)
 - [Tag factories](#tag-factories)
@@ -52,6 +53,32 @@ ECMact is a small component library built on native Web Components. Every compon
 - [Release](#release)
 - [License](#license)
 
+## Quick start
+
+```bash
+npm create ecmact@latest my-app
+cd my-app
+npm install
+npm run dev
+```
+
+The same works with `pnpm create ecmact`, `yarn create ecmact` and `bun create ecmact`; the printed next steps use the package manager that started it. Run it without arguments to be asked for the name and for Tailwind.
+
+You get a [Vite](https://vite.dev) project in TypeScript with a counter built from a signal, a Vitest test for it (happy-dom), a type-checking build and a `.gitignore`. The `ecmact` dependency is pinned to the version that the scaffolder was released with.
+
+| Option          | Description                                                   |
+| --------------- | ------------------------------------------------------------- |
+| `[directory]`   | Where to create the project. `.` uses the current directory.  |
+| `--tailwind`    | Add Tailwind CSS, wired in as a shared stylesheet.            |
+| `--no-tailwind` | Skip the Tailwind question.                                   |
+| `-y, --yes`     | Use the defaults (`my-ecmact-app`, no Tailwind), ask nothing. |
+| `-f, --force`   | Write into a directory that is not empty.                     |
+| `-h, --help`    | Show the options.                                             |
+
+With `--tailwind` the project gets `tailwindcss` and `@tailwindcss/vite`, a `src/tailwind.css`, and the entry file passes the compiled CSS to `configure({ styles })`, so utility classes work inside the shadow roots of components (see [Tailwind CSS](#tailwind-css)). I checked both variants by scaffolding, installing, building, running the tests and loading the build in Chromium.
+
+The scaffolder asks for nothing beyond the name and Tailwind, installs nothing and does not touch git. Requires Node 20.19 or newer.
+
 ## Install
 
 ```bash
@@ -70,7 +97,7 @@ CommonJS is supported as well:
 const { em, mount } = require('ecmact');
 ```
 
-## Quick start
+## First component
 
 ```ts
 import { em, mount } from 'ecmact';
@@ -1213,30 +1240,43 @@ npm run build
 
 Contributing needs Node 22.12 or newer (Vite 8 and Vitest 5). The published package itself has no Node requirement.
 
+### Repository layout
+
+The repository is an npm workspace. The library is the root package; tools live under `packages/`:
+
+| Path                      | Package         | What it is                                          |
+| ------------------------- | --------------- | --------------------------------------------------- |
+| `.` (`src/`, `tests/`)    | `ecmact`        | The library                                         |
+| `packages/create-ecmact/` | `create-ecmact` | The `npm create ecmact` scaffolder and its template |
+
+Every package follows the same rules: aliases, tests that mirror `src/`, 100% coverage.
+
 ### Imports
 
-Inside `src/` and `tests/`, import through aliases instead of relative paths:
+Inside `src/` and `tests/` (of every package), import through aliases instead of relative paths:
 
-| Alias           | Resolves to    | Example                                      |
-| --------------- | -------------- | -------------------------------------------- |
-| `@em`           | `src/index.ts` | `import { em } from '@em';`                  |
-| `@em/<path>`    | `src/<path>`   | `import { render } from '@em/utils/render';` |
-| `@tests/<path>` | `tests/<path>` | `import { inner } from '@tests/helpers';`    |
+| Alias            | Resolves to                         | Example                                                                       |
+| ---------------- | ----------------------------------- | ----------------------------------------------------------------------------- |
+| `@em`            | `src/index.ts`                      | `import { em } from '@em';`                                                   |
+| `@em/<path>`     | `src/<path>`                        | `import { render } from '@em/utils/render';`                                  |
+| `@tests/<path>`  | `tests/<path>`                      | `import { inner } from '@tests/helpers';`                                     |
+| `@create/<path>` | `packages/create-ecmact/src/<path>` | `import { run } from '@create/index';` (only inside `packages/create-ecmact`) |
 
-- The aliases are defined once, in `compilerOptions.paths` of `tsconfig.json`. Vite and Vitest read them from there (`resolve.tsconfigPaths`), so there is nothing to keep in sync.
+- The aliases are defined once per package, in `compilerOptions.paths` of its `tsconfig.json`. Vite and Vitest read them from there (`resolve.tsconfigPaths`), so there is nothing to keep in sync.
 - ESLint (`no-restricted-imports`) rejects `./` and `../` imports in `src/` and `tests/`, so new files follow the rule automatically.
 - The build does not leak aliases: the JavaScript is bundled, and the declaration plugin rewrites `@em/...` to relative paths in the published `.d.ts` files.
 
-| Script                   | Description                                                 |
-| ------------------------ | ----------------------------------------------------------- |
-| `npm run build`          | Vite library build: ES, CJS and `.d.ts` into `dist/`        |
-| `npm test`               | Structure check, then Vitest with happy-dom and V8 coverage |
-| `npm run test:structure` | Checks that `tests/` mirrors `src/`                         |
-| `npm run typecheck`      | `tsc --noEmit` over `src` and `tests`                       |
-| `npm run lint`           | ESLint (flat config, typescript-eslint, prettier)           |
-| `npm run lint:fix`       | ESLint with autofix                                         |
-| `npm run format`         | Prettier write                                              |
-| `npm run format:check`   | Prettier check                                              |
+| Script                   | Description                                                                      |
+| ------------------------ | -------------------------------------------------------------------------------- |
+| `npm run build`          | Vite library build: ES, CJS and `.d.ts` into `dist/`                             |
+| `npm run build:all`      | The library and every package in `packages/`                                     |
+| `npm test`               | Structure check, then Vitest with V8 coverage, for the library and every package |
+| `npm run test:structure` | Checks that `tests/` mirrors `src/`                                              |
+| `npm run typecheck`      | `tsc --noEmit` for the library and every package                                 |
+| `npm run lint`           | ESLint (flat config, typescript-eslint, prettier)                                |
+| `npm run lint:fix`       | ESLint with autofix                                                              |
+| `npm run format`         | Prettier write                                                                   |
+| `npm run format:check`   | Prettier check                                                                   |
 
 ### Test rules
 
@@ -1245,7 +1285,7 @@ Inside `src/` and `tests/`, import through aliases instead of relative paths:
 - Both are enforced: `npm test` first runs `npm run test:structure`, which fails on a source file without a test and on a test without a source file. Adding a file to `src/` means adding its test in the same change.
 - Shared test helpers live in `tests/helpers.ts`; it is not a test file and is not mirrored.
 
-Source layout:
+Source layout of the library:
 
 ```
 src/
@@ -1256,9 +1296,15 @@ src/
   config.ts             configure() and its defaults
   context.ts            createContext, provide, consume
   signals.ts            signal, computed, effect, batch, untracked
+  resource.ts           async data as signals
+  router/
+    match.ts            path patterns
+    router.ts           createRouter: location, outlet, link, navigate
   types/                ComponentProps, attribute tables, render state
   utils/
     render.ts           creates or reuses the inner element and fills it
+    reconcileChildren.ts text, keyed components and minimal moves
+    registry.ts         which nodes are components
     resolveProps.ts     unwraps signals in props
     propsEqual.ts       compares resolved props
     syncAttributes.ts   attribute diffing
@@ -1268,21 +1314,34 @@ src/
     mount.ts            mount helper
     warn.ts             development warnings
 tests/                  mirrors src/, plus helpers.ts
-scripts/check-tests.mjs the structure check
+scripts/check-tests.mjs checks that tests mirror src in every package
+packages/create-ecmact/
+  src/                  scaffolder (args, prompts, scaffold, package manager)
+  template/base/        the generated project
+  template/tailwind/    files and dependencies added by --tailwind
+  tests/                mirrors src/
 ```
 
 ## Release
 
-Releases are published from CI. Bump the version, push, and push a matching tag:
+Releases are published from CI with npm trusted publishing and provenance. Each package has its own tag and its own workflow, and each workflow first checks that the tag matches the version in `package.json`.
+
+| Package         | Tag pattern            | Workflow             |
+| --------------- | ---------------------- | -------------------- |
+| `ecmact`        | `v2.3.0`               | `release.yml`        |
+| `create-ecmact` | `create-ecmact-v0.1.0` | `release-create.yml` |
 
 ```bash
-npm version <patch|minor|major>
-git push --follow-tags
+npm version <patch|minor|major> --no-git-tag-version
+git commit -am "bump version to <version>"
+git push
+git tag v<version>
+git push origin v<version>
 ```
 
-A tag matching `v*` triggers the release workflow, which runs format check, lint, typecheck and tests, then publishes to npm with provenance via trusted publishing. Configure a trusted publisher for `ecmact` on npmjs.com (repository `eternalvision/ecmact`, workflow `release.yml`) before the first release.
+For `create-ecmact`, bump `packages/create-ecmact/package.json` and push the tag `create-ecmact-v<version>`. The scaffolder pins the `ecmact` dependency of generated projects to the version of the root package at the time it is built, so release `ecmact` first.
 
-The CI workflow runs the full check (format, lint, typecheck, tests with coverage, build, production audit) on every push to `main` and on pull requests.
+Each package needs a trusted publisher on npmjs.com (repository `eternalvision/ecmact`, and the workflow name from the table) before its first release. The CI workflow runs the full check (format, lint, typecheck, tests with coverage, build, production audit) on every push to `main` and on pull requests.
 
 ## License
 
