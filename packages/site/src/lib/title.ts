@@ -1,4 +1,6 @@
 import { findDoc } from '@site/content/docs/index';
+import { messages } from '@site/content/messages';
+import type { Locale } from '@site/lib/i18n';
 
 const site = 'ECMact';
 
@@ -10,30 +12,25 @@ export interface PageMeta {
   description: string;
 }
 
-const tagline = 'Reactive interfaces on native Web Components';
-const summary =
-  'ECMact is a small library for reactive interfaces on native Web Components: signals, a router, a store, an HTTP client, styled components and embeddable widgets, with no dependencies.';
-
 /**
- * Works out the title and the description of the page at a path.
+ * Works out the title and the description of the page at a path, in a language.
  *
  * @param path - The path inside the site, without the base.
+ * @param locale - The language.
  * @returns The title and the description.
  */
-export const metaFor = (path: string): PageMeta => {
+export const metaFor = (path: string, locale: Locale = 'en'): PageMeta => {
+  const m = messages[locale].meta;
   if (path === '/examples') {
-    return {
-      title: `Examples - ${site}`,
-      description:
-        'Live ECMact demos with their source: signals, stores, styled components, an HTTP client and forms.',
-    };
+    return { title: `${m.examplesTitle} - ${site}`, description: m.examplesDescription };
   }
   const doc = path.startsWith('/docs/')
-    ? findDoc(path.slice('/docs/'.length).replace(/\/$/, ''))
+    ? findDoc(path.slice('/docs/'.length).replace(/\/$/, ''), locale)
     : undefined;
-  if (doc) return { title: `${doc.title} - ${site} docs`, description: doc.summary };
-  if (path === '/' || path === '') return { title: `${site} - ${tagline}`, description: summary };
-  return { title: `Not found - ${site}`, description: summary };
+  if (doc) return { title: `${doc.title} - ${site} ${m.docsSuffix}`, description: doc.summary };
+  if (path === '/' || path === '')
+    return { title: `${site} - ${m.tagline}`, description: m.summary };
+  return { title: `${m.notFound} - ${site}`, description: m.summary };
 };
 
 /**

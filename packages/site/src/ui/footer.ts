@@ -1,4 +1,5 @@
 import type { Router } from 'ecmact';
+import { text } from '@site/content/messages';
 import { link, view } from '@site/lib/component';
 import { el } from '@site/lib/dom';
 import { external, outside } from '@site/ui/header';
@@ -9,8 +10,9 @@ import { external, outside } from '@site/ui/header';
  * @param router - The router.
  * @returns The component.
  */
-export const Footer = (router: Router) =>
-  view('Footer', {
+export const Footer = (router: Router) => {
+  const m = text().footer;
+  return view('Footer', {
     tag: 'footer',
     class: 'site-footer',
     children: [
@@ -21,42 +23,43 @@ export const Footer = (router: Router) =>
             'div',
             {},
             el('strong', {}, 'ECMact'),
-            el('p', {}, 'Reactive interfaces on native Web Components. MIT licensed.'),
+            el('p', {}, m.tagline),
             el(
               'p',
               { class: 'muted' },
-              'This site is written with ECMact itself. ',
-              outside(`${external.github}/tree/main/packages/site`, 'Read its source.'),
+              m.selfMade,
+              outside(`${external.github}/tree/main/packages/site`, m.source),
             ),
           ),
           el(
             'div',
             {},
-            el('strong', {}, 'Learn'),
-            link(router, '/docs/getting-started', 'Getting started'),
-            link(router, '/docs/components', 'Components'),
-            link(router, '/docs/signals', 'Signals'),
-            link(router, '/examples', 'Examples'),
+            el('strong', {}, m.learn),
+            link(router, '/docs/getting-started', m.gettingStarted),
+            link(router, '/docs/components', m.components),
+            link(router, '/docs/signals', m.signals),
+            link(router, '/examples', m.examples),
           ),
           el(
             'div',
             {},
-            el('strong', {}, 'Build'),
-            link(router, '/docs/routing', 'Routing'),
-            link(router, '/docs/state', 'State management'),
-            link(router, '/docs/http', 'HTTP client'),
-            link(router, '/docs/widgets', 'Widgets'),
+            el('strong', {}, m.build),
+            link(router, '/docs/routing', m.routing),
+            link(router, '/docs/state', m.state),
+            link(router, '/docs/http', m.http),
+            link(router, '/docs/widgets', m.widgets),
           ),
           el(
             'div',
             {},
-            el('strong', {}, 'Project'),
+            el('strong', {}, m.project),
             outside(external.github, 'GitHub'),
             outside(external.npm, 'npm'),
-            outside(`${external.github}/issues`, 'Issues'),
-            outside(`${external.github}/security/policy`, 'Security'),
+            outside(`${external.github}/issues`, m.issues),
+            outside(`${external.github}/security/policy`, m.security),
           ),
         ],
       }),
     ],
   });
+};

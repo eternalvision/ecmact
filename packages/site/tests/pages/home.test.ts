@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { features, useCases } from '@site/content/features';
 import { home } from '@site/pages/home';
-import { disposeRouters, makeRouter } from '@tests/helpers';
+import { disposeRouters, makeRouter, resetLocale, useLocale } from '@tests/helpers';
 
 afterEach(() => {
   disposeRouters();
@@ -45,5 +45,22 @@ describe('home', () => {
     expect(page.querySelectorAll('.use')).toHaveLength(useCases.length);
     expect(page.textContent).toContain('A whole app, one import');
     expect(page.querySelector('.closing .install')).not.toBeNull();
+  });
+});
+
+describe('home in Russian', () => {
+  it('has the hero, the cards and the sections in Russian', async () => {
+    await useLocale('ru');
+    const page = home(makeRouter('/'));
+    document.body.append(page);
+    expect(page.querySelector('.hero h1')?.textContent).toBe(
+      'Реактивные интерфейсы на нативных Web Components',
+    );
+    expect(page.querySelector('.card h3')?.textContent).toBe('Нативные Web Components');
+    expect(page.querySelectorAll('.fact')).toHaveLength(4);
+    expect(page.querySelector('.split h2')?.textContent).toBe('Создан для встраивания');
+    expect(page.querySelector('.use h3')?.textContent).toBe('Виджеты для чужих сайтов');
+    expect(page.querySelector('.demo h3')?.textContent).toBe('Сигналы');
+    await resetLocale();
   });
 });

@@ -1,3 +1,4 @@
+import { text } from '@site/content/messages';
 import { el } from '@site/lib/dom';
 import type { Heading } from '@site/ui/blocks';
 
@@ -11,8 +12,8 @@ import type { Heading } from '@site/ui/blocks';
 export const Toc = (headings: Heading[]) =>
   el(
     'nav',
-    { class: 'toc', attrs: { 'aria-label': 'On this page' } },
-    el('h2', {}, 'On this page'),
+    { class: 'toc', attrs: { 'aria-label': text().docs.onThisPage } },
+    el('h2', {}, text().docs.onThisPage),
     el(
       'ul',
       {},

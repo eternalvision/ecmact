@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { callout, code, demo, h2, h3, ol, p, table, ul } from '@site/content/builders';
 import type { Block } from '@site/content/types';
 import { renderBlocks } from '@site/ui/blocks';
+import { resetLocale, useLocale } from '@tests/helpers';
 
 afterEach(() => {
   document.body.replaceChildren();
@@ -69,5 +70,18 @@ describe('renderBlocks', () => {
     expect(host.querySelectorAll('tbody tr')).toHaveLength(2);
     expect(host.querySelector('td code')?.textContent).toBe('x');
     expect(host.querySelector('td a')?.getAttribute('data-internal')).toBe('/docs');
+  });
+});
+
+describe('renderBlocks in Russian', () => {
+  it('labels callouts in Russian', async () => {
+    await useLocale('ru');
+    const { host } = render(callout('note', 'n'), callout('tip', 't'), callout('warning', 'w'));
+    expect([...host.querySelectorAll('.callout > strong')].map((e) => e.textContent)).toEqual([
+      'Заметка',
+      'Совет',
+      'Внимание',
+    ]);
+    await resetLocale();
   });
 });

@@ -1,3 +1,4 @@
+import { text } from '@site/content/messages';
 import { demos } from '@site/demos/index';
 import { el } from '@site/lib/dom';
 import { DemoFrame } from '@site/ui/demoFrame';
@@ -7,15 +8,13 @@ import { DemoFrame } from '@site/ui/demoFrame';
  *
  * @returns The page.
  */
-export const examples = () =>
-  el(
+export const examples = () => {
+  const m = text().examples;
+  return el(
     'main',
     { class: 'wrap page-simple' },
-    el('h1', {}, 'Examples'),
-    el(
-      'p',
-      { class: 'lead' },
-      'Every example below is a live ECMact component. Switch to the Code tab to read the exact source that runs.',
-    ),
+    el('h1', {}, m.title),
+    el('p', { class: 'lead' }, m.lead),
     el('div', { class: 'demo-grid' }, ...demos.map((demo) => DemoFrame(demo))),
   );
+};

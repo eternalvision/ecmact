@@ -1,4 +1,5 @@
 import type { Router } from 'ecmact';
+import { text } from '@site/content/messages';
 import { link } from '@site/lib/component';
 import { el } from '@site/lib/dom';
 
@@ -8,17 +9,19 @@ import { el } from '@site/lib/dom';
  * @param router - The router.
  * @returns The page.
  */
-export const notFound = (router: Router) =>
-  el(
+export const notFound = (router: Router) => {
+  const m = text().notFound;
+  return el(
     'main',
     { class: 'wrap page-simple' },
-    el('h1', {}, 'Page not found'),
-    el('p', { class: 'lead' }, 'There is nothing at this address.'),
+    el('h1', {}, m.title),
+    el('p', { class: 'lead' }, m.lead),
     el(
       'p',
       {},
-      link(router, '/', 'Back to the home page', 'button'),
+      link(router, '/', m.home, 'button'),
       ' ',
-      link(router, '/docs', 'Read the docs', 'button ghost'),
+      link(router, '/docs', m.docs, 'button ghost'),
     ),
   );
+};

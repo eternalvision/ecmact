@@ -1,3 +1,5 @@
+import type { Locale } from '@site/lib/i18n';
+
 /** A card on the home page. */
 export interface Feature {
   /** The path data of its 24 by 24 icon. */
@@ -108,6 +110,58 @@ export const features: Feature[] = [
   },
 ];
 
+/** The title and the text of a card in Russian, in the order of `features`. */
+export const featuresRu: { title: string; text: string }[] = [
+  {
+    title: 'Нативные Web Components',
+    text: 'Каждый компонент - настоящий кастомный элемент в открытом Shadow DOM. Нет виртуального DOM, нет языка шаблонов, нет компилятора.',
+  },
+  {
+    title: 'Сигналы',
+    text: 'Сигналы с push-моделью, вычисляемые значения и эффекты. Привяжите проп к сигналу, и обновится только этот узел.',
+  },
+  {
+    title: 'Styled-компоненты',
+    text: 'CSS в шаблонных литералах с пропсами, сигналами, темами и анимациями, в области видимости компонента.',
+  },
+  {
+    title: 'Роутер',
+    text: 'Роутинг на History API с outlet, вложенными маршрутами, асинхронными гардами и ленивыми представлениями.',
+  },
+  {
+    title: 'Управление состоянием',
+    text: 'Стор в стиле zustand с селекторами-сигналами, сохранением состояния и Redux DevTools.',
+  },
+  {
+    title: 'HTTP-клиент',
+    text: 'Клиент в стиле axios на fetch: интерцепторы, таймауты, отмена, повторы и типизированные ошибки.',
+  },
+  {
+    title: 'Изоляция по замыслу',
+    text: 'Shadow DOM не пускает ваши стили на страницу, а страницу - в ваши стили. Темы проходят сквозь него как CSS-переменные.',
+  },
+  {
+    title: 'Типы по тегу',
+    text: 'Атрибуты, события, стили и refs типизируются по выбранному тегу. Опечатка в `onclik` - ошибка компиляции.',
+  },
+  {
+    title: 'Формы, которые работают',
+    text: 'Живые значения для элементов и поля, которые входят в окружающую форму через Shadow DOM.',
+  },
+  {
+    title: 'Жизненный цикл и ошибки',
+    text: 'Хуки монтирования, обновления и очистки и одно место для обработки каждой ошибки приложения.',
+  },
+  {
+    title: 'Встраиваемые виджеты',
+    text: 'defineWidget превращает интерфейс в кастомный элемент, который любая страница подключает одним тегом script.',
+  },
+  {
+    title: 'Ноль зависимостей',
+    text: 'Ничего в runtime. ES и CommonJS, tree-shaking, 100% покрытие тестами каждой строки.',
+  },
+];
+
 /** A use case on the home page. */
 export interface UseCase {
   /** The title. */
@@ -143,3 +197,50 @@ export const useCases: UseCase[] = [
     text: 'Add new screens to an older application one component at a time, without rewriting it.',
   },
 ];
+
+/** The title and the text of a use case in Russian, in the order of `useCases`. */
+export const useCasesRu: UseCase[] = [
+  {
+    title: 'Виджеты для чужих сайтов',
+    text: 'Калькуляторы, формы заявок, подборщики и конфигураторы, которые живут на странице, которую вы не контролируете.',
+  },
+  {
+    title: 'Блоки для CMS',
+    text: 'Дополнительная функциональность для Webflow, WordPress или любого существующего сайта: один тег script и никакой сборки на их стороне.',
+  },
+  {
+    title: 'Браузерные утилиты',
+    text: 'Конвертеры файлов, редакторы JSON, генераторы документов и просмотрщики данных, которые целиком работают в браузере.',
+  },
+  {
+    title: 'Внутренние инструменты',
+    text: 'Небольшие админки, мониторы сервисов и интерфейсы к API, которым не нужен целый фреймворк.',
+  },
+  {
+    title: 'Расширения браузера',
+    text: 'Popup, страницы настроек и боковые панели, где важны размер и изоляция от страницы.',
+  },
+  {
+    title: 'Постепенная модернизация',
+    text: 'Добавляйте новые экраны в старое приложение по одному компоненту, не переписывая его.',
+  },
+];
+
+/**
+ * Lists the cards of the home page in a language.
+ *
+ * @param locale - The language.
+ * @returns The features with their titles and texts in that language.
+ */
+export const featuresFor = (locale: Locale): Feature[] =>
+  locale === 'ru'
+    ? features.map((feature, index) => ({ ...feature, ...featuresRu[index] }))
+    : features;
+
+/**
+ * Lists the use cases of the home page in a language.
+ *
+ * @param locale - The language.
+ * @returns The use cases in that language.
+ */
+export const useCasesFor = (locale: Locale): UseCase[] => (locale === 'ru' ? useCasesRu : useCases);

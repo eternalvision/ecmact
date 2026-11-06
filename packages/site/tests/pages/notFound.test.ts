@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { disposeRouters, makeRouter } from '@tests/helpers';
+import { disposeRouters, makeRouter, resetLocale, useLocale } from '@tests/helpers';
 import { notFound } from '@site/pages/notFound';
 
 afterEach(() => {
@@ -16,5 +16,18 @@ describe('notFound', () => {
       'Back to the home page',
       'Read the docs',
     ]);
+  });
+});
+
+describe('notFound in Russian', () => {
+  it('says so in Russian', async () => {
+    await useLocale('ru');
+    const page = notFound(makeRouter('/nope'));
+    expect(page.querySelector('h1')?.textContent).toBe('Страница не найдена');
+    expect([...page.querySelectorAll('a')].map((a) => a.textContent)).toEqual([
+      'На главную',
+      'Читать документацию',
+    ]);
+    await resetLocale();
   });
 });

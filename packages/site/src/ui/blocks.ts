@@ -1,4 +1,5 @@
-import type { Block, CalloutBlock, TableBlock } from '@site/content/types';
+import { text } from '@site/content/messages';
+import type { Block, TableBlock } from '@site/content/types';
 import { findDemo } from '@site/demos/index';
 import { el, slugify, type Content } from '@site/lib/dom';
 import { parseInline } from '@site/lib/inline';
@@ -22,12 +23,6 @@ export interface Rendered {
   /** The headings, for the table of contents. */
   headings: Heading[];
 }
-
-const labels: Record<CalloutBlock['tone'], string> = {
-  note: 'Note',
-  tip: 'Tip',
-  warning: 'Warning',
-};
 
 /**
  * Renders a table block.
@@ -115,7 +110,7 @@ export const renderBlocks = (blocks: Block[]): Rendered => {
         return el(
           'aside',
           { class: `callout callout-${block.tone}` },
-          el('strong', {}, labels[block.tone]),
+          el('strong', {}, text().docs.callouts[block.tone]),
           el('p', {}, ...parseInline(block.text)),
         );
       case 'table':

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { disposeRouters, makeRouter } from '@tests/helpers';
+import { disposeRouters, makeRouter, resetLocale, useLocale } from '@tests/helpers';
 import { Footer } from '@site/ui/footer';
 
 afterEach(() => {
@@ -17,5 +17,19 @@ describe('Footer', () => {
     expect(hrefs).toContain('https://github.com/eternalvision/ecmact/tree/main/packages/site');
     expect(hrefs).toContain('https://www.npmjs.com/package/ecmact');
     expect(hrefs.some((href) => href?.endsWith('/docs/routing'))).toBe(true);
+  });
+});
+
+describe('Footer in Russian', () => {
+  it('has the headings in Russian', async () => {
+    await useLocale('ru');
+    const footer = Footer(makeRouter('/'));
+    expect([...footer.querySelectorAll('strong')].map((s) => s.textContent)).toEqual([
+      'ECMact',
+      'Изучать',
+      'Строить',
+      'Проект',
+    ]);
+    await resetLocale();
   });
 });

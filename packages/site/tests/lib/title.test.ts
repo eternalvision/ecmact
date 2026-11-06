@@ -46,3 +46,15 @@ describe('applyMeta', () => {
     );
   });
 });
+
+describe('metaFor in Russian', () => {
+  it('describes the pages in Russian', () => {
+    expect(metaFor('/', 'ru').title).toBe(
+      'ECMact - Реактивные интерфейсы на нативных Web Components',
+    );
+    expect(metaFor('/examples', 'ru').title).toBe('Примеры - ECMact');
+    expect(metaFor('/docs/routing', 'ru').title).toBe('Роутинг - ECMact документация');
+    expect(metaFor('/docs/routing', 'ru').description).toContain('History API');
+    expect(metaFor('/nope', 'ru').title).toBe('Не найдено - ECMact');
+  });
+});

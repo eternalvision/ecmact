@@ -1,8 +1,10 @@
 import type { Router } from 'ecmact';
-import { features, useCases } from '@site/content/features';
+import { featuresFor, useCasesFor } from '@site/content/features';
+import { text } from '@site/content/messages';
 import { findDemo } from '@site/demos/index';
 import { link } from '@site/lib/component';
 import { el, icon } from '@site/lib/dom';
+import { currentLocale } from '@site/lib/i18n';
 import { followInternalLinks } from '@site/lib/links';
 import { withBase } from '@site/lib/paths';
 import { CodeBlock } from '@site/ui/codeBlock';
@@ -11,6 +13,13 @@ import { DemoFrame } from '@site/ui/demoFrame';
 import { external, outside } from '@site/ui/header';
 
 const install = 'npm create ecmact@latest my-app';
+
+/**
+ * Reads the texts of the home page in the language in use.
+ *
+ * @returns The texts.
+ */
+const m = () => text().home;
 
 const app = `
 import { computed, createHttp, createRouter, createStore, mount, resource, tags } from 'ecmact';
@@ -89,17 +98,8 @@ const hero = (router: Router) =>
       class: 'hero-logo',
       attrs: { src: withBase('/ecmact-logo.png'), alt: 'ECMact', width: '856', height: '283' },
     }),
-    el(
-      'h1',
-      {},
-      'Reactive interfaces on ',
-      el('span', { class: 'accent' }, 'native Web Components'),
-    ),
-    el(
-      'p',
-      { class: 'lead' },
-      'ECMact is a small library with signals, a router, a store, an HTTP client, styled components and embeddable widgets. No virtual DOM, no dependencies, and nothing that has to be compiled.',
-    ),
+    el('h1', {}, m().heroTitle, el('span', { class: 'accent' }, m().heroAccent)),
+    el('p', { class: 'lead' }, m().lead),
     el(
       'div',
       { class: 'install' },
@@ -109,8 +109,8 @@ const hero = (router: Router) =>
     el(
       'div',
       { class: 'actions' },
-      action(router, '/docs/getting-started', 'Get started', 'button'),
-      action(router, '/examples', 'See live examples', 'button ghost'),
+      action(router, '/docs/getting-started', m().start, 'button'),
+      action(router, '/examples', m().live, 'button ghost'),
       outside(external.github, 'GitHub', 'button ghost'),
       outside(external.npm, 'npm', 'button ghost'),
     ),
@@ -157,18 +157,8 @@ const facts = () =>
   el(
     'section',
     { class: 'facts wrap', attrs: { 'aria-label': 'Facts' } },
-    ...[
-      ['0', 'runtime dependencies'],
-      ['100%', 'test coverage, every line'],
-      ['Shadow DOM', 'isolation by default'],
-      ['Typed', 'props, events and attributes per tag'],
-    ].map(([value, label]) =>
-      el(
-        'div',
-        { class: 'fact' },
-        el('strong', {}, value as string),
-        el('span', {}, label as string),
-      ),
+    ...m().facts.map(([value, label]) =>
+      el('div', { class: 'fact' }, el('strong', {}, value), el('span', {}, label)),
     ),
   );
 
@@ -182,16 +172,12 @@ const featureGrid = (router: Router) => {
   const section = el(
     'section',
     { class: 'wrap section', attrs: { id: 'features' } },
-    el('h2', {}, 'Everything an interface needs, nothing it does not'),
-    el(
-      'p',
-      { class: 'section-lead' },
-      'One package covers the pieces that usually come from five. Each one is small, typed and tested.',
-    ),
+    el('h2', {}, m().featuresTitle),
+    el('p', { class: 'section-lead' }, m().featuresLead),
     el(
       'div',
       { class: 'cards' },
-      ...features.map((feature) =>
+      ...featuresFor(currentLocale()).map((feature) =>
         el(
           'a',
           {
@@ -224,12 +210,8 @@ const live = () => {
   return el(
     'section',
     { class: 'wrap section' },
-    el('h2', {}, 'See it run'),
-    el(
-      'p',
-      { class: 'section-lead' },
-      'These are real components, not screenshots. Press the buttons, then read the code.',
-    ),
+    el('h2', {}, m().liveTitle),
+    el('p', { class: 'section-lead' }, m().liveLead),
     el('div', { class: 'demo-grid' }, ...shown.map((demo) => DemoFrame(demo))),
   );
 };
@@ -247,26 +229,15 @@ const embedding = (router: Router) =>
     el(
       'div',
       { class: 'split-text' },
-      el('h2', {}, 'Built to be embedded'),
-      el(
-        'p',
-        {},
-        'Most interfaces live in a page you control. ECMact is made for the ones that do not: a calculator on a partner site, a form in a CMS, a panel in a browser extension.',
-      ),
-      el(
-        'ul',
-        { class: 'ticks' },
-        el('li', {}, 'One IIFE script, no framework needed on the host page'),
-        el('li', {}, 'Shadow DOM keeps your styles and the page apart'),
-        el('li', {}, 'Settings come in as attributes, results leave as DOM events'),
-        el('li', {}, 'Themed from outside with CSS custom properties'),
-      ),
+      el('h2', {}, m().embedTitle),
+      el('p', {}, m().embedText),
+      el('ul', { class: 'ticks' }, ...m().embedTicks.map((tick) => el('li', {}, tick))),
       el(
         'p',
         { class: 'actions' },
-        outside(external.widget, 'Open the widget demo', 'button'),
-        outside(`${external.widget}embed.html`, 'See it on a foreign page', 'button ghost'),
-        action(router, '/docs/widgets', 'Read the guide', 'button ghost'),
+        outside(external.widget, m().embedDemo, 'button'),
+        outside(`${external.widget}embed.html`, m().embedForeign, 'button ghost'),
+        action(router, '/docs/widgets', m().embedGuide, 'button ghost'),
       ),
     ),
     el(
@@ -286,11 +257,11 @@ const uses = () =>
   el(
     'section',
     { class: 'wrap section' },
-    el('h2', {}, 'What people build with it'),
+    el('h2', {}, m().usesTitle),
     el(
       'div',
       { class: 'uses' },
-      ...useCases.map((use) =>
+      ...useCasesFor(currentLocale()).map((use) =>
         el('div', { class: 'use' }, el('h3', {}, use.title), el('p', {}, use.text)),
       ),
     ),
@@ -305,12 +276,8 @@ const whole = () =>
   el(
     'section',
     { class: 'wrap section' },
-    el('h2', {}, 'A whole app, one import'),
-    el(
-      'p',
-      { class: 'section-lead' },
-      'A router, a store and an HTTP client, all from ecmact, all working with the same signals.',
-    ),
+    el('h2', {}, m().wholeTitle),
+    el('p', { class: 'section-lead' }, m().wholeLead),
     CodeBlock({ code: app.trim(), language: 'ts', title: 'main.ts' }),
   );
 
@@ -324,7 +291,7 @@ const closing = (router: Router) =>
   el(
     'section',
     { class: 'wrap section closing' },
-    el('h2', {}, 'Start in a minute'),
+    el('h2', {}, m().closingTitle),
     el(
       'div',
       { class: 'install' },
@@ -334,8 +301,8 @@ const closing = (router: Router) =>
     el(
       'p',
       { class: 'actions' },
-      action(router, '/docs/getting-started', 'Read the guide', 'button'),
-      outside(external.starter, 'Try the starter', 'button ghost'),
+      action(router, '/docs/getting-started', m().guide, 'button'),
+      outside(external.starter, m().tryStarter, 'button ghost'),
     ),
   );
 

@@ -1,6 +1,8 @@
 import { computed, signal, type Router } from 'ecmact';
 import { link, tag, view } from '@site/lib/component';
 import { el } from '@site/lib/dom';
+import { text } from '@site/content/messages';
+import { LanguageToggle } from '@site/ui/languageToggle';
 import { Logo } from '@site/ui/logo';
 import { ThemeToggle } from '@site/ui/themeToggle';
 
@@ -31,6 +33,7 @@ export const outside = (href: string, label: string, className = '') =>
  * @returns The component.
  */
 export const Header = (router: Router) => {
+  const m = text().nav;
   const open = signal(false);
   /**
    * Closes the menu.
@@ -50,7 +53,7 @@ export const Header = (router: Router) => {
           tag('button', {
             type: 'button',
             class: 'menu',
-            content: computed(() => (open.value ? 'Close' : 'Menu')),
+            content: computed(() => (open.value ? m.close : m.menu)),
             'aria-expanded': computed(() => String(open.value)),
             'aria-controls': 'site-nav',
             /**
@@ -67,12 +70,13 @@ export const Header = (router: Router) => {
             'data-open': computed(() => String(open.value)),
             onclick: close,
             children: [
-              link(router, '/docs', 'Docs'),
-              link(router, '/examples', 'Examples'),
-              outside(external.widget, 'Widget demo'),
-              outside(external.starter, 'Starter'),
+              link(router, '/docs', m.docs),
+              link(router, '/examples', m.examples),
+              outside(external.widget, m.widget),
+              outside(external.starter, m.starter),
               outside(external.github, 'GitHub'),
               outside(external.npm, 'npm'),
+              LanguageToggle(),
               ThemeToggle(),
             ],
           }),

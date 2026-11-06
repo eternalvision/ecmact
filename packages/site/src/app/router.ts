@@ -1,5 +1,6 @@
 import { createRouter, type Route, type RouteContext, type Router } from 'ecmact';
 import { docs, findDoc } from '@site/content/docs/index';
+import { currentLocale } from '@site/lib/i18n';
 import { basePath } from '@site/lib/paths';
 import { docsPage } from '@site/pages/docs';
 import { examples } from '@site/pages/examples';
@@ -49,7 +50,7 @@ export const siteRoutes = (router: () => Router): Route[] => {
    * @returns The page.
    */
   const docView = ({ params }: RouteContext) => {
-    const page = findDoc(params.slug as string);
+    const page = findDoc(params.slug as string, currentLocale());
     return page ? docsPage(router(), page) : notFound(router());
   };
 

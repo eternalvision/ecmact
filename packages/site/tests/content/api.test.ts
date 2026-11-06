@@ -1,6 +1,6 @@
 import * as library from 'ecmact';
 import { describe, expect, it } from 'vitest';
-import { api, apiNames } from '@site/content/api';
+import { api, apiNames, apiRu, areasRu } from '@site/content/api';
 import { findDoc } from '@site/content/docs/index';
 
 describe('api', () => {
@@ -19,5 +19,13 @@ describe('api', () => {
         expect(findDoc(entry.page), entry.name).toBeDefined();
         expect(entry.summary.endsWith('.'), entry.name).toBe(true);
       });
+  });
+});
+
+describe('api in Russian', () => {
+  it('describes every export and every area', () => {
+    expect(Object.keys(apiRu).sort()).toEqual([...apiNames()].sort());
+    expect(Object.keys(areasRu)).toEqual(Object.keys(api));
+    Object.values(apiRu).forEach((summary) => expect(summary.endsWith('.')).toBe(true));
   });
 });

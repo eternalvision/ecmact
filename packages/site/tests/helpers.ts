@@ -17,3 +17,13 @@ export const makeRouter = (path = '/') => {
 };
 
 export const disposeRouters = () => routers.splice(0).forEach((router) => router.dispose());
+
+export const useLocale = async (locale: 'en' | 'ru') => {
+  const { localeStore } = await import('@site/lib/i18n');
+  localeStore.setState({ locale });
+};
+
+export const resetLocale = async () => {
+  await useLocale('en');
+  localStorage.removeItem('ecmact-site-locale');
+};

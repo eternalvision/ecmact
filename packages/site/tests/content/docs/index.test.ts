@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { docs, findDoc, groups, neighbours } from '@site/content/docs/index';
+import { docs, docsFor, findDoc, groups, neighbours } from '@site/content/docs/index';
 
 describe('docs', () => {
   it('has unique slugs', () => {
@@ -37,5 +37,19 @@ describe('neighbours', () => {
   it('has nothing before the first page and nothing after the last', () => {
     expect(neighbours(docs[0]!.slug).previous).toBeUndefined();
     expect(neighbours(docs.at(-1)!.slug).next).toBeUndefined();
+  });
+});
+
+describe('docsFor', () => {
+  it('lists the English pages by default and the Russian ones on request', () => {
+    expect(docsFor()).toBe(docsFor('en'));
+    expect(docsFor('ru')).toHaveLength(docsFor('en').length);
+    expect(docsFor('ru')[0]?.title).toBe('Быстрый старт');
+    expect(docsFor('ru').map((page) => page.slug)).toEqual(docsFor('en').map((page) => page.slug));
+  });
+
+  it('finds and links the pages of a language', () => {
+    expect(findDoc('routing', 'ru')?.title).toBe('Роутинг');
+    expect(neighbours('routing', 'ru').next?.title).toBe('Управление состоянием');
   });
 });

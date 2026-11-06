@@ -1,4 +1,5 @@
 import type { Router } from 'ecmact';
+import { text } from '@site/content/messages';
 import { el } from '@site/lib/dom';
 import { link } from '@site/lib/component';
 import { withBase } from '@site/lib/paths';
@@ -12,7 +13,7 @@ import { withBase } from '@site/lib/paths';
 export const Logo = (router: Router) => {
   const anchor = link(router, '/', '', 'logo');
   anchor.setState({
-    'aria-label': 'ECMact, home',
+    'aria-label': text().chrome.home,
     children: [
       el('img', {
         attrs: { src: withBase('/ecmact-logo.png'), alt: '', width: '856', height: '283' },

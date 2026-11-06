@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { docs, findDoc } from '@site/content/docs/index';
 import { docsPage } from '@site/pages/docs';
-import { disposeRouters, makeRouter } from '@tests/helpers';
+import { disposeRouters, makeRouter, resetLocale, useLocale } from '@tests/helpers';
 
 afterEach(() => {
   disposeRouters();
@@ -58,5 +58,23 @@ describe('docsPage', () => {
     });
     document.body.append(page);
     expect(page.querySelector('.toc')).toBeNull();
+  });
+});
+
+describe('docsPage in Russian', () => {
+  it('shows the page, the group and the links in Russian', async () => {
+    await useLocale('ru');
+    const router = makeRouter('/docs/routing');
+    const page = docsPage(router, findDoc('routing', 'ru')!);
+    document.body.append(page);
+    expect(page.querySelector('article h1')?.textContent).toBe('Роутинг');
+    expect(page.querySelector('.eyebrow')?.textContent).toBe('Приложение');
+    expect([...page.querySelectorAll('.pager a')].map((a) => a.textContent)).toEqual([
+      '← Формы',
+      'Управление состоянием →',
+    ]);
+    expect(page.querySelector('.edit a')?.textContent).toBe('Править эту страницу на GitHub');
+    expect(page.querySelector('.toc h2')?.textContent).toBe('На этой странице');
+    await resetLocale();
   });
 });

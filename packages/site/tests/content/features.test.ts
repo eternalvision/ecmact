@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { findDoc } from '@site/content/docs/index';
-import { features, useCases } from '@site/content/features';
+import {
+  features,
+  featuresFor,
+  featuresRu,
+  useCases,
+  useCasesFor,
+  useCasesRu,
+} from '@site/content/features';
 
 describe('features', () => {
   it('lead to pages that exist, with an icon and a text', () => {
@@ -27,5 +34,31 @@ describe('useCases', () => {
       expect(useCase.text).not.toBe('');
     });
     expect(useCases).toHaveLength(6);
+  });
+});
+
+describe('in Russian', () => {
+  it('has a title and a text for every card and use case', () => {
+    expect(featuresRu).toHaveLength(features.length);
+    expect(useCasesRu).toHaveLength(useCases.length);
+    [...featuresRu, ...useCasesRu].forEach((item) => {
+      expect(item.title).not.toBe('');
+      expect(item.text.length).toBeGreaterThan(20);
+    });
+  });
+
+  it('keeps the icons and the pages when the text is translated', () => {
+    const russian = featuresFor('ru');
+    expect(russian[0]?.title).toBe('Нативные Web Components');
+    russian.forEach((feature, index) => {
+      expect(feature.icon).toBe(features[index]!.icon);
+      expect(feature.page).toBe(features[index]!.page);
+    });
+    expect(featuresFor('en')).toBe(features);
+  });
+
+  it('picks the use cases of a language', () => {
+    expect(useCasesFor('ru')).toBe(useCasesRu);
+    expect(useCasesFor('en')).toBe(useCases);
   });
 });

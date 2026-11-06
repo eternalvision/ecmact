@@ -15,7 +15,7 @@
 
 Reactive interfaces in plain TypeScript that you can embed into any site.
 
-ECMact is a small component library built on native Web Components. The [website](https://eternalvision.github.io/ecmact/) has the same documentation with live, editable-by-reading examples. Every component is a custom element, rendered into an open Shadow DOM by default (or into the light DOM with `shadow: false`), created through a single factory, `em`. There is no virtual DOM, no template language and no build-time step: components are plain function calls that return real DOM elements.
+ECMact is a small component library built on native Web Components. The [website](https://eternalvision.github.io/ecmact/) has the same documentation, in English and Russian, with live examples. Every component is a custom element, rendered into an open Shadow DOM by default (or into the light DOM with `shadow: false`), created through a single factory, `em`. There is no virtual DOM, no template language and no build-time step: components are plain function calls that return real DOM elements.
 
 - Zero runtime dependencies
 - Content, attributes and styles are written through DOM APIs, never through `innerHTML` (unless you ask for it)
@@ -1942,11 +1942,11 @@ Contributing needs Node 22.22.2 or newer (the JSDoc lint plugin, Vite 8 and Vite
 
 The repository is an npm workspace. The library is the root package; tools live under `packages/`:
 
-| Path                      | Package         | What it is                                                                                                      |
-| ------------------------- | --------------- | --------------------------------------------------------------------------------------------------------------- |
-| `.` (`src/`, `tests/`)    | `ecmact`        | The library                                                                                                     |
-| `packages/create-ecmact/` | `create-ecmact` | The `npm create ecmact` scaffolder and its template                                                             |
-| `packages/site/`          | `ecmact-site`   | The public website: documentation and live demos, written with ECMact itself. Private, deployed to GitHub Pages |
+| Path                      | Package         | What it is                                                                                                                             |
+| ------------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `.` (`src/`, `tests/`)    | `ecmact`        | The library                                                                                                                            |
+| `packages/create-ecmact/` | `create-ecmact` | The `npm create ecmact` scaffolder and its template                                                                                    |
+| `packages/site/`          | `ecmact-site`   | The public website: documentation and live demos in English and Russian, written with ECMact itself. Private, deployed to GitHub Pages |
 
 Every package follows the same rules: aliases, tests that mirror `src/`, 100% coverage.
 

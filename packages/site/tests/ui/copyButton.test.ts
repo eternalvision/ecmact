@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { copyButton } from '@site/ui/copyButton';
+import { resetLocale, useLocale } from '@tests/helpers';
 
 afterEach(() => {
   vi.useRealTimers();
@@ -35,5 +36,13 @@ describe('copyButton', () => {
     inner.click();
     await vi.advanceTimersByTimeAsync(0);
     expect(inner.textContent).toBe('Failed');
+  });
+});
+
+describe('copyButton in Russian', () => {
+  it('says so in Russian', async () => {
+    await useLocale('ru');
+    expect(copyButton('x', 'c').querySelector('button')?.textContent).toBe('Копировать');
+    await resetLocale();
   });
 });

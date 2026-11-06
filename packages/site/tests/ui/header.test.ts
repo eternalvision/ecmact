@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { disposeRouters, makeRouter } from '@tests/helpers';
+import { disposeRouters, makeRouter, resetLocale, useLocale } from '@tests/helpers';
 import { external, Header, outside } from '@site/ui/header';
 
 afterEach(() => {
@@ -53,5 +53,21 @@ describe('Header', () => {
     expect(menu.getAttribute('aria-expanded')).toBe('true');
     nav.click();
     expect(nav.dataset.open).toBe('false');
+  });
+});
+
+describe('Header in Russian', () => {
+  it('has the navigation and the language switch in Russian', async () => {
+    await useLocale('ru');
+    const header = Header(makeRouter('/'));
+    document.body.append(header);
+    const labels = [...header.querySelectorAll('.nav a')].map((a) => a.textContent);
+    expect(labels.slice(0, 4)).toEqual(['Документация', 'Примеры', 'Демо виджета', 'Стартер']);
+    expect(header.querySelector('.menu')?.textContent).toBe('Меню');
+    expect([...header.querySelectorAll('.nav .chip')].map((chip) => chip.textContent)).toEqual([
+      'EN',
+      '◐ Авто',
+    ]);
+    await resetLocale();
   });
 });

@@ -1,11 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { start } from '@site/app/app';
+import { currentLocale, localeStore } from '@site/lib/i18n';
+import { resetLocale } from '@tests/helpers';
 
 beforeEach(() => {
   vi.stubEnv('BASE_URL', '/ecmact/');
 });
 
-afterEach(() => {
+afterEach(async () => {
+  await resetLocale();
   vi.unstubAllEnvs();
   document.body.replaceChildren();
   delete document.documentElement.dataset.theme;
@@ -44,5 +47,52 @@ describe('start', () => {
     stop();
     await router.navigate('/examples');
     expect(document.title).toContain('ECMact');
+  });
+});
+
+describe('start and the language', () => {
+  const open = () => {
+    window.history.replaceState(null, '', '/ecmact/');
+    const target = document.createElement('div');
+    document.body.append(target);
+    return { target, ...start(target) };
+  };
+
+  it('builds the interface again in the other language when it changes', () => {
+    const { target, stop } = open();
+    expect(target.querySelector('.nav a')?.textContent).toBe('Docs');
+    expect(document.documentElement.lang).toBe('en');
+    localeStore.getState().cycle();
+    expect(target.querySelector('.nav a')?.textContent).toBe('Документация');
+    expect(document.documentElement.lang).toBe('ru');
+    expect(document.title).toContain('Реактивные интерфейсы');
+    expect(target.querySelectorAll('header.site-header')).toHaveLength(1);
+    expect(target.querySelectorAll('footer.site-footer')).toHaveLength(1);
+    stop();
+  });
+
+  it('keeps the page open while the language changes', async () => {
+    const { target, router, stop } = open();
+    await router.navigate('/docs/routing');
+    localeStore.getState().cycle();
+    expect(target.querySelector('article h1')?.textContent).toBe('Роутинг');
+    stop();
+  });
+
+  it('takes the language from ?lang= in the address', () => {
+    window.history.replaceState(null, '', '/ecmact/?lang=ru');
+    const target = document.createElement('div');
+    document.body.append(target);
+    const { stop } = start(target);
+    expect(currentLocale()).toBe('ru');
+    expect(target.querySelector('.nav a')?.textContent).toBe('Документация');
+    stop();
+  });
+
+  it('stops following the language', () => {
+    const { target, stop } = open();
+    stop();
+    localeStore.getState().cycle();
+    expect(target.querySelector('.nav a')?.textContent).toBe('Docs');
   });
 });
