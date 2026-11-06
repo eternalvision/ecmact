@@ -4,12 +4,13 @@
 
 # ECMact
 
-ECMact is a small component library built on native Web Components. Every component is a custom element with an open Shadow DOM, created through a single factory, `em`. There is no virtual DOM, no template language and no build-time step: components are plain function calls that return real DOM elements.
+ECMact is a small component library built on native Web Components. Every component is a custom element, rendered into an open Shadow DOM by default (or into the light DOM with `shadow: false`), created through a single factory, `em`. There is no virtual DOM, no template language and no build-time step: components are plain function calls that return real DOM elements.
 
 - Zero runtime dependencies
 - Content, attributes and styles are written through DOM APIs, never through `innerHTML` (unless you ask for it)
 - In-place updates: `setState` reuses the DOM node, so focus and input state survive
-- Full TypeScript support, with attributes, events, styles and `ref` typed per HTML tag
+- Full TypeScript support, with attributes, events, styles, `ref` and lifecycle hooks typed per HTML tag
+- Optional light DOM rendering and lifecycle hooks (`mounted`, `unmounted`, `updated`)
 - ES and CommonJS builds, bundled type declarations, `sideEffects: false`
 
 ## Table of contents
@@ -24,6 +25,8 @@ ECMact is a small component library built on native Web Components. Every compon
 - [Styles](#styles)
 - [Events](#events)
 - [Refs](#refs)
+- [Lifecycle](#lifecycle)
+- [Shadow DOM and light DOM](#shadow-dom-and-light-dom)
 - [State and updates](#state-and-updates)
 - [Mounting](#mounting)
 - [Composition](#composition)
@@ -80,7 +83,7 @@ mount('body', card);
 
 1. On first access of the name `Card`, registers a custom element `em-card` (once per lowercase name).
 2. Creates an `<em-card>` element.
-3. Assigns `props`, which renders one inner element (a `div` by default) into the element's Shadow DOM.
+3. Assigns `props`, which renders one inner element (a `div` by default) into the element's Shadow DOM, or directly into the element when `shadow: false`.
 
 ```
 <em-card>                  custom element (the host, returned by em.Card)
@@ -92,7 +95,7 @@ mount('body', card);
 </em-card>
 ```
 
-The returned value is a real `HTMLElement`. You can append it anywhere, query it, add your own listeners to it and read `element.shadowRoot`. The inner element is `element.shadowRoot.firstElementChild`.
+The returned value is a real `HTMLElement`. You can append it anywhere, query it, add your own listeners to it and read `element.shadowRoot`. The inner element is `element.shadowRoot.firstElementChild` (or `element.firstElementChild` with `shadow: false`, see [Shadow DOM and light DOM](#shadow-dom-and-light-dom)).
 
 Rendering is synchronous. Setting props, or calling `setState`, updates the DOM immediately; there is no scheduler and no batching.
 
@@ -123,10 +126,14 @@ Use a distinct name per kind of component. Names are a convention for your own r
 | `children`  | `Node[]`                      | `[]`    | Nodes appended after the content.                               |
 | `style`     | object of CSS properties      | -       | Inline styles, camelCase keys.                                  |
 | `ref`       | `(element) => void`           | -       | Called once, when the inner element is created.                 |
+| `shadow`    | `boolean`                     | `true`  | `false` renders into the light DOM. Read on the first render.   |
+| `mounted`   | `(element) => void`           | -       | Called when the component is connected to the document.         |
+| `unmounted` | `(element) => void`           | -       | Called when the component is disconnected from the document.    |
+| `updated`   | `(element) => void`           | -       | Called after every render except the first.                     |
 | `on<event>` | `(event) => void`             | -       | Event listener on the inner element, lowercase, e.g. `onclick`. |
 | any other   | `string \| number \| boolean` | -       | Set as an HTML attribute on the inner element.                  |
 
-All props apply to the inner element, not to the `<em-*>` host.
+All props except `shadow` and the lifecycle hooks apply to the inner element, not to the `<em-*>` host.
 
 ## Content and children
 
@@ -157,7 +164,7 @@ Children passed to `children` are moved, not cloned: a node can have only one pa
 
 ## Attributes
 
-Any prop that is not a reserved key (`tag`, `content`, `html`, `style`, `children`, `ref`) and does not start with `on` is set on the inner element with `setAttribute`.
+Any prop that is not a reserved key (`tag`, `content`, `html`, `style`, `children`, `ref`, `shadow`, `mounted`, `unmounted`, `updated`) and does not start with `on` is set on the inner element with `setAttribute`.
 
 | Value                            | Result                              |
 | -------------------------------- | ----------------------------------- |
@@ -246,6 +253,68 @@ input.focus();
 ```
 
 Refs are the escape hatch for anything the props do not cover: listener options, live form values, focus, measurements, third-party widgets.
+
+## Lifecycle
+
+Three optional hooks run at defined points. Each receives the inner element, typed by tag.
+
+| Hook        | When                                                                                   |
+| ----------- | -------------------------------------------------------------------------------------- |
+| `mounted`   | The component is connected to a document. Runs after the first render.                 |
+| `unmounted` | The component is disconnected from a document.                                         |
+| `updated`   | After every render caused by `setState` or by assigning `props`, except the first one. |
+
+```ts
+const chart = em.Chart({
+  mounted: (element) => {
+    const observer = new ResizeObserver(() => redraw(element));
+    observer.observe(element);
+    element.dataset.observing = 'true';
+  },
+  unmounted: (element) => cleanup(element),
+  updated: (element) => redraw(element),
+});
+```
+
+- `mounted` and `unmounted` follow the custom element lifecycle: moving a component in the DOM (removing and appending it again) calls `unmounted` and then `mounted` again. Do your setup in `mounted` and release it in `unmounted`.
+- A component that is created but never attached to a document never calls `mounted`.
+- `updated` also runs when `tag` changes; the argument is then the new inner element.
+- Hooks are read from the current props at the moment they fire, so `setState({ unmounted })` replaces the hook.
+- Hooks are not rendered as attributes.
+
+Use `ref` for code that must run once when the inner element is created, regardless of whether the component is in the document.
+
+## Shadow DOM and light DOM
+
+By default a component renders into an open Shadow DOM, which isolates its styles from the page. Pass `shadow: false` to render the inner element directly into the `<em-*>` host instead:
+
+```ts
+const form = em.Form({
+  tag: 'form',
+  shadow: false,
+  children: [em.Email({ tag: 'input', type: 'email', name: 'email', shadow: false })],
+});
+```
+
+```
+<em-form>
+  <form>                   rendered into the host, no shadow root
+    <em-email>
+      <input type="email" name="email">
+    </em-email>
+  </form>
+</em-form>
+```
+
+With `shadow: false`:
+
+- Global stylesheets and selectors such as `em-form > form` apply to the content.
+- Controls take part in the surrounding `<form>`: submission, validation and `label`/`for` references work, as long as the whole chain is in the light DOM (a control inside a shadow root of an ancestor component is still isolated).
+- `element.shadowRoot` is `null`; the inner element is `element.firstElementChild`.
+- The host's own children are fully managed by the component and replaced on every render. Do not put your own children into an `<em-*>` host.
+- Styles from the `style` prop are still applied inline on the inner element.
+
+`shadow` is read once, on the first render. Changing it later through `setState` has no effect, because an element cannot switch between shadow and light DOM after it has been rendered. Decide at creation time.
 
 ## State and updates
 
@@ -351,11 +420,11 @@ The last three calls are compile errors: `src` is not an attribute of `a`, `'bog
 What is typed:
 
 - **Return type.** `em.X({ tag: 'a' })` is `Component<'a'>`; `setState` accepts `Partial<ComponentProps<'a'>>`.
-- **Attributes by tag.** Global attributes (`id`, `class`, `title`, `lang`, `dir`, `hidden`, `inert`, `tabindex`, `role`, `slot`, `part`, `accesskey`, `translate`, `spellcheck`, `draggable`, `contenteditable`, `inputmode`) plus `data-*` and `aria-*` apply to every tag. Tag-specific attributes are defined for: `a`, `img`, `input`, `button`, `form`, `label`, `select`, `option`, `optgroup`, `textarea`, `fieldset`, `output`, `progress`, `meter`, `link`, `script`, `iframe`, `video`, `audio`, `source`, `track`, `canvas`, `td`, `th`, `col`, `colgroup`, `ol`, `li`, `details`, `dialog`, `blockquote`, `q`, `time`, `meta`, `slot`, `data`, `del`, `ins`. Other standard tags accept the global attributes only.
+- **Attributes by tag.** Global attributes (`id`, `class`, `title`, `lang`, `dir`, `hidden`, `inert`, `tabindex`, `role`, `slot`, `part`, `exportparts`, `accesskey`, `translate`, `spellcheck`, `draggable`, `contenteditable`, `inputmode`, `enterkeyhint`, `autocapitalize`, `autofocus`, `nonce`, `popover`, `is`, and the microdata attributes `itemid`, `itemprop`, `itemref`, `itemscope`, `itemtype`) plus `data-*` and `aria-*` apply to every tag. Tag-specific attributes are defined for: `a`, `area`, `map`, `base`, `embed`, `object`, `style`, `template`, `img`, `input`, `button`, `form`, `label`, `select`, `option`, `optgroup`, `textarea`, `fieldset`, `output`, `progress`, `meter`, `link`, `script`, `iframe`, `video`, `audio`, `source`, `track`, `canvas`, `td`, `th`, `col`, `colgroup`, `ol`, `li`, `details`, `dialog`, `blockquote`, `q`, `time`, `meta`, `slot`, `data`, `del`, `ins`. Other standard tags accept the global attributes only. If a valid attribute is missing from a tag, add it to `AttributeMap` in `src/types/attributes.ts`.
 - **Custom tags.** A tag that is not a standard HTML tag (for example `'x-widget'`, or a plain `string`) accepts any attribute.
 - **Events.** `on<event>` props are typed from `HTMLElementEventMap`; the handler receives the right event type. Unknown `on*` names are errors on standard tags and allowed on custom tags.
 - **Styles.** `style` accepts the string-valued properties of `CSSStyleDeclaration`, with `string | number` values.
-- **`ref`.** The element type follows the tag: `HTMLInputElement` for `'input'`, `HTMLElement` for custom tags.
+- **`ref` and lifecycle hooks.** The element type follows the tag: `HTMLInputElement` for `'input'`, `HTMLElement` for custom tags. `shadow` is a `boolean`.
 
 Attribute value types follow HTML semantics: booleans for boolean attributes, numbers for numeric ones, string unions for enumerated ones.
 
@@ -392,10 +461,10 @@ Any evergreen browser with Custom Elements v1, Shadow DOM and ES2022 class field
 ## Limitations
 
 - **Attributes, not properties.** Props map to attributes. For form controls, `value` and `checked` set the default value/state; after the user interacts with the control, changing the attribute no longer changes what is displayed. Set live values through a `ref` (`input.value = '...'`).
-- **Shadow DOM by default.** Global CSS does not apply inside components, and form controls inside a Shadow DOM do not take part in an outer `<form>`'s submission or validation. Label/`for` and `id` references do not cross the shadow boundary.
+- **Shadow DOM by default.** Global CSS does not apply inside components, and form controls inside a Shadow DOM do not take part in an outer `<form>`'s submission or validation. Label/`for` and `id` references do not cross the shadow boundary. Use `shadow: false` where that matters. The choice is made on the first render and cannot be changed afterwards.
 - **One inner element.** A component renders a single element. Compose several components for more complex structures.
 - **Full rebuild of children.** Children and text are rebuilt on every update; there is no keyed child diffing.
-- **No lifecycle hooks, context or store.** The library is a rendering layer.
+- **Minimal lifecycle, no context or store.** There are `mounted`, `unmounted` and `updated` hooks, but no before-update hooks, context or state container. The library is a rendering layer.
 - **Handlers without options.** Listener options require a `ref`.
 
 ## Migrating from 1.x
