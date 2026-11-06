@@ -1,10 +1,10 @@
 {
   "name": "create-ecmact",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Scaffold an ECMact app with Vite and TypeScript",
   "type": "module",
   "bin": {
-    "create-ecmact": "./bin/create-ecmact.mjs"
+    "create-ecmact": "bin/create-ecmact.mjs"
   },
   "files": [
     "bin",
@@ -31,7 +31,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/eternalvision/ecmact.git",
+    "url": "git+https://github.com/eternalvision/ecmact.git",
     "directory": "packages/create-ecmact"
   },
   "homepage": "https://github.com/eternalvision/ecmact#quick-start",

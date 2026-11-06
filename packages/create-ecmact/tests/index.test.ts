@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { PassThrough } from 'node:stream';
@@ -123,5 +123,14 @@ describe('run', () => {
   it('does not ask about tailwind when --yes is set', async () => {
     const { out } = await execute(['app', '--yes']);
     expect(out).not.toContain('Tailwind CSS?');
+  });
+});
+
+describe('package.json', () => {
+  it('declares a bin path that npm keeps when publishing', async () => {
+    const pkg = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
+    const target: string = pkg.bin['create-ecmact'];
+    expect(target.startsWith('./')).toBe(false);
+    await expect(stat(new URL(`../${target}`, import.meta.url))).resolves.toBeTruthy();
   });
 });
