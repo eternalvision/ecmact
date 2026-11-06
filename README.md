@@ -19,10 +19,13 @@ ECMact is a small component library built on native Web Components. Every compon
 - [Quick start](#quick-start)
 - [How it works](#how-it-works)
 - [Creating components](#creating-components)
+- [Tag factories](#tag-factories)
 - [Props reference](#props-reference)
 - [Content and children](#content-and-children)
 - [Attributes](#attributes)
 - [Styles](#styles)
+- [Stylesheets and Tailwind CSS](#stylesheets-and-tailwind-css)
+- [Global configuration](#global-configuration)
 - [Events](#events)
 - [Refs](#refs)
 - [Lifecycle](#lifecycle)
@@ -116,6 +119,31 @@ const link = em.Link({ tag: 'a', href: '/docs', content: 'Docs' });
 
 Use a distinct name per kind of component. Names are a convention for your own readability and for devtools; they do not carry props or behavior.
 
+## Tag factories
+
+`em.<Name>` needs a `tag` prop to render anything other than a `div`, and the name carries no meaning. `tags` is the shorter form when you just want an element: the property is the tag, and the tag is fixed.
+
+```ts
+import { tags, mount } from 'ecmact';
+
+const form = tags.form({
+  onsubmit: (event) => event.preventDefault(),
+  children: [
+    tags.input({ type: 'email', name: 'email', placeholder: 'you@example.com', required: true }),
+    tags.button({ type: 'submit', content: 'Subscribe' }),
+  ],
+});
+
+mount('#app', form);
+```
+
+- `tags.a(...)`, `tags.input(...)`, `tags.section(...)` and so on exist for every tag in `HTMLElementTagNameMap`, with the same props as `em`, minus `tag`.
+- Types are exact without writing `tag`: `tags.a({ src })` and `tags.input({ type: 'bogus' })` are compile errors, `ref` and the lifecycle hooks receive the right element type, and the result is a `Component<'a'>`, `Component<'input'>` and so on.
+- Each call returns a regular component: `setState`, hooks, `shadow`, `css` and everything else work as described below.
+- `tags.<name>` renders into an `<em-<name>>` host. It shares the custom element class with `em.<Name>`, so `tags.button` and `em.Button` produce the same host element.
+
+Use `em.<Name>` for components that deserve their own name in devtools (`em.UserCard({ ... })`), and `tags` for plain elements.
+
 ## Props reference
 
 | Prop           | Type                                            | Default | Description                                                     |
@@ -125,6 +153,7 @@ Use a distinct name per kind of component. Names are a convention for your own r
 | `html`         | `string`                                        | -       | Raw HTML for the inner element. Opt-in, trusted input only.     |
 | `children`     | `Node[]`                                        | `[]`    | Nodes appended after the content.                               |
 | `style`        | object of CSS properties                        | -       | Inline styles, camelCase keys.                                  |
+| `css`          | `string`                                        | -       | Stylesheet text scoped to this component's shadow root.         |
 | `ref`          | `(element) => void`                             | -       | Called once, when the inner element is created.                 |
 | `shadow`       | `boolean`                                       | `true`  | `false` renders into the light DOM. Read on the first render.   |
 | `mounted`      | `(element, component) => void \| (() => void)`  | -       | Called when connected to the document; may return a cleanup.    |
@@ -165,7 +194,7 @@ Children passed to `children` are moved, not cloned: a node can have only one pa
 
 ## Attributes
 
-Any prop that is not a reserved key (`tag`, `content`, `html`, `style`, `children`, `ref`, `shadow`, `mounted`, `unmounted`, `beforeUpdate`, `updated`) and does not start with `on` is set on the inner element with `setAttribute`.
+Any prop that is not a reserved key (`tag`, `content`, `html`, `style`, `css`, `children`, `ref`, `shadow`, `mounted`, `unmounted`, `beforeUpdate`, `updated`) and does not start with `on` is set on the inner element with `setAttribute`.
 
 | Value                            | Result                              |
 | -------------------------------- | ----------------------------------- |
@@ -213,6 +242,67 @@ em.Card({
 - Styles apply to the inner element only. There are no selectors, pseudo-classes or media queries. For those, use a stylesheet that targets the host (`em-card`) with CSS custom properties, or a `ref` that adds a `<style>` to `element.getRootNode()`.
 
 Because the content lives in a Shadow DOM, global stylesheets do not reach it.
+
+## Stylesheets and Tailwind CSS
+
+The `style` prop sets inline properties. For everything inline styles cannot express - `:hover`, `:focus-visible`, media queries, pseudo-elements, animations, `:host` - use a stylesheet.
+
+### The `css` prop
+
+`css` takes stylesheet text that applies inside the component's shadow root:
+
+```ts
+em.Button({
+  tag: 'button',
+  content: 'Save',
+  css: `
+    button { padding: 8px 16px; border-radius: 6px; }
+    button:hover { background: #eef; }
+    @media (max-width: 600px) { button { width: 100%; } }
+  `,
+});
+```
+
+- Selectors target the inner element and anything inside it. `:host` targets the `<em-*>` element itself.
+- The stylesheet is attached with constructable stylesheets (`adoptedStyleSheets`), one per component. Where those are not available, a `<style>` element is placed in the shadow root instead.
+- `setState({ css })` replaces the text in place; `css: undefined` removes it.
+- `css` has no effect with `shadow: false`, because there is no shadow root: use a regular stylesheet in the page.
+- The text is not sanitized or scoped further. Treat it as code you wrote, not as user input.
+
+### Shared stylesheets
+
+`configure({ styles })` adds stylesheets to every shadow component. They are applied before the component's own `css`, so a component can override them.
+
+```ts
+import { configure } from 'ecmact';
+import base from './base.css?inline';
+
+configure({ styles: [base] });
+```
+
+Sources can be strings or `CSSStyleSheet` objects. Strings are converted once and the resulting sheet is shared by all components.
+
+### Tailwind CSS
+
+Global CSS does not reach a shadow root, so Tailwind utilities do nothing inside components by default. There are two ways to use it:
+
+1. **Light DOM.** Render components with `shadow: false` (or `configure({ shadow: false })`) and load Tailwind in the page as usual. Nothing else is needed.
+2. **Shared stylesheet.** Build Tailwind to a CSS file and pass it as a shared stylesheet. Utilities, theme values and variants then work inside every shadow root:
+
+```ts
+import { configure, tags } from 'ecmact';
+import tailwind from './tailwind.out.css?inline';
+
+configure({ styles: [tailwind] });
+
+tags.button({ class: 'rounded-lg bg-red-500 px-4 py-2 text-white md:px-8', content: 'Delete' });
+```
+
+Tailwind must see the class names in your source (`@source` in Tailwind 4, or the `content` globs in earlier versions); the build is independent of this library.
+
+Tailwind 4 registers custom properties with `@property`, and browsers only honor `@property` in the document, not in a shadow root. Without them, utilities that rely on those properties (`border`, `shadow-*`, `ring-*`, `translate-*` and other transforms) silently do nothing. ECMact handles this for you: when a shared stylesheet contains `@property` rules, they are copied once into a `<style data-ecmact="properties">` element in `document.head`.
+
+This was checked against Tailwind 4.3.4 in Chromium: with the shared stylesheet, padding, colors, radius, flex, gap, font weight, `border`, `shadow-lg`, `ring-2`, `translate-x-4` and the `md:` variant resolve to the same computed values as in a light DOM component. Other browsers and Tailwind versions were not checked.
 
 ## Events
 
@@ -366,6 +456,26 @@ Components do not track state for you. `setState` is a rendering call, not a sto
 
 An `<em-*>` element created outside the library (for example `document.createElement('em-card')`) renders an empty `div` when it is connected.
 
+## Global configuration
+
+`configure(options)` sets application-wide defaults. Call it once, before creating components. Options are merged between calls.
+
+```ts
+import { configure } from 'ecmact';
+
+configure({
+  shadow: false,
+  styles: [tailwind],
+});
+```
+
+| Option   | Type                          | Default | Description                                                           |
+| -------- | ----------------------------- | ------- | --------------------------------------------------------------------- |
+| `shadow` | `boolean`                     | `true`  | Default for the `shadow` prop. A component's own `shadow` still wins. |
+| `styles` | `(string \| CSSStyleSheet)[]` | `[]`    | Shared stylesheets adopted by every shadow component.                 |
+
+Configuration is read when a component renders. Components that were already rendered keep what they had, so configure before the first component is created. There is no configuration file: ECMact has no build step of its own, so a file would have nothing to read it.
+
 ## Mounting
 
 ```ts
@@ -486,6 +596,7 @@ Any evergreen browser with Custom Elements v1, Shadow DOM and ES2022 class field
 - **Full rebuild of children.** Children and text are rebuilt on every update; there is no keyed child diffing.
 - **Minimal lifecycle, no context or store.** There are `mounted`, `unmounted`, `beforeUpdate` and `updated` hooks, but no context or state container. The library is a rendering layer.
 - **Handlers without options.** Listener options require a `ref`.
+- **Configuration is read at render time.** `configure` does not update components that are already rendered.
 
 ## Migrating from 1.x
 
