@@ -5,6 +5,7 @@ const reservedKeys = new Set([
   'content',
   'html',
   'style',
+  'css',
   'children',
   'ref',
   'shadow',

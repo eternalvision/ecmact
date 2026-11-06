@@ -1,4 +1,5 @@
 import type { ComponentProps, RenderState } from './types';
+import { getConfig } from './config';
 import { render } from './utils';
 
 const Base = typeof HTMLElement === 'undefined' ? (class {} as typeof HTMLElement) : HTMLElement;
@@ -12,6 +13,10 @@ export class Component<K extends string = string> extends Base {
     attributes: new Set(),
     styles: new Set(),
     listeners: new Map(),
+    ownSheet: null,
+    sheetText: undefined,
+    sheetKey: '',
+    sheetNodes: [],
   };
 
   constructor(props: ComponentProps<K> = {} as ComponentProps<K>) {
@@ -61,7 +66,10 @@ export class Component<K extends string = string> extends Base {
 
   #render(previous?: ComponentProps<K>) {
     const wasRendered = this.#state.element !== null;
-    this.#root ??= this.#hooks.shadow === false ? this : this.attachShadow({ mode: 'open' });
+    this.#root ??=
+      (this.#hooks.shadow ?? getConfig().shadow) === false
+        ? this
+        : this.attachShadow({ mode: 'open' });
     const element = render(this.#root, this.#hooks, this.#state);
     if (wasRendered) this.#hooks.updated?.(element, this.#self, previous as ComponentProps);
   }

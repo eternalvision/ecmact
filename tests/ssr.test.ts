@@ -10,6 +10,6 @@ describe('without a DOM', () => {
     vi.stubGlobal('HTMLElement', undefined);
     vi.resetModules();
     const lib = await import('../src');
-    expect(Object.keys(lib).sort()).toEqual(['em', 'mount', 'tags']);
+    expect(Object.keys(lib).sort()).toEqual(['configure', 'em', 'mount', 'tags']);
   });
 });

@@ -27,6 +27,7 @@ interface BaseProps<K extends string> {
   content?: string;
   html?: string;
   style?: StyleProps;
+  css?: string;
   children?: Node[];
   ref?: (element: ElementOf<K>) => void;
   shadow?: boolean;
@@ -56,4 +57,8 @@ export interface RenderState {
   attributes: Set<string>;
   styles: Set<string>;
   listeners: Map<string, EventListener>;
+  ownSheet: CSSStyleSheet | null;
+  sheetText: string | undefined;
+  sheetKey: string;
+  sheetNodes: HTMLStyleElement[];
 }
