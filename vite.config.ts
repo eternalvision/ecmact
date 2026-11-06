@@ -16,8 +16,8 @@ export default defineConfig({
     },
   },
   build: {
-    target: 'es2022',
     sourcemap: true,
+    minify: false,
     lib: {
       entry: 'src/index.ts',
       formats: ['es', 'cjs'],
