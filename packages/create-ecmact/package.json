@@ -1,0 +1,48 @@
+{
+  "name": "create-ecmact",
+  "version": "0.1.0",
+  "description": "Scaffold an ECMact app with Vite and TypeScript",
+  "type": "module",
+  "bin": {
+    "create-ecmact": "./bin/create-ecmact.mjs"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "template"
+  ],
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "build": "vite build",
+    "typecheck": "tsc",
+    "test": "vitest run --coverage",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "ecmact",
+    "create",
+    "scaffold",
+    "vite",
+    "web-components"
+  ],
+  "author": "Alexandr Priadchenko",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eternalvision/ecmact.git",
+    "directory": "packages/create-ecmact"
+  },
+  "homepage": "https://github.com/eternalvision/ecmact#quick-start",
+  "bugs": {
+    "url": "https://github.com/eternalvision/ecmact/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5"
+  }
+}
