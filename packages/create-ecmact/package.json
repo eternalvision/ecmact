@@ -1,6 +1,6 @@
 {
   "name": "create-ecmact",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Scaffold an ECMact app with Vite and TypeScript",
   "type": "module",
   "bin": {

@@ -7,14 +7,26 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "tsc && eslint . && prettier --check . && vitest run"
   },
   "dependencies": {
     "ecmact": "^{{ecmactVersion}}"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.14.0",
+    "eslint-config-prettier": "^10.1.8",
     "happy-dom": "^21.0.4",
+    "jiti": "^2.7.0",
+    "prettier": "^3.9.10",
     "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.1",
     "vite": "^8.3.6",
     "vitest": "^5.1.0"
   }

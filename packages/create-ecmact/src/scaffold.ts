@@ -1,5 +1,5 @@
 import { cp, mkdir, readdir, readFile, rename, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 
 /** What `scaffold` needs to write a project. */
 export interface ScaffoldOptions {
@@ -90,7 +90,8 @@ const walk = async (directory: string): Promise<string[]> => {
 
 /**
  * Writes a new project from the template: copies the base files, layers Tailwind on top if asked,
- * renames `_gitignore` and fills in the project name and the `ecmact` version.
+ * renames `_gitignore` and fills in the project name and the `ecmact` version. Only the files that
+ * come from the template are written or changed; anything else in the target is left alone.
  *
  * @param options - The template location, the target directory and the choices.
  * @returns The files that were written, relative to the target and sorted.
@@ -102,11 +103,21 @@ export const scaffold = async ({
   tailwind,
   ecmactVersion,
 }: ScaffoldOptions) => {
+  const base = join(templateRoot, 'base');
+  const overlay = join(templateRoot, 'tailwind');
+  const layers = tailwind ? [base, overlay] : [base];
+  const relatives = new Set(
+    (
+      await Promise.all(
+        layers.map(async (layer) => (await walk(layer)).map((file) => relative(layer, file))),
+      )
+    ).flat(),
+  );
+
   await mkdir(target, { recursive: true });
-  await cp(join(templateRoot, 'base'), target, { recursive: true });
+  await cp(base, target, { recursive: true });
 
   if (tailwind) {
-    const overlay = join(templateRoot, 'tailwind');
     const overlayPackage = JSON.parse(
       await readFile(join(overlay, 'package.json'), 'utf8'),
     ) as Json;
@@ -129,16 +140,17 @@ export const scaffold = async ({
 
   await rename(join(target, '_gitignore'), join(target, '.gitignore'));
 
-  const files = await walk(target);
+  const written = [...relatives].map((file) => (file === '_gitignore' ? '.gitignore' : file));
   await Promise.all(
-    files.map(async (file) => {
-      const text = await readFile(file, 'utf8');
+    written.map(async (file) => {
+      const path = join(target, file);
+      const text = await readFile(path, 'utf8');
       const filled = text
         .replaceAll('{{name}}', name)
         .replaceAll('{{ecmactVersion}}', ecmactVersion);
-      if (filled !== text) await writeFile(file, filled);
+      if (filled !== text) await writeFile(path, filled);
     }),
   );
 
-  return files.map((file) => file.slice(target.length + 1)).sort();
+  return written.sort();
 };

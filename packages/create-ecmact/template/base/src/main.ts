@@ -1,4 +1,7 @@
-import { mount, tags } from 'ecmact';
-import { createCounter } from './counter';
+import './styles.css';
+import { mount } from 'ecmact';
+import { App } from './app';
+import { setup } from './setup';
 
-mount('#app', tags.h1({ content: 'Hello, ECMact' }), createCounter());
+setup();
+mount('#app', App());

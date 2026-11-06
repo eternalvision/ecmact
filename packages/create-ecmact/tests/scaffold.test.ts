@@ -93,13 +93,25 @@ describe('scaffold', () => {
   it('writes the base template and returns the sorted file list', async () => {
     const files = await generate(false);
     expect(files).toEqual([
+      '.editorconfig',
       '.gitignore',
+      '.prettierignore',
+      '.prettierrc',
+      '.vscode/extensions.json',
+      '.vscode/settings.json',
       'README.md',
+      'eslint.config.ts',
       'index.html',
       'package.json',
-      'src/counter.test.ts',
-      'src/counter.ts',
+      'public/logo.svg',
+      'src/app.ts',
+      'src/components/counter.test.ts',
+      'src/components/counter.ts',
+      'src/components/logo.ts',
       'src/main.ts',
+      'src/reset.css',
+      'src/setup.ts',
+      'src/styles.css',
       'tsconfig.json',
       'vite.config.ts',
     ]);
@@ -123,7 +135,7 @@ describe('scaffold', () => {
 
   it('leaves no placeholders behind', async () => {
     await generate(true);
-    for (const file of ['package.json', 'index.html', 'README.md', 'src/main.ts']) {
+    for (const file of ['package.json', 'index.html', 'README.md', 'src/setup.ts']) {
       expect(await read(file)).not.toContain('{{');
     }
   });
@@ -132,7 +144,7 @@ describe('scaffold', () => {
     await generate(false);
     const pkg = JSON.parse(await read('package.json'));
     expect(pkg.devDependencies.tailwindcss).toBeUndefined();
-    expect(await read('src/main.ts')).not.toContain('tailwind');
+    expect(await read('src/setup.ts')).not.toContain('tailwind');
   });
 
   it('adds tailwind on top of the base template', async () => {
@@ -145,8 +157,8 @@ describe('scaffold', () => {
     expect(pkg.scripts.dev).toBe('vite');
     expect(pkg.name).toBe('my-app');
     expect(await read('vite.config.ts')).toContain('tailwindcss()');
-    expect(await read('src/main.ts')).toContain("from './tailwind.css?inline'");
-    expect(await read('src/counter.ts')).toContain('class:');
+    expect(await read('src/setup.ts')).toContain("from './tailwind.css?inline'");
+    expect(await read('src/components/counter.ts')).toContain('rounded-xl');
   });
 
   it('writes the same files with and without tailwind apart from the additions', async () => {
@@ -158,5 +170,25 @@ describe('scaffold', () => {
   it('writes into a directory that already exists', async () => {
     await mkdir(join(directory, 'my-app'));
     await expect(generate(false)).resolves.toContain('package.json');
+  });
+
+  it('leaves files that are not part of the template alone', async () => {
+    const target = join(directory, 'my-app');
+    await mkdir(join(target, 'node_modules', 'pkg'), { recursive: true });
+    await writeFile(join(target, 'notes.txt'), 'keep {{name}}');
+    await writeFile(join(target, 'node_modules', 'pkg', 'index.js'), 'keep {{name}}');
+    const files = await generate(false);
+    expect(await read('notes.txt')).toBe('keep {{name}}');
+    expect(await read('node_modules/pkg/index.js')).toBe('keep {{name}}');
+    expect(files).not.toContain('notes.txt');
+    expect(files).not.toContain('node_modules/pkg/index.js');
+  });
+
+  it('overwrites a template file that already exists', async () => {
+    const target = join(directory, 'my-app');
+    await mkdir(target);
+    await writeFile(join(target, 'index.html'), 'old');
+    await generate(false);
+    expect(await read('index.html')).toContain('<title>my-app</title>');
   });
 });
