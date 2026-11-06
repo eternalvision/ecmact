@@ -1,0 +1,29 @@
+name: Release create-ecmact
+
+on:
+  push:
+    tags: ['create-ecmact-v*']
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - name: Check the tag matches package.json
+        run: test "create-ecmact-v$(node -p "require('./packages/create-ecmact/package.json').version")" = "$GITHUB_REF_NAME"
+      - run: npm install -g npm@latest
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm publish -w create-ecmact
