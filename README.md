@@ -10,6 +10,7 @@ ECMact is a small component library built on native Web Components. Every compon
 - Content, attributes and styles are written through DOM APIs, never through `innerHTML` (unless you ask for it)
 - In-place updates: `setState` reuses the DOM node, so focus and input state survive
 - Full TypeScript support, with attributes, events, styles, `ref` and lifecycle hooks typed per HTML tag
+- Signals, computed values and effects; props can be bound to them and update the DOM on their own
 - Optional light DOM rendering and lifecycle hooks (`mounted` with cleanup, `unmounted`, `beforeUpdate`, `updated`)
 - ES and CommonJS builds, bundled type declarations, `sideEffects: false`
 
@@ -31,6 +32,8 @@ ECMact is a small component library built on native Web Components. Every compon
 - [Lifecycle](#lifecycle)
 - [Shadow DOM and light DOM](#shadow-dom-and-light-dom)
 - [State and updates](#state-and-updates)
+- [Signals](#signals)
+- [Recipes](#recipes)
 - [Mounting](#mounting)
 - [Composition](#composition)
 - [TypeScript](#typescript)
@@ -476,6 +479,206 @@ configure({
 
 Configuration is read when a component renders. Components that were already rendered keep what they had, so configure before the first component is created. There is no configuration file: ECMact has no build step of its own, so a file would have nothing to read it.
 
+## Signals
+
+`setState` is enough for small components. When state is shared between components, derived from other state, or changes outside of any component (a locale, a theme, a store), bind props to signals instead. A signal is a value that notifies its readers when it changes.
+
+```ts
+import { computed, effect, signal, tags, mount } from 'ecmact';
+
+const count = signal(0);
+const label = computed(() => `Clicked ${count.value} times`);
+
+const button = tags.button({
+  content: label,
+  onclick: () => count.value++,
+});
+
+mount('#app', button);
+```
+
+No `setState` call and no reference to `button` is needed: the content follows `count`.
+
+### API
+
+| Function                     | Description                                                                                          |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `signal(value)`              | A writable signal. Read and write `.value`; `.peek()` reads without subscribing.                     |
+| `computed(fn)`               | A read-only signal derived from other signals. Lazy, memoized, recomputed when a dependency changes. |
+| `effect(fn)`                 | Runs `fn` now and again whenever a signal it read changes. Returns a function that stops it.         |
+| `batch(fn)`                  | Groups writes: effects run once, after `fn` returns. Returns the result of `fn`.                     |
+| `untracked(fn)`              | Runs `fn` without subscribing to the signals it reads. Returns the result of `fn`.                   |
+| `isSignal(value)`            | Type guard for signals and computed signals.                                                         |
+| `signal.subscribe(listener)` | Calls `listener(value)` now and on every change. Returns an unsubscribe function.                    |
+
+```ts
+const first = signal('Ada');
+const last = signal('Lovelace');
+const full = computed(() => `${first.value} ${last.value}`);
+
+const stop = effect(() => {
+  document.title = full.value;
+  return () => (document.title = '');
+});
+
+batch(() => {
+  first.value = 'Grace';
+  last.value = 'Hopper';
+});
+
+stop();
+```
+
+- Dependencies are discovered by reading `.value` while an effect or a computed value runs, and re-discovered on every run, so conditional reads are handled.
+- Writing the value a signal already holds (`Object.is`) does nothing.
+- Effects run synchronously when a signal is written, or after the outermost `batch`. A computed value read by several effects is recomputed once.
+- The function passed to `effect` may return a cleanup, which runs before the next run and when the effect is stopped.
+- If effects throw, the others still run, and the first error is rethrown from the write. An effect that keeps triggering itself is stopped with an error instead of looping forever.
+- Signals hold values, not deep reactivity: replace objects and arrays instead of mutating them (`items.value = [...items.value, item]`).
+
+### Reactive props
+
+These props accept a signal (or a computed signal) instead of a plain value:
+
+- `content`, `html`, `css`
+- `style`, either as a signal of a whole style object, or an object whose values are signals
+- every attribute (`class`, `title`, `disabled`, `type`, `data-*`, `aria-*`, ...), typed with the same value type as the plain attribute
+
+Not reactive: `tag`, `children`, event handlers, `ref`, `shadow` and the lifecycle hooks. Use `setState` for those.
+
+```ts
+const theme = signal<'light' | 'dark'>('light');
+
+tags.div({
+  class: computed(() => `card card-${theme.value}`),
+  style: { color: computed(() => (theme.value === 'dark' ? '#eee' : '#111')) },
+  content: 'Hello',
+});
+```
+
+### How components follow signals
+
+- A component reads its signal props when it renders, and subscribes to them **only while it is connected to a document**. When it is disconnected it unsubscribes, so removed components do not leak and stop doing work.
+- When it is connected again, it catches up with any changes made in the meantime. If nothing changed, it does not render and `updated` does not run.
+- Signal updates reuse the DOM node like `setState` does, and go through the same hooks: `beforeUpdate` runs with the resolved values and can cancel the update (the next change is evaluated again), `updated` runs afterwards.
+- Hooks, `props` getters and `setState` see two views of the props: `component.props` holds what you passed (signals included), while `beforeUpdate` and `updated` receive resolved plain values.
+- `setState` and assigning `props` work as before. Replacing a signal with a plain value stops following it, and the other way round.
+- Signals read inside hooks or event handlers are not subscribed by the component.
+
+### Signals and lifecycle
+
+`effect` returns a function that stops it, which is exactly the shape of a cleanup. Returning it from `mounted` ties the effect to the component's time in the document:
+
+```ts
+const clock = tags.time({
+  mounted: (_, component) => {
+    const now = signal(new Date());
+    const timer = setInterval(() => (now.value = new Date()), 1000);
+    const stop = effect(() => component.setState({ content: now.value.toLocaleTimeString() }));
+    return () => {
+      clearInterval(timer);
+      stop();
+    };
+  },
+});
+```
+
+For children that depend on a list, rebuild them in an effect:
+
+```ts
+const items = signal(['one', 'two']);
+
+const list = tags.ul({
+  mounted: (_, component) =>
+    effect(() =>
+      component.setState({ children: items.value.map((label) => tags.li({ content: label })) }),
+    ),
+});
+```
+
+## Recipes
+
+Everything below is built from the pieces above. None of it needs extra API.
+
+### Internationalization
+
+ECMact has no built-in message catalog. A locale signal and a function that reads it are enough, and they work with any library that can be wrapped in one (`Intl`, i18next, FormatJS): the translated text is just a computed value.
+
+```ts
+import { computed, signal, tags } from 'ecmact';
+
+const dictionary = {
+  en: { greeting: 'Hello, {name}!', save: 'Save' },
+  cs: { greeting: 'Ahoj, {name}!', save: 'Uložit' },
+};
+
+type Key = keyof (typeof dictionary)['en'];
+
+const locale = signal<'en' | 'cs'>('en');
+
+const t = (key: Key, params: Record<string, string | number> = {}) =>
+  dictionary[locale.value][key].replace(/\{(\w+)\}/g, (_, name) => String(params[name]));
+
+const tr = (key: Key, params?: Record<string, string | number>) => computed(() => t(key, params));
+
+const title = tags.h1({ lang: locale, content: tr('greeting', { name: 'Sasha' }) });
+const save = tags.button({ content: tr('save') });
+
+locale.value = 'cs';
+```
+
+Because `t` reads `locale.value`, every `computed` that calls it is re-evaluated on a locale change, and the mounted components update in place. Dates, numbers and plurals follow the same way: `computed(() => new Intl.DateTimeFormat(locale.value).format(date))`.
+
+### Theming
+
+Keep the theme in a signal and derive styles from it:
+
+```ts
+const theme = signal<'light' | 'dark'>('light');
+
+const palette = computed(() =>
+  theme.value === 'dark' ? { bg: '#111', fg: '#eee' } : { bg: '#fff', fg: '#111' },
+);
+
+const panel = tags.section({
+  content: 'Settings',
+  style: computed(() => ({ background: palette.value.bg, color: palette.value.fg })),
+});
+
+theme.value = 'dark';
+```
+
+For a theme shared through CSS, set custom properties on `:root` from an effect; they inherit into shadow roots, so components can use `var(--bg)` in their `css`:
+
+```ts
+effect(() => {
+  document.documentElement.style.setProperty('--bg', palette.value.bg);
+});
+```
+
+### Shared state
+
+A store is a plain module that exports signals and the functions that change them:
+
+```ts
+// cart.ts
+import { computed, signal } from 'ecmact';
+
+const items = signal<{ id: string; price: number }[]>([]);
+
+export const total = computed(() => items.value.reduce((sum, item) => sum + item.price, 0));
+export const count = computed(() => items.value.length);
+export const add = (item: { id: string; price: number }) => (items.value = [...items.value, item]);
+```
+
+```ts
+import { count, total } from './cart';
+
+tags.span({ content: computed(() => `${count.value} items, ${total.value} total`) });
+```
+
+Any component in any file that reads `count` or `total` stays up to date, with no provider and no prop drilling.
+
 ## Mounting
 
 ```ts
@@ -593,8 +796,8 @@ Any evergreen browser with Custom Elements v1, Shadow DOM and ES2022 class field
 - **Attributes, not properties.** Props map to attributes. For form controls, `value` and `checked` set the default value/state; after the user interacts with the control, changing the attribute no longer changes what is displayed. Set live values through a `ref` (`input.value = '...'`).
 - **Shadow DOM by default.** Global CSS does not apply inside components, and form controls inside a Shadow DOM do not take part in an outer `<form>`'s submission or validation. Label/`for` and `id` references do not cross the shadow boundary. Use `shadow: false` where that matters. The choice is made on the first render and cannot be changed afterwards.
 - **One inner element.** A component renders a single element. Compose several components for more complex structures.
-- **Full rebuild of children.** Children and text are rebuilt on every update; there is no keyed child diffing.
-- **Minimal lifecycle, no context or store.** There are `mounted`, `unmounted`, `beforeUpdate` and `updated` hooks, but no context or state container. The library is a rendering layer.
+- **Children are not reactive props.** Rebuild them in an effect (see [Signals and lifecycle](#signals-and-lifecycle)). Children and text are rebuilt on every update; there is no keyed child diffing.
+- **Minimal lifecycle.** There are `mounted`, `unmounted`, `beforeUpdate` and `updated` hooks. State is whatever signals or objects you keep; there is no built-in store, router or message catalog.
 - **Handlers without options.** Listener options require a `ref`.
 - **Configuration is read at render time.** `configure` does not update components that are already rendered.
 
