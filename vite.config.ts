@@ -7,6 +7,9 @@ export default defineConfig({
   plugins: [dts({ entryRoot: 'src', include: ['src'], tsconfigPath: 'tsconfig.json' })],
   test: {
     environment: 'happy-dom',
+    environmentOptions: {
+      happyDOM: { settings: { navigation: { disableMainFrameNavigation: true } } },
+    },
     include: ['tests/**/*.test.ts'],
     coverage: {
       provider: 'v8',
