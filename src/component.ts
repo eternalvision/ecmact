@@ -3,6 +3,7 @@ import { contextRequestEvent, type ContextRequest } from '@em/context';
 import { effect, untracked } from '@em/signals';
 import type { ComponentProps, ElementOf, RenderState, ResolvedProps } from '@em/types';
 import { propsEqual, registerComponent, render, resolveProps, warn } from '@em/utils';
+import { readFormValue, readValidity, resetControl } from '@em/utils/formControl';
 
 const Base =
   typeof HTMLElement === 'undefined' ? (Object as unknown as typeof HTMLElement) : HTMLElement;
@@ -14,11 +15,15 @@ const Base =
  * @template K - The tag of the inner element.
  */
 export class Component<K extends string = string> extends Base {
+  /** Lets a component take part in the submission and validation of the form around it, see the `field` prop. */
+  static readonly formAssociated = true;
+
   #props: ComponentProps<K>;
   #last: ResolvedProps | null = null;
   #root: ParentNode | null = null;
   #stop: (() => void) | null = null;
   #cleanup: (() => void) | void = undefined;
+  #internals: ElementInternals | null = null;
   readonly #state: RenderState = {
     element: null,
     attributes: new Set(),
@@ -161,6 +166,56 @@ export class Component<K extends string = string> extends Base {
   };
 
   /**
+   * Hands the value and the validity of the inner control to the form around the component.
+   * Reads `name` and `disabled` from the props and puts them on the host, where forms look for them.
+   *
+   * @param element - The inner element.
+   * @param props - The resolved props.
+   */
+  #syncField(element: HTMLElement, props: ResolvedProps) {
+    if (!this.#internals) {
+      if (typeof this.attachInternals !== 'function') return;
+      this.#internals = this.attachInternals();
+      this.#root?.addEventListener('input', this.#refresh);
+      this.#root?.addEventListener('change', this.#refresh);
+    }
+    const { name, disabled } = props as { name?: unknown; disabled?: unknown };
+    const label = typeof name === 'string' ? name : '';
+    if (label) this.setAttribute('name', label);
+    else this.removeAttribute('name');
+    this.toggleAttribute('disabled', disabled === true);
+    this.#internals.setFormValue(readFormValue(element, label));
+    const { flags, message } = readValidity(element);
+    this.#internals.setValidity(flags, message, message ? element : undefined);
+  }
+
+  /**
+   * Hands the current state of the inner control to the form again, after the user changed it.
+   */
+  readonly #refresh = () => {
+    this.#guard('render', () => this.#syncField(this.#element, this.#last as ResolvedProps));
+  };
+
+  /**
+   * Called by the browser when the form around a field is reset. Puts the inner control back to its default.
+   */
+  formResetCallback() {
+    resetControl(this.#element);
+    this.#refresh();
+  }
+
+  /**
+   * Called by the browser when a form or fieldset around a field is disabled or enabled.
+   *
+   * @param disabled - Whether the field is disabled now.
+   */
+  formDisabledCallback(disabled: boolean) {
+    const element = this.#element;
+    if ('disabled' in element)
+      element.disabled = disabled || (this.#last as { disabled?: unknown }).disabled === true;
+  }
+
+  /**
    * Passes an error to the `error` prop or to the configured handler, or rethrows it if there is none.
    *
    * @param error - The error.
@@ -239,6 +294,7 @@ export class Component<K extends string = string> extends Base {
       render(root, resolved, this.#state, (error, event) => this.#report(error, 'event', event)),
     );
     this.#last = resolved;
+    if (element && resolved.field) this.#guard('render', () => this.#syncField(element, resolved));
     if (previous && element) {
       this.#guard('updated', () => resolved.updated?.(element, this.#self, previous));
     }

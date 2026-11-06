@@ -122,6 +122,12 @@ interface BehaviorProps<K extends string> {
   ref?: (element: ElementOf<K>) => void;
   /** Renders into the light DOM when `false`. Read on the first render only. Defaults to the configured value. */
   shadow?: boolean;
+  /**
+   * Makes the component a field of the form around it: its `name`, `disabled`, value and validity (`required`,
+   * `pattern` and so on) reach the form, which a control inside a Shadow DOM does not do by itself. Meant for
+   * `input`, `select` and `textarea`.
+   */
+  field?: boolean;
   /** Identifies a component among its siblings, so it is kept when the list changes. */
   key?: string | number;
   /** Receives errors from hooks, event listeners and rendering of this component. */

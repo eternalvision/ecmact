@@ -827,3 +827,140 @@ describe('children', () => {
     expect(Array.from(inner(list).children)[0]).toBe(first);
   });
 });
+
+describe('form fields', () => {
+  interface Fake {
+    setFormValue: ReturnType<typeof vi.fn>;
+    setValidity: ReturnType<typeof vi.fn>;
+  }
+  let fakes: Fake[];
+  const proto = HTMLElement.prototype as unknown as { attachInternals?: () => Fake };
+
+  beforeEach(() => {
+    fakes = [];
+    proto.attachInternals = () => {
+      const fake = { setFormValue: vi.fn(), setValidity: vi.fn() };
+      fakes.push(fake);
+      return fake;
+    };
+  });
+
+  afterEach(() => {
+    delete proto.attachInternals;
+  });
+
+  it('is form associated', () => {
+    expect(
+      (em.Card() as unknown as { constructor: { formAssociated: boolean } }).constructor
+        .formAssociated,
+    ).toBe(true);
+  });
+
+  it('hands name, disabled, value and validity to the form', () => {
+    const field = em.Field({
+      tag: 'input',
+      field: true,
+      name: 'email',
+      value: 'a@b.c',
+      disabled: true,
+    });
+    document.body.append(field);
+    expect(field.getAttribute('name')).toBe('email');
+    expect(field.hasAttribute('disabled')).toBe(true);
+    expect(fakes[0].setFormValue).toHaveBeenLastCalledWith('a@b.c');
+    expect(fakes[0].setValidity).toHaveBeenLastCalledWith({}, '', undefined);
+  });
+
+  it('reports an invalid control with an anchor', () => {
+    const field = em.Field({ tag: 'input', field: true, name: 'n', required: true });
+    document.body.append(field);
+    const [flags, message, anchor] = fakes[0].setValidity.mock.calls.at(-1)!;
+    expect(flags.valueMissing).toBe(true);
+    expect(message).not.toBe('');
+    expect(anchor).toBe(field.element);
+  });
+
+  it('follows what the user types', () => {
+    const field = em.Field({ tag: 'input', field: true, name: 'n' });
+    document.body.append(field);
+    const input = field.element as HTMLInputElement;
+    input.value = 'typed';
+    input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    expect(fakes[0].setFormValue).toHaveBeenLastCalledWith('typed');
+    input.value = 'changed';
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(fakes[0].setFormValue).toHaveBeenLastCalledWith('changed');
+  });
+
+  it('updates the host when props change, and drops the name', () => {
+    const field = em.Field({ tag: 'input', field: true, name: 'n', disabled: true });
+    document.body.append(field);
+    field.setState({ name: undefined, disabled: false } as never);
+    expect(field.hasAttribute('name')).toBe(false);
+    expect(field.hasAttribute('disabled')).toBe(false);
+    expect(fakes).toHaveLength(1);
+  });
+
+  it('does nothing without the field prop', () => {
+    document.body.append(em.Field({ tag: 'input', name: 'n' }));
+    expect(fakes).toHaveLength(0);
+  });
+
+  it('does nothing where ElementInternals is not available', () => {
+    delete proto.attachInternals;
+    const field = em.Field({ tag: 'input', field: true, name: 'n' });
+    document.body.append(field);
+    expect(field.hasAttribute('name')).toBe(false);
+  });
+
+  it('puts the control back to its default when the form resets', () => {
+    const field = em.Field({ tag: 'input', field: true, name: 'n', value: 'start' }) as unknown as {
+      element: HTMLInputElement;
+      formResetCallback(): void;
+    };
+    document.body.append(field as unknown as Node);
+    field.element.value = 'typed';
+    field.formResetCallback();
+    expect(field.element.value).toBe('start');
+    expect(fakes[0].setFormValue).toHaveBeenLastCalledWith('start');
+  });
+
+  it('disables the control when the form or a fieldset does', () => {
+    const field = em.Field({ tag: 'input', field: true, name: 'n' }) as unknown as {
+      element: HTMLInputElement;
+      formDisabledCallback(disabled: boolean): void;
+    };
+    document.body.append(field as unknown as Node);
+    field.formDisabledCallback(true);
+    expect(field.element.disabled).toBe(true);
+    field.formDisabledCallback(false);
+    expect(field.element.disabled).toBe(false);
+  });
+
+  it('keeps a control disabled by its own prop when the form enables it', () => {
+    const field = em.Field({ tag: 'input', field: true, name: 'n', disabled: true }) as unknown as {
+      element: HTMLInputElement;
+      formDisabledCallback(disabled: boolean): void;
+    };
+    document.body.append(field as unknown as Node);
+    field.formDisabledCallback(false);
+    expect(field.element.disabled).toBe(true);
+  });
+
+  it('ignores a form disabling an element that cannot be disabled', () => {
+    const field = em.Field({ field: true }) as unknown as {
+      formDisabledCallback(disabled: boolean): void;
+    };
+    document.body.append(field as unknown as Node);
+    expect(() => field.formDisabledCallback(true)).not.toThrow();
+  });
+
+  it('reports errors from the form hand-over to the error handler', () => {
+    proto.attachInternals = () => {
+      throw new Error('no internals');
+    };
+    const onError = vi.fn();
+    document.body.append(em.Field({ tag: 'input', field: true, error: onError }));
+    expect(onError).toHaveBeenCalled();
+  });
+});

@@ -46,7 +46,7 @@ ECMact is young, and a large application would have to build part of the infrast
 
 - **Server-side rendering and hydration are not included.** If the server has to deliver ready content for search engines or first paint, use something else (see [Server-side rendering](#server-side-rendering)).
 - **The router is small.** Nested routes and guards exist, but there is no route-level data loading, transitions or scroll restoration (see [Routing](#routing)).
-- **Shadow DOM needs care with forms.** Labels, `for`/`id` links and outer stylesheets do not cross the boundary. `shadow: false` removes the problem where it matters.
+- **Shadow DOM needs care with forms.** `field: true` connects a control to the form around it. Labels, `for`/`id` links and outer stylesheets still do not cross the boundary; `shadow: false` removes the problem where it matters.
 - **Large tables are not measured.** Keyed lists work, but there are no benchmarks and no virtualization. Measure before you put thousands of rows in one.
 
 See [Limitations](#limitations) for the full list.
@@ -65,6 +65,7 @@ See [Limitations](#limitations) for the full list.
 - [Lists and keys](#lists-and-keys)
 - [Attributes](#attributes)
   - [Form controls](#form-controls)
+  - [Fields inside a form](#fields-inside-a-form)
 - [Styles](#styles)
 - [Stylesheets and Tailwind CSS](#stylesheets-and-tailwind-css)
 - [Global configuration](#global-configuration)
@@ -257,10 +258,11 @@ Use `em.<Name>` for components that deserve their own name in devtools (`em.User
 | `updated`      | `(element, component, previous) => void`                       | -       | Called after every render except the first.                                        |
 | `error`        | `(error, info) => void`                                        | -       | Receives errors from hooks, handlers and rendering.                                |
 | `provide`      | `Provision[]`                                                  | -       | Values this component offers to the components below it.                           |
+| `field`        | `boolean`                                                      | `false` | Makes an `input`, `select` or `textarea` a field of the form around it.            |
 | `on<event>`    | `(event) => void`                                              | -       | Event listener on the inner element, lowercase, e.g. `onclick`.                    |
 | any other      | `string \| number \| boolean`                                  | -       | Set as an HTML attribute on the inner element.                                     |
 
-All props except `shadow`, `error`, `provide` and the lifecycle hooks apply to the inner element, not to the `<em-*>` host.
+All props except `shadow`, `field`, `error`, `provide` and the lifecycle hooks apply to the inner element, not to the `<em-*>` host.
 
 ## Content and children
 
@@ -361,7 +363,7 @@ Rules and limits:
 
 ## Attributes
 
-Any prop that is not a reserved key (`tag`, `content`, `html`, `style`, `css`, `children`, `ref`, `shadow`, `key`, `mounted`, `unmounted`, `beforeUpdate`, `updated`, `error`, `provide`) and does not start with `on` is set on the inner element with `setAttribute`.
+Any prop that is not a reserved key (`tag`, `content`, `html`, `style`, `css`, `children`, `ref`, `shadow`, `key`, `mounted`, `unmounted`, `beforeUpdate`, `updated`, `error`, `provide`, `field`) and does not start with `on` is set on the inner element with `setAttribute`.
 
 | Value                            | Result                              |
 | -------------------------------- | ----------------------------------- |
@@ -410,6 +412,32 @@ tags.input({
 - To clear a field, change the prop. A prop that was never updated is not rewritten: if you do not track the value in a signal, clear it through a `ref`.
 - `value` also reaches elements that have such a property but are not inputs (`select`, `textarea`, `option`, `progress`, `meter`). Properties are applied after the children, so `select` can take a `value` that matches one of its options.
 - Elements without the property (`div`, `a`) only get the attribute.
+
+### Fields inside a form
+
+A control inside a Shadow DOM does not take part in the submission or validation of the `<form>` around it. Set `field: true` on a component with an `input`, `select` or `textarea` tag and it becomes a form-associated custom element: the form sees its `name`, its value and its validity.
+
+```ts
+const email = em.Field({ tag: 'input', type: 'email', name: 'email', required: true, field: true });
+const agree = em.Field({
+  tag: 'input',
+  type: 'checkbox',
+  name: 'agree',
+  value: 'yes',
+  field: true,
+});
+
+form.append(email, agree);
+form.checkValidity();
+new FormData(form);
+```
+
+- `name` and `disabled` are copied to the host element, where forms look for them. `required`, `pattern`, `minlength` and the other constraints are evaluated on the inner control, and the form reports them (and focuses the control) as for a native one.
+- The value is handed to the form after every render and on every `input` and `change` event. A checkbox or radio contributes its value only while checked; a multiple `select` contributes every selected option.
+- `form.reset()` puts the inner control back to its default, and a disabled `<fieldset>` or form disables it.
+- It is the right tool when the field lives in a form you do not own. A form built from components entirely inside one shadow root already works without it, and `shadow: false` avoids the problem as well.
+- `field` is read on the first render and needs `ElementInternals`; without it the prop has no effect. For `select`, give the options through `html`, because the options of a native `select` must be real `option` elements.
+- Labels (`<label for>`) still do not cross the shadow boundary; put the control inside the label or use `aria-label`.
 
 ## Styles
 
@@ -1347,7 +1375,7 @@ Any evergreen browser with Custom Elements v1 and Shadow DOM. The published code
 ## Limitations
 
 - **Attributes, with four exceptions.** Props map to attributes, except `value`, `checked`, `selected` and `indeterminate`, which are also written as DOM properties (see [Form controls](#form-controls)). A property is written when its prop changes, not on every update.
-- **Shadow DOM by default.** Global CSS does not apply inside components, and form controls inside a Shadow DOM do not take part in an outer `<form>`'s submission or validation. Label/`for` and `id` references do not cross the shadow boundary. Use `shadow: false` where that matters. The choice is made on the first render and cannot be changed afterwards.
+- **Shadow DOM by default.** Global CSS does not apply inside components, and form controls inside a Shadow DOM do not take part in an outer `<form>`'s submission or validation unless the component sets `field: true` (see [Fields inside a form](#fields-inside-a-form)). Label/`for` and `id` references do not cross the shadow boundary. Use `shadow: false` where that matters. The choice is made on the first render and cannot be changed afterwards.
 - **One inner element.** A component renders a single element. Compose several components for more complex structures.
 - **Children are not a reactive prop.** The list is rebuilt in an effect (see [Signals and lifecycle](#signals-and-lifecycle)); text items in it can be signals. Keyed reconciliation matches components by `key` and name, it does not diff plain elements and it is not tuned for lists of thousands of items.
 - **Minimal lifecycle.** There are `mounted`, `unmounted`, `beforeUpdate` and `updated` hooks. State is whatever signals or objects you keep; there is no built-in store or message catalog (see [Recipes](#recipes)). Routing and data fetching are small and optional (see [Routing](#routing) and [Data fetching](#data-fetching)).
