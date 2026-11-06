@@ -1,6 +1,6 @@
 {
   "name": "ecmact",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Dynamic components library using Vite Vanilla and Web Components",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -22,12 +22,13 @@
   "scripts": {
     "build": "vite build",
     "typecheck": "tsc",
-    "test": "vitest run --coverage",
+    "test": "npm run test:structure && vitest run --coverage",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "test:structure": "node scripts/check-tests.mjs"
   },
   "keywords": [
     "vite",

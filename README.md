@@ -4,12 +4,14 @@
 
 # ECMact
 
-ECMact is a small component library built on native Web Components. Every component is a custom element with an open Shadow DOM, created through a single factory, `em`. There is no virtual DOM, no template language and no build-time step: components are plain function calls that return real DOM elements.
+ECMact is a small component library built on native Web Components. Every component is a custom element, rendered into an open Shadow DOM by default (or into the light DOM with `shadow: false`), created through a single factory, `em`. There is no virtual DOM, no template language and no build-time step: components are plain function calls that return real DOM elements.
 
 - Zero runtime dependencies
 - Content, attributes and styles are written through DOM APIs, never through `innerHTML` (unless you ask for it)
 - In-place updates: `setState` reuses the DOM node, so focus and input state survive
-- Full TypeScript support, with attributes, events, styles and `ref` typed per HTML tag
+- Full TypeScript support, with attributes, events, styles, `ref` and lifecycle hooks typed per HTML tag
+- Signals, computed values and effects; props can be bound to them and update the DOM on their own
+- Optional light DOM rendering and lifecycle hooks (`mounted` with cleanup, `unmounted`, `beforeUpdate`, `updated`)
 - ES and CommonJS builds, bundled type declarations, `sideEffects: false`
 
 ## Table of contents
@@ -18,13 +20,23 @@ ECMact is a small component library built on native Web Components. Every compon
 - [Quick start](#quick-start)
 - [How it works](#how-it-works)
 - [Creating components](#creating-components)
+- [Tag factories](#tag-factories)
 - [Props reference](#props-reference)
 - [Content and children](#content-and-children)
 - [Attributes](#attributes)
 - [Styles](#styles)
+- [Stylesheets and Tailwind CSS](#stylesheets-and-tailwind-css)
+- [Global configuration](#global-configuration)
+- [Warnings](#warnings)
 - [Events](#events)
 - [Refs](#refs)
+- [Lifecycle](#lifecycle)
+- [Shadow DOM and light DOM](#shadow-dom-and-light-dom)
 - [State and updates](#state-and-updates)
+- [Signals](#signals)
+- [Context](#context)
+- [Error handling](#error-handling)
+- [Recipes](#recipes)
 - [Mounting](#mounting)
 - [Composition](#composition)
 - [TypeScript](#typescript)
@@ -80,7 +92,7 @@ mount('body', card);
 
 1. On first access of the name `Card`, registers a custom element `em-card` (once per lowercase name).
 2. Creates an `<em-card>` element.
-3. Assigns `props`, which renders one inner element (a `div` by default) into the element's Shadow DOM.
+3. Assigns `props`, which renders one inner element (a `div` by default) into the element's Shadow DOM, or directly into the element when `shadow: false`.
 
 ```
 <em-card>                  custom element (the host, returned by em.Card)
@@ -92,7 +104,7 @@ mount('body', card);
 </em-card>
 ```
 
-The returned value is a real `HTMLElement`. You can append it anywhere, query it, add your own listeners to it and read `element.shadowRoot`. The inner element is `element.shadowRoot.firstElementChild`.
+The returned value is a real `HTMLElement`. You can append it anywhere, query it, add your own listeners to it and read `element.shadowRoot`. The inner element is `element.shadowRoot.firstElementChild` (or `element.firstElementChild` with `shadow: false`, see [Shadow DOM and light DOM](#shadow-dom-and-light-dom)).
 
 Rendering is synchronous. Setting props, or calling `setState`, updates the DOM immediately; there is no scheduler and no batching.
 
@@ -113,20 +125,53 @@ const link = em.Link({ tag: 'a', href: '/docs', content: 'Docs' });
 
 Use a distinct name per kind of component. Names are a convention for your own readability and for devtools; they do not carry props or behavior.
 
+## Tag factories
+
+`em.<Name>` needs a `tag` prop to render anything other than a `div`, and the name carries no meaning. `tags` is the shorter form when you just want an element: the property is the tag, and the tag is fixed.
+
+```ts
+import { tags, mount } from 'ecmact';
+
+const form = tags.form({
+  onsubmit: (event) => event.preventDefault(),
+  children: [
+    tags.input({ type: 'email', name: 'email', placeholder: 'you@example.com', required: true }),
+    tags.button({ type: 'submit', content: 'Subscribe' }),
+  ],
+});
+
+mount('#app', form);
+```
+
+- `tags.a(...)`, `tags.input(...)`, `tags.section(...)` and so on exist for every tag in `HTMLElementTagNameMap`, with the same props as `em`, minus `tag`.
+- Types are exact without writing `tag`: `tags.a({ src })` and `tags.input({ type: 'bogus' })` are compile errors, `ref` and the lifecycle hooks receive the right element type, and the result is a `Component<'a'>`, `Component<'input'>` and so on.
+- Each call returns a regular component: `setState`, hooks, `shadow`, `css` and everything else work as described below.
+- `tags.<name>` renders into an `<em-<name>>` host. It shares the custom element class with `em.<Name>`, so `tags.button` and `em.Button` produce the same host element.
+
+Use `em.<Name>` for components that deserve their own name in devtools (`em.UserCard({ ... })`), and `tags` for plain elements.
+
 ## Props reference
 
-| Prop        | Type                          | Default | Description                                                     |
-| ----------- | ----------------------------- | ------- | --------------------------------------------------------------- |
-| `tag`       | `string`                      | `'div'` | Tag name of the inner element.                                  |
-| `content`   | `string`                      | `''`    | Text content. Never parsed as HTML.                             |
-| `html`      | `string`                      | -       | Raw HTML for the inner element. Opt-in, trusted input only.     |
-| `children`  | `Node[]`                      | `[]`    | Nodes appended after the content.                               |
-| `style`     | object of CSS properties      | -       | Inline styles, camelCase keys.                                  |
-| `ref`       | `(element) => void`           | -       | Called once, when the inner element is created.                 |
-| `on<event>` | `(event) => void`             | -       | Event listener on the inner element, lowercase, e.g. `onclick`. |
-| any other   | `string \| number \| boolean` | -       | Set as an HTML attribute on the inner element.                  |
+| Prop           | Type                                            | Default | Description                                                     |
+| -------------- | ----------------------------------------------- | ------- | --------------------------------------------------------------- |
+| `tag`          | `string`                                        | `'div'` | Tag name of the inner element.                                  |
+| `content`      | `string`                                        | `''`    | Text content. Never parsed as HTML.                             |
+| `html`         | `string`                                        | -       | Raw HTML for the inner element. Opt-in, trusted input only.     |
+| `children`     | `Node[]`                                        | `[]`    | Nodes appended after the content.                               |
+| `style`        | object of CSS properties                        | -       | Inline styles, camelCase keys.                                  |
+| `css`          | `string`                                        | -       | Stylesheet text scoped to this component's shadow root.         |
+| `ref`          | `(element) => void`                             | -       | Called once, when the inner element is created.                 |
+| `shadow`       | `boolean`                                       | `true`  | `false` renders into the light DOM. Read on the first render.   |
+| `mounted`      | `(element, component) => void \| (() => void)`  | -       | Called when connected to the document; may return a cleanup.    |
+| `unmounted`    | `(element, component) => void`                  | -       | Called when the component is disconnected from the document.    |
+| `beforeUpdate` | `(next, current, component) => boolean \| void` | -       | Return `false` to cancel an update.                             |
+| `updated`      | `(element, component, previous) => void`        | -       | Called after every render except the first.                     |
+| `error`        | `(error, info) => void`                         | -       | Receives errors from hooks, handlers and rendering.             |
+| `provide`      | `Provision[]`                                   | -       | Values this component offers to the components below it.        |
+| `on<event>`    | `(event) => void`                               | -       | Event listener on the inner element, lowercase, e.g. `onclick`. |
+| any other      | `string \| number \| boolean`                   | -       | Set as an HTML attribute on the inner element.                  |
 
-All props apply to the inner element, not to the `<em-*>` host.
+All props except `shadow`, `error`, `provide` and the lifecycle hooks apply to the inner element, not to the `<em-*>` host.
 
 ## Content and children
 
@@ -157,7 +202,7 @@ Children passed to `children` are moved, not cloned: a node can have only one pa
 
 ## Attributes
 
-Any prop that is not a reserved key (`tag`, `content`, `html`, `style`, `children`, `ref`) and does not start with `on` is set on the inner element with `setAttribute`.
+Any prop that is not a reserved key (`tag`, `content`, `html`, `style`, `css`, `children`, `ref`, `shadow`, `mounted`, `unmounted`, `beforeUpdate`, `updated`, `error`, `provide`) and does not start with `on` is set on the inner element with `setAttribute`.
 
 | Value                            | Result                              |
 | -------------------------------- | ----------------------------------- |
@@ -206,6 +251,67 @@ em.Card({
 
 Because the content lives in a Shadow DOM, global stylesheets do not reach it.
 
+## Stylesheets and Tailwind CSS
+
+The `style` prop sets inline properties. For everything inline styles cannot express - `:hover`, `:focus-visible`, media queries, pseudo-elements, animations, `:host` - use a stylesheet.
+
+### The `css` prop
+
+`css` takes stylesheet text that applies inside the component's shadow root:
+
+```ts
+em.Button({
+  tag: 'button',
+  content: 'Save',
+  css: `
+    button { padding: 8px 16px; border-radius: 6px; }
+    button:hover { background: #eef; }
+    @media (max-width: 600px) { button { width: 100%; } }
+  `,
+});
+```
+
+- Selectors target the inner element and anything inside it. `:host` targets the `<em-*>` element itself.
+- The stylesheet is attached with constructable stylesheets (`adoptedStyleSheets`), one per component. Where those are not available, a `<style>` element is placed in the shadow root instead.
+- `setState({ css })` replaces the text in place; `css: undefined` removes it.
+- `css` has no effect with `shadow: false`, because there is no shadow root: use a regular stylesheet in the page.
+- The text is not sanitized or scoped further. Treat it as code you wrote, not as user input.
+
+### Shared stylesheets
+
+`configure({ styles })` adds stylesheets to every shadow component. They are applied before the component's own `css`, so a component can override them.
+
+```ts
+import { configure } from 'ecmact';
+import base from './base.css?inline';
+
+configure({ styles: [base] });
+```
+
+Sources can be strings or `CSSStyleSheet` objects. Strings are converted once and the resulting sheet is shared by all components.
+
+### Tailwind CSS
+
+Global CSS does not reach a shadow root, so Tailwind utilities do nothing inside components by default. There are two ways to use it:
+
+1. **Light DOM.** Render components with `shadow: false` (or `configure({ shadow: false })`) and load Tailwind in the page as usual. Nothing else is needed.
+2. **Shared stylesheet.** Build Tailwind to a CSS file and pass it as a shared stylesheet. Utilities, theme values and variants then work inside every shadow root:
+
+```ts
+import { configure, tags } from 'ecmact';
+import tailwind from './tailwind.out.css?inline';
+
+configure({ styles: [tailwind] });
+
+tags.button({ class: 'rounded-lg bg-red-500 px-4 py-2 text-white md:px-8', content: 'Delete' });
+```
+
+Tailwind must see the class names in your source (`@source` in Tailwind 4, or the `content` globs in earlier versions); the build is independent of this library.
+
+Tailwind 4 registers custom properties with `@property`, and browsers only honor `@property` in the document, not in a shadow root. Without them, utilities that rely on those properties (`border`, `shadow-*`, `ring-*`, `translate-*` and other transforms) silently do nothing. ECMact handles this for you: when a shared stylesheet contains `@property` rules, they are copied once into a `<style data-ecmact="properties">` element in `document.head`.
+
+This was checked against Tailwind 4.3.4 in Chromium: with the shared stylesheet, padding, colors, radius, flex, gap, font weight, `border`, `shadow-lg`, `ring-2`, `translate-x-4` and the `md:` variant resolve to the same computed values as in a light DOM component. Other browsers and Tailwind versions were not checked.
+
 ## Events
 
 Props starting with `on` whose value is a function become event listeners on the inner element. The event name is the rest of the key, lowercased.
@@ -247,6 +353,87 @@ input.focus();
 
 Refs are the escape hatch for anything the props do not cover: listener options, live form values, focus, measurements, third-party widgets.
 
+## Lifecycle
+
+Four optional hooks run at defined points. All of them receive the host component, typed by tag, so a hook can call `component.setState(...)` without closing over a variable.
+
+| Hook           | Signature                                       | When                                                                                                  |
+| -------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `mounted`      | `(element, component) => void \| (() => void)`  | The component is connected to a document. Runs after the first render. May return a cleanup function. |
+| `unmounted`    | `(element, component) => void`                  | The component is disconnected from a document. Runs after the cleanup function.                       |
+| `beforeUpdate` | `(next, current, component) => boolean \| void` | Before an update. Return `false` to cancel it. Does not run for the first render.                     |
+| `updated`      | `(element, component, previous) => void`        | After every render caused by `setState` or by assigning `props`, except the first one.                |
+
+`element` is the inner element. `next`, `current` and `previous` are full props objects.
+
+```ts
+const chart = em.Chart({
+  mounted: (element, component) => {
+    const observer = new ResizeObserver(() => component.setState({ content: size(element) }));
+    observer.observe(element);
+    return () => observer.disconnect();
+  },
+  beforeUpdate: (next, current) => next.content !== current.content,
+  updated: (element, _component, previous) => redraw(element, previous),
+});
+```
+
+**Cleanup.** If `mounted` returns a function, it is called when the component is disconnected, before `unmounted`. Each connect gets its own cleanup, so a component that is moved in the DOM sets up and tears down once per move.
+
+**Cancelling updates.** `beforeUpdate` is a veto: when it returns `false`, the new props are discarded entirely. The DOM and `component.props` stay as they were, and `updated` does not run. This means a skipped `setState` is lost, not deferred. Use it to drop updates that cannot change the output:
+
+```ts
+em.Label({
+  content: 'x',
+  beforeUpdate: (next, current) => next.content !== current.content,
+});
+```
+
+`beforeUpdate` is read from the incoming props, which for `setState` are the current props merged with the change, so a hook set at creation keeps applying.
+
+**Details**
+
+- `mounted` and `unmounted` follow the custom element lifecycle: moving a component in the DOM (removing and appending it again) disconnects and connects it. Do setup in `mounted` and release it in the returned cleanup.
+- A component that is created but never attached to a document never calls `mounted`.
+- `updated` also runs when `tag` changes; the argument is then the new inner element.
+- Hooks are read from the current props at the moment they fire, so `setState({ unmounted })` replaces the hook.
+- Calling `setState` from `mounted` renders once more and triggers `updated`; `beforeUpdate` runs for it as well.
+- Hooks are not rendered as attributes.
+
+Use `ref` for code that must run once when the inner element is created, regardless of whether the component is in the document.
+
+## Shadow DOM and light DOM
+
+By default a component renders into an open Shadow DOM, which isolates its styles from the page. Pass `shadow: false` to render the inner element directly into the `<em-*>` host instead:
+
+```ts
+const form = em.Form({
+  tag: 'form',
+  shadow: false,
+  children: [em.Email({ tag: 'input', type: 'email', name: 'email', shadow: false })],
+});
+```
+
+```
+<em-form>
+  <form>                   rendered into the host, no shadow root
+    <em-email>
+      <input type="email" name="email">
+    </em-email>
+  </form>
+</em-form>
+```
+
+With `shadow: false`:
+
+- Global stylesheets and selectors such as `em-form > form` apply to the content.
+- Controls take part in the surrounding `<form>`: submission, validation and `label`/`for` references work, as long as the whole chain is in the light DOM (a control inside a shadow root of an ancestor component is still isolated).
+- `element.shadowRoot` is `null`; the inner element is `element.firstElementChild`.
+- The host's own children are fully managed by the component and replaced on every render. Do not put your own children into an `<em-*>` host.
+- Styles from the `style` prop are still applied inline on the inner element.
+
+`shadow` is read once, on the first render. Changing it later through `setState` has no effect, because an element cannot switch between shadow and light DOM after it has been rendered. Decide at creation time.
+
 ## State and updates
 
 Each component exposes its props and an update method.
@@ -276,6 +463,331 @@ Updates are in place:
 Components do not track state for you. `setState` is a rendering call, not a store: keep your application state wherever you like and call `setState` when it changes.
 
 An `<em-*>` element created outside the library (for example `document.createElement('em-card')`) renders an empty `div` when it is connected.
+
+## Global configuration
+
+`configure(options)` sets application-wide defaults. Call it once, before creating components. Options are merged between calls.
+
+```ts
+import { configure } from 'ecmact';
+
+configure({
+  shadow: false,
+  styles: [tailwind],
+});
+```
+
+| Option     | Type                          | Default | Description                                                           |
+| ---------- | ----------------------------- | ------- | --------------------------------------------------------------------- |
+| `shadow`   | `boolean`                     | `true`  | Default for the `shadow` prop. A component's own `shadow` still wins. |
+| `styles`   | `(string \| CSSStyleSheet)[]` | `[]`    | Shared stylesheets adopted by every shadow component.                 |
+| `onError`  | `(error, info) => void`       | -       | Default error handler, see [Error handling](#error-handling).         |
+| `warnings` | `boolean`                     | `true`  | Development warnings in the console, see [Warnings](#warnings).       |
+
+Configuration is read when a component renders. Components that were already rendered keep what they had, so configure before the first component is created. There is no configuration file: ECMact has no build step of its own, so a file would have nothing to read it.
+
+## Warnings
+
+ECMact logs a `console.warn` for usage that is silently ignored, so mistakes do not go unnoticed. Each distinct message is logged once.
+
+| Message                                                  | Cause                                                                |
+| -------------------------------------------------------- | -------------------------------------------------------------------- |
+| `attribute "x" was ignored, object values cannot be set` | An attribute prop is an object, function or other unsupported value. |
+| `style "x" was ignored, object values cannot be set`     | A style value is not a string or a number.                           |
+| `handler "onclick" is not a function and was ignored`    | An `on*` prop is not a function.                                     |
+| `content is ignored when html is set`                    | Both `content` and `html` were passed.                               |
+| `css is ignored when shadow is false`                    | `css` was passed to a light DOM component.                           |
+| `shadow cannot change after the first render`            | `shadow` (or the configured default) changed after the first render. |
+
+`undefined`, `null` and `false` never warn: they are the normal way to switch a prop off (`disabled: isBusy && true`, `onclick: enabled ? handler : undefined`).
+
+Turn the warnings off with `configure({ warnings: false })`, for example in production builds.
+
+## Signals
+
+`setState` is enough for small components. When state is shared between components, derived from other state, or changes outside of any component (a locale, a theme, a store), bind props to signals instead. A signal is a value that notifies its readers when it changes.
+
+```ts
+import { computed, effect, signal, tags, mount } from 'ecmact';
+
+const count = signal(0);
+const label = computed(() => `Clicked ${count.value} times`);
+
+const button = tags.button({
+  content: label,
+  onclick: () => count.value++,
+});
+
+mount('#app', button);
+```
+
+No `setState` call and no reference to `button` is needed: the content follows `count`.
+
+### API
+
+| Function                     | Description                                                                                          |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `signal(value)`              | A writable signal. Read and write `.value`; `.peek()` reads without subscribing.                     |
+| `computed(fn)`               | A read-only signal derived from other signals. Lazy, memoized, recomputed when a dependency changes. |
+| `effect(fn)`                 | Runs `fn` now and again whenever a signal it read changes. Returns a function that stops it.         |
+| `batch(fn)`                  | Groups writes: effects run once, after `fn` returns. Returns the result of `fn`.                     |
+| `untracked(fn)`              | Runs `fn` without subscribing to the signals it reads. Returns the result of `fn`.                   |
+| `isSignal(value)`            | Type guard for signals and computed signals.                                                         |
+| `signal.subscribe(listener)` | Calls `listener(value)` now and on every change. Returns an unsubscribe function.                    |
+
+```ts
+const first = signal('Ada');
+const last = signal('Lovelace');
+const full = computed(() => `${first.value} ${last.value}`);
+
+const stop = effect(() => {
+  document.title = full.value;
+  return () => (document.title = '');
+});
+
+batch(() => {
+  first.value = 'Grace';
+  last.value = 'Hopper';
+});
+
+stop();
+```
+
+- Dependencies are discovered by reading `.value` while an effect or a computed value runs, and re-discovered on every run, so conditional reads are handled.
+- Writing the value a signal already holds (`Object.is`) does nothing.
+- Effects run synchronously when a signal is written, or after the outermost `batch`. A computed value read by several effects is recomputed once.
+- The function passed to `effect` may return a cleanup, which runs before the next run and when the effect is stopped.
+- If effects throw, the others still run, and the first error is rethrown from the write. An effect that keeps triggering itself is stopped with an error instead of looping forever.
+- Signals hold values, not deep reactivity: replace objects and arrays instead of mutating them (`items.value = [...items.value, item]`).
+
+### Reactive props
+
+These props accept a signal (or a computed signal) instead of a plain value:
+
+- `content`, `html`, `css`
+- `style`, either as a signal of a whole style object, or an object whose values are signals
+- every attribute (`class`, `title`, `disabled`, `type`, `data-*`, `aria-*`, ...), typed with the same value type as the plain attribute
+
+Not reactive: `tag`, `children`, event handlers, `ref`, `shadow` and the lifecycle hooks. Use `setState` for those.
+
+```ts
+const theme = signal<'light' | 'dark'>('light');
+
+tags.div({
+  class: computed(() => `card card-${theme.value}`),
+  style: { color: computed(() => (theme.value === 'dark' ? '#eee' : '#111')) },
+  content: 'Hello',
+});
+```
+
+### How components follow signals
+
+- A component reads its signal props when it renders, and subscribes to them **only while it is connected to a document**. When it is disconnected it unsubscribes, so removed components do not leak and stop doing work.
+- When it is connected again, it catches up with any changes made in the meantime. If nothing changed, it does not render and `updated` does not run.
+- Signal updates reuse the DOM node like `setState` does, and go through the same hooks: `beforeUpdate` runs with the resolved values and can cancel the update (the next change is evaluated again), `updated` runs afterwards.
+- Hooks, `props` getters and `setState` see two views of the props: `component.props` holds what you passed (signals included), while `beforeUpdate` and `updated` receive resolved plain values.
+- `setState` and assigning `props` work as before. Replacing a signal with a plain value stops following it, and the other way round.
+- Signals read inside hooks or event handlers are not subscribed by the component.
+
+### Signals and lifecycle
+
+`effect` returns a function that stops it, which is exactly the shape of a cleanup. Returning it from `mounted` ties the effect to the component's time in the document:
+
+```ts
+const clock = tags.time({
+  mounted: (_, component) => {
+    const now = signal(new Date());
+    const timer = setInterval(() => (now.value = new Date()), 1000);
+    const stop = effect(() => component.setState({ content: now.value.toLocaleTimeString() }));
+    return () => {
+      clearInterval(timer);
+      stop();
+    };
+  },
+});
+```
+
+For children that depend on a list, rebuild them in an effect:
+
+```ts
+const items = signal(['one', 'two']);
+
+const list = tags.ul({
+  mounted: (_, component) =>
+    effect(() =>
+      component.setState({ children: items.value.map((label) => tags.li({ content: label })) }),
+    ),
+});
+```
+
+## Recipes
+
+Everything below is built from the pieces above. None of it needs extra API.
+
+### Internationalization
+
+ECMact has no built-in message catalog. A locale signal and a function that reads it are enough, and they work with any library that can be wrapped in one (`Intl`, i18next, FormatJS): the translated text is just a computed value.
+
+```ts
+import { computed, signal, tags } from 'ecmact';
+
+const dictionary = {
+  en: { greeting: 'Hello, {name}!', save: 'Save' },
+  cs: { greeting: 'Ahoj, {name}!', save: 'Uložit' },
+};
+
+type Key = keyof (typeof dictionary)['en'];
+
+const locale = signal<'en' | 'cs'>('en');
+
+const t = (key: Key, params: Record<string, string | number> = {}) =>
+  dictionary[locale.value][key].replace(/\{(\w+)\}/g, (_, name) => String(params[name]));
+
+const tr = (key: Key, params?: Record<string, string | number>) => computed(() => t(key, params));
+
+const title = tags.h1({ lang: locale, content: tr('greeting', { name: 'Sasha' }) });
+const save = tags.button({ content: tr('save') });
+
+locale.value = 'cs';
+```
+
+Because `t` reads `locale.value`, every `computed` that calls it is re-evaluated on a locale change, and the mounted components update in place. Dates, numbers and plurals follow the same way: `computed(() => new Intl.DateTimeFormat(locale.value).format(date))`.
+
+### Theming
+
+Keep the theme in a signal and derive styles from it:
+
+```ts
+const theme = signal<'light' | 'dark'>('light');
+
+const palette = computed(() =>
+  theme.value === 'dark' ? { bg: '#111', fg: '#eee' } : { bg: '#fff', fg: '#111' },
+);
+
+const panel = tags.section({
+  content: 'Settings',
+  style: computed(() => ({ background: palette.value.bg, color: palette.value.fg })),
+});
+
+theme.value = 'dark';
+```
+
+For a theme shared through CSS, set custom properties on `:root` from an effect; they inherit into shadow roots, so components can use `var(--bg)` in their `css`:
+
+```ts
+effect(() => {
+  document.documentElement.style.setProperty('--bg', palette.value.bg);
+});
+```
+
+### Shared state
+
+A store is a plain module that exports signals and the functions that change them:
+
+```ts
+// cart.ts
+import { computed, signal } from 'ecmact';
+
+const items = signal<{ id: string; price: number }[]>([]);
+
+export const total = computed(() => items.value.reduce((sum, item) => sum + item.price, 0));
+export const count = computed(() => items.value.length);
+export const add = (item: { id: string; price: number }) => (items.value = [...items.value, item]);
+```
+
+```ts
+import { count, total } from './cart';
+
+tags.span({ content: computed(() => `${count.value} items, ${total.value} total`) });
+```
+
+Any component in any file that reads `count` or `total` stays up to date, with no provider and no prop drilling.
+
+## Context
+
+Context passes a value to every component below another one, without handing it down through props. It is built on a DOM event that bubbles through ancestors and shadow roots, so it follows the element tree, not the document.
+
+```ts
+import { computed, consume, createContext, em, provide, signal, tags } from 'ecmact';
+import type { Signal } from 'ecmact';
+
+const Theme = createContext<Signal<'light' | 'dark'>>('theme');
+
+const theme = signal<'light' | 'dark'>('light');
+
+const badge = tags.span({
+  content: 'status',
+  mounted: (_, component) => {
+    const current = consume(Theme, component);
+    if (current) {
+      component.setState({ class: computed(() => `badge badge-${current.value}`) });
+    }
+  },
+});
+
+const app = em.App({
+  provide: [provide(Theme, theme)],
+  children: [badge],
+});
+```
+
+| Function                    | Description                                                                                            |
+| --------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `createContext<T>(name)`    | Creates a context key. The name is for debugging; two contexts with the same name are still different. |
+| `provide(context, value)`   | Pairs a context with a value. Pass a list of them in the `provide` prop.                               |
+| `consume(context, element)` | Returns the value from the nearest provider above `element`, or `undefined` if there is none.          |
+
+- `consume` is synchronous. Call it from `mounted` (or any later time), when the component is already inside the tree it belongs to.
+- The nearest provider of a given context wins. A provider does not answer its own `consume` call, so a component can read an outer value and offer a new one for the same context.
+- Providers only answer the contexts they were given; other requests continue to outer providers.
+- A provider answers for elements inside it whether or not it is connected to a document, and always uses its current `provide` prop.
+- Context carries values, not reactivity. To make consumers update, provide a signal and read it inside `computed` or an effect, as above.
+- `consume` works on any element, not only components, so it can be used from plain DOM code inside a provider.
+
+## Error handling
+
+An error thrown in one of your callbacks would otherwise break the render that called it. Pass an error handler to keep a component working and to find out what happened.
+
+```ts
+import { configure, em } from 'ecmact';
+
+configure({
+  onError: (error, { component, phase, event }) =>
+    report(error, { tag: component.localName, phase, event }),
+});
+
+const widget = em.Widget({
+  onclick: () => {
+    throw new Error('click failed');
+  },
+  error: (error, info) => console.error(info.phase, error),
+});
+```
+
+The handler receives the error and an `info` object:
+
+| Field       | Description                                                  |
+| ----------- | ------------------------------------------------------------ |
+| `component` | The component the error came from.                           |
+| `phase`     | Where it happened, see below.                                |
+| `event`     | For the `event` phase, the lowercase event name (`'click'`). |
+
+| Phase          | Source                                                                       |
+| -------------- | ---------------------------------------------------------------------------- |
+| `render`       | Rendering the component, including a throwing `ref`.                         |
+| `event`        | A listener passed as an `on<event>` prop.                                    |
+| `mounted`      | The `mounted` hook.                                                          |
+| `cleanup`      | The cleanup function returned by `mounted`.                                  |
+| `unmounted`    | The `unmounted` hook.                                                        |
+| `beforeUpdate` | The `beforeUpdate` hook. A failed `beforeUpdate` does not cancel the update. |
+| `updated`      | The `updated` hook.                                                          |
+
+- The `error` prop of a component wins over `configure({ onError })`.
+- With no handler at all, errors are rethrown, exactly as if there were no error handling. Nothing is swallowed silently.
+- If the handler throws, that error propagates.
+- A handled error does not stop later steps: for example `unmounted` still runs after a failing cleanup.
+- Only synchronous errors are caught. A rejected promise from an `async` handler is not seen, handle it inside the handler.
+- Errors in effects you create yourself are not component errors: they surface from the signal write that triggered them, as described in [Signals](#signals).
 
 ## Mounting
 
@@ -351,11 +863,11 @@ The last three calls are compile errors: `src` is not an attribute of `a`, `'bog
 What is typed:
 
 - **Return type.** `em.X({ tag: 'a' })` is `Component<'a'>`; `setState` accepts `Partial<ComponentProps<'a'>>`.
-- **Attributes by tag.** Global attributes (`id`, `class`, `title`, `lang`, `dir`, `hidden`, `inert`, `tabindex`, `role`, `slot`, `part`, `accesskey`, `translate`, `spellcheck`, `draggable`, `contenteditable`, `inputmode`) plus `data-*` and `aria-*` apply to every tag. Tag-specific attributes are defined for: `a`, `img`, `input`, `button`, `form`, `label`, `select`, `option`, `optgroup`, `textarea`, `fieldset`, `output`, `progress`, `meter`, `link`, `script`, `iframe`, `video`, `audio`, `source`, `track`, `canvas`, `td`, `th`, `col`, `colgroup`, `ol`, `li`, `details`, `dialog`, `blockquote`, `q`, `time`, `meta`, `slot`, `data`, `del`, `ins`. Other standard tags accept the global attributes only.
+- **Attributes by tag.** Global attributes (`id`, `class`, `title`, `lang`, `dir`, `hidden`, `inert`, `tabindex`, `role`, `slot`, `part`, `exportparts`, `accesskey`, `translate`, `spellcheck`, `draggable`, `contenteditable`, `inputmode`, `enterkeyhint`, `autocapitalize`, `autofocus`, `nonce`, `popover`, `is`, and the microdata attributes `itemid`, `itemprop`, `itemref`, `itemscope`, `itemtype`) plus `data-*` and `aria-*` apply to every tag. Tag-specific attributes are defined for: `a`, `area`, `map`, `base`, `embed`, `object`, `style`, `template`, `img`, `input`, `button`, `form`, `label`, `select`, `option`, `optgroup`, `textarea`, `fieldset`, `output`, `progress`, `meter`, `link`, `script`, `iframe`, `video`, `audio`, `source`, `track`, `canvas`, `td`, `th`, `col`, `colgroup`, `ol`, `li`, `details`, `dialog`, `blockquote`, `q`, `time`, `slot`, `data`, `del`, `ins`. Other standard tags accept the global attributes only. If a valid attribute is missing from a tag, add it to `AttributeMap` in `src/types/attributes.ts`.
 - **Custom tags.** A tag that is not a standard HTML tag (for example `'x-widget'`, or a plain `string`) accepts any attribute.
 - **Events.** `on<event>` props are typed from `HTMLElementEventMap`; the handler receives the right event type. Unknown `on*` names are errors on standard tags and allowed on custom tags.
 - **Styles.** `style` accepts the string-valued properties of `CSSStyleDeclaration`, with `string | number` values.
-- **`ref`.** The element type follows the tag: `HTMLInputElement` for `'input'`, `HTMLElement` for custom tags.
+- **`ref` and lifecycle hooks.** The element type follows the tag: `HTMLInputElement` for `'input'`, `HTMLElement` for custom tags. `shadow` is a `boolean`.
 
 Attribute value types follow HTML semantics: booleans for boolean attributes, numbers for numeric ones, string unions for enumerated ones.
 
@@ -392,11 +904,12 @@ Any evergreen browser with Custom Elements v1, Shadow DOM and ES2022 class field
 ## Limitations
 
 - **Attributes, not properties.** Props map to attributes. For form controls, `value` and `checked` set the default value/state; after the user interacts with the control, changing the attribute no longer changes what is displayed. Set live values through a `ref` (`input.value = '...'`).
-- **Shadow DOM by default.** Global CSS does not apply inside components, and form controls inside a Shadow DOM do not take part in an outer `<form>`'s submission or validation. Label/`for` and `id` references do not cross the shadow boundary.
+- **Shadow DOM by default.** Global CSS does not apply inside components, and form controls inside a Shadow DOM do not take part in an outer `<form>`'s submission or validation. Label/`for` and `id` references do not cross the shadow boundary. Use `shadow: false` where that matters. The choice is made on the first render and cannot be changed afterwards.
 - **One inner element.** A component renders a single element. Compose several components for more complex structures.
-- **Full rebuild of children.** Children and text are rebuilt on every update; there is no keyed child diffing.
-- **No lifecycle hooks, context or store.** The library is a rendering layer.
+- **Children are not reactive props.** Rebuild them in an effect (see [Signals and lifecycle](#signals-and-lifecycle)). Children and text are rebuilt on every update; there is no keyed child diffing.
+- **Minimal lifecycle.** There are `mounted`, `unmounted`, `beforeUpdate` and `updated` hooks. State is whatever signals or objects you keep; there is no built-in store, router or message catalog (see [Recipes](#recipes)).
 - **Handlers without options.** Listener options require a `ref`.
+- **Configuration is read at render time.** `configure` does not update components that are already rendered.
 
 ## Migrating from 1.x
 
@@ -426,33 +939,48 @@ npm test
 npm run build
 ```
 
-| Script                 | Description                                          |
-| ---------------------- | ---------------------------------------------------- |
-| `npm run build`        | Vite library build: ES, CJS and `.d.ts` into `dist/` |
-| `npm test`             | Vitest with happy-dom and V8 coverage                |
-| `npm run typecheck`    | `tsc --noEmit` over `src` and `tests`                |
-| `npm run lint`         | ESLint (flat config, typescript-eslint, prettier)    |
-| `npm run lint:fix`     | ESLint with autofix                                  |
-| `npm run format`       | Prettier write                                       |
-| `npm run format:check` | Prettier check                                       |
+| Script                   | Description                                                 |
+| ------------------------ | ----------------------------------------------------------- |
+| `npm run build`          | Vite library build: ES, CJS and `.d.ts` into `dist/`        |
+| `npm test`               | Structure check, then Vitest with happy-dom and V8 coverage |
+| `npm run test:structure` | Checks that `tests/` mirrors `src/`                         |
+| `npm run typecheck`      | `tsc --noEmit` over `src` and `tests`                       |
+| `npm run lint`           | ESLint (flat config, typescript-eslint, prettier)           |
+| `npm run lint:fix`       | ESLint with autofix                                         |
+| `npm run format`         | Prettier write                                              |
+| `npm run format:check`   | Prettier check                                              |
 
-Tests enforce 100% statement, branch, function and line coverage; the run fails if coverage drops. Type-level behavior (attributes, events, styles, `ref` by tag) is covered by `tests/types.test.ts` and checked by `npm run typecheck`.
+### Test rules
+
+- **`tests/` mirrors `src/`, one test file per source file.** `src/utils/render.ts` is tested by `tests/utils/render.test.ts`, `src/signals.ts` by `tests/signals.test.ts`, and so on, including `index.ts` files and files that contain only types (their tests are type-level, checked by `npm run typecheck`).
+- **100% coverage** of statements, branches, functions and lines. The run fails if coverage drops.
+- Both are enforced: `npm test` first runs `npm run test:structure`, which fails on a source file without a test and on a test without a source file. Adding a file to `src/` means adding its test in the same change.
+- Shared test helpers live in `tests/helpers.ts`; it is not a test file and is not mirrored.
 
 Source layout:
 
 ```
 src/
-  index.ts           public exports
-  em.ts              Proxy factory and custom element registration
-  component.ts       custom element class: props, setState, rendering entry
-  types/             ComponentProps, attribute tables, render state
+  index.ts              public exports
+  em.ts                 Proxy factory and custom element registration
+  tags.ts               tag factories
+  component.ts          custom element class: props, signals, hooks, context, errors
+  config.ts             configure() and its defaults
+  context.ts            createContext, provide, consume
+  signals.ts            signal, computed, effect, batch, untracked
+  types/                ComponentProps, attribute tables, render state
   utils/
-    render.ts        creates or reuses the inner element and fills it
-    syncAttributes.ts  attribute diffing
-    applyStyle.ts    style diffing through the CSSOM
-    setEventListeners.ts  listener diffing
-    mount.ts         mount helper
-tests/               Vitest suites (runtime and type-level)
+    render.ts           creates or reuses the inner element and fills it
+    resolveProps.ts     unwraps signals in props
+    propsEqual.ts       compares resolved props
+    syncAttributes.ts   attribute diffing
+    applyStyle.ts       style diffing through the CSSOM
+    applyStyleSheets.ts css prop and shared stylesheets
+    setEventListeners.ts listener diffing, error reporting
+    mount.ts            mount helper
+    warn.ts             development warnings
+tests/                  mirrors src/, plus helpers.ts
+scripts/check-tests.mjs the structure check
 ```
 
 ## Release

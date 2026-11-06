@@ -32,6 +32,18 @@ export interface GlobalAttributes {
   draggable?: 'true' | 'false';
   contenteditable?: 'true' | 'false' | 'plaintext-only' | '';
   inputmode?: 'none' | 'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url';
+  enterkeyhint?: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send';
+  autocapitalize?: 'none' | 'off' | 'on' | 'sentences' | 'words' | 'characters';
+  autofocus?: boolean;
+  nonce?: string;
+  popover?: 'auto' | 'manual' | 'hint' | '';
+  is?: string;
+  exportparts?: string;
+  itemid?: string;
+  itemprop?: string;
+  itemref?: string;
+  itemscope?: boolean;
+  itemtype?: string;
   [attribute: `data-${string}`]: Primitive;
   [attribute: `aria-${string}`]: Primitive;
 }
@@ -46,6 +58,37 @@ export interface AttributeMap {
     type?: string;
     ping?: string;
     referrerpolicy?: Referrer;
+  };
+  area: {
+    alt?: string;
+    coords?: string;
+    shape?: 'rect' | 'circle' | 'poly' | 'default';
+    href?: string;
+    target?: Target;
+    rel?: string;
+    download?: string | boolean;
+    hreflang?: string;
+    ping?: string;
+    referrerpolicy?: Referrer;
+  };
+  map: { name?: string };
+  base: { href?: string; target?: Target };
+  embed: { src?: string; type?: string; width?: Size; height?: Size };
+  object: {
+    data?: string;
+    type?: string;
+    name?: string;
+    form?: string;
+    usemap?: string;
+    width?: Size;
+    height?: Size;
+  };
+  style: { media?: string; blocking?: string };
+  template: {
+    shadowrootmode?: 'open' | 'closed';
+    shadowrootdelegatesfocus?: boolean;
+    shadowrootclonable?: boolean;
+    shadowrootserializable?: boolean;
   };
   img: {
     src?: string;
@@ -110,6 +153,15 @@ export interface AttributeMap {
     alt?: string;
     width?: Size;
     height?: Size;
+    capture?: 'user' | 'environment' | boolean;
+    dirname?: string;
+    formaction?: string;
+    formenctype?: string;
+    formmethod?: 'get' | 'post' | 'dialog';
+    formnovalidate?: boolean;
+    formtarget?: Target;
+    popovertarget?: string;
+    popovertargetaction?: 'show' | 'hide' | 'toggle';
   };
   button: {
     type?: 'button' | 'submit' | 'reset';
@@ -122,8 +174,12 @@ export interface AttributeMap {
     formmethod?: 'get' | 'post' | 'dialog';
     formtarget?: Target;
     formnovalidate?: boolean;
+    formenctype?: string;
+    popovertarget?: string;
+    popovertargetaction?: 'show' | 'hide' | 'toggle';
   };
   form: {
+    rel?: string;
     action?: string;
     method?: 'get' | 'post' | 'dialog';
     enctype?: string;
@@ -202,6 +258,7 @@ export interface AttributeMap {
     height?: Size;
     allow?: string;
     allowfullscreen?: boolean;
+    csp?: string;
     sandbox?: string;
     loading?: 'eager' | 'lazy';
     referrerpolicy?: Referrer;
@@ -218,6 +275,9 @@ export interface AttributeMap {
     playsinline?: boolean;
     preload?: Preload;
     crossorigin?: CrossOrigin;
+    controlslist?: string;
+    disablepictureinpicture?: boolean;
+    disableremoteplayback?: boolean;
   };
   audio: {
     src?: string;
@@ -227,6 +287,8 @@ export interface AttributeMap {
     muted?: boolean;
     preload?: Preload;
     crossorigin?: CrossOrigin;
+    controlslist?: string;
+    disableremoteplayback?: boolean;
   };
   source: {
     src?: string;
@@ -239,7 +301,13 @@ export interface AttributeMap {
   };
   canvas: { width?: Size; height?: Size };
   td: { colspan?: number; rowspan?: number; headers?: string };
-  th: { colspan?: number; rowspan?: number; headers?: string; scope?: string; abbr?: string };
+  th: {
+    colspan?: number;
+    rowspan?: number;
+    headers?: string;
+    scope?: 'row' | 'col' | 'rowgroup' | 'colgroup';
+    abbr?: string;
+  };
   col: { span?: number };
   colgroup: { span?: number };
   ol: { start?: number; reversed?: boolean; type?: '1' | 'a' | 'A' | 'i' | 'I' };
@@ -249,7 +317,6 @@ export interface AttributeMap {
   blockquote: { cite?: string };
   q: { cite?: string };
   time: { datetime?: string };
-  meta: { name?: string; content?: string; charset?: string; 'http-equiv'?: string };
   track: {
     src?: string;
     kind?: 'subtitles' | 'captions' | 'descriptions' | 'chapters' | 'metadata';

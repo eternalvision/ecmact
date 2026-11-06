@@ -1,6 +1,22 @@
-import type { ComponentProps } from '../types';
+import type { ResolvedProps } from '../types';
+import { warn } from './warn';
 
-const reservedKeys = new Set(['tag', 'content', 'html', 'style', 'children', 'ref']);
+const reservedKeys = new Set([
+  'tag',
+  'content',
+  'html',
+  'style',
+  'css',
+  'children',
+  'ref',
+  'shadow',
+  'mounted',
+  'unmounted',
+  'beforeUpdate',
+  'updated',
+  'error',
+  'provide',
+]);
 
 const toAttributeValue = (value: unknown) => {
   if (value === true) return '';
@@ -10,7 +26,7 @@ const toAttributeValue = (value: unknown) => {
 
 export const syncAttributes = (
   element: HTMLElement,
-  props: ComponentProps,
+  props: ResolvedProps,
   previous: Set<string>,
 ) => {
   const next = new Map<string, string>();
@@ -18,7 +34,11 @@ export const syncAttributes = (
   Object.entries(props).forEach(([key, value]) => {
     if (reservedKeys.has(key) || key.startsWith('on')) return;
     const attribute = toAttributeValue(value);
-    if (attribute !== null) next.set(key, attribute);
+    if (attribute !== null) {
+      next.set(key, attribute);
+    } else if (value !== undefined && value !== null && value !== false) {
+      warn(`attribute "${key}" was ignored, ${typeof value} values cannot be set`);
+    }
   });
 
   previous.forEach((key) => {

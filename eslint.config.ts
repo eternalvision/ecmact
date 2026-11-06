@@ -8,6 +8,10 @@ export default tseslint.config(
   tseslint.configs.recommended,
   prettier,
   {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: { globals: { console: 'readonly', process: 'readonly', URL: 'readonly' } },
+  },
+  {
     rules: {
       eqeqeq: ['error', 'always', { null: 'ignore' }],
       'no-duplicate-imports': 'error',
