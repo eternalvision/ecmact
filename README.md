@@ -62,9 +62,26 @@ npm install
 npm run dev
 ```
 
-The same works with `pnpm create ecmact`, `yarn create ecmact` and `bun create ecmact`; the printed next steps use the package manager that started it. Run it without arguments to be asked for the name and for Tailwind.
+With pnpm:
 
-You get a [Vite](https://vite.dev) project in TypeScript with a counter built from a signal, a Vitest test for it (happy-dom), a type-checking build and a `.gitignore`. The `ecmact` dependency is pinned to the version that the scaffolder was released with.
+```bash
+pnpm create ecmact my-app
+cd my-app
+pnpm install
+pnpm dev
+```
+
+`yarn create ecmact` and `bun create ecmact` work too. The printed next steps use the package manager that started the scaffolder. Run it without arguments to be asked for the name and for Tailwind.
+
+### What you get
+
+A [Vite](https://vite.dev) project in TypeScript with a small welcome page, like the starters of Vite, React and Next.js: the ECMact logo, a hint about where to start, a counter built from a signal and a few links. It follows the colors of the logo, in the dark scheme or the light one, depending on the system.
+
+- **Few files.** `src/app.ts` is the page, `src/components/` holds the logo and the counter (a function that returns an element and a signal that drives its label), `src/main.ts` mounts the app.
+- **A test.** The counter has a Vitest test (happy-dom), so `npm test` has something to run.
+- **Prettier and ESLint, configured in detail.** Prettier options, `.editorconfig` and VS Code settings; ESLint with the strict, type-aware `typescript-eslint` rule sets plus rules for correctness, safety (no `innerHTML`) and style. `npm run check` runs the type check, lint, format check and tests in one go.
+
+The `ecmact` dependency is pinned to the version that the scaffolder was released with. The generated `README.md` lists the scripts and explains the lint setup.
 
 | Option          | Description                                                   |
 | --------------- | ------------------------------------------------------------- |
@@ -75,7 +92,9 @@ You get a [Vite](https://vite.dev) project in TypeScript with a counter built fr
 | `-f, --force`   | Write into a directory that is not empty.                     |
 | `-h, --help`    | Show the options.                                             |
 
-With `--tailwind` the project gets `tailwindcss` and `@tailwindcss/vite`, a `src/tailwind.css`, and the entry file passes the compiled CSS to `configure({ styles })`, so utility classes work inside the shadow roots of components (see [Tailwind CSS](#tailwind-css)). I checked both variants by scaffolding, installing, building, running the tests and loading the build in Chromium.
+With `--tailwind` the project gets `tailwindcss` and `@tailwindcss/vite`, a `src/tailwind.css`, and `src/setup.ts` passes the compiled CSS to `configure({ styles })`, so utility classes work inside the shadow roots of components (see [Tailwind CSS](#tailwind-css)). The counter then uses utility classes instead of its own CSS, as an example.
+
+Both variants are checked by CI on every push: the scaffolder generates each of them, installs the dependencies (the library from the current build), and runs `npm run check` and `npm run build` in the result. They were also loaded in Chromium and installed with pnpm.
 
 The scaffolder asks for nothing beyond the name and Tailwind, installs nothing and does not touch git. Requires Node 20.19 or newer.
 
@@ -1272,6 +1291,7 @@ Inside `src/` and `tests/` (of every package), import through aliases instead of
 | `npm run build:all`      | The library and every package in `packages/`                                     |
 | `npm test`               | Structure check, then Vitest with V8 coverage, for the library and every package |
 | `npm run test:structure` | Checks that `tests/` mirrors `src/`                                              |
+| `npm run test:template`  | Generates both variants of the starter and checks them                           |
 | `npm run typecheck`      | `tsc --noEmit` for the library and every package                                 |
 | `npm run lint`           | ESLint (flat config, typescript-eslint, prettier)                                |
 | `npm run lint:fix`       | ESLint with autofix                                                              |
@@ -1348,7 +1368,7 @@ Releases are published from CI with npm trusted publishing and provenance. Each 
 | Package         | Tag pattern            | Workflow             |
 | --------------- | ---------------------- | -------------------- |
 | `ecmact`        | `v2.3.0`               | `release.yml`        |
-| `create-ecmact` | `create-ecmact-v0.1.1` | `release-create.yml` |
+| `create-ecmact` | `create-ecmact-v0.2.0` | `release-create.yml` |
 
 ```bash
 npm version <patch|minor|major> --no-git-tag-version
