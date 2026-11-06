@@ -4,6 +4,7 @@ coverage/
 
 .idea/
 .vscode/
+!packages/create-ecmact/template/base/.vscode/
 
 .npmrc
 
