@@ -47,7 +47,7 @@ ECMact is young, and a large application would have to build part of the infrast
 - **Server-side rendering and hydration are not included.** If the server has to deliver ready content for search engines or first paint, use something else (see [Server-side rendering](#server-side-rendering)).
 - **The router is small.** Nested routes and guards exist, but there is no route-level data loading, transitions or scroll restoration (see [Routing](#routing)).
 - **Shadow DOM needs care with forms.** `field: true` connects a control to the form around it. Labels, `for`/`id` links and outer stylesheets still do not cross the boundary; `shadow: false` removes the problem where it matters.
-- **Large tables are not measured.** Keyed lists work, but there are no benchmarks and no virtualization. Measure before you put thousands of rows in one.
+- **No virtualization.** Keyed lists are measured (see [Performance of large lists](#performance-of-large-lists)): a thousand rows are fine, ten thousand take about a second to create. Beyond that, paginate or render only the rows in view.
 
 See [Limitations](#limitations) for the full list.
 
@@ -63,6 +63,7 @@ See [Limitations](#limitations) for the full list.
 - [Props reference](#props-reference)
 - [Content and children](#content-and-children)
 - [Lists and keys](#lists-and-keys)
+  - [Performance of large lists](#performance-of-large-lists)
 - [Attributes](#attributes)
   - [Form controls](#form-controls)
   - [Fields inside a form](#fields-inside-a-form)
@@ -370,6 +371,23 @@ Rules and limits:
 - A moved node is re-inserted in the DOM, and browsers drop focus from an element that is re-inserted. Keep items in the order the user sees them if focus must survive a reorder.
 - `key` is not rendered as an attribute and is not reactive.
 - The new instance is created and rendered before it is discarded, so creating items has a cost even when they are reused. For very large lists, build only the items that changed.
+
+### Performance of large lists
+
+Measured in Chromium 153 on a shared cloud CPU, with `npm run bench` (the script needs `playwright`, which is not a dependency of the repository). Every row is a `tr` component with two `td` components, 3 components per row, median of 5 runs, in milliseconds, including the time until the next frame:
+
+| rows  | rows are | create | update 1 in 10 | swap two | remove one | append 10% | clear |
+| ----- | -------- | ------ | -------------- | -------- | ---------- | ---------- | ----- |
+| 1000  | rebuilt  | 93     | 25             | 127      | 108        | 121        | 18    |
+| 1000  | reused   | 96     | 27             | 18       | 20         | 35         | 15    |
+| 10000 | rebuilt  | 946    | 213            | 1327     | 1340       | 1882       | 187   |
+| 10000 | reused   | 898    | 212            | 180      | 150        | 204        | 138   |
+
+- "Rebuilt" creates new row components on every update, as in the examples above; "reused" keeps one component per key and passes the same instances again. Keyed reconciliation then only moves nodes, which is 6 to 8 times cheaper than recreating and discarding them. For lists of hundreds of rows or more, keep the components in a `Map` by key.
+- The Shadow DOM made no consistent difference in these runs.
+- A thousand rows is fine. Ten thousand take about a second to create and are better paginated or virtualized in the application, for example by rendering only the rows in view. The library does not virtualize.
+- Updating a label through a signal costs about 0.2 ms per cell here, so a table that changes a few hundred cells at once is fine.
+- These numbers come from one machine and will differ on yours; use them to compare options, not as a promise.
 
 ## Attributes
 
@@ -1458,7 +1476,7 @@ Any evergreen browser with Custom Elements v1 and Shadow DOM. The published code
 - **Attributes, with four exceptions.** Props map to attributes, except `value`, `checked`, `selected` and `indeterminate`, which are also written as DOM properties (see [Form controls](#form-controls)). A property is written when its prop changes, not on every update.
 - **Shadow DOM by default.** Global CSS does not apply inside components, and form controls inside a Shadow DOM do not take part in an outer `<form>`'s submission or validation unless the component sets `field: true` (see [Fields inside a form](#fields-inside-a-form)). Label/`for` and `id` references do not cross the shadow boundary. Use `shadow: false` where that matters. The choice is made on the first render and cannot be changed afterwards.
 - **One inner element.** A component renders a single element. Compose several components for more complex structures.
-- **Children are not a reactive prop.** The list is rebuilt in an effect (see [Signals and lifecycle](#signals-and-lifecycle)); text items in it can be signals. Keyed reconciliation matches components by `key` and name, it does not diff plain elements and it is not tuned for lists of thousands of items.
+- **Children are not a reactive prop.** The list is rebuilt in an effect (see [Signals and lifecycle](#signals-and-lifecycle)); text items in it can be signals. Keyed reconciliation matches components by `key` and name, it does not diff plain elements and it is not tuned for lists of thousands of items (see [Performance of large lists](#performance-of-large-lists)).
 - **Minimal lifecycle.** There are `mounted`, `unmounted`, `beforeUpdate` and `updated` hooks. State is whatever signals or objects you keep; there is no built-in store or message catalog (see [Recipes](#recipes)). Routing and data fetching are small and optional (see [Routing](#routing) and [Data fetching](#data-fetching)).
 - **Listener options are `capture` and `passive`.** There is no `once`, because listeners are re-attached on every update. Other options require a `ref`.
 - **Configuration is read at render time.** `configure` does not update components that are already rendered.
@@ -1593,6 +1611,7 @@ src/
     warn.ts             development warnings
 tests/                  mirrors src/, plus helpers.ts
 scripts/check-tests.mjs checks that tests mirror src in every package
+scripts/benchmark.mjs   list benchmark in Chromium (npm run bench, needs playwright)
 packages/create-ecmact/
   src/                  scaffolder (args, prompts, scaffold, package manager)
   template/base/        the generated project

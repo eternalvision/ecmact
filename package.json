@@ -28,7 +28,8 @@
     "prepublishOnly": "npm run build",
     "test:structure": "node scripts/check-tests.mjs",
     "build:all": "npm run build && npm run build --workspaces --if-present",
-    "test:template": "node scripts/check-template.mjs"
+    "test:template": "node scripts/check-template.mjs",
+    "bench": "npm run build && node scripts/benchmark.mjs"
   },
   "keywords": [
     "web-components",
