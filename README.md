@@ -943,6 +943,20 @@ npm run build
 
 Contributing needs Node 22.12 or newer (Vite 8 and Vitest 5). The published package itself has no Node requirement.
 
+### Imports
+
+Inside `src/` and `tests/`, import through aliases instead of relative paths:
+
+| Alias           | Resolves to    | Example                                      |
+| --------------- | -------------- | -------------------------------------------- |
+| `@em`           | `src/index.ts` | `import { em } from '@em';`                  |
+| `@em/<path>`    | `src/<path>`   | `import { render } from '@em/utils/render';` |
+| `@tests/<path>` | `tests/<path>` | `import { inner } from '@tests/helpers';`    |
+
+- The aliases are defined once, in `compilerOptions.paths` of `tsconfig.json`. Vite and Vitest read them from there (`resolve.tsconfigPaths`), so there is nothing to keep in sync.
+- ESLint (`no-restricted-imports`) rejects `./` and `../` imports in `src/` and `tests/`, so new files follow the rule automatically.
+- The build does not leak aliases: the JavaScript is bundled, and the declaration plugin rewrites `@em/...` to relative paths in the published `.d.ts` files.
+
 | Script                   | Description                                                 |
 | ------------------------ | ----------------------------------------------------------- |
 | `npm run build`          | Vite library build: ES, CJS and `.d.ts` into `dist/`        |
