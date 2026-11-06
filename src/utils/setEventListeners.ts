@@ -1,8 +1,8 @@
-import type { ComponentProps } from '../types';
+import type { ResolvedProps } from '../types';
 
 export const setEventListeners = (
   element: HTMLElement,
-  props: ComponentProps,
+  props: ResolvedProps,
   previous: Map<string, EventListener>,
 ) => {
   previous.forEach((listener, event) => element.removeEventListener(event, listener));

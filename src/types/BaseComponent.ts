@@ -1,4 +1,5 @@
 import type { Component } from '../component';
+import type { ReadonlySignal } from '../signals';
 import type { AttributeMap, GlobalAttributes } from './attributes';
 
 export type TagName = keyof HTMLElementTagNameMap | (string & {});
@@ -22,35 +23,59 @@ type EventHandlers = {
     ((event: HTMLElementEventMap[E]) => void) | undefined;
 };
 
-interface BaseProps<K extends string> {
-  tag?: K;
-  content?: string;
-  html?: string;
-  style?: StyleProps;
-  css?: string;
-  children?: Node[];
-  ref?: (element: ElementOf<K>) => void;
-  shadow?: boolean;
-  mounted?: (element: ElementOf<K>, component: Component<K>) => void | (() => void);
-  unmounted?: (element: ElementOf<K>, component: Component<K>) => void;
-  beforeUpdate?: (
-    next: ComponentProps<K>,
-    current: ComponentProps<K>,
-    component: Component<K>,
-  ) => boolean | void;
-  updated?: (element: ElementOf<K>, component: Component<K>, previous: ComponentProps<K>) => void;
-}
-
 type TagAttributes<K extends string> = K extends keyof AttributeMap
   ? AttributeMap[K]
   : K extends keyof HTMLElementTagNameMap
     ? unknown
     : { [attribute: string]: unknown };
 
-export type ComponentProps<K extends string = string> = BaseProps<K> &
+type Reactive<T> = { [P in keyof T]: T[P] | ReadonlySignal<Exclude<T[P], undefined>> };
+
+interface StructureProps<K extends string> {
+  tag?: K;
+  children?: Node[];
+}
+
+interface ValueProps {
+  content?: string;
+  html?: string;
+  css?: string;
+  style?: StyleProps;
+}
+
+interface ReactiveValueProps {
+  content?: string | ReadonlySignal<string>;
+  html?: string | ReadonlySignal<string>;
+  css?: string | ReadonlySignal<string>;
+  style?: Reactive<StyleProps> | ReadonlySignal<Reactive<StyleProps>>;
+}
+
+interface BehaviorProps<K extends string> {
+  ref?: (element: ElementOf<K>) => void;
+  shadow?: boolean;
+  mounted?: (element: ElementOf<K>, component: Component<K>) => void | (() => void);
+  unmounted?: (element: ElementOf<K>, component: Component<K>) => void;
+  beforeUpdate?: (
+    next: ResolvedProps<K>,
+    current: ResolvedProps<K>,
+    component: Component<K>,
+  ) => boolean | void;
+  updated?: (element: ElementOf<K>, component: Component<K>, previous: ResolvedProps<K>) => void;
+}
+
+export type ResolvedProps<K extends string = string> = StructureProps<K> &
+  ValueProps &
+  BehaviorProps<K> &
   GlobalAttributes &
   EventHandlers &
   TagAttributes<K>;
+
+export type ComponentProps<K extends string = string> = StructureProps<K> &
+  ReactiveValueProps &
+  BehaviorProps<K> &
+  Reactive<GlobalAttributes> &
+  EventHandlers &
+  Reactive<TagAttributes<K>>;
 
 export interface RenderState {
   element: HTMLElement | null;

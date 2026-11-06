@@ -1,5 +1,13 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
-import { em, type Component, type ComponentProps } from '../../src';
+import {
+  computed,
+  em,
+  signal,
+  tags,
+  type Component,
+  type ComponentProps,
+  type ResolvedProps,
+} from '../../src';
 
 describe('ComponentProps', () => {
   it('types event handlers by event name', () => {
@@ -73,15 +81,15 @@ describe('ComponentProps', () => {
         expectTypeOf(component).toEqualTypeOf<Component<'input'>>();
       },
       beforeUpdate: (next, current, component) => {
-        expectTypeOf(next).toEqualTypeOf<ComponentProps<'input'>>();
-        expectTypeOf(current).toEqualTypeOf<ComponentProps<'input'>>();
+        expectTypeOf(next).toEqualTypeOf<ResolvedProps<'input'>>();
+        expectTypeOf(current).toEqualTypeOf<ResolvedProps<'input'>>();
         expectTypeOf(component).toEqualTypeOf<Component<'input'>>();
         return next.value !== current.value;
       },
       updated: (element, component, previous) => {
         expectTypeOf(element).toEqualTypeOf<HTMLInputElement>();
         expectTypeOf(component).toEqualTypeOf<Component<'input'>>();
-        expectTypeOf(previous).toEqualTypeOf<ComponentProps<'input'>>();
+        expectTypeOf(previous).toEqualTypeOf<ResolvedProps<'input'>>();
       },
     });
     expect(true).toBe(true);
@@ -93,5 +101,58 @@ describe('ComponentProps', () => {
     // @ts-expect-error beforeUpdate may only return a boolean
     em.Card({ beforeUpdate: () => 'no' });
     expect(true).toBe(true);
+  });
+});
+
+describe('reactive props', () => {
+  it('accepts signals for content, html, css and style', () => {
+    em.Card({
+      content: signal('a'),
+      html: computed(() => '<b></b>'),
+      css: signal('div {}'),
+      style: { color: signal('red'), zIndex: computed(() => 2) },
+    });
+    em.Card({ style: signal({ color: signal('red') }) });
+    expect(true).toBe(true);
+  });
+
+  it('accepts signals for attributes with the attribute type', () => {
+    tags.input({
+      type: signal<'text' | 'email'>('text'),
+      disabled: signal(true),
+      maxlength: computed(() => 5),
+      title: signal('t'),
+      'data-id': signal(1),
+    });
+    expect(true).toBe(true);
+  });
+
+  it('rejects signals of the wrong type', () => {
+    const invalid = () => {
+      // @ts-expect-error content is a string
+      em.Card({ content: signal(1) });
+      // @ts-expect-error disabled is a boolean
+      tags.input({ disabled: signal('yes') });
+      // @ts-expect-error unknown input type
+      tags.input({ type: signal('bogus') });
+    };
+    expect(invalid).toBeTypeOf('function');
+  });
+
+  it('does not make handlers or structure reactive', () => {
+    const invalid = () => {
+      // @ts-expect-error handlers are plain functions
+      em.Card({ onclick: signal(() => {}) });
+      // @ts-expect-error children are plain nodes
+      em.Card({ children: signal([]) });
+      // @ts-expect-error the tag is not reactive
+      em.Card({ tag: signal('div') });
+    };
+    expect(invalid).toBeTypeOf('function');
+  });
+
+  it('keeps the raw props typed with signals', () => {
+    const card = em.Card({ content: signal('a') });
+    expectTypeOf(card.props.content).toExtend<unknown>();
   });
 });

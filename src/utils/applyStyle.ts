@@ -1,10 +1,10 @@
-import type { ComponentProps } from '../types';
+import type { ResolvedProps } from '../types';
 
 const toKebabCase = (key: string) => key.replace(/([A-Z])/g, '-$1').toLowerCase();
 
 export const applyStyle = (
   element: HTMLElement,
-  style: ComponentProps['style'] = {},
+  style: ResolvedProps['style'] = {},
   previous: Set<string>,
 ) => {
   const next = new Map<string, string>();

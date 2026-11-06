@@ -7,7 +7,9 @@ describe('utils', () => {
       'applyStyle',
       'applyStyleSheets',
       'mount',
+      'propsEqual',
       'render',
+      'resolveProps',
       'setEventListeners',
       'syncAttributes',
     ]);

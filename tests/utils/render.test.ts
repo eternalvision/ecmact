@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render } from '../../src/utils/render';
-import type { ComponentProps } from '../../src';
+import type { ResolvedProps } from '../../src';
 import { createRoot, createState } from '../helpers';
 
-const setup = (props: ComponentProps = {}) => {
+const setup = (props: ResolvedProps = {}) => {
   const root = createRoot();
   const state = createState();
   const element = render(root, props, state);

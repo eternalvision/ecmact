@@ -1,4 +1,4 @@
-import type { ComponentProps, RenderState } from '../types';
+import type { ResolvedProps, RenderState } from '../types';
 import { applyStyle } from './applyStyle';
 import { applyStyleSheets } from './applyStyleSheets';
 import { setEventListeners } from './setEventListeners';
@@ -12,7 +12,7 @@ const createElement = (tag: string, state: RenderState) => {
   return state.element;
 };
 
-export const render = (root: ParentNode, props: ComponentProps, state: RenderState) => {
+export const render = (root: ParentNode, props: ResolvedProps, state: RenderState) => {
   const { tag = 'div', content = '', html, style, css, children = [], ref } = props;
 
   const isNew = state.element?.localName !== tag.toLowerCase();

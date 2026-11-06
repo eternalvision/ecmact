@@ -1,4 +1,4 @@
-import type { ComponentProps } from '../types';
+import type { ResolvedProps } from '../types';
 
 const reservedKeys = new Set([
   'tag',
@@ -23,7 +23,7 @@ const toAttributeValue = (value: unknown) => {
 
 export const syncAttributes = (
   element: HTMLElement,
-  props: ComponentProps,
+  props: ResolvedProps,
   previous: Set<string>,
 ) => {
   const next = new Map<string, string>();

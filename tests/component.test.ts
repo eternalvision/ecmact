@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { em } from '../src';
+import { computed, effect, em, signal } from '../src';
 import { resetConfig, configure } from '../src/config';
 import { inner } from './helpers';
 
@@ -301,5 +301,202 @@ describe('beforeUpdate', () => {
     expect(inner(card).contains(child)).toBe(false);
     card.setState({ content: 'b' });
     expect(inner(card).textContent).toBe('b');
+  });
+});
+
+describe('signals', () => {
+  const text = (component: HTMLElement) => inner(component).textContent;
+
+  it('renders the current value of a signal prop', () => {
+    const label = signal('a');
+    expect(text(em.Card({ content: label }))).toBe('a');
+  });
+
+  it('updates the DOM when a signal changes while connected', () => {
+    const label = signal('a');
+    const card = em.Card({ content: label });
+    document.body.append(card);
+    label.value = 'b';
+    expect(text(card)).toBe('b');
+  });
+
+  it('keeps the element when a signal changes', () => {
+    const label = signal('a');
+    const card = em.Card({ content: label });
+    document.body.append(card);
+    const before = inner(card);
+    label.value = 'b';
+    expect(inner(card)).toBe(before);
+  });
+
+  it('does not subscribe before the component is connected', () => {
+    const label = signal('a');
+    const card = em.Card({ content: label });
+    label.value = 'b';
+    expect(text(card)).toBe('a');
+  });
+
+  it('stops following signals after disconnect', () => {
+    const label = signal('a');
+    const card = em.Card({ content: label });
+    document.body.append(card);
+    card.remove();
+    label.value = 'b';
+    expect(text(card)).toBe('a');
+  });
+
+  it('catches up with changes made while disconnected when it reconnects', () => {
+    const label = signal('a');
+    const card = em.Card({ content: label });
+    document.body.append(card);
+    card.remove();
+    label.value = 'b';
+    document.body.append(card);
+    expect(text(card)).toBe('b');
+    label.value = 'c';
+    expect(text(card)).toBe('c');
+  });
+
+  it('does not repaint on reconnect when nothing changed', () => {
+    const updated = vi.fn();
+    const card = em.Card({ content: signal('a'), updated });
+    document.body.append(card);
+    card.remove();
+    document.body.append(card);
+    expect(updated).not.toHaveBeenCalled();
+  });
+
+  it('can veto the repaint on reconnect', () => {
+    const label = signal('a');
+    const card = em.Card({ content: label, beforeUpdate: () => false });
+    document.body.append(card);
+    card.remove();
+    label.value = 'b';
+    document.body.append(card);
+    expect(text(card)).toBe('a');
+  });
+
+  it('resolves computed signals', () => {
+    const count = signal(1);
+    const card = em.Card({ content: computed(() => `count ${count.value}`) });
+    document.body.append(card);
+    count.value = 2;
+    expect(text(card)).toBe('count 2');
+  });
+
+  it('applies signals in attributes', () => {
+    const title = signal('a');
+    const card = em.Card({ title });
+    document.body.append(card);
+    title.value = 'b';
+    expect(inner(card).getAttribute('title')).toBe('b');
+  });
+
+  it('applies signals in style values and in the whole style', () => {
+    const color = signal('red');
+    const style = signal({ margin: '1px' });
+    const card = em.Card({ style: { color } });
+    const other = em.Card({ style });
+    document.body.append(card, other);
+    color.value = 'blue';
+    style.value = { margin: '2px' };
+    expect(inner(card).style.color).toBe('blue');
+    expect(inner(other).style.margin).toBe('2px');
+  });
+
+  it('applies a css signal', () => {
+    const css = signal('div { color: red; }');
+    const card = em.Card({ css });
+    document.body.append(card);
+    css.value = 'div { color: blue; }';
+    expect(card.shadowRoot!.adoptedStyleSheets).toHaveLength(1);
+  });
+
+  it('follows the signals of the new props after setState', () => {
+    const first = signal('first');
+    const second = signal('second');
+    const card = em.Card({ content: first });
+    document.body.append(card);
+    card.setState({ content: second });
+    first.value = 'ignored';
+    expect(text(card)).toBe('second');
+    second.value = 'changed';
+    expect(text(card)).toBe('changed');
+  });
+
+  it('stops following a signal that setState replaced with a plain value', () => {
+    const label = signal('a');
+    const card = em.Card({ content: label });
+    document.body.append(card);
+    card.setState({ content: 'plain' });
+    label.value = 'b';
+    expect(text(card)).toBe('plain');
+  });
+
+  it('exposes the raw props, with the signals', () => {
+    const label = signal('a');
+    expect(em.Card({ content: label }).props.content).toBe(label);
+  });
+
+  it('calls updated with the resolved current and previous props', () => {
+    const label = signal('a');
+    const updated = vi.fn();
+    const card = em.Card({ content: label, updated });
+    document.body.append(card);
+    label.value = 'b';
+    expect(updated).toHaveBeenCalledTimes(1);
+    expect(updated.mock.calls[0][0]).toBe(inner(card));
+    expect(updated.mock.calls[0][1]).toBe(card);
+    expect(updated.mock.calls[0][2]).toMatchObject({ content: 'a' });
+  });
+
+  it('runs beforeUpdate with resolved values and can veto signal updates', () => {
+    const label = signal('a');
+    const beforeUpdate = vi.fn(() => false);
+    const card = em.Card({ content: label, beforeUpdate });
+    document.body.append(card);
+    label.value = 'b';
+    const [next, current] = beforeUpdate.mock.calls[0] as unknown as [
+      Record<string, unknown>,
+      Record<string, unknown>,
+    ];
+    expect(next.content).toBe('b');
+    expect(current.content).toBe('a');
+    expect(text(card)).toBe('a');
+  });
+
+  it('keeps tracking after a vetoed update', () => {
+    const label = signal('a');
+    let allow = false;
+    const card = em.Card({ content: label, beforeUpdate: () => allow });
+    document.body.append(card);
+    label.value = 'b';
+    allow = true;
+    label.value = 'c';
+    expect(text(card)).toBe('c');
+  });
+
+  it('does not make the surrounding effect depend on the props it resolves', () => {
+    const label = signal('a');
+    const outer = signal(0);
+    const run = vi.fn(() => {
+      void outer.value;
+      document.body.append(em.Card({ content: label }));
+    });
+    effect(run);
+    label.value = 'b';
+    expect(run).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not make the surrounding effect depend on hook reads', () => {
+    const inside = signal(0);
+    const outer = signal(0);
+    const run = vi.fn(() => {
+      void outer.value;
+      document.body.append(em.Card({ mounted: () => void inside.value }));
+    });
+    effect(run);
+    inside.value = 1;
+    expect(run).toHaveBeenCalledTimes(1);
   });
 });
