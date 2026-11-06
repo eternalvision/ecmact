@@ -55,7 +55,7 @@ ECMact is a small component library built on native Web Components. Every compon
 npm install ecmact
 ```
 
-Requires a browser (or DOM implementation) with Custom Elements v1 and Shadow DOM. The package ships ES2022 code.
+Requires a browser (or DOM implementation) with Custom Elements v1 and Shadow DOM. The package ships modern, unminified ES and CommonJS code that is not transpiled down; see [Browser support](#browser-support).
 
 ```ts
 import { em, mount } from 'ecmact';
@@ -247,7 +247,7 @@ em.Card({
 - Values must be strings or numbers. Numbers are passed as is, without units: `zIndex: 2` works, `width: 10` does not mean `10px`. Use strings for lengths.
 - Other values (`undefined`, objects) are skipped.
 - On `setState`, properties that are no longer in `style` are removed; the rest are updated.
-- Styles apply to the inner element only. There are no selectors, pseudo-classes or media queries. For those, use a stylesheet that targets the host (`em-card`) with CSS custom properties, or a `ref` that adds a `<style>` to `element.getRootNode()`.
+- Styles apply to the inner element only. There are no selectors, pseudo-classes or media queries in `style`. For those, use the `css` prop or shared stylesheets, see [Stylesheets and Tailwind CSS](#stylesheets-and-tailwind-css).
 
 Because the content lives in a Shadow DOM, global stylesheets do not reach it.
 
@@ -878,6 +878,8 @@ const dynamic = em.Dynamic({ tag: tagName as string, content: 'x' });
 dynamic.setState({ tag: 'section' });
 ```
 
+`em` is a Proxy with arbitrary names, so its properties are typed through an index signature. If your project enables `noUncheckedIndexedAccess`, TypeScript types `em.Card` as possibly `undefined`. `tags` does not have this problem (its properties are known), so prefer it there, or assert the factory: `em.Card!({ ... })`.
+
 Exported types:
 
 ```ts
@@ -899,7 +901,7 @@ Importing `ecmact` is safe without a DOM (Node, SSR bundlers, tooling): no brows
 
 ## Browser support
 
-Any evergreen browser with Custom Elements v1, Shadow DOM and ES2022 class fields (including private `#fields`). No polyfills are included.
+Any evergreen browser with Custom Elements v1 and Shadow DOM. The published code is not transpiled below Vite's default build target (Baseline widely available, fixed to 2026-01-01 for Vite 8), so it uses modern syntax such as class fields and private `#fields`. Constructable stylesheets are used for `css` and shared styles when the browser has them, with a `<style>` element fallback. No polyfills are included.
 
 ## Limitations
 
@@ -938,6 +940,8 @@ npm run typecheck
 npm test
 npm run build
 ```
+
+Contributing needs Node 22.12 or newer (Vite 8 and Vitest 5). The published package itself has no Node requirement.
 
 | Script                   | Description                                                 |
 | ------------------------ | ----------------------------------------------------------- |
