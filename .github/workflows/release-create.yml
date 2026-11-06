@@ -27,12 +27,19 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
-      - run: npm publish -w create-ecmact
+      - name: Publish to npm
+        run: |
+          version=$(node -p "require('./packages/create-ecmact/package.json').version")
+          if npm view "create-ecmact@$version" version >/dev/null 2>&1; then
+            echo "create-ecmact@$version is already on npm"
+          else
+            npm publish -w create-ecmact
+          fi
       - name: Publish to GitHub Packages
         run: |
           npm config set //npm.pkg.github.com/:_authToken "$NODE_AUTH_TOKEN"
           node scripts/github-package.mjs packages/create-ecmact
-          npm publish -w create-ecmact --registry=https://npm.pkg.github.com --provenance=false
+          npm publish -w packages/create-ecmact --registry=https://npm.pkg.github.com --provenance=false
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create GitHub release

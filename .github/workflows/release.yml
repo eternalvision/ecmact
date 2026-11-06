@@ -27,7 +27,14 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
-      - run: npm publish
+      - name: Publish to npm
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if npm view "ecmact@$version" version >/dev/null 2>&1; then
+            echo "ecmact@$version is already on npm"
+          else
+            npm publish
+          fi
       - name: Publish to GitHub Packages
         run: |
           npm config set //npm.pkg.github.com/:_authToken "$NODE_AUTH_TOKEN"
