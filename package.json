@@ -19,14 +19,15 @@
   ],
   "scripts": {
     "build": "vite build",
-    "typecheck": "tsc",
-    "test": "npm run test:structure && vitest run --coverage",
+    "typecheck": "tsc && npm run typecheck --workspaces --if-present",
+    "test": "npm run test:structure && vitest run --coverage && npm run test --workspaces --if-present",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepublishOnly": "npm run build",
-    "test:structure": "node scripts/check-tests.mjs"
+    "test:structure": "node scripts/check-tests.mjs",
+    "build:all": "npm run build && npm run build --workspaces --if-present"
   },
   "keywords": [
     "web-components",
@@ -69,5 +70,8 @@
   },
   "overrides": {
     "minimatch": "^11.0.1"
-  }
+  },
+  "workspaces": [
+    "packages/*"
+  ]
 }

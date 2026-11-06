@@ -4,17 +4,17 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig([
-  globalIgnores(['dist', 'coverage']),
+  globalIgnores(['**/dist', '**/coverage', 'packages/*/template']),
   js.configs.recommended,
   tseslint.configs.strict,
   tseslint.configs.stylistic,
   prettier,
   {
-    files: ['scripts/**/*.mjs'],
+    files: ['scripts/**/*.mjs', 'packages/*/bin/*.mjs'],
     languageOptions: { globals: { console: 'readonly', process: 'readonly', URL: 'readonly' } },
   },
   {
-    files: ['src/**/*.ts', 'tests/**/*.ts'],
+    files: ['src/**/*.ts', 'tests/**/*.ts', 'packages/*/src/**/*.ts', 'packages/*/tests/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -22,7 +22,7 @@ export default defineConfig([
           patterns: [
             {
               group: ['./*', '../*', '.', '..'],
-              message: 'Import through the @em or @tests alias.',
+              message: 'Import through the @em, @create or @tests alias.',
             },
           ],
         },
@@ -30,7 +30,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['tests/**/*.ts'],
+    files: ['tests/**/*.ts', 'packages/*/tests/**/*.ts'],
     rules: {
       '@typescript-eslint/no-empty-function': 'off',
       '@typescript-eslint/no-non-null-assertion': 'off',
