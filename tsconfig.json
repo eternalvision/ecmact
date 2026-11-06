@@ -1,9 +1,7 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
     "module": "Preserve",
     "moduleResolution": "Bundler",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "strict": true,
     "noImplicitOverride": true,
     "noImplicitReturns": true,
