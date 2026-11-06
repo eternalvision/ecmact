@@ -317,7 +317,6 @@ export interface AttributeMap {
   blockquote: { cite?: string };
   q: { cite?: string };
   time: { datetime?: string };
-  meta: { name?: string; content?: string; charset?: string; 'http-equiv'?: string };
   track: {
     src?: string;
     kind?: 'subtitles' | 'captions' | 'descriptions' | 'chapters' | 'metadata';
