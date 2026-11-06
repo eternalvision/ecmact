@@ -37,6 +37,8 @@ ECMact is a small component library built on native Web Components. Every compon
 - [Signals](#signals)
 - [Context](#context)
 - [Error handling](#error-handling)
+- [Routing](#routing)
+- [Data fetching](#data-fetching)
 - [Recipes](#recipes)
 - [Mounting](#mounting)
 - [Composition](#composition)
@@ -864,6 +866,191 @@ The handler receives the error and an `info` object:
 - Only synchronous errors are caught. A rejected promise from an `async` handler is not seen, handle it inside the handler.
 - Errors in effects you create yourself are not component errors: they surface from the signal write that triggered them, as described in [Signals](#signals).
 
+## Routing
+
+`createRouter` maps URLs to views using the History API. The current location is a signal, so everything built on signals (components, effects, `computed`) can follow it. The router is part of the main package and tree-shakeable: it is not included in your bundle unless you import it.
+
+```ts
+import { createRouter, mount, tags } from 'ecmact';
+
+const router = createRouter({
+  routes: [
+    { path: '/', view: () => tags.h1({ content: 'Home' }) },
+    { path: '/users/:id', view: ({ params }) => tags.h1({ content: `User ${params.id}` }) },
+    { path: '/files/*', view: ({ params }) => tags.p({ content: `File ${params['*']}` }) },
+  ],
+  notFound: () => tags.h1({ content: 'Not found' }),
+});
+
+mount(
+  '#app',
+  tags.nav({
+    children: [
+      router.link({ to: '/', content: 'Home' }),
+      router.link({ to: '/users/1', content: 'User 1' }),
+    ],
+  }),
+  router.outlet(),
+);
+```
+
+### Routes
+
+Each route has a `path` and a `view`. The first route that matches the current path wins, so put specific routes before general ones.
+
+| Pattern      | Matches                                         | `params`             |
+| ------------ | ----------------------------------------------- | -------------------- |
+| `/`          | The root                                        | `{}`                 |
+| `/about`     | `/about` and `/about/`                          | `{}`                 |
+| `/users/:id` | `/users/42`, one segment per parameter, decoded | `{ id: '42' }`       |
+| `/files/*`   | `/files` and everything below it                | `{ '*': 'a/b.txt' }` |
+| `*`          | Any path, useful as a catch-all                 | `{ '*': 'a/b' }`     |
+
+A `view` receives a context and returns a node (any DOM node, usually a component) or a promise of one:
+
+| Field    | Description                                    |
+| -------- | ---------------------------------------------- |
+| `path`   | The current path, without the base.            |
+| `params` | The parameters of the matched pattern.         |
+| `query`  | A `URLSearchParams` for the query string.      |
+| `hash`   | The hash, including `#`, or an empty string.   |
+| `router` | The router, for navigating from inside a view. |
+
+A view that returns a promise is rendered when it resolves, which is how code splitting works:
+
+```ts
+{ path: '/settings', view: async () => (await import('./settings')).settingsView() }
+```
+
+If the route changes before the promise resolves, the late result is dropped. The outlet stays empty while a view is pending.
+
+### Outlet
+
+`router.outlet()` returns a component that renders the view of the current route and swaps it on navigation. You can pass component props such as `class` or `style` (not `children` or `mounted`). Several outlets can exist at once; each follows the router while it is in the document and stops when it is removed.
+
+- The view is rebuilt when the path or the query string changes. A change of the hash alone (`#section`) does not re-render it.
+- A new instance of the view is created on every navigation. Keep state that must survive navigation in signals outside the view.
+- Without a matching route and without `notFound`, the outlet is empty.
+- Reading signals inside a view does not make the outlet re-render; use them in props like anywhere else.
+
+### Links
+
+`router.link(props)` returns an `<a>` component. It takes the usual anchor props plus `to` (and `replace`):
+
+```ts
+router.link({ to: '/users/1?tab=posts', content: 'Profile', class: 'nav-link' });
+```
+
+- `href` is set, so middle click, copy link and open-in-new-tab work.
+- A plain left click navigates without a page load. Clicks with Ctrl, Cmd or Shift, middle or right buttons, links with a `target` other than `_self`, `download` links and links to other origins are left to the browser.
+- A custom `onclick` runs first; if it calls `preventDefault`, the router does not navigate.
+- The link gets `aria-current="page"` while its path is the current path, and loses it when you navigate away.
+
+### Navigating and reading the location
+
+```ts
+router.navigate('/users/2');
+router.navigate('/login', { replace: true });
+router.navigate('/next', { scroll: false });
+router.back();
+router.forward();
+
+effect(() => console.log(router.location.value.path));
+router.match.value?.params;
+```
+
+| Member                   | Description                                                                                                                                                                        |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `navigate(to, options?)` | Pushes a history entry. `replace` replaces the entry (the same url always replaces). `scroll: false` skips scrolling to the top. A url on another origin is handed to the browser. |
+| `back()` / `forward()`   | History navigation.                                                                                                                                                                |
+| `location`               | Signal with `{ path, query, hash }`. Updates on `navigate` and on back/forward.                                                                                                    |
+| `match`                  | Signal with the matched `{ route, params }`, or `undefined`.                                                                                                                       |
+| `link(props)`            | Creates a link component.                                                                                                                                                          |
+| `outlet(props?)`         | Creates an outlet component.                                                                                                                                                       |
+| `dispose()`              | Removes the `popstate` listener.                                                                                                                                                   |
+
+### Base path
+
+If the app is served from a sub-path, pass `base`. Paths in routes, links and `navigate` stay relative to it, and the base is added to the real URLs:
+
+```ts
+const router = createRouter({ base: '/app', routes: [{ path: '/', view: home }] });
+router.navigate('/users/1');
+```
+
+The URL becomes `/app/users/1` and `location.value.path` is `/users/1`.
+
+### Notes
+
+- Only history mode is supported. The server must answer unknown paths with `index.html`, which is the default of Vite's dev server and of most static hosts that offer an SPA fallback.
+- There are no nested routes, route guards or transitions. A guard is a function you call before `router.navigate`, and nested layouts are views that contain their own outlet.
+- Create one router per application; the router listens to the window's `popstate` until `dispose()`.
+
+## Data fetching
+
+`resource` runs an async function and exposes the result as signals. It is built for `fetch` but works with anything that returns a promise, including an HTTP client of your choice. ECMact does not bundle one: it would add a dependency to a library that has none, and `fetch` with `AbortController` covers what most apps need.
+
+```ts
+import { computed, resource, signal, tags } from 'ecmact';
+
+const id = signal(1);
+
+const user = resource(({ signal: abort }) =>
+  fetch(`/api/users/${id.value}`, { signal: abort }).then(
+    (response) => response.json() as Promise<{ name: string }>,
+  ),
+);
+
+const card = tags.div({
+  content: computed(() => {
+    if (user.loading.value) return 'Loading...';
+    if (user.error.value) return 'Failed to load';
+    return user.data.value?.name ?? '';
+  }),
+});
+
+id.value = 2;
+```
+
+The fetcher runs immediately and receives `{ signal }`, an `AbortSignal` for that request.
+
+| Member          | Description                                                                            |
+| --------------- | -------------------------------------------------------------------------------------- |
+| `data`          | Signal with the latest result, or `undefined` (or `options.initial`) before the first. |
+| `error`         | Signal with the reason of the latest failure, `undefined` otherwise.                   |
+| `loading`       | Signal that is `true` while a request is in flight.                                    |
+| `refetch()`     | Runs the fetcher again.                                                                |
+| `mutate(value)` | Sets `data` by hand (for example after an optimistic update) and clears `error`.       |
+| `dispose()`     | Stops reacting, aborts the request in flight and ignores late results.                 |
+
+How it behaves:
+
+- **It tracks the signals the fetcher reads** before its first `await`, like an effect. When `id.value` changes, the previous request is aborted and a new one starts.
+- **Only the latest request counts.** A slow response to an older request is ignored, whether it resolves or fails, so results cannot arrive out of order.
+- **Data survives reloading.** While a new request is loading, `data` keeps the previous result and `error` is cleared, which avoids flashing empty states.
+- **Errors are values.** A rejection (or a synchronous throw) lands in `error` and does not throw.
+- **Read dependencies before awaiting.** Signals read after an `await` are not tracked. Read them first: `const value = id.value; await ...`.
+- `refetch()` does not subscribe the code that calls it to anything.
+
+Tie a resource to a component with `mounted`, so it stops when the component leaves the document:
+
+```ts
+const profile = tags.section({
+  mounted: (_, component) => {
+    const user = resource(() =>
+      fetch('/api/me').then((response) => response.json() as Promise<{ name: string }>),
+    );
+    const stop = effect(() =>
+      component.setState({ content: user.data.value?.name ?? 'Loading...' }),
+    );
+    return () => {
+      stop();
+      user.dispose();
+    };
+  },
+});
+```
+
 ## Mounting
 
 ```ts
@@ -992,7 +1179,7 @@ Any evergreen browser with Custom Elements v1 and Shadow DOM. The published code
 - **Shadow DOM by default.** Global CSS does not apply inside components, and form controls inside a Shadow DOM do not take part in an outer `<form>`'s submission or validation. Label/`for` and `id` references do not cross the shadow boundary. Use `shadow: false` where that matters. The choice is made on the first render and cannot be changed afterwards.
 - **One inner element.** A component renders a single element. Compose several components for more complex structures.
 - **Children are not a reactive prop.** The list is rebuilt in an effect (see [Signals and lifecycle](#signals-and-lifecycle)); text items in it can be signals. Keyed reconciliation matches components by `key` and name, it does not diff plain elements and it is not tuned for lists of thousands of items.
-- **Minimal lifecycle.** There are `mounted`, `unmounted`, `beforeUpdate` and `updated` hooks. State is whatever signals or objects you keep; there is no built-in store, router or message catalog (see [Recipes](#recipes)).
+- **Minimal lifecycle.** There are `mounted`, `unmounted`, `beforeUpdate` and `updated` hooks. State is whatever signals or objects you keep; there is no built-in store or message catalog (see [Recipes](#recipes)). Routing and data fetching are small and optional (see [Routing](#routing) and [Data fetching](#data-fetching)).
 - **Handlers without options.** Listener options require a `ref`.
 - **Configuration is read at render time.** `configure` does not update components that are already rendered.
 
