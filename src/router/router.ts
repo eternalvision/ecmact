@@ -1,11 +1,11 @@
-import type { Component } from '@em/component';
-import { em } from '@em/em';
-import { createContext, consume, provide } from '@em/context';
+import type { Component } from '@em/core/component';
+import { em } from '@em/core/em';
+import { createContext, consume, provide } from '@em/core/context';
 import { flattenRoutes } from '@em/router/flatten';
 import { runGuards } from '@em/router/guards';
 import { compilePattern, matchPath } from '@em/router/match';
-import { computed, effect, signal, untracked, type ReadonlySignal } from '@em/signals';
-import { tags } from '@em/tags';
+import { computed, effect, signal, untracked, type ReadonlySignal } from '@em/signals/signals';
+import { tags } from '@em/core/tags';
 import type { ComponentProps } from '@em/types';
 
 /** The part of the URL a router works with. */

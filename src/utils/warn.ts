@@ -1,4 +1,4 @@
-import { getConfig } from '@em/config';
+import { getConfig } from '@em/core/config';
 
 const seen = new Set<string>();
 

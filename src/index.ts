@@ -1,7 +1,7 @@
-export { em } from '@em/em';
-export { tags } from '@em/tags';
-export { configure } from '@em/config';
-export { css, styled } from '@em/styled';
+export { em } from '@em/core/em';
+export { tags } from '@em/core/tags';
+export { configure } from '@em/core/config';
+export { css, styled } from '@em/styled/styled';
 export type {
   CssFragment,
   Interpolation,
@@ -9,10 +9,10 @@ export type {
   StyledComponent,
   StyledProps,
   StyledTag,
-} from '@em/styled';
-export { defineWidget } from '@em/widget';
-export type { WidgetContext, WidgetOptions } from '@em/widget';
-export { consume, createContext, provide } from '@em/context';
+} from '@em/styled/styled';
+export { defineWidget } from '@em/widget/widget';
+export type { WidgetContext, WidgetOptions } from '@em/widget/widget';
+export { consume, createContext, provide } from '@em/core/context';
 export { createRouter } from '@em/router';
 export type {
   Guard,
@@ -27,14 +27,14 @@ export type {
   RouterLocation,
   RouterOptions,
 } from '@em/router';
-export { resource } from '@em/resource';
-export type { Resource, ResourceContext, ResourceOptions } from '@em/resource';
-export { batch, computed, effect, isSignal, signal, untracked } from '@em/signals';
-export type { ReadonlySignal, Signal } from '@em/signals';
-export type { Config, ErrorHandler, ErrorInfo, ErrorPhase, StyleSource } from '@em/config';
-export type { Context, Provision } from '@em/context';
-export { mount } from '@em/utils';
-export type { Component } from '@em/component';
+export { resource } from '@em/data/resource';
+export type { Resource, ResourceContext, ResourceOptions } from '@em/data/resource';
+export { batch, computed, effect, isSignal, signal, untracked } from '@em/signals/signals';
+export type { ReadonlySignal, Signal } from '@em/signals/signals';
+export type { Config, ErrorHandler, ErrorInfo, ErrorPhase, StyleSource } from '@em/core/config';
+export type { Context, Provision } from '@em/core/context';
+export { mount } from '@em/utils/mount';
+export type { Component } from '@em/core/component';
 export type {
   AttributeMap,
   Child,

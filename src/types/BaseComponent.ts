@@ -1,7 +1,7 @@
-import type { Component } from '@em/component';
-import type { ErrorHandler } from '@em/config';
-import type { Provision } from '@em/context';
-import type { ReadonlySignal } from '@em/signals';
+import type { Component } from '@em/core/component';
+import type { ErrorHandler } from '@em/core/config';
+import type { Provision } from '@em/core/context';
+import type { ReadonlySignal } from '@em/signals/signals';
 import type { AttributeMap, GlobalAttributes } from '@em/types/attributes';
 
 /** A tag name: any HTML tag (with autocompletion) or a custom element name. */

@@ -1,10 +1,12 @@
 import { basename, resolve } from 'node:path';
 import type { Readable, Writable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
-import { helpText, parseArguments } from '@create/args';
-import { detectPackageManager, installCommand, runCommand } from '@create/packageManager';
-import { createPrompter } from '@create/prompts';
-import { isEmptyDirectory, scaffold, toPackageName, type Template } from '@create/scaffold';
+import { helpText, parseArguments } from '@create/cli/args';
+import { detectPackageManager, installCommand, runCommand } from '@create/system/packageManager';
+import { createPrompter } from '@create/cli/prompts';
+import { isEmptyDirectory } from '@create/project/files';
+import { toPackageName } from '@create/project/name';
+import { scaffold, type Template } from '@create/project/scaffold';
 
 /** Everything the scaffolder reads from and writes to, injected so it can be tested. */
 export interface Io {
