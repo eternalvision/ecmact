@@ -168,6 +168,13 @@ describe('hoisting @property rules', () => {
     expect(hoisted()[0].textContent).toBe('@property --a { x: y; }');
   });
 
+  it('stays fast on unnamed rules followed by one closing brace', () => {
+    const started = Date.now();
+    configure({ styles: [`${'@property{'.repeat(200000)}}`] });
+    applyStyleSheets(createRoot(), undefined, createState());
+    expect(Date.now() - started).toBeLessThan(500);
+  });
+
   it('stays fast on a long hostile stylesheet', () => {
     const started = Date.now();
     configure({ styles: ['@property'.repeat(20000), `@property ${'{'.repeat(5)}`] });

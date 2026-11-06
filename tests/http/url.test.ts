@@ -83,6 +83,13 @@ describe('buildUrl', () => {
     expect(buildUrl({ url: '/u?x=1#top', params: { p: 2 } })).toBe('/u?x=1&p=2');
   });
 
+  it('drops everything after the first hash, and stays fast on long input', () => {
+    expect(buildUrl({ url: '/u#a#b\nc' })).toBe('/u');
+    const started = Date.now();
+    buildUrl({ baseURL: `${'/'.repeat(100000)}x`, url: `${'#'.repeat(100000)}\n` });
+    expect(Date.now() - started).toBeLessThan(500);
+  });
+
   it('leaves the url as it is without params, and works without a url', () => {
     expect(buildUrl({ url: '/u' })).toBe('/u');
     expect(buildUrl({})).toBe('');

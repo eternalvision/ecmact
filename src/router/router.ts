@@ -7,6 +7,7 @@ import { compilePattern, matchPath } from '@em/router/match';
 import { computed, effect, signal, untracked, type ReadonlySignal } from '@em/signals/signals';
 import { tags } from '@em/core/tags';
 import type { ComponentProps } from '@em/types';
+import { trimTrailingSlashes } from '@em/utils/trimTrailingSlashes';
 
 /** The part of the URL a router works with. */
 export interface RouterLocation {
@@ -194,19 +195,6 @@ const isPromise = <T>(value: T | Promise<T>): value is Promise<T> =>
 const isInternal = (to: string, base: string) =>
   new URL(to.startsWith('/') ? base + to : to, window.location.href).origin ===
   window.location.origin;
-
-/**
- * Removes the slashes at the end of a path. A loop instead of a regular expression, which a long run of slashes
- * could make slow.
- *
- * @param path - The path.
- * @returns The path without trailing slashes.
- */
-const trimTrailingSlashes = (path: string) => {
-  let end = path.length;
-  while (end > 0 && path[end - 1] === '/') end--;
-  return path.slice(0, end);
-};
 
 /**
  * Creates a router that maps URLs to views through the History API.

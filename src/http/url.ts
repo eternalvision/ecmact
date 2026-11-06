@@ -1,4 +1,5 @@
 import type { HttpRequestConfig, ParamsSerializerOptions } from '@em/http/types';
+import { trimTrailingSlashes } from '@em/utils/trimTrailingSlashes';
 
 const absolute = /^([a-z][a-z\d+\-.]*:)?\/\//i;
 
@@ -89,7 +90,7 @@ export const serializeParams = (
  */
 export const combineUrls = (baseURL: string | undefined, url: string, allowAbsoluteUrls = true) => {
   if (!baseURL || (allowAbsoluteUrls && absolute.test(url))) return url;
-  return `${baseURL.replace(/\/+$/, '')}/${url.replace(/^\/+/, '')}`;
+  return `${trimTrailingSlashes(baseURL)}/${url.replace(/^\/+/, '')}`;
 };
 
 /**
@@ -99,10 +100,9 @@ export const combineUrls = (baseURL: string | undefined, url: string, allowAbsol
  * @returns The URL.
  */
 export const buildUrl = (config: HttpRequestConfig) => {
-  const url = combineUrls(config.baseURL, config.url ?? '', config.allowAbsoluteUrls).replace(
-    /#.*$/,
-    '',
-  );
+  const combined = combineUrls(config.baseURL, config.url ?? '', config.allowAbsoluteUrls);
+  const hash = combined.indexOf('#');
+  const url = hash === -1 ? combined : combined.slice(0, hash);
   const query = serializeParams(config.params, config.paramsSerializer);
   if (!query) return url;
   return `${url}${url.includes('?') ? '&' : '?'}${query}`;

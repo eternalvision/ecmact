@@ -17,11 +17,15 @@ const findPropertyRules = (text: string) => {
   let from = text.indexOf(propertyKeyword);
   while (from !== -1) {
     const open = text.indexOf('{', from);
-    const close = open === -1 ? -1 : text.indexOf('}', open);
+    if (open === -1) break;
+    if (open === from + propertyKeyword.length) {
+      from = text.indexOf(propertyKeyword, open);
+      continue;
+    }
+    const close = text.indexOf('}', open);
     if (close === -1) break;
-    const named = open > from + propertyKeyword.length;
-    if (named) rules.push(text.slice(from, close + 1));
-    from = text.indexOf(propertyKeyword, named ? close + 1 : from + propertyKeyword.length);
+    rules.push(text.slice(from, close + 1));
+    from = text.indexOf(propertyKeyword, close + 1);
   }
   return rules;
 };

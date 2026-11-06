@@ -9,6 +9,15 @@ import { registerComponent } from '@em/utils/registry';
 import { warn } from '@em/utils/warn';
 import { readFormValue, readValidity, resetControl } from '@em/forms/formControl';
 
+/**
+ * Tells whether an element is a native form control that a label can activate.
+ *
+ * @param element - The element.
+ * @returns `true` for `input`, `textarea`, `select` and `button`.
+ */
+const isNativeControl = (element: Element) =>
+  ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(element.tagName);
+
 const Base =
   typeof HTMLElement === 'undefined' ? (Object as unknown as typeof HTMLElement) : HTMLElement;
 
@@ -50,6 +59,7 @@ export class Component<K extends string = string> extends Base {
     this.#props = props;
     registerComponent(this);
     this.addEventListener(contextRequestEvent, this.#answer);
+    this.addEventListener('click', this.#forwardClick);
   }
 
   /**
@@ -192,6 +202,21 @@ export class Component<K extends string = string> extends Base {
     const { flags, message } = readValidity(element);
     this.#internals.setValidity(flags, message, message ? element : undefined);
   }
+
+  /**
+   * A `<label>` that wraps a component, or points at it, activates the host, because a form-associated host is the
+   * labelable element and not the control inside it. Forwards that click to the inner control, so that clicking
+   * the label toggles a checkbox and focuses a text field as it does for a native control. A click that started on
+   * the inner control itself is left alone.
+   *
+   * @param event - The click.
+   */
+  readonly #forwardClick = (event: Event) => {
+    const control = this.#element;
+    if (event.composedPath()[0] !== this || !isNativeControl(control)) return;
+    control.focus();
+    control.click();
+  };
 
   /**
    * Hands the current state of the inner control to the form again, after the user changed it.

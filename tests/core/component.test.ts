@@ -964,3 +964,47 @@ describe('form fields', () => {
     expect(onError).toHaveBeenCalled();
   });
 });
+
+describe('label activation', () => {
+  const hostClick = () => new MouseEvent('click', { bubbles: true, composed: true });
+
+  it('forwards a click on the host to the inner checkbox, as a label does', () => {
+    const box = em.Box({ tag: 'input', type: 'checkbox', shadow: false });
+    document.body.append(box);
+    const control = box.firstElementChild as HTMLInputElement;
+    box.dispatchEvent(hostClick());
+    expect(control.checked).toBe(true);
+    box.dispatchEvent(hostClick());
+    expect(control.checked).toBe(false);
+  });
+
+  it('focuses the inner control it forwards to', () => {
+    const field = em.Field({ tag: 'input', shadow: false });
+    document.body.append(field);
+    const focus = vi.spyOn(field.firstElementChild as HTMLElement, 'focus');
+    field.dispatchEvent(hostClick());
+    expect(focus).toHaveBeenCalledTimes(1);
+  });
+
+  it('toggles once when the click started on the control itself', () => {
+    const box = em.Box({ tag: 'input', type: 'checkbox', shadow: false });
+    document.body.append(box);
+    const control = box.firstElementChild as HTMLInputElement;
+    control.click();
+    expect(control.checked).toBe(true);
+  });
+
+  it('toggles once for a click inside a shadow root, which the host sees as its own', () => {
+    const box = em.Box({ tag: 'input', type: 'checkbox' });
+    document.body.append(box);
+    const control = inner(box) as HTMLInputElement;
+    control.click();
+    expect(control.checked).toBe(true);
+  });
+
+  it('does nothing for a component whose inner element is not a form control', () => {
+    const card = em.Card({ content: 'text' });
+    document.body.append(card);
+    expect(() => card.dispatchEvent(hostClick())).not.toThrow();
+  });
+});

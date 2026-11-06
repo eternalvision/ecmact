@@ -470,7 +470,7 @@ new FormData(form);
 - `form.reset()` puts the inner control back to its default, and a disabled `<fieldset>` or form disables it.
 - It is the right tool when the field lives in a form you do not own. A form built from components entirely inside one shadow root already works without it, and `shadow: false` avoids the problem as well.
 - `field` is read on the first render and needs `ElementInternals`; without it the prop has no effect. For `select`, give the options through `html`, because the options of a native `select` must be real `option` elements.
-- Labels (`<label for>`) still do not cross the shadow boundary; put the control inside the label or use `aria-label`.
+- Labels (`<label for>`) still do not cross the shadow boundary; put the control inside the label (a click on the label is forwarded to the control inside the component) or use `aria-label`.
 
 ## Styles
 
