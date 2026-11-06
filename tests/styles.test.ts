@@ -160,3 +160,45 @@ describe('css prop without constructable stylesheets', () => {
     expect(texts[2]).toBe('div { color: red; }');
   });
 });
+
+describe('hoisting @property rules', () => {
+  const property = '@property --tw-x { syntax: "*"; inherits: false; }';
+  const hoisted = () =>
+    Array.from(document.head.querySelectorAll('style[data-ecmact="properties"]'));
+
+  afterEach(() => {
+    document.head.replaceChildren();
+  });
+
+  it('copies @property rules from shared styles into the document', () => {
+    configure({ styles: [`${property} div { color: red; }`] });
+    em.Card();
+    expect(hoisted()).toHaveLength(1);
+    expect(hoisted()[0].textContent).toContain('@property --tw-x');
+    expect(hoisted()[0].textContent).not.toContain('color: red');
+  });
+
+  it('does it once per configuration', () => {
+    configure({ styles: [property] });
+    em.Card();
+    em.Card();
+    expect(hoisted()).toHaveLength(1);
+  });
+
+  it('collects rules from several sources', () => {
+    configure({ styles: [property, '@property --tw-y { syntax: "*"; inherits: false; }'] });
+    em.Card();
+    expect(hoisted()[0].textContent).toContain('--tw-y');
+  });
+
+  it('adds nothing when there are no @property rules', () => {
+    configure({ styles: ['div { color: red; }'] });
+    em.Card();
+    expect(hoisted()).toHaveLength(0);
+  });
+
+  it('adds nothing without shared styles', () => {
+    em.Card();
+    expect(hoisted()).toHaveLength(0);
+  });
+});

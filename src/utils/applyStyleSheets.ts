@@ -2,6 +2,8 @@ import { getConfig, type StyleSource } from '../config';
 import type { RenderState } from '../types';
 
 const sharedCache = new WeakMap<StyleSource[], CSSStyleSheet[]>();
+const hoisted = new WeakSet<StyleSource[]>();
+const propertyRule = /@property[^{]+\{[^}]*\}/g;
 
 const supportsAdoption = (root: ShadowRoot) =>
   typeof CSSStyleSheet === 'function' &&
@@ -55,7 +57,19 @@ const inject = (css: string | undefined, state: RenderState) => {
   return true;
 };
 
+const hoistProperties = (sources: StyleSource[]) => {
+  if (hoisted.has(sources)) return;
+  hoisted.add(sources);
+  const rules = sources.flatMap((source) => toText(source).match(propertyRule) ?? []);
+  if (rules.length === 0) return;
+  const node = document.createElement('style');
+  node.setAttribute('data-ecmact', 'properties');
+  node.textContent = rules.join('\n');
+  document.head.append(node);
+};
+
 export const applyStyleSheets = (root: ShadowRoot, css: string | undefined, state: RenderState) => {
+  hoistProperties(getConfig().styles);
   const changed = supportsAdoption(root) ? adopt(root, css, state) : inject(css, state);
   state.sheetText = css;
   return changed;
