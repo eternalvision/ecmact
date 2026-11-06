@@ -20,16 +20,19 @@ npm install
 npm run dev
 ```
 
-With pnpm: `pnpm create ecmact my-app`. `yarn create ecmact` and `bun create ecmact` work too. Run it without arguments to be asked for the name and for Tailwind CSS.
+With pnpm: `pnpm create ecmact my-app`. `yarn create ecmact` and `bun create ecmact` work too. Run it without arguments to be asked for the name, the template and, for an app, for Tailwind CSS.
 
-| Option          | Description                                                   |
-| --------------- | ------------------------------------------------------------- |
-| `[directory]`   | Where to create the project. `.` uses the current directory.  |
-| `--tailwind`    | Add Tailwind CSS, wired in as a shared stylesheet.            |
-| `--no-tailwind` | Skip the Tailwind question.                                   |
-| `-y, --yes`     | Use the defaults (`my-ecmact-app`, no Tailwind), ask nothing. |
-| `-f, --force`   | Write into a directory that is not empty.                     |
-| `-h, --help`    | Show the options.                                             |
+For an embeddable custom element instead of an app: `npm create ecmact@latest my-widget -- --template widget`.
+
+| Option           | Description                                                   |
+| ---------------- | ------------------------------------------------------------- |
+| `[directory]`    | Where to create the project. `.` uses the current directory.  |
+| `-t, --template` | What to create: `app` (default) or `widget`.                  |
+| `--tailwind`     | Add Tailwind CSS, wired in as a shared stylesheet (app only). |
+| `--no-tailwind`  | Skip the Tailwind question.                                   |
+| `-y, --yes`      | Use the defaults (`my-ecmact-app`, no Tailwind), ask nothing. |
+| `-f, --force`    | Write into a directory that is not empty.                     |
+| `-h, --help`     | Show the options.                                             |
 
 The generated project is a small welcome page with the ECMact logo and a counter, in the style of the Vite, React and Next.js starters, with a test and with Prettier and ESLint configured in detail (`npm run check` runs everything). Requires Node 20.19 or newer.
 

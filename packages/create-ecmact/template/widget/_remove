@@ -1,0 +1,7 @@
+src/app.ts
+src/setup.ts
+src/reset.css
+src/assets/ecmact-logo.png
+src/components/counter.ts
+src/components/counter.test.ts
+src/components/logo.ts

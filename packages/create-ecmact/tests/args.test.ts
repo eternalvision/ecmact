@@ -6,6 +6,7 @@ describe('parseArguments', () => {
     expect(parseArguments([])).toEqual({
       name: undefined,
       tailwind: undefined,
+      template: undefined,
       yes: false,
       force: false,
       help: false,
@@ -19,6 +20,11 @@ describe('parseArguments', () => {
   it('reads the tailwind flag and its negation', () => {
     expect(parseArguments(['--tailwind']).tailwind).toBe(true);
     expect(parseArguments(['--no-tailwind']).tailwind).toBe(false);
+  });
+
+  it('reads the template, long and short', () => {
+    expect(parseArguments(['--template', 'widget']).template).toBe('widget');
+    expect(parseArguments(['-t', 'app']).template).toBe('app');
   });
 
   it('reads the long and short flags', () => {
@@ -37,7 +43,14 @@ describe('parseArguments', () => {
 
 describe('helpText', () => {
   it('documents every option', () => {
-    for (const flag of ['--tailwind', '--no-tailwind', '--yes', '--force', '--help']) {
+    for (const flag of [
+      '--template',
+      '--tailwind',
+      '--no-tailwind',
+      '--yes',
+      '--force',
+      '--help',
+    ]) {
       expect(helpText).toContain(flag);
     }
   });

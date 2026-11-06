@@ -1,9 +1,12 @@
-import { cp, mkdir, readdir, readFile, rename, writeFile } from 'node:fs/promises';
-import { join, relative } from 'node:path';
+import { cp, mkdir, readdir, readFile, rename, rm, rmdir, writeFile } from 'node:fs/promises';
+import { dirname, join, relative } from 'node:path';
+
+/** The kinds of project the scaffolder can write. */
+export type Template = 'app' | 'widget';
 
 /** What `scaffold` needs to write a project. */
 export interface ScaffoldOptions {
-  /** The directory that holds the `base` and `tailwind` template folders. */
+  /** The directory that holds the `base`, `tailwind` and `widget` template folders. */
   templateRoot: string;
   /** The directory to write into. */
   target: string;
@@ -11,6 +14,8 @@ export interface ScaffoldOptions {
   name: string;
   /** Whether to layer Tailwind CSS on top of the base template. */
   tailwind: boolean;
+  /** Which project to write: an `app`, or an embeddable `widget`. Defaults to `app`. */
+  template?: Template;
   /** The version of `ecmact` the project depends on. */
   ecmactVersion: string;
 }
@@ -89,9 +94,44 @@ const walk = async (directory: string): Promise<string[]> => {
 };
 
 /**
- * Writes a new project from the template: copies the base files, layers Tailwind on top if asked,
- * renames `_gitignore` and fills in the project name and the `ecmact` version. Only the files that
- * come from the template are written or changed; anything else in the target is left alone.
+ * Deletes files from the project and the directories they leave empty.
+ *
+ * @param target - The project directory.
+ * @param files - The files to delete, relative to the project.
+ */
+const removeFiles = async (target: string, files: string[]) => {
+  await Promise.all(files.map((file) => rm(join(target, file), { force: true })));
+  for (const file of files) {
+    let directory = dirname(join(target, file));
+    while (directory !== target) {
+      try {
+        await rmdir(directory);
+      } catch {
+        break;
+      }
+      directory = dirname(directory);
+    }
+  }
+};
+
+/**
+ * Reads the list of base files that an overlay deletes, from its `_remove` file.
+ *
+ * @param overlay - The overlay directory.
+ * @returns The paths relative to the project, or an empty list if the overlay has no such file.
+ */
+const readRemoved = async (overlay: string) => {
+  try {
+    return (await readFile(join(overlay, '_remove'), 'utf8')).split('\n').filter(Boolean);
+  } catch {
+    return [];
+  }
+};
+
+/**
+ * Writes a new project from the template: copies the base files, layers the widget or Tailwind overlay on
+ * top if asked, renames `_gitignore` and fills in the project name and the `ecmact` version. Only the files
+ * that come from the template are written or changed; anything else in the target is left alone.
  *
  * @param options - The template location, the target directory and the choices.
  * @returns The files that were written, relative to the target and sorted.
@@ -101,23 +141,28 @@ export const scaffold = async ({
   target,
   name,
   tailwind,
+  template = 'app',
   ecmactVersion,
 }: ScaffoldOptions) => {
   const base = join(templateRoot, 'base');
-  const overlay = join(templateRoot, 'tailwind');
-  const layers = tailwind ? [base, overlay] : [base];
+  const overlayName = template === 'widget' ? 'widget' : tailwind ? 'tailwind' : undefined;
+  const overlay = overlayName ? join(templateRoot, overlayName) : undefined;
+  const layers = overlay ? [base, overlay] : [base];
+  const removed = overlay ? await readRemoved(overlay) : [];
   const relatives = new Set(
     (
       await Promise.all(
         layers.map(async (layer) => (await walk(layer)).map((file) => relative(layer, file))),
       )
-    ).flat(),
+    )
+      .flat()
+      .filter((file) => file !== '_remove' && !removed.includes(file)),
   );
 
   await mkdir(target, { recursive: true });
   await cp(base, target, { recursive: true });
 
-  if (tailwind) {
+  if (overlay) {
     const overlayPackage = JSON.parse(
       await readFile(join(overlay, 'package.json'), 'utf8'),
     ) as Json;
@@ -125,13 +170,14 @@ export const scaffold = async ({
     await cp(overlay, target, {
       recursive: true,
       /**
-       * Skips the overlay's `package.json`, which is merged into the base one instead of copied.
+       * Skips the overlay's `package.json`, which is merged into the base one, and its `_remove` list.
        *
        * @param source - The path being copied.
-       * @returns `false` for `package.json`.
+       * @returns `false` for those two files.
        */
-      filter: (source) => !source.endsWith('package.json'),
+      filter: (source) => !source.endsWith('package.json') && !source.endsWith('_remove'),
     });
+    await removeFiles(target, removed);
     await writeFile(
       join(target, 'package.json'),
       `${JSON.stringify(mergeJson(basePackage, overlayPackage), null, 2)}\n`,

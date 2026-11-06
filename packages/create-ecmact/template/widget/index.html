@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f4f8ff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0b1726" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <title>{{name}}</title>
+    <style>
+      main {
+        display: grid;
+        gap: 1.5rem;
+        justify-items: center;
+        padding: 3rem 1.25rem;
+        font-family: var(--font);
+        color: var(--text);
+      }
+      .themed {
+        --widget-accent: #d6336c;
+        --widget-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>{{name}}</h1>
+      <p>The same widget twice, configured from the outside:</p>
+      <price-widget price="49" currency="EUR" label="Pro plan"></price-widget>
+      <price-widget class="themed" price="9.5" currency="USD" label="Add-on"></price-widget>
+      <p id="log">Press "Add to cart".</p>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

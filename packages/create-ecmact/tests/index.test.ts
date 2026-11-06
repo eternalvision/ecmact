@@ -108,14 +108,14 @@ describe('run', () => {
   });
 
   it('asks for the name and for tailwind when run without arguments', async () => {
-    const { out } = await execute([], ['asked-app', 'y']);
+    const { out } = await execute([], ['asked-app', '', 'y']);
     expect(out).toContain('Project name (my-ecmact-app)');
     expect(out).toContain('Add Tailwind CSS? [y/N]');
     expect(await readdir(join(cwd, 'asked-app', 'src'))).toContain('tailwind.css');
   });
 
   it('uses the defaults when the questions are left empty', async () => {
-    const { code } = await execute([], ['', '']);
+    const { code } = await execute([], ['', '', '']);
     expect(code).toBe(0);
     expect(await readdir(join(cwd, 'my-ecmact-app', 'src'))).not.toContain('tailwind.css');
   });
@@ -123,6 +123,38 @@ describe('run', () => {
   it('does not ask about tailwind when --yes is set', async () => {
     const { out } = await execute(['app', '--yes']);
     expect(out).not.toContain('Tailwind CSS?');
+  });
+
+  it('creates a widget with --template widget', async () => {
+    const { code, out } = await execute(['w', '--template', 'widget']);
+    expect(code).toBe(0);
+    expect(out).toContain('Created widget w.');
+    const files = await readdir(join(cwd, 'w', 'src'));
+    expect(files).toContain('widget.ts');
+    expect(files).not.toContain('app.ts');
+  });
+
+  it('does not ask about tailwind for a widget', async () => {
+    const { out } = await execute(['w', '-t', 'widget', '-y']);
+    expect(out).not.toContain('Tailwind CSS?');
+  });
+
+  it('asks for the template when run without arguments', async () => {
+    const { out } = await execute([], ['asked-widget', 'widget']);
+    expect(out).toContain('Template: app or widget (app)');
+    expect(await readdir(join(cwd, 'asked-widget', 'src'))).toContain('widget.ts');
+  });
+
+  it('refuses an unknown template', async () => {
+    const { code, err } = await execute(['w', '--template', 'site']);
+    expect(code).toBe(1);
+    expect(err).toContain('Unknown template "site"');
+  });
+
+  it('refuses Tailwind for a widget', async () => {
+    const { code, err } = await execute(['w', '--template', 'widget', '--tailwind']);
+    expect(code).toBe(1);
+    expect(err).toContain('does not support Tailwind');
   });
 });
 

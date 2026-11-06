@@ -82,6 +82,7 @@ See [Limitations](#limitations) for the full list.
 - [Data fetching](#data-fetching)
 - [Recipes](#recipes)
 - [Mounting](#mounting)
+- [Embedding as a widget](#embedding-as-a-widget)
 - [Composition](#composition)
 - [TypeScript](#typescript)
 - [Security model](#security-model)
@@ -111,7 +112,13 @@ pnpm install
 pnpm dev
 ```
 
-`yarn create ecmact` and `bun create ecmact` work too. The printed next steps use the package manager that started the scaffolder. Run it without arguments to be asked for the name and for Tailwind.
+`yarn create ecmact` and `bun create ecmact` work too. The printed next steps use the package manager that started the scaffolder. Run it without arguments to be asked for the name, the template and, for an app, for Tailwind.
+
+There are two templates: an `app` (the default) and a `widget`, an embeddable custom element, see [Embedding as a widget](#embedding-as-a-widget):
+
+```bash
+npm create ecmact@latest my-widget -- --template widget
+```
 
 ### What you get
 
@@ -123,18 +130,21 @@ A [Vite](https://vite.dev) project in TypeScript with a small welcome page, like
 
 The `ecmact` dependency is pinned to the version that the scaffolder was released with. The generated `README.md` lists the scripts and explains the lint setup.
 
-| Option          | Description                                                   |
-| --------------- | ------------------------------------------------------------- |
-| `[directory]`   | Where to create the project. `.` uses the current directory.  |
-| `--tailwind`    | Add Tailwind CSS, wired in as a shared stylesheet.            |
-| `--no-tailwind` | Skip the Tailwind question.                                   |
-| `-y, --yes`     | Use the defaults (`my-ecmact-app`, no Tailwind), ask nothing. |
-| `-f, --force`   | Write into a directory that is not empty.                     |
-| `-h, --help`    | Show the options.                                             |
+| Option           | Description                                                   |
+| ---------------- | ------------------------------------------------------------- |
+| `[directory]`    | Where to create the project. `.` uses the current directory.  |
+| `-t, --template` | What to create: `app` (default) or `widget`.                  |
+| `--tailwind`     | Add Tailwind CSS, wired in as a shared stylesheet (app only). |
+| `--no-tailwind`  | Skip the Tailwind question.                                   |
+| `-y, --yes`      | Use the defaults (`my-ecmact-app`, no Tailwind), ask nothing. |
+| `-f, --force`    | Write into a directory that is not empty.                     |
+| `-h, --help`     | Show the options.                                             |
 
 With `--tailwind` the project gets `tailwindcss` and `@tailwindcss/vite`, a `src/tailwind.css`, and `src/setup.ts` passes the compiled CSS to `configure({ styles })`, so utility classes work inside the shadow roots of components (see [Tailwind CSS](#tailwind-css)). The counter then uses utility classes instead of its own CSS, as an example.
 
-Both variants are checked by CI on every push: the scaffolder generates each of them, installs the dependencies (the library from the current build), and runs `npm run check` and `npm run build` in the result. They were also loaded in Chromium and installed with pnpm.
+The `widget` template is a different starting point: `src/widget.ts` defines `<price-widget>` with `defineWidget`, `index.html` is a demo page that uses it twice (the second one themed from the outside), and `npm run build` also writes the embeddable script to `dist/widget/price-widget.js`. It has the same tests, Prettier and ESLint setup as the app, and no Tailwind.
+
+All variants are checked by CI on every push: the scaffolder generates each of them, installs the dependencies (the library from the current build), and runs `npm run check` and `npm run build` in the result. They were also loaded in Chromium and installed with pnpm.
 
 The scaffolder asks for nothing beyond the name and Tailwind, installs nothing and does not touch git. Requires Node 20.19 or newer.
 
@@ -1270,6 +1280,77 @@ mount(document.body, toast);
 
 `mount` is a thin wrapper over `Element.append`; you can always use the DOM directly.
 
+## Embedding as a widget
+
+`defineWidget` registers a custom element that renders an ECMact component tree. The page that embeds it needs no framework and no build step: a script tag and the element are enough.
+
+```ts
+import { computed, defineWidget, signal, tags } from 'ecmact';
+
+defineWidget(
+  'price-widget',
+  ({ props, emit }) => {
+    const quantity = signal(1);
+    const total = computed(() => Number(props.price.value ?? 0) * quantity.value);
+    return tags.button({
+      content: computed(() => `Add ${quantity.value} for ${total.value}`),
+      onclick: () => emit('add', { quantity: quantity.value, total: total.value }),
+    });
+  },
+  { attributes: ['price'] },
+);
+```
+
+```html
+<script src="https://example.com/price-widget.js"></script>
+<price-widget price="49"></price-widget>
+
+<script>
+  document.addEventListener('add', (event) => console.log(event.detail));
+</script>
+```
+
+`defineWidget(name, render, options?)` takes the tag name (it must contain a hyphen), a `render` function and the options. `render` runs once, when the element is first connected, and returns the node to show.
+
+| `render` argument     | Description                                                                                                                      |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `host`                | The custom element itself.                                                                                                       |
+| `props`               | The observed attributes as signals: the attribute value, or `null` while it is absent.                                           |
+| `emit(type, detail?)` | Dispatches a `CustomEvent` on the host that bubbles and crosses the shadow boundary. Returns `false` if a listener cancelled it. |
+
+| Option       | Description                                                                                            |
+| ------------ | ------------------------------------------------------------------------------------------------------ |
+| `attributes` | The attributes to follow. `setAttribute` and `removeAttribute` on the page update the matching signal. |
+| `shadow`     | Render into a Shadow DOM. Defaults to `true`.                                                          |
+
+- **Settings go in as attributes**, and attributes are strings. Convert them in a `computed` (`Number(props.price.value)`) and keep the defaults for the missing ones there.
+- **Results come out as events.** A listener on the host, on `document` or anywhere in between hears them, because they are composed.
+- **The look is set from outside with CSS custom properties.** Custom properties inherit into a Shadow DOM, so a widget that reads `var(--widget-accent, #1665e0)` can be themed by the page with `price-widget { --widget-accent: red }`, while the rest of the page's CSS stays out.
+- **Styles are isolated both ways.** For one stylesheet covering the whole widget, return a fragment with a `<style>` element and render the inner components with `shadow: false`, so they sit in the widget's shadow root and the stylesheet reaches them.
+- **One definition per name.** Defining a name twice throws. Define the widget once, in the script that the pages load.
+- **Widgets can be nested in any page and used any number of times.** Each instance has its own signals.
+
+### Building the script
+
+The script that pages load is an IIFE bundle of your widget with ECMact inside. With Vite it is a library build:
+
+```ts
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  build: {
+    lib: {
+      entry: 'src/widget.ts',
+      formats: ['iife'],
+      name: 'PriceWidget',
+      fileName: () => 'price-widget.js',
+    },
+  },
+});
+```
+
+`npm create ecmact@latest my-widget -- --template widget` sets all of this up: a working widget, a demo page, tests, the IIFE build and the same Prettier and ESLint configuration as the app template.
+
 ## Composition
 
 Components are values. Compose them with ordinary functions:
@@ -1489,8 +1570,11 @@ src/
   context.ts            createContext, provide, consume
   signals.ts            signal, computed, effect, batch, untracked
   resource.ts           async data as signals
+  widget.ts             defineWidget: custom elements for embedding
   router/
     match.ts            path patterns
+    flatten.ts          nested routes turned into a flat list
+    guards.ts           runs beforeEach and beforeEnter guards
     router.ts           createRouter: location, outlet, link, navigate
   types/                ComponentProps, attribute tables, render state
   utils/
@@ -1500,6 +1584,8 @@ src/
     resolveProps.ts     unwraps signals in props
     propsEqual.ts       compares resolved props
     syncAttributes.ts   attribute diffing
+    syncProperties.ts   value, checked, selected and indeterminate as properties
+    formControl.ts      value, validity and reset of a control, for form fields
     applyStyle.ts       style diffing through the CSSOM
     applyStyleSheets.ts css prop and shared stylesheets
     setEventListeners.ts listener diffing, error reporting
@@ -1511,6 +1597,7 @@ packages/create-ecmact/
   src/                  scaffolder (args, prompts, scaffold, package manager)
   template/base/        the generated project
   template/tailwind/    files and dependencies added by --tailwind
+  template/widget/      the widget template: files added to the base, and the ones it removes (_remove)
   tests/                mirrors src/
 ```
 

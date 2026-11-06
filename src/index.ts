@@ -1,6 +1,8 @@
 export { em } from '@em/em';
 export { tags } from '@em/tags';
 export { configure } from '@em/config';
+export { defineWidget } from '@em/widget';
+export type { WidgetContext, WidgetOptions } from '@em/widget';
 export { consume, createContext, provide } from '@em/context';
 export { createRouter } from '@em/router';
 export type {

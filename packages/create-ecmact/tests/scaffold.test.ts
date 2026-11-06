@@ -193,3 +193,70 @@ describe('scaffold', () => {
     expect(await read('index.html')).toContain('<title>my-app</title>');
   });
 });
+
+describe('scaffold the widget template', () => {
+  const widget = () =>
+    scaffold({
+      templateRoot,
+      target: join(directory, 'my-app'),
+      name: 'my-app',
+      tailwind: false,
+      template: 'widget',
+      ecmactVersion: '2.3.0',
+    });
+
+  it('writes the widget files and drops the app files', async () => {
+    const files = await widget();
+    expect(files).toContain('src/widget.ts');
+    expect(files).toContain('src/widget.test.ts');
+    expect(files).toContain('vite.widget.config.ts');
+    expect(files).toContain('index.html');
+    [
+      'src/app.ts',
+      'src/setup.ts',
+      'src/components/counter.ts',
+      'src/assets/ecmact-logo.png',
+    ].forEach((file) => expect(files).not.toContain(file));
+    expect(files).not.toContain('_remove');
+  });
+
+  it('removes the app files from the disk', async () => {
+    await widget();
+    const names = await readdir(join(directory, 'my-app', 'src'));
+    expect(names.sort()).toEqual(['main.ts', 'styles.css', 'widget.test.ts', 'widget.ts']);
+  });
+
+  it('merges the widget scripts into package.json', async () => {
+    await widget();
+    const manifest = JSON.parse(await read('package.json')) as {
+      scripts: Record<string, string>;
+    };
+    expect(manifest.scripts['build:widget']).toContain('vite.widget.config.ts');
+    expect(manifest.scripts.dev).toBe('vite');
+  });
+
+  it('fills in the project name and leaves no placeholders', async () => {
+    const files = await widget();
+    expect(await read('index.html')).toContain('<title>my-app</title>');
+    for (const file of files.filter((name) => /\.(ts|json|html|md)$/.test(name))) {
+      expect(await read(file)).not.toContain('{{');
+    }
+  });
+
+  it('includes the widget config in the type check', async () => {
+    await widget();
+    expect(await read('tsconfig.json')).toContain('vite.widget.config.ts');
+  });
+
+  it('ignores the tailwind option', async () => {
+    await scaffold({
+      templateRoot,
+      target: join(directory, 'my-app'),
+      name: 'my-app',
+      tailwind: true,
+      template: 'widget',
+      ecmactVersion: '2.3.0',
+    });
+    expect(await readdir(join(directory, 'my-app', 'src'))).not.toContain('tailwind.css');
+  });
+});

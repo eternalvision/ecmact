@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { helpText, parseArguments } from '@create/args';
 import { detectPackageManager, installCommand, runCommand } from '@create/packageManager';
 import { createPrompter } from '@create/prompts';
-import { isEmptyDirectory, scaffold, toPackageName } from '@create/scaffold';
+import { isEmptyDirectory, scaffold, toPackageName, type Template } from '@create/scaffold';
 
 /** Everything the scaffolder reads from and writes to, injected so it can be tested. */
 export interface Io {
@@ -49,11 +49,33 @@ export const run = async (argv: string[], io: Io): Promise<number> => {
       return 1;
     }
 
-    const tailwind =
-      options.tailwind ??
-      (options.yes ? false : await prompter.confirm('Add Tailwind CSS?', false));
+    const answer =
+      options.template ??
+      (options.yes ? 'app' : await prompter.ask('Template: app or widget', 'app'));
+    if (answer !== 'app' && answer !== 'widget') {
+      io.stderr.write(`Unknown template "${answer}". Use app or widget.\n`);
+      return 1;
+    }
+    const template: Template = answer;
 
-    await scaffold({ templateRoot, target, name, tailwind, ecmactVersion: __ECMACT_VERSION__ });
+    if (template === 'widget' && options.tailwind === true) {
+      io.stderr.write('The widget template does not support Tailwind CSS.\n');
+      return 1;
+    }
+
+    const tailwind =
+      template === 'app' &&
+      (options.tailwind ??
+        (options.yes ? false : await prompter.confirm('Add Tailwind CSS?', false)));
+
+    await scaffold({
+      templateRoot,
+      target,
+      name,
+      tailwind,
+      template,
+      ecmactVersion: __ECMACT_VERSION__,
+    });
 
     const manager = detectPackageManager(io.env.npm_config_user_agent);
     const steps = [
@@ -61,7 +83,10 @@ export const run = async (argv: string[], io: Io): Promise<number> => {
       installCommand(manager),
       runCommand(manager, 'dev'),
     ];
-    io.stdout.write(`\nCreated ${name}${tailwind ? ' with Tailwind CSS' : ''}.\n\nNext steps:\n`);
+    const kind = template === 'widget' ? ' widget' : '';
+    io.stdout.write(
+      `\nCreated${kind} ${name}${tailwind ? ' with Tailwind CSS' : ''}.\n\nNext steps:\n`,
+    );
     io.stdout.write(`${steps.map((step) => `  ${step}`).join('\n')}\n`);
     return 0;
   } finally {

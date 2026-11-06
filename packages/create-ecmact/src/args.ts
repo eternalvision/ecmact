@@ -6,6 +6,8 @@ export interface Options {
   name: string | undefined;
   /** Whether to add Tailwind CSS; `undefined` when neither `--tailwind` nor `--no-tailwind` was passed. */
   tailwind: boolean | undefined;
+  /** The `--template` value as typed, or `undefined` when it was not passed. */
+  template: string | undefined;
   /** Use the defaults and ask nothing. */
   yes: boolean;
   /** Write into a directory that is not empty. */
@@ -27,6 +29,7 @@ export const parseArguments = (argv: string[]): Options => {
     allowNegative: true,
     options: {
       tailwind: { type: 'boolean' },
+      template: { type: 'string', short: 't' },
       yes: { type: 'boolean', short: 'y' },
       force: { type: 'boolean', short: 'f' },
       help: { type: 'boolean', short: 'h' },
@@ -35,6 +38,7 @@ export const parseArguments = (argv: string[]): Options => {
   return {
     name: positionals[0],
     tailwind: values.tailwind,
+    template: values.template,
     yes: values.yes ?? false,
     force: values.force ?? false,
     help: values.help ?? false,
@@ -45,7 +49,8 @@ export const parseArguments = (argv: string[]): Options => {
 export const helpText = `Usage: create-ecmact [directory] [options]
 
 Options:
-  --tailwind       Add Tailwind CSS
+  -t, --template   What to create: app (default) or widget
+  --tailwind       Add Tailwind CSS (app only)
   --no-tailwind    Do not add Tailwind CSS
   -y, --yes        Use defaults, do not ask questions
   -f, --force      Write into a directory that is not empty

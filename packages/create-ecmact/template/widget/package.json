@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "build": "tsc && vite build && vite build --config vite.widget.config.ts",
+    "build:widget": "vite build --config vite.widget.config.ts"
+  }
+}

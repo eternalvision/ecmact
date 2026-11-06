@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readdirSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -26,16 +26,22 @@ try {
   run(npm, ['pack', '--pack-destination', work, '--silent'], repository);
   const tarball = join(work, readdirSync(work).find((file) => file.endsWith('.tgz')) ?? '');
 
-  for (const variant of ['plain', 'tailwind']) {
-    const flag = variant === 'tailwind' ? '--tailwind' : '--no-tailwind';
+  for (const variant of ['plain', 'tailwind', 'widget']) {
+    const flags =
+      variant === 'widget'
+        ? ['--template', 'widget']
+        : ['--template', 'app', variant === 'tailwind' ? '--tailwind' : '--no-tailwind'];
     const project = join(work, variant);
-    run(process.execPath, [scaffolder, project, flag, '--yes'], repository);
+    run(process.execPath, [scaffolder, project, ...flags, '--yes'], repository);
     run(npm, ['install', tarball, '--no-audit', '--no-fund'], project);
     run(npm, ['run', 'check'], project);
     run(npm, ['run', 'build'], project);
+    if (variant === 'widget' && !existsSync(join(project, 'dist/widget/price-widget.js'))) {
+      throw new Error('the widget build did not write dist/widget/price-widget.js');
+    }
   }
 
-  console.log('\nboth variants of the template pass lint, format, typecheck, tests and build');
+  console.log('\nall variants of the template pass lint, format, typecheck, tests and build');
 } finally {
   rmSync(work, { recursive: true, force: true });
 }
