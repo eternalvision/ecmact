@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ECMact widget on a third-party page</title>
+    <style>
+      body {
+        max-width: 42rem;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        font-family: Georgia, serif;
+        line-height: 1.6;
+        background: #f1ece2;
+        color: #5a2d0c;
+      }
+      h1,
+      p,
+      button {
+        font-family: Georgia, serif;
+        color: #5a2d0c;
+      }
+      button {
+        background: #d9c9a8;
+      }
+      pre {
+        padding: 1rem;
+        overflow-x: auto;
+        background: #e6dcc6;
+        font-size: 0.85rem;
+      }
+      .themed {
+        --widget-accent: #8a3b12;
+        --widget-radius: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>A page that is not ours</h1>
+    <p>
+      This page has its own serif fonts, brown colors and a global style for every
+      <code>button</code>. The widget below is loaded with one script tag and keeps its own look.
+    </p>
+    <pre>
+&lt;script src="https://eternalvision.github.io/ecmact/widget/price-widget.js"&gt;&lt;/script&gt;
+&lt;price-widget price="49" currency="EUR" label="Pro plan"&gt;&lt;/price-widget&gt;</pre>
+
+    <price-widget price="49" currency="EUR" label="Pro plan"></price-widget>
+    <p>The same widget, themed from this page with custom properties:</p>
+    <price-widget class="themed" price="9.5" currency="USD" label="Add-on"></price-widget>
+    <p id="log">The page hears the widget through a DOM event. Press "Add to cart".</p>
+
+    <script src="./price-widget.js"></script>
+    <script>
+      document.addEventListener('add', function (event) {
+        document.getElementById('log').textContent =
+          'add: ' + event.detail.quantity + ' x, ' + event.detail.total;
+      });
+    </script>
+  </body>
+</html>

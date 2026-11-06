@@ -115,7 +115,7 @@ pnpm dev
 
 `yarn create ecmact` and `bun create ecmact` work too. The printed next steps use the package manager that started the scaffolder. Run it without arguments to be asked for the name, the template and, for an app, for Tailwind.
 
-There are two templates: an `app` (the default) and a `widget`, an embeddable custom element, see [Embedding as a widget](#embedding-as-a-widget):
+There are two templates: an `app` (the default, [live starter](https://eternalvision.github.io/ecmact/)) and a `widget` ([live demo](https://eternalvision.github.io/ecmact/widget/)), an embeddable custom element, see [Embedding as a widget](#embedding-as-a-widget):
 
 ```bash
 npm create ecmact@latest my-widget -- --template widget
@@ -1299,6 +1299,8 @@ mount(document.body, toast);
 `mount` is a thin wrapper over `Element.append`; you can always use the DOM directly.
 
 ## Embedding as a widget
+
+Live: the [widget demo](https://eternalvision.github.io/ecmact/widget/) and a [page that is not ours](https://eternalvision.github.io/ecmact/widget/embed.html), which loads the built script with one script tag and keeps its own fonts and colors.
 
 `defineWidget` registers a custom element that renders an ECMact component tree. The page that embeds it needs no framework and no build step: a script tag and the element are enough.
 
