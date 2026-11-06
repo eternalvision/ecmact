@@ -96,8 +96,8 @@
         --w-font: Georgia, 'Times New Roman', serif;
         --w-fg: #3a2c1a;
         --w-bg: #fffaf0;
-        --w-muted: #8a7658;
-        --w-accent: #b8893b;
+        --w-muted: #6f5d3f;
+        --w-accent: #8a6420;
         --w-border: #d9c9a3;
         --w-radius: 2px;
       }
@@ -118,7 +118,7 @@
       <h2>Spring menu</h2>
       <p>Our chefs are finishing the spring tasting menu. Reservations open soon.</p>
       <div class="grid">
-        <countdown-timer to="2027-03-01T10:00:00" label="Reservations open in"></countdown-timer>
+        <countdown-timer label="Reservations open in"></countdown-timer>
         <button type="button">Book a table</button>
       </div>
       <h2>Catering for your event</h2>
@@ -126,7 +126,7 @@
         <price-calculator
           currency="EUR"
           base="45"
-          title="Tasting menu for your guests"
+          heading="Tasting menu for your guests"
         ></price-calculator>
         <poll-widget
           poll="cafe-dessert"
@@ -136,6 +136,11 @@
         ></poll-widget>
       </div>
     </main>
+    <script>
+      document
+        .querySelector('countdown-timer')
+        .setAttribute('to', new Date(Date.now() + 64 * 86400000).toISOString());
+    </script>
     <script src="../embed/ecmact-widgets.js"></script>
   </body>
 </html>

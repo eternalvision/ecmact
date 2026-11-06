@@ -89,7 +89,7 @@
         --w-bg: #fff;
         --w-fg: #000;
         --w-muted: #333;
-        --w-accent: #ff2d2d;
+        --w-accent: #d40000;
         --w-border: #000;
         --w-radius: 0;
       }
@@ -100,7 +100,7 @@
         --w-border: #000;
       }
       poll-widget {
-        --w-accent: #00c2ff;
+        --w-accent: #0066cc;
       }
     </style>
   </head>
@@ -121,9 +121,9 @@
         <price-calculator
           currency="USD"
           base="6"
-          title="Print subscription, per reader"
+          heading="Print subscription, per reader"
         ></price-calculator>
-        <countdown-timer to="2027-01-15T18:00:00" label="Issue 13 drops in"></countdown-timer>
+        <countdown-timer label="Issue 13 drops in"></countdown-timer>
       </div>
       <h2>Vote</h2>
       <div class="grid">
@@ -136,6 +136,11 @@
         <p><button type="button">Buy the issue</button></p>
       </div>
     </main>
+    <script>
+      document
+        .querySelector('countdown-timer')
+        .setAttribute('to', new Date(Date.now() + 70 * 86400000).toISOString());
+    </script>
     <script src="../embed/ecmact-widgets.js"></script>
   </body>
 </html>

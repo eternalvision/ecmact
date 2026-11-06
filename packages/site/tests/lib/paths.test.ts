@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { basePath, withBase } from '@site/lib/paths';
+import { basePath, trimSlashes, withBase } from '@site/lib/paths';
 
 beforeEach(() => {
   vi.stubEnv('BASE_URL', '/ecmact/');
@@ -22,5 +22,19 @@ describe('paths', () => {
 
   it('puts the base in front of a path', () => {
     expect(withBase('/docs/routing')).toBe('/ecmact/docs/routing');
+  });
+});
+
+describe('trimSlashes', () => {
+  it('removes every slash at the end', () => {
+    expect(trimSlashes('/a/b//')).toBe('/a/b');
+    expect(trimSlashes('/')).toBe('');
+    expect(trimSlashes('')).toBe('');
+  });
+
+  it('stays fast when slashes are followed by another character', () => {
+    const started = Date.now();
+    trimSlashes(`${'/'.repeat(200000)}x`);
+    expect(Date.now() - started).toBeLessThan(200);
   });
 });

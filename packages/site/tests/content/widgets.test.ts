@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { hosts, properties, propertiesRu, widgets } from '@site/content/widgets';
+import { hosts, propertyNames, widgets } from '@site/content/widgets';
 import { messages } from '@site/content/messages';
 
 describe('widgets content', () => {
@@ -8,16 +8,20 @@ describe('widgets content', () => {
     hosts.forEach((host) => host.widgets.forEach((name) => expect(known).toContain(name)));
   });
 
-  it('has texts in both languages for every host and widget', () => {
+  it('has texts in both languages for every host, widget and custom property', () => {
     (['en', 'ru'] as const).forEach((locale) => {
       const texts = messages[locale].widgets;
-      hosts.forEach((host) => expect(texts.hosts[host.id]).toBeDefined());
-      widgets.forEach((widget) => expect(texts.descriptions[widget.tag]).toBeDefined());
+      hosts.forEach((host) => {
+        expect(texts.hosts[host.id]?.title).toBeTruthy();
+        expect(texts.hosts[host.id]?.text).toBeTruthy();
+      });
+      widgets.forEach((widget) => expect(texts.descriptions[widget.tag]).toBeTruthy());
+      propertyNames.forEach((name) => expect(texts.properties[name]).toBeTruthy());
+      expect(Object.keys(texts.properties)).toEqual([...propertyNames]);
     });
   });
 
-  it('translates every custom property', () => {
-    expect(propertiesRu).toHaveLength(properties.length);
-    expect(properties.every(([name]) => name.startsWith('--w-'))).toBe(true);
+  it('names every custom property with the --w- prefix', () => {
+    expect(propertyNames.every((name) => name.startsWith('--w-'))).toBe(true);
   });
 });

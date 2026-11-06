@@ -1,6 +1,5 @@
 import { computed, defineWidget, signal } from 'ecmact';
-import { tag } from '@site/lib/component';
-import { money, part, sheet } from '@site/widgets/kit';
+import { money, part, readNumber, sheet, tag } from '@site/widgets/kit';
 
 const css = `
   :host {
@@ -25,13 +24,13 @@ const css = `
   .seats { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.85rem; }
   .seats b { font-size: 1.3rem; }
   input[type='range'] { width: 100%; margin: 0.4rem 0 1rem; accent-color: var(--w-accent, #8b5cf6); }
-  .switch { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.2rem; font-size: 0.9rem; cursor: pointer; }
+  .switch { position: relative; display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.2rem; font-size: 0.9rem; cursor: pointer; }
   .switch input { position: absolute; opacity: 0; }
   .track { box-sizing: border-box; display: flex; align-items: center; flex: none; width: 2.6rem; height: 1.45rem; border-radius: 999px; background: color-mix(in srgb, var(--w-fg, #f4f1ff) 24%, transparent); padding: 0.17rem; transition: background 0.2s; }
-  .track::after { content: ''; display: block; flex: none; width: 1.11rem; height: 1.11rem; border-radius: 50%; background: #fff; transition: transform 0.2s; }
+  .track::after { content: ''; display: block; flex: none; width: 1.11rem; height: 1.11rem; border-radius: 50%; background: #fff; transition: margin 0.2s; }
   .track.on { background: var(--w-accent, #8b5cf6); }
-  .track.on::after { transform: translateX(1.15rem); }
-  .badge { margin-left: auto; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.75rem; background: color-mix(in srgb, var(--w-accent, #8b5cf6) 22%, transparent); color: var(--w-accent, #8b5cf6); }
+  .track.on::after { margin-inline-start: 1.15rem; }
+  .badge { margin-inline-start: auto; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; background: color-mix(in srgb, var(--w-accent, #8b5cf6) 22%, transparent); color: var(--w-fg, #f4f1ff); }
   .total { display: flex; align-items: baseline; gap: 0.4rem; margin-bottom: 1rem; }
   .total strong { font-size: 2.6rem; line-height: 1; letter-spacing: -0.03em; }
   .total span { color: var(--w-muted, rgba(244, 241, 255, 0.65)); }
@@ -40,12 +39,13 @@ const css = `
     background: var(--w-accent, #8b5cf6); color: #fff; font: inherit; font-weight: 700; cursor: pointer;
   }
   button:hover { filter: brightness(1.12); }
-  button:focus-visible, .switch:focus-within .track { outline: 2px solid #fff; outline-offset: 2px; }
+  button:focus-visible, .switch:has(input:focus-visible) .track { outline: 2px solid #fff; outline-offset: 2px; }
 `;
 
 /**
  * Registers `<price-calculator>`: a seat slider with a monthly and yearly price and a "Request quote" button.
- * Attributes: `currency` (default `USD`), `base` (price of a seat per month, default `12`), `title`.
+ * Attributes: `currency` (default `USD`), `base` (price of a seat per month, default `12`; an empty or malformed value counts as the default), `heading`
+ * (the title of the card; not `title`, which would also show a tooltip over the whole widget).
  * Event: `quote` with `{ seats, yearly, total, currency }`.
  * Custom properties: `--w-accent`, `--w-bg`, `--w-fg`, `--w-muted`, `--w-border`, `--w-radius`, `--w-font`.
  *
@@ -54,18 +54,21 @@ const css = `
 export const definePriceCalculator = () =>
   defineWidget(
     'price-calculator',
-    ({ props, emit }) => {
+    ({ host, props, emit }) => {
       const seats = signal(5);
       const yearly = signal(false);
-      const currency = computed(() => props.currency.value ?? 'USD');
-      const perSeat = computed(() => Number(props.base.value ?? 12));
-      const total = computed(() =>
-        yearly.value ? perSeat.value * seats.value * 12 * 0.8 : perSeat.value * seats.value,
-      );
+      const currency = computed(() => props.currency.value || 'USD');
+      const perSeat = computed(() => readNumber(props.base.value, 12));
+      const total = computed(() => {
+        const amount = yearly.value
+          ? perSeat.value * seats.value * 12 * 0.8
+          : perSeat.value * seats.value;
+        return Math.round(amount * 100) / 100;
+      });
       const root = part(
         'div',
         'card',
-        tag('h3', { content: computed(() => props.title.value ?? 'Team plan') }),
+        tag('h3', { content: computed(() => props.heading.value ?? 'Team plan') }),
         tag('p', { class: 'sub', content: 'Pay for the seats you use.' }),
         part(
           'div',
@@ -79,6 +82,11 @@ export const definePriceCalculator = () =>
           max: 100,
           value: seats,
           'aria-label': 'Seats',
+          /**
+           * Takes the number of seats from the slider.
+           *
+           * @param event - The input event.
+           */
           oninput: (event) => {
             seats.value = Number((event.target as HTMLInputElement).value);
           },
@@ -89,6 +97,11 @@ export const definePriceCalculator = () =>
             tag('input', {
               type: 'checkbox',
               checked: yearly,
+              /**
+               * Takes the billing period from the switch.
+               *
+               * @param event - The change event.
+               */
               onchange: (event) => {
                 yearly.value = (event.target as HTMLInputElement).checked;
               },
@@ -111,6 +124,7 @@ export const definePriceCalculator = () =>
         tag('button', {
           type: 'button',
           content: 'Request quote',
+          /** Announces the quote. */
           onclick: () => {
             emit('quote', {
               seats: seats.value,
@@ -121,7 +135,7 @@ export const definePriceCalculator = () =>
           },
         }),
       );
-      return sheet(css, root);
+      return sheet(host, css, root);
     },
-    { attributes: ['currency', 'base', 'title'] },
+    { attributes: ['currency', 'base', 'heading'] },
   );

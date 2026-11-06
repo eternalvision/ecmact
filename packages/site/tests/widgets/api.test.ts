@@ -9,8 +9,10 @@ const failure = (status: number | undefined, code?: string) =>
   Object.assign(new Error('failed'), { isHttpError: true, status, code });
 
 describe('describeError', () => {
-  it('describes an error that is not an HTTP error', () => {
-    expect(describeError(new Error('x'))).toBe('Something went wrong.');
+  it('keeps the message of an ordinary error and describes anything else generally', () => {
+    expect(describeError(new Error('No place called "x".'))).toBe('No place called "x".');
+    expect(describeError('boom')).toBe('Something went wrong.');
+    expect(describeError(undefined)).toBe('Something went wrong.');
   });
 
   it('describes the common statuses and codes', () => {

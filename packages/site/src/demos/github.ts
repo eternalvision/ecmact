@@ -2,6 +2,7 @@ import { computed, createHttp, em, resource, signal, tags, type HttpError } from
 
 const css = `
   :host, div { display: block; }
+  [hidden] { display: none !important; }
   input {
     width: 100%;
     padding: 0.55rem 0.8rem;
@@ -43,7 +44,8 @@ const messages: Record<number, string> = {
 
 /**
  * A repository card from the GitHub API. Type a name and the request goes out after a short pause; a request that
- * a newer one replaces is aborted. A response interceptor reads the rate-limit header of every answer.
+ * a newer one replaces is aborted. A response interceptor reads the rate-limit header of every answer, failed ones
+ * included, because a rate-limited answer is exactly when it matters.
  *
  * @returns The demo.
  */
@@ -57,10 +59,16 @@ export const create = () => {
     timeout: 8000,
     headers: { common: { Accept: 'application/vnd.github+json' } },
   });
-  api.interceptors.response.use((response) => {
-    left.value = response.headers['x-ratelimit-remaining'] ?? '';
-    return response;
-  });
+  api.interceptors.response.use(
+    (response) => {
+      left.value = response.headers['x-ratelimit-remaining'] ?? '';
+      return response;
+    },
+    (error) => {
+      left.value = (error as HttpError).response?.headers['x-ratelimit-remaining'] ?? left.value;
+      return Promise.reject(error);
+    },
+  );
 
   const info = resource(({ signal: aborted }) =>
     api

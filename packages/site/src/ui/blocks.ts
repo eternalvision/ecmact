@@ -30,7 +30,7 @@ export interface Rendered {
  * @param block - The block.
  * @returns A scrollable wrapper with the table.
  */
-const renderTable = (block: TableBlock) =>
+export const renderTable = (block: TableBlock) =>
   el(
     'div',
     { class: 'table-wrap' },

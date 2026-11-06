@@ -4,13 +4,14 @@ import { createHttp, isHttpError } from 'ecmact';
 export const api = createHttp({ timeout: 8000, retry: 1 });
 
 /**
- * Turns an error of a request into a sentence for the person who looks at the widget.
+ * Turns an error of a request into a sentence for the person who looks at the widget. The message of an ordinary
+ * error is kept, because the widgets throw those on purpose (for example "No place called ...").
  *
  * @param error - The error that the request rejected with.
  * @returns A short message.
  */
 export const describeError = (error: unknown) => {
-  if (!isHttpError(error)) return 'Something went wrong.';
+  if (!isHttpError(error)) return error instanceof Error ? error.message : 'Something went wrong.';
   if (error.status === 404) return 'Not found.';
   if (error.status === 403 || error.status === 429) return 'Rate limit reached. Try again later.';
   if (error.code === 'ERR_NETWORK') return 'No connection.';

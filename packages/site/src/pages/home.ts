@@ -156,7 +156,7 @@ const hero = (router: Router) =>
 const facts = () =>
   el(
     'section',
-    { class: 'facts wrap', attrs: { 'aria-label': 'Facts' } },
+    { class: 'facts wrap', attrs: { 'aria-label': m().factsLabel } },
     ...m().facts.map(([value, label]) =>
       el('div', { class: 'fact' }, el('strong', {}, value), el('span', {}, label)),
     ),

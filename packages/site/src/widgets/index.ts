@@ -9,13 +9,14 @@ import { defineWeatherNow } from '@site/widgets/weatherNow';
  * does nothing.
  */
 export const defineAll = () => {
-  [
+  const widgets: [string, () => unknown][] = [
     ['price-calculator', definePriceCalculator],
     ['weather-now', defineWeatherNow],
     ['repo-card', defineRepoCard],
     ['poll-widget', definePollWidget],
     ['countdown-timer', defineCountdownTimer],
-  ].forEach(([name, define]) => {
-    if (!customElements.get(name as string)) (define as () => unknown)();
+  ];
+  widgets.forEach(([name, define]) => {
+    if (!customElements.get(name)) define();
   });
 };

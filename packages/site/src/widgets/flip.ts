@@ -1,7 +1,9 @@
 import { effect, type ReadonlySignal } from 'ecmact';
 
-/** How long the two halves of a flip take together, in milliseconds. Keep it equal to the CSS animations. */
+/** How long a flip takes in milliseconds: the top half folds down for half of it, the bottom half opens for the rest. */
 export const flipDuration = 600;
+
+const half = flipDuration / 2;
 
 /** The stylesheet of a flip card: the four halves, the hinge and the two animations. */
 export const flipCss = `
@@ -15,11 +17,10 @@ export const flipCss = `
   .digit::after { content: ''; position: absolute; left: 0; right: 0; top: calc(50% - 0.5px); height: 1px; z-index: 5; background: var(--flip-gap); }
   .flap { display: none; }
   .flip .flap { display: block; }
-  .flip .flap.top { z-index: 3; animation: flip-top 0.3s ease-in forwards; }
-  .flip .flap.bottom { z-index: 4; transform: rotateX(90deg); animation: flip-bottom 0.3s 0.3s ease-out forwards; }
+  .flip .flap.top { z-index: 3; animation: flip-top ${half}ms ease-in forwards; }
+  .flip .flap.bottom { z-index: 4; transform: rotateX(90deg); animation: flip-bottom ${half}ms ${half}ms ease-out forwards; }
   @keyframes flip-top { to { transform: rotateX(-90deg); } }
   @keyframes flip-bottom { to { transform: rotateX(0); } }
-  @media (prefers-reduced-motion: reduce) { .flip .flap { animation-duration: 0.01s; } .flip .flap.bottom { animation-delay: 0.01s; } }
 `;
 
 /** A card that flips when its text changes, like the cards of a mechanical flip clock. */
@@ -29,15 +30,25 @@ export interface FlipCard {
   /**
    * Starts following the signal.
    *
-   * @returns A function that stops following it and cancels a flip in progress.
+   * @returns A function that stops following it, cancels a flip in progress and leaves the card showing the latest text.
    */
   start: () => () => void;
 }
 
 /**
+ * Tells whether the visitor asked the system for less motion.
+ *
+ * @returns `true` if `prefers-reduced-motion: reduce` matches.
+ */
+const reducedMotion = () =>
+  typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/**
  * Creates a flip card. The text is cut at the hinge: the top half shows the upper part of the characters and the
  * bottom half the lower part. When the signal changes, the top half folds down showing the old text while the new
- * text appears under it, and the bottom half unfolds with the new one.
+ * text appears under it, and the bottom half unfolds with the new one. A visitor who prefers reduced motion gets
+ * the new text without the flip. The halves are hidden from assistive technology and the card is one image with the
+ * text as its label, so that the number is read once.
  *
  * @param value - The text to show.
  * @returns The card.
@@ -45,15 +56,17 @@ export interface FlipCard {
 export const createFlipCard = (value: ReadonlySignal<string>): FlipCard => {
   const root = document.createElement('div');
   root.className = 'digit';
+  root.setAttribute('role', 'img');
   /**
    * Creates one half of the card.
    *
    * @param classes - Its classes.
-   * @returns The half and the span with its text.
+   * @returns The span with the text of the half.
    */
   const half = (classes: string) => {
     const element = document.createElement('div');
     element.className = `half ${classes}`;
+    element.setAttribute('aria-hidden', 'true');
     const text = document.createElement('span');
     element.append(text);
     root.append(element);
@@ -68,23 +81,24 @@ export const createFlipCard = (value: ReadonlySignal<string>): FlipCard => {
 
   /** Puts the final text into the bottom half and ends the flip. */
   const settle = () => {
+    clearTimeout(timer);
     bottom.textContent = current;
     root.classList.remove('flip');
   };
 
   /**
-   * Shows a new text, with a flip unless it is the first one.
+   * Shows a new text, with a flip unless it is the first one or motion is reduced.
    *
    * @param next - The text.
    */
   const show = (next: string) => {
     if (next === current) return;
-    const first = current === '';
-    flapTop.textContent = current;
+    const animate = current !== '' && !reducedMotion();
+    flapTop.textContent = animate ? current : next;
     flapBottom.textContent = next;
     top.textContent = next;
-    if (first) {
-      flapTop.textContent = next;
+    root.setAttribute('aria-label', next);
+    if (!animate) {
       current = next;
       settle();
       return;
@@ -99,11 +113,16 @@ export const createFlipCard = (value: ReadonlySignal<string>): FlipCard => {
 
   return {
     element: root,
+    /**
+     * Starts following the signal.
+     *
+     * @returns The function that stops following it and settles the card.
+     */
     start: () => {
       const stop = effect(() => show(value.value));
       return () => {
         stop();
-        clearTimeout(timer);
+        settle();
       };
     },
   };

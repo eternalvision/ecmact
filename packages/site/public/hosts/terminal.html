@@ -32,6 +32,7 @@
         margin: 0 0 1rem;
         font-size: 0.8rem;
         color: #1f9a46;
+        white-space: pre-wrap;
       }
       h1,
       h2 {
@@ -61,7 +62,7 @@
       }
       .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
         gap: 1rem;
         align-items: start;
       }

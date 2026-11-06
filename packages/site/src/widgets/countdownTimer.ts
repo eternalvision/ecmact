@@ -1,7 +1,6 @@
 import { computed, defineWidget, effect, signal } from 'ecmact';
-import { tag } from '@site/lib/component';
 import { createFlipCard, flipCss, type FlipCard } from '@site/widgets/flip';
-import { part, sheet } from '@site/widgets/kit';
+import { part, sheet, tag } from '@site/widgets/kit';
 
 const css = `
   :host {
@@ -20,16 +19,15 @@ const css = `
   .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.6rem; }
   .tile { text-align: center; }
   .digit {
-    --flip-bg: color-mix(in srgb, var(--w-fg, #f5f5f7) 11%, var(--w-bg, #111114));
-    --flip-bg-low: color-mix(in srgb, var(--w-fg, #f5f5f7) 7%, var(--w-bg, #111114));
+    --flip-bg: color-mix(in srgb, var(--w-fg, #f5f5f7) 11%, var(--w-tile, var(--w-bg, #111114)));
+    --flip-bg-low: color-mix(in srgb, var(--w-fg, #f5f5f7) 7%, var(--w-tile, var(--w-bg, #111114)));
     --flip-edge: color-mix(in srgb, var(--w-fg, #f5f5f7) 12%, transparent);
-    --flip-gap: var(--w-bg, #111114);
+    --flip-gap: var(--w-tile, var(--w-bg, #111114));
     --flip-r: var(--w-radius, 10px);
     color: var(--w-fg, #f5f5f7);
   }
   .tile .name { display: block; margin-top: 0.4rem; font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--w-muted, #8e8e99); }
   .tile.sec .digit { color: var(--w-accent, #ff9f0a); }
-  .done { margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--w-accent, #ff9f0a); }
 ${flipCss}`;
 
 /** The time that is left, split into units. */
@@ -54,7 +52,7 @@ export interface Remaining {
  * @returns The time that is left; all zeros once it has run out.
  */
 export const remaining = (target: number, now: number): Remaining => {
-  const left = Math.max(0, Math.floor((target - now) / 1000));
+  const left = Math.max(0, Math.ceil((target - now) / 1000));
   return {
     days: Math.floor(left / 86400),
     hours: Math.floor((left % 86400) / 3600),
@@ -65,26 +63,58 @@ export const remaining = (target: number, now: number): Remaining => {
 };
 
 /**
- * Registers `<countdown-timer>`: a flip-clock style countdown to a moment.
- * Attributes: `to` (a date, such as `2027-01-01T00:00:00`; three days from now when missing or invalid), `label`.
- * Event: `done` once, when the time runs out.
- * Custom properties: `--w-accent`, `--w-bg`, `--w-fg`, `--w-muted`, `--w-border`, `--w-radius`, `--w-font`.
+ * Reads the moment to count down to. A date without a time, `2027-01-01`, means the start of that day in the
+ * visitor's time zone, as a date with a time and no offset does; `Date.parse` alone would read it as UTC.
+ *
+ * @param value - The attribute value.
+ * @param fallback - The moment to use when the value is missing or invalid, in milliseconds.
+ * @returns The moment in milliseconds.
+ */
+export const parseTarget = (value: string | null | undefined, fallback: number) => {
+  const text = (value ?? '').trim();
+  const day = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
+  const parsed = day
+    ? new Date(Number(day[1]), Number(day[2]) - 1, Number(day[3])).getTime()
+    : Date.parse(text);
+  return Number.isNaN(parsed) ? fallback : parsed;
+};
+
+/**
+ * Registers `<countdown-timer>`: a flip-clock style countdown to a moment. The clock ticks only while it is on
+ * screen, in a visible tab and before the time has run out.
+ * Attributes: `to` (a date, such as `2027-01-01T00:00:00` or `2027-01-01`, or a moment with an offset such as
+ * `2027-01-01T00:00:00Z`; three days from now when missing or invalid), `label`.
+ * Event: `done`, when the time runs out; again if `to` is changed to a later moment and that runs out too.
+ * Custom properties: `--w-accent`, `--w-bg`, `--w-fg`, `--w-muted`, `--w-border`, `--w-radius`, `--w-font`, and
+ * `--w-tile`, the plain color of the flip cards, which defaults to `--w-bg` and is needed when `--w-bg` is a gradient.
  *
  * @returns The registered element class.
  */
 export const defineCountdownTimer = () =>
   defineWidget(
     'countdown-timer',
-    ({ props, emit }) => {
+    ({ host, props, emit }) => {
       const now = signal(Date.now());
       const fallback = Date.now() + 3 * 86400000;
-      const target = computed(() => {
-        const parsed = Date.parse(props.to.value ?? '');
-        return Number.isNaN(parsed) ? fallback : parsed;
-      });
+      const target = computed(() => parseTarget(props.to.value, fallback));
       const left = computed(() => remaining(target.value, now.value));
+      /**
+       * Writes a unit as at least two digits.
+       *
+       * @param value - The number.
+       * @returns The text, such as `07`.
+       */
       const two = (value: number) => String(value).padStart(2, '0');
       const cards: FlipCard[] = [];
+      let announced = false;
+      /**
+       * Builds one tile: a flip card and the name of its unit under it.
+       *
+       * @param name - The name of the unit.
+       * @param read - Picks the unit out of the time that is left.
+       * @param className - An extra class for the tile.
+       * @returns The tile.
+       */
       const unit = (name: string, read: (value: Remaining) => number, className = '') => {
         const card = createFlipCard(computed(() => two(read(left.value))));
         cards.push(card);
@@ -98,20 +128,57 @@ export const defineCountdownTimer = () =>
 
       const root = tag('div', {
         class: 'clock',
-        mounted: () => {
-          const timer = setInterval(() => {
+        /**
+         * Starts the clock when the widget is in the document: the timer, the watchers of visibility, the cards and the
+         * `done` event.
+         *
+         * @param element - The element of the clock, which is watched for being on screen.
+         * @returns The cleanup that stops all of it.
+         */
+        mounted: (element) => {
+          let timer: ReturnType<typeof setInterval> | undefined;
+          let visible = true;
+          /** Moves the clock to the current moment. */
+          const tick = () => {
             now.value = Date.now();
-          }, 1000);
-          const stopCards = cards.map((card) => card.start());
-          let finished = false;
-          const stop = effect(() => {
-            if (left.value.done && !finished) {
-              finished = true;
-              emit('done');
+          };
+          /** Runs the timer only while the clock is on screen, the tab is visible and the time has not run out. */
+          const sync = () => {
+            const run = visible && !document.hidden && !left.peek().done;
+            if (run && timer === undefined) {
+              tick();
+              timer = setInterval(tick, 1000);
+            } else if (!run && timer !== undefined) {
+              clearInterval(timer);
+              timer = undefined;
             }
+          };
+          const observer =
+            typeof IntersectionObserver === 'function'
+              ? new IntersectionObserver((entries) => {
+                  visible = entries[entries.length - 1]?.isIntersecting ?? true;
+                  sync();
+                })
+              : undefined;
+          observer?.observe(element);
+          document.addEventListener('visibilitychange', sync);
+          const stopCards = cards.map((card) => card.start());
+          const stop = effect(() => {
+            if (!left.value.done) {
+              announced = false;
+              sync();
+              return;
+            }
+            if (announced) return;
+            announced = true;
+            emit('done');
+            sync();
           });
+          sync();
           return () => {
             clearInterval(timer);
+            observer?.disconnect();
+            document.removeEventListener('visibilitychange', sync);
             stopCards.forEach((stopCard) => stopCard());
             stop();
           };
@@ -128,7 +195,7 @@ export const defineCountdownTimer = () =>
           ),
         ],
       });
-      return sheet(css, root);
+      return sheet(host, css, root);
     },
     { attributes: ['to', 'label'] },
   );

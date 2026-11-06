@@ -80,20 +80,23 @@
       countdown-timer {
         --w-font: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', cursive;
         --w-radius: 36px;
-        --w-accent: #ff4fa3;
+        --w-accent: #c2185b;
         --w-fg: #5b3b8c;
         --w-bg: #fff;
-        --w-muted: #8c74b5;
+        --w-muted: #6d4fa0;
         --w-border: #ff4fa3;
       }
       weather-now {
-        --w-fg: #fff;
+        --w-fg: #3b1d6a;
+        --w-muted: #3b1d6a;
+        --w-accent: #3b1d6a;
+        --w-border: #3b1d6a;
         --w-bg: linear-gradient(160deg, #ff8ccb, #ffb86b);
       }
       countdown-timer {
-        --w-bg: #3a8fe8;
+        --w-bg: #1f5fbf;
         --w-fg: #fff;
-        --w-muted: #d9ecff;
+        --w-muted: #e6f1ff;
         --w-border: #fff;
         --w-accent: #ffd23f;
       }
@@ -114,7 +117,7 @@
       <h2>Today at the club</h2>
       <div class="grid">
         <weather-now city="Lisbon" unit="c"></weather-now>
-        <countdown-timer to="2027-06-25T08:00:00" label="Summer holidays in"></countdown-timer>
+        <countdown-timer label="Summer holidays in"></countdown-timer>
       </div>
       <h2>Vote for the mascot</h2>
       <div class="grid">
@@ -127,6 +130,11 @@
         <p><button type="button">Join the club</button></p>
       </div>
     </main>
+    <script>
+      document
+        .querySelector('countdown-timer')
+        .setAttribute('to', new Date(Date.now() + 118 * 86400000).toISOString());
+    </script>
     <script src="../embed/ecmact-widgets.js"></script>
   </body>
 </html>

@@ -52,7 +52,7 @@ new FormData(form);
     ),
     callout(
       'note',
-      '`field` needs `ElementInternals`. For `select`, give the options through `html`, because the options of a native `select` must be real `option` elements. Labels (`<label for>`) still do not cross the shadow boundary: put the control inside the label or use `aria-label`.',
+      '`field` needs `ElementInternals`. For `select`, give the options through `html`, because the options of a native `select` must be real `option` elements. Labels (`<label for>`) still do not cross the shadow boundary: put the control inside the label (a click on the label is forwarded to the control inside the component) or use `aria-label`.',
     ),
   ],
 };

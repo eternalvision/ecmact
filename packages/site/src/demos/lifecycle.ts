@@ -1,5 +1,12 @@
 import { computed, effect, em, signal, tags } from 'ecmact';
 
+/**
+ * Reads the time of day. Not `toLocaleTimeString`: its first call loads the locale data and takes tens of milliseconds.
+ *
+ * @returns The time as `HH:MM:SS`.
+ */
+const timeOfDay = () => new Date().toTimeString().slice(0, 8);
+
 const css = `
   :host, div { display: block; }
   .bar { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; margin-bottom: 0.8rem; }
@@ -25,7 +32,7 @@ const css = `
  * @returns The demo.
  */
 export const create = () => {
-  const time = signal(new Date().toLocaleTimeString());
+  const time = signal(timeOfDay());
   const frozen = signal(false);
   const mounts = signal(0);
   const unmounts = signal(0);
@@ -38,7 +45,7 @@ export const create = () => {
     content: time,
     mounted: () => {
       mounts.value++;
-      const timer = setInterval(() => (time.value = new Date().toLocaleTimeString()), 1000);
+      const timer = setInterval(() => (time.value = timeOfDay()), 1000);
       return () => clearInterval(timer);
     },
     unmounted: () => {

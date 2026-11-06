@@ -69,10 +69,18 @@ export interface Messages {
     openFull: string;
     hosts: Record<string, { title: string; text: string }>;
     embedTitle: string;
+    embedCaption: string;
     embedLead: string;
     referenceTitle: string;
     referenceLead: string;
-    columns: { widget: string; attributes: string; events: string; description: string };
+    columns: {
+      widget: string;
+      property: string;
+      attributes: string;
+      events: string;
+      description: string;
+    };
+    properties: Record<string, string>;
     descriptions: Record<string, string>;
     themeTitle: string;
     themeLead: string;
@@ -86,6 +94,7 @@ export interface Messages {
     lead: string;
     start: string;
     live: string;
+    factsLabel: string;
     facts: [string, string][];
     featuresTitle: string;
     featuresLead: string;
@@ -209,12 +218,14 @@ const en: Messages = {
       },
     },
     embedTitle: 'What every host page does',
+    embedCaption: 'any page',
     embedLead: 'The same two lines, whatever the page looks like:',
     referenceTitle: 'The five widgets',
     referenceLead:
       'Attributes configure a widget, events carry results out, custom properties dress it. Every widget understands the same custom properties.',
     columns: {
       widget: 'Widget',
+      property: 'Property',
       attributes: 'Attributes',
       events: 'Events',
       description: 'What it does',
@@ -226,9 +237,18 @@ const en: Messages = {
       'poll-widget': 'A one-question poll whose votes stay in the browser.',
       'countdown-timer': 'A flip-clock countdown to a moment.',
     },
+    properties: {
+      '--w-accent': 'The color of buttons, bars and highlights.',
+      '--w-bg': 'The background of the card: a color or any CSS background.',
+      '--w-fg': 'The text color.',
+      '--w-muted': 'The color of secondary text.',
+      '--w-border': 'The color of borders and dividers.',
+      '--w-radius': 'The roundness of the corners.',
+      '--w-font': 'The font family.',
+    },
     themeTitle: 'Custom properties',
     themeLead:
-      'Set them on the widget element or on any ancestor. A widget reads them with its own defaults, so setting none gives its original look.',
+      'Set them on the widget element or on any ancestor. A widget reads them with its own defaults, so setting none gives its original look. The flip cards of countdown-timer are painted from --w-bg too, so if --w-bg is a gradient, also set --w-tile to a plain color for them.',
   },
   demos: {
     counter: {
@@ -293,6 +313,7 @@ const en: Messages = {
     lead: 'ECMact is a small library with signals, a router, a store, an HTTP client, styled components and embeddable widgets. No virtual DOM, no dependencies, and nothing that has to be compiled.',
     start: 'Get started',
     live: 'See live examples',
+    factsLabel: 'Facts',
     facts: [
       ['0', 'runtime dependencies'],
       ['100%', 'test coverage, every line'],
@@ -431,12 +452,14 @@ const ru: Messages = {
       },
     },
     embedTitle: 'Что делает каждая хост-страница',
+    embedCaption: 'любая страница',
     embedLead: 'Те же две строки, как бы страница ни выглядела:',
     referenceTitle: 'Пять виджетов',
     referenceLead:
       'Атрибуты настраивают виджет, события выносят результаты наружу, custom properties его одевают. Все виджеты понимают одни и те же custom properties.',
     columns: {
       widget: 'Виджет',
+      property: 'Свойство',
       attributes: 'Атрибуты',
       events: 'События',
       description: 'Что делает',
@@ -449,9 +472,18 @@ const ru: Messages = {
       'poll-widget': 'Опрос с одним вопросом, голоса остаются в браузере.',
       'countdown-timer': 'Обратный отсчёт до момента в стиле перекидных часов.',
     },
+    properties: {
+      '--w-accent': 'Цвет кнопок, полос и акцентов.',
+      '--w-bg': 'Фон карточки: цвет или любой CSS-фон.',
+      '--w-fg': 'Цвет текста.',
+      '--w-muted': 'Цвет второстепенного текста.',
+      '--w-border': 'Цвет рамок и разделителей.',
+      '--w-radius': 'Скругление углов.',
+      '--w-font': 'Семейство шрифтов.',
+    },
     themeTitle: 'Custom properties',
     themeLead:
-      'Задавайте их на элементе виджета или на любом предке. Виджет читает их со своими значениями по умолчанию, поэтому без них он выглядит исходно.',
+      'Задавайте их на элементе виджета или на любом предке. Виджет читает их со своими значениями по умолчанию, поэтому без них он выглядит исходно. Карточки счётчика countdown-timer тоже закрашиваются из --w-bg, поэтому если --w-bg - градиент, задайте для них ещё и --w-tile простым цветом.',
   },
   demos: {
     counter: {
@@ -517,6 +549,7 @@ const ru: Messages = {
     lead: 'ECMact - небольшая библиотека: сигналы, роутер, стор, HTTP-клиент, styled-компоненты и встраиваемые виджеты. Без виртуального DOM, без зависимостей и без того, что нужно компилировать.',
     start: 'Начать',
     live: 'Живые примеры',
+    factsLabel: 'Факты',
     facts: [
       ['0', 'runtime-зависимостей'],
       ['100%', 'покрытие тестами, каждая строка'],

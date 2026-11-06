@@ -52,7 +52,7 @@ export const ol = (...items: string[]): Block => ({ type: 'ol', items });
 export const code = (language: Language, code: string, title?: string): CodeBlock => ({
   type: 'code',
   language,
-  code: code.replace(/^\n+|\s+$/g, ''),
+  code: code.replace(/^\n+/, '').trimEnd(),
   ...(title === undefined ? {} : { title }),
 });
 

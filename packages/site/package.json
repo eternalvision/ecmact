@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && vite build --config vite.widgets.config.ts",
+    "build": "vite build",
     "build:widgets": "vite build --config vite.widgets.config.ts",
     "preview": "vite preview",
     "typecheck": "tsc",

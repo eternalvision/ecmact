@@ -3,9 +3,10 @@ import { createStore, em, tags } from 'ecmact';
 const css = `
   :host, div { display: block; }
   form { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
+  form > em-input { flex: 1; min-width: 0; }
   input {
-    flex: 1;
-    min-width: 0;
+    box-sizing: border-box;
+    width: 100%;
     padding: 0.5rem 0.75rem;
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -23,9 +24,9 @@ const css = `
     cursor: pointer;
   }
   button:hover { border-color: var(--primary); }
-  ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
+  ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.4rem; }
   li { display: flex; align-items: center; gap: 0.6rem; }
-  li span { flex: 1; }
+  li > em-span { display: block; flex: 1; min-width: 0; }
   .done { color: var(--muted); text-decoration: line-through; }
   small { display: block; margin-top: 0.75rem; color: var(--muted); }
 `;

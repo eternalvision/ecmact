@@ -41,7 +41,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['packages/site/src/demos/**/*.ts', 'packages/site/src/widgets/**/*.ts'],
+    files: ['packages/site/src/demos/**/*.ts'],
     rules: {
       'jsdoc/require-jsdoc': [
         'error',

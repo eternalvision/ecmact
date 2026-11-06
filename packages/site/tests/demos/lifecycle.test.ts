@@ -24,6 +24,11 @@ const open = async () => {
 };
 
 describe('lifecycle demo', () => {
+  it('shows the time of day as hours, minutes and seconds', async () => {
+    const { root } = await open();
+    expect(root.querySelector('output')?.textContent).toMatch(/^\d\d:\d\d:\d\d$/);
+  });
+
   it('mounts the clock once and repaints every second', async () => {
     const { text } = await open();
     expect(text()).toContain('mounted 1, unmounted 0');

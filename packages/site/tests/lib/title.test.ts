@@ -15,6 +15,13 @@ describe('metaFor', () => {
     expect(metaFor('/examples').title).toBe('Examples - ECMact');
   });
 
+  it('does not mind a trailing slash on any page', () => {
+    expect(metaFor('/widgets/').title).toBe('Widgets - ECMact');
+    expect(metaFor('/examples/').title).toBe('Examples - ECMact');
+    expect(metaFor('/docs/routing//').title).toBe('Routing - ECMact docs');
+    expect(metaFor('//').title).toBe('ECMact - Reactive interfaces on native Web Components');
+  });
+
   it('describes the widget gallery', () => {
     expect(metaFor('/widgets').title).toBe('Widgets - ECMact');
     expect(metaFor('/widgets').description).toContain('hostile CSS');
