@@ -1,3 +1,4 @@
+/** The package managers the scaffolder knows how to suggest commands for. */
 export type PackageManager = 'npm' | 'pnpm' | 'yarn' | 'bun';
 
 const known: PackageManager[] = ['pnpm', 'yarn', 'bun', 'npm'];

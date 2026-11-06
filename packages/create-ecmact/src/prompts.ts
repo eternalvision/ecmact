@@ -1,9 +1,25 @@
 import { createInterface } from 'node:readline';
 import type { Readable, Writable } from 'node:stream';
 
+/** Asks questions on a stream. */
 export interface Prompter {
+  /**
+   * Asks a question and waits for one line.
+   *
+   * @param question - The question.
+   * @param fallback - The answer for an empty line or the end of the input.
+   * @returns The trimmed answer, or the fallback.
+   */
   ask(question: string, fallback: string): Promise<string>;
+  /**
+   * Asks a yes or no question.
+   *
+   * @param question - The question.
+   * @param fallback - The answer for an empty line.
+   * @returns `true` for `y` or `yes`, in any case.
+   */
   confirm(question: string, fallback: boolean): Promise<boolean>;
+  /** Stops reading the input. */
   close(): void;
 }
 

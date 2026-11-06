@@ -6,11 +6,17 @@ import { detectPackageManager, installCommand, runCommand } from '@create/packag
 import { createPrompter } from '@create/prompts';
 import { isEmptyDirectory, scaffold, toPackageName } from '@create/scaffold';
 
+/** Everything the scaffolder reads from and writes to, injected so it can be tested. */
 export interface Io {
+  /** The directory relative paths are resolved against. */
   cwd: string;
+  /** The environment variables. */
   env: Record<string, string | undefined>;
+  /** Where the answers come from. */
   stdin: Readable;
+  /** Where output and questions are written. */
   stdout: Writable;
+  /** Where errors are written. */
   stderr: Writable;
 }
 

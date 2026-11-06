@@ -1,5 +1,8 @@
+/** A route pattern turned into a regular expression. */
 export interface CompiledPattern {
+  /** Matches a whole pathname and captures the parameters. */
   regexp: RegExp;
+  /** The parameter names, in the order of the capture groups. */
   names: string[];
 }
 

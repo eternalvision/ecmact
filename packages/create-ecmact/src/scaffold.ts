@@ -1,14 +1,21 @@
 import { cp, mkdir, readdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+/** What `scaffold` needs to write a project. */
 export interface ScaffoldOptions {
+  /** The directory that holds the `base` and `tailwind` template folders. */
   templateRoot: string;
+  /** The directory to write into. */
   target: string;
+  /** The package name of the new project. */
   name: string;
+  /** Whether to layer Tailwind CSS on top of the base template. */
   tailwind: boolean;
+  /** The version of `ecmact` the project depends on. */
   ecmactVersion: string;
 }
 
+/** A JSON object. */
 type Json = Record<string, unknown>;
 
 /**

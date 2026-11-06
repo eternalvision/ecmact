@@ -1,19 +1,42 @@
 import { batch, effect, signal, untracked, type ReadonlySignal } from '@em/signals';
 
+/** What the fetcher of a resource receives. */
 export interface ResourceContext {
+  /** Aborted when the request is replaced by a newer one or the resource is disposed. */
   signal: AbortSignal;
 }
 
+/**
+ * Options of a resource.
+ *
+ * @template T - The type of the data.
+ */
 export interface ResourceOptions<T> {
+  /** The data to expose until the first request finishes. */
   initial?: T;
 }
 
+/**
+ * An async value exposed as signals.
+ *
+ * @template T - The type of the data.
+ */
 export interface Resource<T> {
+  /** The latest result, or `undefined` (or the initial value) before the first one. */
   readonly data: ReadonlySignal<T | undefined>;
+  /** The reason of the latest failure, or `undefined`. */
   readonly error: ReadonlySignal<unknown>;
+  /** `true` while a request is in flight. */
   readonly loading: ReadonlySignal<boolean>;
+  /** Runs the fetcher again. */
   refetch(): void;
+  /**
+   * Sets the data by hand and clears the error.
+   *
+   * @param value - The new data.
+   */
   mutate(value: T): void;
+  /** Stops reacting to signals, aborts the request in flight and ignores late results. */
   dispose(): void;
 }
 

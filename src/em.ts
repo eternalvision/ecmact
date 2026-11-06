@@ -1,8 +1,16 @@
 import { Component } from '@em/component';
 import type { ComponentProps } from '@em/types';
 
+/**
+ * Creates a component. The tag of the inner element is inferred from the `tag` prop and defaults to `div`.
+ *
+ * @template K - The tag of the inner element.
+ * @param props - The props of the component.
+ * @returns The component.
+ */
 type ComponentFactory = <K extends string = 'div'>(props?: ComponentProps<K>) => Component<K>;
 
+/** An object whose properties are component factories, created on first access. */
 type ComponentRegistry = Record<string, ComponentFactory>;
 
 const namePattern = /^[A-Za-z][A-Za-z0-9_-]*$/;
@@ -41,6 +49,13 @@ export const createFactory = (name: string): ComponentFactory => {
   };
 };
 
+/**
+ * Creates components by name: `em.Card({ ... })` registers `<em-card>` on first use and returns an instance.
+ * The name only names the custom element; what is rendered inside is decided by the `tag` prop.
+ *
+ * @example
+ * const card = em.Card({ content: 'Hello' });
+ */
 const em: ComponentRegistry = new Proxy({} as ComponentRegistry, {
   /**
    * Creates the component factory for the property that was accessed.

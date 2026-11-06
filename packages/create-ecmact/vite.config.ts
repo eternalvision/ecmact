@@ -23,6 +23,6 @@ export default defineConfig({
     minify: false,
     sourcemap: false,
     ssr: 'src/index.ts',
-    rolldownOptions: { output: { entryFileNames: 'index.js' } },
+    rolldownOptions: { output: { entryFileNames: 'index.js', comments: { jsdoc: false } } },
   },
 });

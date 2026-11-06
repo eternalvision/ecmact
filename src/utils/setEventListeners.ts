@@ -1,6 +1,12 @@
 import type { ResolvedProps } from '@em/types';
 import { warn } from '@em/utils/warn';
 
+/**
+ * Receives an error thrown by an event listener.
+ *
+ * @param error - The error.
+ * @param event - The lowercase event name.
+ */
 type Reporter = (error: unknown, event: string) => void;
 
 /**

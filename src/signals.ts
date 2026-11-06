@@ -1,19 +1,47 @@
+/**
+ * A value that notifies its readers when it changes, and cannot be written by them.
+ *
+ * @template T - The type of the value.
+ */
 export interface ReadonlySignal<T> {
+  /** The current value. Reading it inside an effect or a computed value subscribes to changes. */
   readonly value: T;
+  /**
+   * Reads the value without subscribing to it.
+   *
+   * @returns The current value.
+   */
   peek(): T;
+  /**
+   * Calls `listener` with the current value now and after every change.
+   *
+   * @param listener - Receives the value.
+   * @returns A function that stops the subscription.
+   */
   subscribe(listener: (value: T) => void): () => void;
 }
 
+/**
+ * A writable signal.
+ *
+ * @template T - The type of the value.
+ */
 export interface Signal<T> extends ReadonlySignal<T> {
+  /** The current value. Writing it notifies the readers, unless it is the same value. */
   value: T;
 }
 
+/** Something that depends on sources and is told when one of them changes: an effect or a computed value. */
 interface Listener {
+  /** The sources this listener currently reads. */
   readonly deps: Set<Source>;
+  /** Called when a source changed. */
   invalidate(): void;
 }
 
+/** Something that can be read and has listeners: a signal or a computed value. */
 interface Source {
+  /** The listeners that read this source. */
   readonly subs: Set<Listener>;
 }
 

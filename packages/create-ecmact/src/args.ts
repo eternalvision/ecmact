@@ -1,10 +1,16 @@
 import { parseArgs } from 'node:util';
 
+/** The options read from the command line. */
 export interface Options {
+  /** The directory to create, if given. */
   name: string | undefined;
+  /** Whether to add Tailwind CSS; `undefined` when neither `--tailwind` nor `--no-tailwind` was passed. */
   tailwind: boolean | undefined;
+  /** Use the defaults and ask nothing. */
   yes: boolean;
+  /** Write into a directory that is not empty. */
   force: boolean;
+  /** Show the help text. */
   help: boolean;
 }
 
@@ -35,6 +41,7 @@ export const parseArguments = (argv: string[]): Options => {
   };
 };
 
+/** The text printed by `--help`. */
 export const helpText = `Usage: create-ecmact [directory] [options]
 
 Options:

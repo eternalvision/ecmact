@@ -5,55 +5,109 @@ import { computed, effect, signal, untracked, type ReadonlySignal } from '@em/si
 import { tags } from '@em/tags';
 import type { ComponentProps } from '@em/types';
 
+/** The part of the URL a router works with. */
 export interface RouterLocation {
+  /** The pathname without the base, for example `/users/1`. */
   path: string;
+  /** The query string. */
   query: URLSearchParams;
+  /** The hash including `#`, or an empty string. */
   hash: string;
 }
 
+/** What a view receives: the location, the matched parameters and the router. */
 export interface RouteContext extends RouterLocation {
+  /** The decoded parameters of the matched pattern; `*` holds the rest of a wildcard. */
   params: Record<string, string>;
+  /** The router, for navigating from inside a view. */
   router: Router;
 }
 
+/**
+ * Renders a route. It may return a promise, which is how views are loaded lazily.
+ *
+ * @param context - The location and the matched parameters.
+ * @returns The node to show, or a promise of it.
+ */
 type View = (context: RouteContext) => Node | Promise<Node>;
 
+/** Maps a path pattern to a view. */
 export interface Route {
+  /** The pattern: `/`, `/about`, `/users/:id`, `/files/*` or `*`. The first matching route wins. */
   path: string;
+  /** Renders the route. */
   view: View;
 }
 
+/** The route that matches the current path. */
 export interface RouteMatch {
+  /** The matched route. */
   route: Route;
+  /** The decoded parameters. */
   params: Record<string, string>;
 }
 
+/** Options for `createRouter`. */
 export interface RouterOptions {
+  /** The routes, checked in order. */
   routes: Route[];
+  /** A path prefix the app is served from, for example `/app`. */
   base?: string;
+  /** The view for paths that no route matches. Without it the outlet stays empty. */
   notFound?: View;
 }
 
+/** Options for `navigate`. */
 export interface NavigateOptions {
+  /** Replaces the current history entry instead of adding one. */
   replace?: boolean;
+  /** Scrolls to the top after navigating. Defaults to `true`. */
   scroll?: boolean;
 }
 
+/** Props of `router.link`: the props of an anchor, with the target in `to` instead of `href`. */
 export type LinkProps = Omit<ComponentProps<'a'>, 'tag' | 'href'> & {
+  /** The target: an app path starting with `/` (the base is added) or a URL. */
   to: string;
+  /** Replaces the current history entry instead of adding one. */
   replace?: boolean;
 };
 
+/** Props for the outlet element: any component props except the ones the router controls. */
 export type OutletProps = Omit<ComponentProps<'div'>, 'tag' | 'children' | 'mounted'>;
 
+/** A router: the current location as a signal, plus navigation and the components that show it. */
 export interface Router {
+  /** The current location. Updates on `navigate` and on back and forward. */
   readonly location: ReadonlySignal<RouterLocation>;
+  /** The route that matches the current path, or `undefined`. */
   readonly match: ReadonlySignal<RouteMatch | undefined>;
+  /**
+   * Navigates to a path or URL.
+   *
+   * @param to - An app path starting with `/` (the base is added), or a URL.
+   * @param options - Whether to replace the entry and whether to scroll to the top.
+   */
   navigate(to: string, options?: NavigateOptions): void;
+  /** Goes one entry back in the history. */
   back(): void;
+  /** Goes one entry forward in the history. */
   forward(): void;
+  /**
+   * Creates an anchor that navigates without a page load on plain left clicks.
+   *
+   * @param props - The anchor props plus `to` and `replace`.
+   * @returns The anchor component.
+   */
   link(props: LinkProps): Component<'a'>;
+  /**
+   * Creates a component that renders the view of the current route.
+   *
+   * @param props - Props for the outlet element.
+   * @returns The outlet component.
+   */
   outlet(props?: OutletProps): Component<'div'>;
+  /** Stops listening to `popstate`. */
   dispose(): void;
 }
 
