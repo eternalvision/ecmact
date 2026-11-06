@@ -29,27 +29,39 @@ describe('remaining', () => {
   });
 });
 
+/**
+ * Reads the numbers that the cards show, in the order days, hours, minutes, seconds.
+ *
+ * @param root - The shadow root of the widget.
+ * @returns The numbers.
+ */
+const shown = (root: ShadowRoot) =>
+  [...root.querySelectorAll('.digit')].map(
+    (digit) => digit.querySelector('.half.top span')?.textContent,
+  );
+
 describe('countdown-timer', () => {
   it('counts down to the date in its attribute', async () => {
-    const { text } = await mountWidget('countdown-timer', {
+    const { root, text } = await mountWidget('countdown-timer', {
       to: '2027-01-02T01:01:01',
       label: 'Launch',
     });
     expect(text()).toContain('Launch');
-    expect(text()).toContain('01');
+    expect(shown(root)).toEqual(['01', '01', '01', '01']);
     await vi.advanceTimersByTimeAsync(1000);
-    expect(text()).toContain('00');
+    expect(shown(root)).toEqual(['01', '01', '01', '00']);
+    expect(root.querySelector('.flip')).not.toBeNull();
   });
 
   it('counts three days when it has no date at all', async () => {
-    const { text } = await mountWidget('countdown-timer');
-    expect(text()).toContain('03');
+    const { root } = await mountWidget('countdown-timer');
+    expect(shown(root)[0]).toBe('03');
   });
 
   it('falls back to three days ahead and to a default label', async () => {
-    const { text } = await mountWidget('countdown-timer', { to: 'soon' });
+    const { root, text } = await mountWidget('countdown-timer', { to: 'soon' });
     expect(text()).toContain('Countdown');
-    expect(text()).toContain('03');
+    expect(shown(root)[0]).toBe('03');
   });
 
   it('fires done once and stops its timer when removed', async () => {

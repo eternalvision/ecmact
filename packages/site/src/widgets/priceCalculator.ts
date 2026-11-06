@@ -27,10 +27,10 @@ const css = `
   input[type='range'] { width: 100%; margin: 0.4rem 0 1rem; accent-color: var(--w-accent, #8b5cf6); }
   .switch { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.2rem; font-size: 0.9rem; cursor: pointer; }
   .switch input { position: absolute; opacity: 0; }
-  .track { width: 2.6rem; height: 1.45rem; border-radius: 999px; background: color-mix(in srgb, var(--w-fg, #f4f1ff) 24%, transparent); padding: 0.17rem; transition: background 0.2s; }
-  .track::after { content: ''; display: block; width: 1.11rem; height: 1.11rem; border-radius: 50%; background: #fff; transition: transform 0.2s; }
-  .switch input:checked + .track { background: var(--w-accent, #8b5cf6); }
-  .switch input:checked + .track::after { transform: translateX(1.15rem); }
+  .track { box-sizing: border-box; display: flex; align-items: center; flex: none; width: 2.6rem; height: 1.45rem; border-radius: 999px; background: color-mix(in srgb, var(--w-fg, #f4f1ff) 24%, transparent); padding: 0.17rem; transition: background 0.2s; }
+  .track::after { content: ''; display: block; flex: none; width: 1.11rem; height: 1.11rem; border-radius: 50%; background: #fff; transition: transform 0.2s; }
+  .track.on { background: var(--w-accent, #8b5cf6); }
+  .track.on::after { transform: translateX(1.15rem); }
   .badge { margin-left: auto; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.75rem; background: color-mix(in srgb, var(--w-accent, #8b5cf6) 22%, transparent); color: var(--w-accent, #8b5cf6); }
   .total { display: flex; align-items: baseline; gap: 0.4rem; margin-bottom: 1rem; }
   .total strong { font-size: 2.6rem; line-height: 1; letter-spacing: -0.03em; }
@@ -40,7 +40,7 @@ const css = `
     background: var(--w-accent, #8b5cf6); color: #fff; font: inherit; font-weight: 700; cursor: pointer;
   }
   button:hover { filter: brightness(1.12); }
-  button:focus-visible, input:focus-visible + .track { outline: 2px solid #fff; outline-offset: 2px; }
+  button:focus-visible, .switch:focus-within .track { outline: 2px solid #fff; outline-offset: 2px; }
 `;
 
 /**
@@ -93,7 +93,7 @@ export const definePriceCalculator = () =>
                 yearly.value = (event.target as HTMLInputElement).checked;
               },
             }),
-            part('span', 'track'),
+            tag('span', { class: computed(() => (yearly.value ? 'track on' : 'track')) }),
             tag('span', { content: 'Billed yearly' }),
             tag('span', {
               class: 'badge',

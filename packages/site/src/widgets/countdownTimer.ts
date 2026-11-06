@@ -1,5 +1,6 @@
 import { computed, defineWidget, effect, signal } from 'ecmact';
 import { tag } from '@site/lib/component';
+import { createFlipCard, flipCss, type FlipCard } from '@site/widgets/flip';
 import { part, sheet } from '@site/widgets/kit';
 
 const css = `
@@ -18,19 +19,18 @@ const css = `
   .label { margin: 0 0 0.9rem; font-size: 0.8rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--w-muted, #8e8e99); }
   .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.6rem; }
   .tile { text-align: center; }
-  .tile b {
-    position: relative; display: block; padding: 0.7rem 0; border-radius: 10px; font-size: 2.1rem; font-weight: 700; font-variant-numeric: tabular-nums;
-    background: linear-gradient(
-      color-mix(in srgb, var(--w-fg, #f5f5f7) 11%, var(--w-bg, #111114)) 50%,
-      color-mix(in srgb, var(--w-fg, #f5f5f7) 7%, var(--w-bg, #111114)) 50%
-    );
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--w-fg, #f5f5f7) 12%, transparent);
+  .digit {
+    --flip-bg: color-mix(in srgb, var(--w-fg, #f5f5f7) 11%, var(--w-bg, #111114));
+    --flip-bg-low: color-mix(in srgb, var(--w-fg, #f5f5f7) 7%, var(--w-bg, #111114));
+    --flip-edge: color-mix(in srgb, var(--w-fg, #f5f5f7) 12%, transparent);
+    --flip-gap: var(--w-bg, #111114);
+    --flip-r: var(--w-radius, 10px);
+    color: var(--w-fg, #f5f5f7);
   }
-  .tile b::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--w-bg, #111114); }
-  .tile span { display: block; margin-top: 0.4rem; font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--w-muted, #8e8e99); }
-  .tile.sec b { color: var(--w-accent, #ff9f0a); }
+  .tile .name { display: block; margin-top: 0.4rem; font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--w-muted, #8e8e99); }
+  .tile.sec .digit { color: var(--w-accent, #ff9f0a); }
   .done { margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--w-accent, #ff9f0a); }
-`;
+${flipCss}`;
 
 /** The time that is left, split into units. */
 export interface Remaining {
@@ -84,13 +84,17 @@ export const defineCountdownTimer = () =>
       });
       const left = computed(() => remaining(target.value, now.value));
       const two = (value: number) => String(value).padStart(2, '0');
-      const unit = (name: string, read: (value: Remaining) => number, className = '') =>
-        part(
+      const cards: FlipCard[] = [];
+      const unit = (name: string, read: (value: Remaining) => number, className = '') => {
+        const card = createFlipCard(computed(() => two(read(left.value))));
+        cards.push(card);
+        return part(
           'div',
           `tile ${className}`.trim(),
-          tag('b', { content: computed(() => two(read(left.value))) }),
-          tag('span', { content: name }),
+          card.element,
+          tag('span', { class: 'name', content: name }),
         );
+      };
 
       const root = tag('div', {
         class: 'clock',
@@ -98,6 +102,7 @@ export const defineCountdownTimer = () =>
           const timer = setInterval(() => {
             now.value = Date.now();
           }, 1000);
+          const stopCards = cards.map((card) => card.start());
           let finished = false;
           const stop = effect(() => {
             if (left.value.done && !finished) {
@@ -107,6 +112,7 @@ export const defineCountdownTimer = () =>
           });
           return () => {
             clearInterval(timer);
+            stopCards.forEach((stopCard) => stopCard());
             stop();
           };
         },

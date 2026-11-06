@@ -27,6 +27,7 @@ describe('widgets page', () => {
       hosts.map((host) => `/hosts/${host.file}`),
     );
     expect(frames.every((frame) => frame.getAttribute('title'))).toBe(true);
+    expect(frames.every((frame) => frame.getAttribute('scrolling') === 'no')).toBe(true);
     expect(page.querySelectorAll('.host-head a')).toHaveLength(hosts.length);
   });
 

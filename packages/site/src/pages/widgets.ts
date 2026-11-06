@@ -1,6 +1,7 @@
 import { hosts, properties, propertiesRu, widgets } from '@site/content/widgets';
 import { text } from '@site/content/messages';
 import { el } from '@site/lib/dom';
+import { fitFrame } from '@site/lib/frame';
 import { currentLocale } from '@site/lib/i18n';
 import { withBase } from '@site/lib/paths';
 import { CodeBlock } from '@site/ui/codeBlock';
@@ -34,6 +35,22 @@ const table = (head: string[], rows: (Node | string)[][]) =>
       el('tbody', {}, ...rows.map((row) => el('tr', {}, ...row.map((cell) => el('td', {}, cell))))),
     ),
   );
+
+/**
+ * Creates the frame of a host page, as tall as the page so that it does not scroll.
+ *
+ * @param address - The address of the page.
+ * @param title - The title of the frame.
+ * @returns The iframe.
+ */
+const fitted = (address: string, title: string) => {
+  const frame = el('iframe', {
+    class: 'host-frame',
+    attrs: { src: address, title, loading: 'lazy' },
+  });
+  fitFrame(frame);
+  return frame;
+};
 
 /**
  * The gallery of widgets: four unrelated pages that embed the same widgets, each in an iframe, and the reference of
@@ -74,10 +91,7 @@ export const widgetsPage = () => {
             m.openFull,
           ),
         ),
-        el('iframe', {
-          class: 'host-frame',
-          attrs: { src: address, title: copy.title, loading: 'lazy' },
-        }),
+        fitted(address, copy.title),
       );
     }),
     el('h2', {}, m.embedTitle),

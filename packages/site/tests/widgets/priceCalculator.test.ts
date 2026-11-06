@@ -42,6 +42,10 @@ describe('price-calculator', () => {
     expect(text()).toContain('$1,152');
     expect(text()).toContain('per year');
     expect(text()).toContain('Save 20%');
+    expect(root.querySelector('.track')?.classList.contains('on')).toBe(true);
+    yearly.checked = false;
+    yearly.dispatchEvent(new Event('change'));
+    expect(root.querySelector('.track')?.classList.contains('on')).toBe(false);
   });
 
   it('announces a quote', async () => {
