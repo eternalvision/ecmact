@@ -388,3 +388,46 @@ describe('isSignal', () => {
     expect(isSignal(() => 1)).toBe(false);
   });
 });
+
+describe('computed with equals', () => {
+  it('keeps the previous value and does not notify readers while values are equal', () => {
+    const source = signal({ a: 1, b: 1 });
+    const a = computed(
+      () => ({ a: source.value.a }),
+      (x, y) => x.a === y.a,
+    );
+    const first = a.value;
+    const seen: number[] = [];
+    effect(() => {
+      seen.push(a.value.a);
+    });
+    source.value = { a: 1, b: 2 };
+    expect(a.value).toBe(first);
+    expect(seen).toEqual([1]);
+  });
+
+  it('notifies readers when the value differs', () => {
+    const source = signal(1);
+    const parity = computed(
+      () => source.value % 2,
+      (x, y) => x === y,
+    );
+    const seen: number[] = [];
+    effect(() => {
+      seen.push(parity.value);
+    });
+    source.value = 3;
+    source.value = 4;
+    expect(seen).toEqual([1, 0]);
+  });
+
+  it('does nothing while it is stale and has not been read', () => {
+    const source = signal(1);
+    const parity = computed(
+      () => source.value % 2,
+      (x, y) => x === y,
+    );
+    source.value = 2;
+    expect(parity.value).toBe(0);
+  });
+});

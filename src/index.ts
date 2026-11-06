@@ -1,6 +1,21 @@
 export { em } from '@em/core/em';
 export { tags } from '@em/core/tags';
 export { configure } from '@em/core/config';
+export { combine } from '@em/store/combine';
+export { devtools } from '@em/store/devtools';
+export type { DevtoolsOptions } from '@em/store/devtools';
+export { createJSONStorage, persist } from '@em/store/persist';
+export type {
+  JsonStorageOptions,
+  PersistApi,
+  PersistOptions,
+  PersistStorage,
+  StateStorage,
+  StorageValue,
+} from '@em/store/persist';
+export { shallow } from '@em/store/shallow';
+export { createStore } from '@em/store/store';
+export type { Listener, SetState, StateCreator, Store, WatchOptions } from '@em/store/store';
 export { styled } from '@em/styled/styled';
 export type {
   Attrs,

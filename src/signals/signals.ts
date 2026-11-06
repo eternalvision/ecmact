@@ -209,14 +209,17 @@ class ComputedImpl<T> implements ReadonlySignal<T>, Source, Listener {
   readonly subs = new Set<Listener>();
   readonly deps = new Set<Source>();
   readonly #fn: () => T;
+  readonly #equals: ((a: T, b: T) => boolean) | undefined;
   #value!: T;
   #dirty = true;
 
   /**
    * @param fn - Computes the value from other signals.
+   * @param equals - Tells whether a recomputed value is the same as the previous one.
    */
-  constructor(fn: () => T) {
+  constructor(fn: () => T, equals?: (a: T, b: T) => boolean) {
     this.#fn = fn;
+    this.#equals = equals;
   }
 
   /**
@@ -244,7 +247,17 @@ class ComputedImpl<T> implements ReadonlySignal<T>, Source, Listener {
    */
   invalidate() {
     if (this.#dirty) return;
+    if (!this.#equals) {
+      this.#dirty = true;
+      notify(this);
+      return;
+    }
+    const previous = this.#value;
     this.#dirty = true;
+    if (this.#equals(previous, this.#read())) {
+      this.#value = previous;
+      return;
+    }
     notify(this);
   }
 
@@ -346,9 +359,13 @@ export const signal = <T>(value: T): Signal<T> => new SignalImpl(value);
  *
  * @template T - The type of the derived value.
  * @param fn - Computes the value from other signals.
+ * @param equals - Makes the signal ignore a recomputed value that it considers the same as the previous one: readers
+ * are not notified, and the previous value is kept. Such a signal recomputes as soon as a dependency changes, not
+ * when it is read.
  * @returns The computed signal.
  */
-export const computed = <T>(fn: () => T): ReadonlySignal<T> => new ComputedImpl(fn);
+export const computed = <T>(fn: () => T, equals?: (a: T, b: T) => boolean): ReadonlySignal<T> =>
+  new ComputedImpl(fn, equals);
 
 /**
  * Runs `fn` now and again whenever a signal it read changes. Dependencies are tracked anew on every run.
