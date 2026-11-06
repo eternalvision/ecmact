@@ -14,6 +14,22 @@ export default defineConfig([
     languageOptions: { globals: { console: 'readonly', process: 'readonly', URL: 'readonly' } },
   },
   {
+    files: ['src/**/*.ts', 'tests/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['./*', '../*', '.', '..'],
+              message: 'Import through the @em or @tests alias.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['tests/**/*.ts'],
     rules: {
       '@typescript-eslint/no-empty-function': 'off',
