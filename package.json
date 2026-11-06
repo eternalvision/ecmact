@@ -27,7 +27,8 @@
     "format:check": "prettier --check .",
     "prepublishOnly": "npm run build",
     "test:structure": "node scripts/check-tests.mjs",
-    "build:all": "npm run build && npm run build --workspaces --if-present"
+    "build:all": "npm run build && npm run build --workspaces --if-present",
+    "test:template": "node scripts/check-template.mjs"
   },
   "keywords": [
     "web-components",
