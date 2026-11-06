@@ -8,6 +8,12 @@ export interface Options {
   help: boolean;
 }
 
+/**
+ * Parses the command line of the scaffolder.
+ *
+ * @param argv - The arguments after the program name.
+ * @returns The directory name, if given, and the flags. `tailwind` is `undefined` when neither flag was passed.
+ */
 export const parseArguments = (argv: string[]): Options => {
   const { values, positionals } = parseArgs({
     args: argv,

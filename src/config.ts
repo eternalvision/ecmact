@@ -20,16 +20,38 @@ export interface Config {
   onError?: ErrorHandler;
 }
 
+/**
+ * Creates the default configuration.
+ *
+ * @returns A new configuration object.
+ */
 const defaults = (): Config => ({ shadow: true, styles: [], warnings: true });
 
 let current = defaults();
 
+/**
+ * Sets application-wide defaults. Options are merged with the ones set before.
+ * Call it before the first component is created.
+ *
+ * @example
+ * configure({ shadow: false, styles: [tailwind] });
+ *
+ * @param options - The options to change.
+ */
 export const configure = (options: Partial<Config>) => {
   current = { ...current, ...options };
 };
 
+/**
+ * Reads the current configuration.
+ *
+ * @returns The current configuration.
+ */
 export const getConfig = () => current;
 
+/**
+ * Restores the default configuration. Meant for tests.
+ */
 export const resetConfig = () => {
   current = defaults();
 };

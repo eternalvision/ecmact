@@ -7,9 +7,22 @@ type ComponentRegistry = Record<string, ComponentFactory>;
 
 const namePattern = /^[A-Za-z][A-Za-z0-9_-]*$/;
 
+/**
+ * Tells whether a property name must not create a component, so that `await em` and `String(em)` are safe.
+ *
+ * @param prop - The property name that was accessed.
+ * @returns `true` for symbols and `then`.
+ */
 export const isIgnoredKey = (prop: string | symbol): prop is symbol | 'then' =>
   typeof prop === 'symbol' || prop === 'then';
 
+/**
+ * Registers the custom element for a component name, once, and returns a function that creates it.
+ *
+ * @param name - The component name. Names are case-insensitive and share one element.
+ * @returns The factory that creates components.
+ * @throws {TypeError} If the name is not a valid component name.
+ */
 export const createFactory = (name: string): ComponentFactory => {
   if (!namePattern.test(name)) {
     throw new TypeError(`ecmact: invalid component name "${name}"`);
@@ -29,6 +42,13 @@ export const createFactory = (name: string): ComponentFactory => {
 };
 
 const em: ComponentRegistry = new Proxy({} as ComponentRegistry, {
+  /**
+   * Creates the component factory for the property that was accessed.
+   *
+   * @param _ - The proxy target, not used.
+   * @param prop - The component name.
+   * @returns The factory, or `undefined` for ignored keys.
+   */
   get: (_, prop) => (isIgnoredKey(prop) ? undefined : createFactory(prop)),
 });
 

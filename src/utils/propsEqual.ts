@@ -1,8 +1,21 @@
 import type { ResolvedProps } from '@em/types';
 
+/**
+ * Tells whether a value is a non-null object.
+ *
+ * @param value - The value to check.
+ * @returns `true` for objects.
+ */
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
 
+/**
+ * Compares two objects key by key with `Object.is`.
+ *
+ * @param a - The first object.
+ * @param b - The second object.
+ * @returns `true` if both have the same keys and values.
+ */
 const shallowEqual = (a: object, b: object) => {
   const first = a as Record<string, unknown>;
   const second = b as Record<string, unknown>;
@@ -10,6 +23,14 @@ const shallowEqual = (a: object, b: object) => {
   return [...keys].every((key) => Object.is(first[key], second[key]));
 };
 
+/**
+ * Compares two sets of resolved props. Style objects and children lists are compared item by item,
+ * everything else with `Object.is`.
+ *
+ * @param a - The first props.
+ * @param b - The second props.
+ * @returns `true` if nothing differs.
+ */
 export const propsEqual = (a: ResolvedProps, b: ResolvedProps) => {
   const first: Record<string, unknown> = a;
   const second: Record<string, unknown> = b;

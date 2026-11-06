@@ -16,6 +16,13 @@ export interface Io {
 
 const templateRoot = fileURLToPath(new URL('../template', import.meta.url));
 
+/**
+ * Runs the scaffolder: reads the options, asks what is missing, writes the project and prints the next steps.
+ *
+ * @param argv - The arguments after the program name.
+ * @param io - The working directory, environment and streams, injected so it can be tested.
+ * @returns The exit code: `0` on success, `1` if the target directory is not empty.
+ */
 export const run = async (argv: string[], io: Io): Promise<number> => {
   const options = parseArguments(argv);
   if (options.help) {

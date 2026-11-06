@@ -7,6 +7,12 @@ import { propsEqual, registerComponent, render, resolveProps, warn } from '@em/u
 const Base =
   typeof HTMLElement === 'undefined' ? (Object as unknown as typeof HTMLElement) : HTMLElement;
 
+/**
+ * The custom element behind every component: it renders its props into one inner element,
+ * follows signals while it is in the document, runs the lifecycle hooks and answers context requests.
+ *
+ * @template K - The tag of the inner element.
+ */
 export class Component<K extends string = string> extends Base {
   #props: ComponentProps<K>;
   #last: ResolvedProps | null = null;
@@ -24,6 +30,11 @@ export class Component<K extends string = string> extends Base {
     sheetNodes: [],
   };
 
+  /**
+   * Creates the element. Elements are normally created through the `em` and `tags` factories.
+   *
+   * @param props - The initial props.
+   */
   constructor(props: ComponentProps<K> = {} as ComponentProps<K>) {
     super();
     this.#props = props;
@@ -31,6 +42,10 @@ export class Component<K extends string = string> extends Base {
     this.addEventListener(contextRequestEvent, this.#answer);
   }
 
+  /**
+   * Called by the browser when the element is added to a document. Paints if the props changed while
+   * it was detached, starts following signals and runs `mounted`.
+   */
   connectedCallback() {
     untracked(() => {
       const resolved = resolveProps(this.#props as ComponentProps);
@@ -44,6 +59,10 @@ export class Component<K extends string = string> extends Base {
     });
   }
 
+  /**
+   * Called by the browser when the element is removed from a document. Stops following signals,
+   * runs the cleanup returned by `mounted` and then `unmounted`.
+   */
   disconnectedCallback() {
     this.#stop?.();
     this.#stop = null;
@@ -53,14 +72,32 @@ export class Component<K extends string = string> extends Base {
     this.#guard('unmounted', () => this.#hooks.unmounted?.(this.#element, this.#self));
   }
 
+  /**
+   * Merges `newProps` into the current props and updates the element in place.
+   *
+   * @example
+   * card.setState({ content: 'Saved' });
+   *
+   * @param newProps - The props to change.
+   */
   setState(newProps: Partial<ComponentProps<K>>) {
     this.props = { ...this.#props, ...newProps } as ComponentProps<K>;
   }
 
+  /**
+   * Reads the current props, as they were passed (signals are not unwrapped).
+   *
+   * @returns The current props.
+   */
   get props() {
     return this.#props;
   }
 
+  /**
+   * Replaces all props and updates the element in place. `beforeUpdate` can cancel the update.
+   *
+   * @param newProps - The new props.
+   */
   set props(newProps: ComponentProps<K>) {
     untracked(() => {
       const resolved = resolveProps(newProps as ComponentProps);
@@ -71,22 +108,48 @@ export class Component<K extends string = string> extends Base {
     });
   }
 
+  /**
+   * Reads the inner element.
+   *
+   * @returns The inner element, or `null` before the first render.
+   */
   get element() {
     return this.#state.element as ElementOf<K> | null;
   }
 
+  /**
+   * Reads the hooks and other behavior props, which are never signals.
+   *
+   * @returns The current props viewed as resolved props.
+   */
   get #hooks() {
     return this.#props as unknown as ResolvedProps;
   }
 
+  /**
+   * Reads this component with the loosest type, for passing to hooks and handlers.
+   *
+   * @returns This component.
+   */
   get #self() {
     return this as unknown as Component;
   }
 
+  /**
+   * Reads the inner element once it is known to exist.
+   *
+   * @returns The inner element.
+   */
   get #element() {
     return this.#state.element as HTMLElement;
   }
 
+  /**
+   * Answers a context request that bubbles through this component, if it provides that context.
+   * Requests that this component made itself are ignored.
+   *
+   * @param event - The `ecmact:context-request` event.
+   */
   readonly #answer = (event: Event) => {
     const { context, host, respond } = (event as CustomEvent<ContextRequest>).detail;
     if (host === this) return;
@@ -96,12 +159,27 @@ export class Component<K extends string = string> extends Base {
     respond(provision.value);
   };
 
+  /**
+   * Passes an error to the `error` prop or to the configured handler, or rethrows it if there is none.
+   *
+   * @param error - The error.
+   * @param phase - Where it happened.
+   * @param event - The event name, for the `event` phase.
+   */
   #report(error: unknown, phase: ErrorPhase, event?: string) {
     const handler = this.#hooks.error ?? getConfig().onError;
     if (!handler) throw error;
     handler(error, { component: this.#self, phase, event });
   }
 
+  /**
+   * Runs `fn` and reports any error it throws.
+   *
+   * @template T - The result type of `fn`.
+   * @param phase - Where `fn` is called from, for the report.
+   * @param fn - The function to run.
+   * @returns The result of `fn`, or `undefined` if it threw and the error was handled.
+   */
   #guard<T>(phase: ErrorPhase, fn: () => T) {
     try {
       return fn();
@@ -111,6 +189,12 @@ export class Component<K extends string = string> extends Base {
     }
   }
 
+  /**
+   * Asks `beforeUpdate` whether an update with `next` must be cancelled.
+   *
+   * @param next - The resolved props of the update.
+   * @returns `true` if `beforeUpdate` returned `false`.
+   */
   #vetoes(next: ResolvedProps) {
     const current = this.#last as ResolvedProps;
     return (
@@ -118,6 +202,10 @@ export class Component<K extends string = string> extends Base {
     );
   }
 
+  /**
+   * Starts following the signals that the props read, repainting when one changes.
+   * Restarts if it was already watching, so the dependencies match the current props.
+   */
   #watch() {
     this.#stop?.();
     let initial = true;
@@ -133,6 +221,11 @@ export class Component<K extends string = string> extends Base {
     });
   }
 
+  /**
+   * Renders resolved props into the inner element and runs `updated` for every render but the first.
+   *
+   * @param resolved - The props with signals unwrapped.
+   */
   #paint(resolved: ResolvedProps) {
     const previous = this.#last;
     const wantsShadow = (resolved.shadow ?? getConfig().shadow) !== false;

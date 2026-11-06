@@ -19,12 +19,27 @@ const reservedKeys = new Set([
   'provide',
 ]);
 
+/**
+ * Converts a prop value to an attribute value.
+ *
+ * @param value - The prop value.
+ * @returns A string, an empty string for `true`, or `null` if it cannot be an attribute.
+ */
 const toAttributeValue = (value: unknown) => {
   if (value === true) return '';
   if (typeof value === 'string' || typeof value === 'number') return String(value);
   return null;
 };
 
+/**
+ * Sets the attribute props on an element and removes the ones that are no longer present.
+ * Reserved props and handlers are skipped; objects and functions are skipped with a warning.
+ *
+ * @param element - The element to update.
+ * @param props - The props.
+ * @param previous - The attribute names set by the previous call.
+ * @returns The attribute names that were set, to pass to the next call.
+ */
 export const syncAttributes = (
   element: HTMLElement,
   props: ResolvedProps,

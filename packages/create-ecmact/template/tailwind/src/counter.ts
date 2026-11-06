@@ -1,5 +1,10 @@
 import { computed, signal, tags } from 'ecmact';
 
+/**
+ * Creates a button that counts its clicks. The label follows a signal, so no manual updates are needed.
+ *
+ * @returns The button component.
+ */
 export const createCounter = () => {
   const count = signal(0);
   return tags.button({

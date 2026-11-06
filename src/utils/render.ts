@@ -6,6 +6,13 @@ import { setEventListeners } from '@em/utils/setEventListeners';
 import { syncAttributes } from '@em/utils/syncAttributes';
 import { warn } from '@em/utils/warn';
 
+/**
+ * Creates the inner element and resets the bookkeeping that belongs to the old one.
+ *
+ * @param tag - The tag name.
+ * @param state - The render state.
+ * @returns The new element.
+ */
 const createElement = (tag: string, state: RenderState) => {
   state.attributes = new Set();
   state.styles = new Set();
@@ -14,6 +21,16 @@ const createElement = (tag: string, state: RenderState) => {
   return state.element;
 };
 
+/**
+ * Renders resolved props into a root, creating the inner element on the first call and reusing it afterwards
+ * while the tag stays the same. Attributes, styles, listeners and children are diffed, not rebuilt.
+ *
+ * @param root - The shadow root, or the host for light DOM components.
+ * @param props - The props with signals unwrapped.
+ * @param state - The render state that persists between calls.
+ * @param onError - Receives errors thrown by event listeners. Without it they are rethrown.
+ * @returns The inner element.
+ */
 export const render = (
   root: ParentNode,
   props: ResolvedProps,

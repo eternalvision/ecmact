@@ -22,6 +22,7 @@ export default defineConfig({
   build: {
     sourcemap: true,
     minify: false,
+    rolldownOptions: { output: { comments: { jsdoc: false } } },
     lib: {
       entry: 'src/index.ts',
       formats: ['es', 'cjs'],
