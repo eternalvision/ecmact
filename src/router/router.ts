@@ -196,6 +196,19 @@ const isInternal = (to: string, base: string) =>
   window.location.origin;
 
 /**
+ * Removes the slashes at the end of a path. A loop instead of a regular expression, which a long run of slashes
+ * could make slow.
+ *
+ * @param path - The path.
+ * @returns The path without trailing slashes.
+ */
+const trimTrailingSlashes = (path: string) => {
+  let end = path.length;
+  while (end > 0 && path[end - 1] === '/') end--;
+  return path.slice(0, end);
+};
+
+/**
  * Creates a router that maps URLs to views through the History API.
  * The location is a signal, so components, effects and computed values can follow it.
  *
@@ -212,7 +225,7 @@ export const createRouter = ({
   notFound,
   beforeEach,
 }: RouterOptions): Router => {
-  const base = rawBase.replace(/\/+$/, '');
+  const base = trimTrailingSlashes(rawBase);
   const flat = flattenRoutes(routes);
   const depthContext = createContext<{ depth: number }>('ecmact:router-depth');
   const ids = new Map<Route, number>();

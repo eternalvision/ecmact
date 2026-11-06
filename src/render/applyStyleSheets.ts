@@ -3,7 +3,28 @@ import type { RenderState } from '@em/types';
 
 const sharedCache = new WeakMap<StyleSource[], CSSStyleSheet[]>();
 const hoisted = new WeakSet<StyleSource[]>();
-const propertyRule = /@property[^{]+\{[^}]*\}/g;
+const propertyKeyword = '@property';
+
+/**
+ * Finds the `@property` rules in a stylesheet text. A linear scan instead of a regular expression, so that a
+ * hostile text cannot make the search slow.
+ *
+ * @param text - The stylesheet text.
+ * @returns The text of each complete rule.
+ */
+const findPropertyRules = (text: string) => {
+  const rules: string[] = [];
+  let from = text.indexOf(propertyKeyword);
+  while (from !== -1) {
+    const open = text.indexOf('{', from);
+    const close = open === -1 ? -1 : text.indexOf('}', open);
+    if (close === -1) break;
+    const named = open > from + propertyKeyword.length;
+    if (named) rules.push(text.slice(from, close + 1));
+    from = text.indexOf(propertyKeyword, named ? close + 1 : from + propertyKeyword.length);
+  }
+  return rules;
+};
 
 /**
  * Tells whether the browser supports constructable stylesheets on a shadow root.
@@ -105,7 +126,7 @@ const inject = (css: string | undefined, state: RenderState) => {
 const hoistProperties = (sources: StyleSource[]) => {
   if (hoisted.has(sources)) return;
   hoisted.add(sources);
-  const rules = sources.flatMap((source) => toText(source).match(propertyRule) ?? []);
+  const rules = sources.flatMap((source) => findPropertyRules(toText(source)));
   if (rules.length === 0) return;
   const node = document.createElement('style');
   node.setAttribute('data-ecmact', 'properties');

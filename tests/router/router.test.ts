@@ -56,6 +56,14 @@ describe('location', () => {
     expect(make({ routes: [], base: '/app' }).location.value.path).toBe('/users/1');
   });
 
+  it('trims any number of trailing slashes from the base, and stays fast', () => {
+    window.history.replaceState(null, '', '/app/users/1');
+    const started = Date.now();
+    const router = make({ routes: [], base: `/app${'/'.repeat(50000)}` });
+    expect(router.location.value.path).toBe('/users/1');
+    expect(Date.now() - started).toBeLessThan(1000);
+  });
+
   it('maps the base itself to the root', () => {
     window.history.replaceState(null, '', '/app');
     expect(make({ routes: [], base: '/app/' }).location.value.path).toBe('/');

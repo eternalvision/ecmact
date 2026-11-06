@@ -160,6 +160,21 @@ describe('hoisting @property rules', () => {
     expect(hoisted()[0].textContent).toContain('--tw-y');
   });
 
+  it('skips an unnamed rule, an unclosed rule and a keyword without a block', () => {
+    configure({
+      styles: ['@property{} @property --a { x: y; } @property --b { x: y', '@property --c'],
+    });
+    applyStyleSheets(createRoot(), undefined, createState());
+    expect(hoisted()[0].textContent).toBe('@property --a { x: y; }');
+  });
+
+  it('stays fast on a long hostile stylesheet', () => {
+    const started = Date.now();
+    configure({ styles: ['@property'.repeat(20000), `@property ${'{'.repeat(5)}`] });
+    applyStyleSheets(createRoot(), undefined, createState());
+    expect(Date.now() - started).toBeLessThan(1000);
+  });
+
   it('adds nothing when there are no @property rules', () => {
     configure({ styles: ['div { color: red; }'] });
     applyStyleSheets(createRoot(), undefined, createState());

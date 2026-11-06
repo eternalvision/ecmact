@@ -18,6 +18,19 @@ describe('toPackageName', () => {
     expect(toPackageName('my-app_2.0~x')).toBe('my-app_2.0~x');
   });
 
+  it('collapses runs of spaces and of invalid characters, separately', () => {
+    expect(toPackageName('a   b')).toBe('a-b');
+    expect(toPackageName('a !b')).toBe('a--b');
+    expect(toPackageName('a!! b')).toBe('a--b');
+  });
+
+  it('stays fast on a long hostile name', () => {
+    const started = Date.now();
+    toPackageName(`${'-'.repeat(50000)}a${'-'.repeat(50000)}!`);
+    toPackageName('!'.repeat(50000));
+    expect(Date.now() - started).toBeLessThan(1000);
+  });
+
   it('falls back to a default name', () => {
     expect(toPackageName('')).toBe('ecmact-app');
     expect(toPackageName('!!!')).toBe('ecmact-app');
