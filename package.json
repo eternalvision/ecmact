@@ -1,6 +1,6 @@
 {
   "name": "ecmact",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "Small component library on native Web Components with typed props, signals and context",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
