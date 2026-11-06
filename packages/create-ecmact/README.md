@@ -11,7 +11,7 @@
 
 # create-ecmact
 
-Scaffold an [ECMact](https://github.com/eternalvision/ecmact) app with Vite and TypeScript.
+Scaffold an [ECMact](https://github.com/eternalvision/ecmact) app with Vite and TypeScript. ECMact builds reactive interfaces on native Web Components, which suits widgets for other sites, small self-contained apps, internal tools and browser extensions.
 
 ```bash
 npm create ecmact@latest my-app

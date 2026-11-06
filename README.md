@@ -13,6 +13,8 @@
 
 # ECMact
 
+Reactive interfaces in plain TypeScript that you can embed into any site.
+
 ECMact is a small component library built on native Web Components. Every component is a custom element, rendered into an open Shadow DOM by default (or into the light DOM with `shadow: false`), created through a single factory, `em`. There is no virtual DOM, no template language and no build-time step: components are plain function calls that return real DOM elements.
 
 - Zero runtime dependencies
@@ -23,8 +25,36 @@ ECMact is a small component library built on native Web Components. Every compon
 - Optional light DOM rendering and lifecycle hooks (`mounted` with cleanup, `unmounted`, `beforeUpdate`, `updated`)
 - ES and CommonJS builds, bundled type declarations, `sideEffects: false`
 
+## What it is for
+
+ECMact fits best where an interface has to live inside something else: a page you do not control, an existing application, a browser extension. Components are custom elements with an isolated Shadow DOM, there are no runtime dependencies, and nothing needs a framework on the host page.
+
+| Task                            | How ECMact is used                                                                                 |
+| ------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Widgets for other sites         | Price calculators, request forms, service pickers and small configurators dropped into any page.   |
+| Interactive blocks in a CMS     | Extra functionality for Webflow, WordPress or any existing site, without a build step on its side. |
+| Browser utilities               | File converters, JSON editors, document generators, data viewers.                                  |
+| Internal tools                  | Small admin panels, service monitors, API front ends, working dashboards.                          |
+| Browser extensions              | Popups, options pages, side panels and interfaces on top of a page.                                |
+| Modules of an older application | New screens or components added one at a time, without rewriting the whole project.                |
+
+Widgets come first. Shadow DOM keeps the widget's styles apart from the host page's, which is its main purpose, and the router, `resource()`, signals and context cover the logic of a small self-contained app. Because components are real custom elements, they can talk to the page with ordinary DOM events.
+
+### When it is not the right tool
+
+ECMact is young, and a large application would have to build part of the infrastructure itself.
+
+- **Server-side rendering and hydration are not included.** If the server has to deliver ready content for search engines or first paint, use something else (see [Server-side rendering](#server-side-rendering)).
+- **The router is basic.** No nested routes or guards (see [Routing](#routing)).
+- **Form controls need a `ref`.** `value` and `checked` are attributes, so the live state of a field is set through a `ref`.
+- **Shadow DOM needs care with forms.** Labels, `for`/`id` links and outer stylesheets do not cross the boundary. `shadow: false` removes the problem where it matters.
+- **Large tables are not measured.** Keyed lists work, but there are no benchmarks and no virtualization. Measure before you put thousands of rows in one.
+
+See [Limitations](#limitations) for the full list.
+
 ## Table of contents
 
+- [What it is for](#what-it-is-for)
 - [Quick start](#quick-start)
 - [Install](#install)
 - [First component](#first-component)
