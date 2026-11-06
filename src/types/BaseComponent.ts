@@ -29,7 +29,7 @@ type TagAttributes<K extends string> = K extends keyof AttributeMap
   ? AttributeMap[K]
   : K extends keyof HTMLElementTagNameMap
     ? unknown
-    : { [attribute: string]: unknown };
+    : Record<string, unknown>;
 
 type Reactive<T> = { [P in keyof T]: T[P] | ReadonlySignal<Exclude<T[P], undefined>> };
 

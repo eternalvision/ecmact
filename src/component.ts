@@ -4,7 +4,8 @@ import { effect, untracked } from './signals';
 import type { ComponentProps, RenderState, ResolvedProps } from './types';
 import { propsEqual, render, resolveProps, warn } from './utils';
 
-const Base = typeof HTMLElement === 'undefined' ? (class {} as typeof HTMLElement) : HTMLElement;
+const Base =
+  typeof HTMLElement === 'undefined' ? (Object as unknown as typeof HTMLElement) : HTMLElement;
 
 export class Component<K extends string = string> extends Base {
   #props: ComponentProps<K>;
