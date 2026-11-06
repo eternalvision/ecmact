@@ -4,6 +4,8 @@ export { configure } from '@em/config';
 export { consume, createContext, provide } from '@em/context';
 export { createRouter } from '@em/router';
 export type {
+  Guard,
+  GuardResult,
   LinkProps,
   NavigateOptions,
   OutletProps,

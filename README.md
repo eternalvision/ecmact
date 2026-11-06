@@ -45,8 +45,7 @@ Widgets come first. Shadow DOM keeps the widget's styles apart from the host pag
 ECMact is young, and a large application would have to build part of the infrastructure itself.
 
 - **Server-side rendering and hydration are not included.** If the server has to deliver ready content for search engines or first paint, use something else (see [Server-side rendering](#server-side-rendering)).
-- **The router is basic.** No nested routes or guards (see [Routing](#routing)).
-- **Form controls need a `ref`.** `value` and `checked` are attributes, so the live state of a field is set through a `ref`.
+- **The router is small.** Nested routes and guards exist, but there is no route-level data loading, transitions or scroll restoration (see [Routing](#routing)).
 - **Shadow DOM needs care with forms.** Labels, `for`/`id` links and outer stylesheets do not cross the boundary. `shadow: false` removes the problem where it matters.
 - **Large tables are not measured.** Keyed lists work, but there are no benchmarks and no virtualization. Measure before you put thousands of rows in one.
 
@@ -65,6 +64,7 @@ See [Limitations](#limitations) for the full list.
 - [Content and children](#content-and-children)
 - [Lists and keys](#lists-and-keys)
 - [Attributes](#attributes)
+  - [Form controls](#form-controls)
 - [Styles](#styles)
 - [Stylesheets and Tailwind CSS](#stylesheets-and-tailwind-css)
 - [Global configuration](#global-configuration)
@@ -388,6 +388,29 @@ On `setState`, attributes that are no longer present, or whose value became `fal
 
 Values are set through the DOM, so quotes and markup inside a value cannot break out of the attribute.
 
+### Form controls
+
+`value`, `checked`, `selected` and `indeterminate` are also written as DOM properties, so they keep working after the user has interacted with the control (an attribute only sets the default). The attribute is still set for `value`, `checked` and `selected`, so selectors such as `[checked]` match.
+
+```ts
+const name = signal('');
+
+tags.input({
+  value: name,
+  oninput: (event) => (name.value = (event.target as HTMLInputElement).value),
+});
+tags.input({
+  type: 'checkbox',
+  checked: agreed,
+  onchange: (event) => (agreed.value = event.target.checked),
+});
+```
+
+- A property is written when its prop changes, not on every update. An update caused by something else does not reset what the user typed.
+- To clear a field, change the prop. A prop that was never updated is not rewritten: if you do not track the value in a signal, clear it through a `ref`.
+- `value` also reaches elements that have such a property but are not inputs (`select`, `textarea`, `option`, `progress`, `meter`). Properties are applied after the children, so `select` can take a `value` that matches one of its options.
+- Elements without the property (`div`, `a`) only get the attribute.
+
 ## Styles
 
 `style` takes an object of CSS properties in camelCase. Keys are converted to kebab-case and applied through the CSSOM (`element.style.setProperty`).
@@ -473,7 +496,7 @@ This was checked against Tailwind 4.3.4 in Chromium: with the shared stylesheet,
 
 ## Events
 
-Props starting with `on` whose value is a function become event listeners on the inner element. The event name is the rest of the key, lowercased.
+Props starting with `on` whose value is a function (or an object with a `handler`) become event listeners on the inner element. The event name is the rest of the key, lowercased.
 
 ```ts
 em.Field({
@@ -483,13 +506,22 @@ em.Field({
 });
 ```
 
-- Non-function `on*` values are ignored (an `onclick` string is never evaluated).
+- Other `on*` values are ignored (an `onclick` string is never evaluated).
 - Listeners are replaced on every update: old ones are removed, current ones are added. There are no duplicate handlers, and removing the prop removes the listener.
-- Listeners are registered without options. For `once`, `passive` or `capture`, or for custom events, add the listener yourself in a `ref`:
+- To listen in the capture phase or passively, pass an object with a `handler` instead of a function:
 
 ```ts
 em.Card({
-  ref: (element) => element.addEventListener('wheel', onWheel, { passive: true }),
+  onwheel: { handler: (event) => scrollBy(event.deltaY), passive: true },
+  onclick: { handler: logClick, capture: true },
+});
+```
+
+- There is no `once`, because listeners are re-attached on every update. For `once` or for custom events, add the listener yourself in a `ref`:
+
+```ts
+em.Card({
+  ref: (element) => element.addEventListener('ready', onReady, { once: true }),
 });
 ```
 
@@ -1009,6 +1041,60 @@ A view that returns a promise is rendered when it resolves, which is how code sp
 
 If the route changes before the promise resolves, the late result is dropped. The outlet stays empty while a view is pending.
 
+### Nested routes
+
+A route with `children` is a layout. Its `path` is a prefix, the paths of the children are relative to it, and the layout never matches alone: use a child with an empty path as the index. The layout's `view` places the child with `router.outlet()`:
+
+```ts
+const router = createRouter({
+  routes: [
+    {
+      path: '/users',
+      view: () => tags.section({ children: [tags.h1({ content: 'Users' }), router.outlet()] }),
+      children: [
+        { path: '', view: () => tags.p({ content: 'Pick a user' }) },
+        { path: ':id', view: ({ params }) => tags.p({ content: `User ${params.id}` }) },
+      ],
+    },
+  ],
+});
+```
+
+- An outlet renders the route at its own depth: the outermost one the layout, the one inside the layout its child. Depth comes from the component tree, through [context](#context), so layouts can nest as deep as needed.
+- A layout is kept while only its child changes. It is rebuilt when the route outside it changes, or when a parameter in its own part of the path does (`/teams/:team` for a layout at `/teams/:team`).
+- `router.match.value` has `route` (the innermost route), `routes` (the whole chain, outermost first) and the `params` of the whole path.
+- `notFound` is shown by the outermost outlet when nothing matches.
+
+### Guards
+
+A guard runs before a navigation commits. It receives where the navigation goes (`path`, `query`, `hash`, `params`, `router`) and where it comes from, and returns:
+
+| Result                 | Effect                                               |
+| ---------------------- | ---------------------------------------------------- |
+| `true` or nothing      | Carry on.                                            |
+| `false`                | Cancel. The location does not change.                |
+| a path or URL string   | Redirect there instead, replacing the history entry. |
+| a promise of the above | The navigation waits for it.                         |
+
+```ts
+const router = createRouter({
+  beforeEach: (to) => (to.path.startsWith('/admin') && !session.value ? '/login' : true),
+  routes: [
+    { path: '/admin', view: adminView, beforeEnter: async () => (await can('admin')) || '/' },
+    { path: '/login', view: loginView },
+  ],
+});
+
+if (await router.navigate('/admin')) console.log('navigated');
+```
+
+- `beforeEach` runs first, then the `beforeEnter` of every route in the matched chain, outermost first. The first guard that cancels or redirects ends the chain.
+- Without async guards the location is already updated when `navigate` returns. With one, it changes when the promise settles; a newer navigation drops an older one that is still waiting.
+- Guards also run for the first location of the page. A redirect from there is followed; a cancel is ignored, because there is nowhere to go back to. An async guard on the first location lets the first view render before it settles.
+- On back and forward the browser has already changed the URL. A guard that cancels puts the previous URL back with `replaceState`; one that redirects replaces the entry.
+- More than ten redirects in a row throw an error.
+- Guards are a user-interface convenience, not security: the client can always bypass them. Check permissions on the server.
+
 ### Outlet
 
 `router.outlet()` returns a component that renders the view of the current route and swaps it on navigation. You can pass component props such as `class` or `style` (not `children` or `mounted`). Several outlets can exist at once; each follows the router while it is in the document and stops when it is removed.
@@ -1044,15 +1130,15 @@ effect(() => console.log(router.location.value.path));
 router.match.value?.params;
 ```
 
-| Member                   | Description                                                                                                                                                                        |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `navigate(to, options?)` | Pushes a history entry. `replace` replaces the entry (the same url always replaces). `scroll: false` skips scrolling to the top. A url on another origin is handed to the browser. |
-| `back()` / `forward()`   | History navigation.                                                                                                                                                                |
-| `location`               | Signal with `{ path, query, hash }`. Updates on `navigate` and on back/forward.                                                                                                    |
-| `match`                  | Signal with the matched `{ route, params }`, or `undefined`.                                                                                                                       |
-| `link(props)`            | Creates a link component.                                                                                                                                                          |
-| `outlet(props?)`         | Creates an outlet component.                                                                                                                                                       |
-| `dispose()`              | Removes the `popstate` listener.                                                                                                                                                   |
+| Member                   | Description                                                                                                                                                                                                                                                    |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `navigate(to, options?)` | Runs the guards, then pushes a history entry. Returns a promise of whether the navigation happened. `replace` replaces the entry (the same url always replaces). `scroll: false` skips scrolling to the top. A url on another origin is handed to the browser. |
+| `back()` / `forward()`   | History navigation.                                                                                                                                                                                                                                            |
+| `location`               | Signal with `{ path, query, hash }`. Updates on `navigate` and on back/forward.                                                                                                                                                                                |
+| `match`                  | Signal with the matched `{ route, params }`, or `undefined`.                                                                                                                                                                                                   |
+| `link(props)`            | Creates a link component.                                                                                                                                                                                                                                      |
+| `outlet(props?)`         | Creates an outlet component.                                                                                                                                                                                                                                   |
+| `dispose()`              | Removes the `popstate` listener.                                                                                                                                                                                                                               |
 
 ### Base path
 
@@ -1068,7 +1154,7 @@ The URL becomes `/app/users/1` and `location.value.path` is `/users/1`.
 ### Notes
 
 - Only history mode is supported. The server must answer unknown paths with `index.html`, which is the default of Vite's dev server and of most static hosts that offer an SPA fallback.
-- There are no nested routes, route guards or transitions. A guard is a function you call before `router.navigate`, and nested layouts are views that contain their own outlet.
+- There are no transitions and no scroll restoration.
 - Create one router per application; the router listens to the window's `popstate` until `dispose()`.
 
 ## Data fetching
@@ -1260,12 +1346,12 @@ Any evergreen browser with Custom Elements v1 and Shadow DOM. The published code
 
 ## Limitations
 
-- **Attributes, not properties.** Props map to attributes. For form controls, `value` and `checked` set the default value/state; after the user interacts with the control, changing the attribute no longer changes what is displayed. Set live values through a `ref` (`input.value = '...'`).
+- **Attributes, with four exceptions.** Props map to attributes, except `value`, `checked`, `selected` and `indeterminate`, which are also written as DOM properties (see [Form controls](#form-controls)). A property is written when its prop changes, not on every update.
 - **Shadow DOM by default.** Global CSS does not apply inside components, and form controls inside a Shadow DOM do not take part in an outer `<form>`'s submission or validation. Label/`for` and `id` references do not cross the shadow boundary. Use `shadow: false` where that matters. The choice is made on the first render and cannot be changed afterwards.
 - **One inner element.** A component renders a single element. Compose several components for more complex structures.
 - **Children are not a reactive prop.** The list is rebuilt in an effect (see [Signals and lifecycle](#signals-and-lifecycle)); text items in it can be signals. Keyed reconciliation matches components by `key` and name, it does not diff plain elements and it is not tuned for lists of thousands of items.
 - **Minimal lifecycle.** There are `mounted`, `unmounted`, `beforeUpdate` and `updated` hooks. State is whatever signals or objects you keep; there is no built-in store or message catalog (see [Recipes](#recipes)). Routing and data fetching are small and optional (see [Routing](#routing) and [Data fetching](#data-fetching)).
-- **Handlers without options.** Listener options require a `ref`.
+- **Listener options are `capture` and `passive`.** There is no `once`, because listeners are re-attached on every update. Other options require a `ref`.
 - **Configuration is read at render time.** `configure` does not update components that are already rendered.
 
 ## Migrating from 1.x

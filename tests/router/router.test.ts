@@ -445,3 +445,326 @@ describe('link', () => {
     expect(inner(link).getAttribute('aria-current')).toBe('page');
   });
 });
+
+describe('guards', () => {
+  const routes = [
+    { path: '/', view: () => page('home') },
+    { path: '/about', view: () => page('about') },
+    { path: '/login', view: () => page('login') },
+  ];
+
+  it('runs beforeEach before navigating and can cancel', async () => {
+    const beforeEach = vi.fn(() => false);
+    const router = make({ routes, beforeEach });
+    expect(await router.navigate('/about')).toBe(false);
+    expect(router.location.value.path).toBe('/');
+    expect(window.location.pathname).toBe('/');
+  });
+
+  it('passes the destination, with its parameters, and the origin', async () => {
+    const seen: [string, Record<string, string>, string][] = [];
+    const router = make({
+      routes: [{ path: '/users/:id', view: () => page('user') }, ...routes],
+      beforeEach: (to, from) => {
+        seen.push([to.path, to.params, from.path]);
+      },
+    });
+    await router.navigate('/users/7');
+    expect(seen).toContainEqual(['/users/7', { id: '7' }, '/']);
+  });
+
+  it('completes a navigation without async guards before it returns', () => {
+    const router = make({ routes, beforeEach: () => true });
+    void router.navigate('/about');
+    expect(router.location.value.path).toBe('/about');
+  });
+
+  it('runs beforeEnter of the matched route, and of its layouts, after beforeEach', async () => {
+    const order: string[] = [];
+    const router = make({
+      routes: [
+        {
+          path: '/admin',
+          view: () => page('admin'),
+          beforeEnter: () => {
+            order.push('layout');
+          },
+          children: [
+            {
+              path: 'users',
+              view: () => page('users'),
+              beforeEnter: () => {
+                order.push('leaf');
+              },
+            },
+          ],
+        },
+      ],
+      beforeEach: () => {
+        order.push('each');
+      },
+    });
+    order.length = 0;
+    await router.navigate('/admin/users');
+    expect(order).toEqual(['each', 'layout', 'leaf']);
+  });
+
+  it('redirects with a path, replacing the entry', async () => {
+    const router = make({
+      routes: [
+        { path: '/', view: () => page('home') },
+        { path: '/private', view: () => page('private'), beforeEnter: () => '/login' },
+        { path: '/login', view: () => page('login') },
+      ],
+    });
+    const length = window.history.length;
+    expect(await router.navigate('/private')).toBe(true);
+    expect(router.location.value.path).toBe('/login');
+    expect(window.history.length).toBe(length);
+  });
+
+  it('waits for async guards', async () => {
+    const router = make({
+      routes,
+      beforeEach: async (to) => {
+        await flush();
+        return to.path !== '/about';
+      },
+    });
+    const result = router.navigate('/about');
+    expect(router.location.value.path).toBe('/');
+    expect(await result).toBe(false);
+    expect(await router.navigate('/login')).toBe(true);
+    expect(router.location.value.path).toBe('/login');
+  });
+
+  it('drops a navigation that a newer one overtook', async () => {
+    const router = make({
+      routes,
+      beforeEach: async (to) => {
+        if (to.path === '/about') await flush();
+      },
+    });
+    const slow = router.navigate('/about');
+    const fast = router.navigate('/login');
+    expect(await fast).toBe(true);
+    expect(await slow).toBe(false);
+    expect(router.location.value.path).toBe('/login');
+  });
+
+  it('throws on a redirect loop', () => {
+    const router = make({
+      routes: [{ path: '/a', view: () => page('a') }, ...routes],
+      beforeEach: (to) => (to.path === '/a' ? '/b' : to.path === '/b' ? '/a' : undefined),
+    });
+    expect(() => router.navigate('/a')).toThrow(/redirects/);
+  });
+
+  it('guards the first location and follows its redirect', () => {
+    window.history.replaceState(null, '', '/private');
+    const router = make({
+      routes: [
+        { path: '/private', view: () => page('private'), beforeEnter: () => '/login' },
+        { path: '/login', view: () => page('login') },
+      ],
+    });
+    expect(router.location.value.path).toBe('/login');
+  });
+
+  it('follows the redirect of an async guard of the first location', async () => {
+    window.history.replaceState(null, '', '/private');
+    const router = make({
+      routes: [
+        { path: '/private', view: () => page('private') },
+        { path: '/login', view: () => page('login') },
+      ],
+      beforeEach: async (to) => (to.path === '/private' ? '/login' : undefined),
+    });
+    await flush();
+    expect(router.location.value.path).toBe('/login');
+  });
+
+  it('ignores a cancel of the first location', () => {
+    window.history.replaceState(null, '', '/about');
+    const router = make({ routes, beforeEach: () => false });
+    expect(router.location.value.path).toBe('/about');
+  });
+
+  it('guards back and forward and restores the old url when cancelled', () => {
+    const router = make({ routes, beforeEach: (to) => to.path !== '/about' });
+    window.history.replaceState(null, '', '/about?x=1#y');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    expect(router.location.value.path).toBe('/');
+    expect(window.location.pathname + window.location.search + window.location.hash).toBe('/');
+  });
+
+  it('restores the url with the base and the query of the location', () => {
+    window.history.replaceState(null, '', '/app/login?a=1#h');
+    const router = make({
+      routes,
+      base: '/app',
+      beforeEach: (to) => to.path !== '/about',
+    });
+    window.history.replaceState(null, '', '/app/about');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    expect(window.location.pathname + window.location.search + window.location.hash).toBe(
+      '/app/login?a=1#h',
+    );
+    expect(router.location.value.path).toBe('/login');
+  });
+
+  it('redirects from a guard on back and forward', () => {
+    const router = make({
+      routes,
+      beforeEach: (to) => (to.path === '/about' ? '/login' : undefined),
+    });
+    window.history.replaceState(null, '', '/about');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    expect(router.location.value.path).toBe('/login');
+  });
+
+  it('waits for async guards on back and forward, and ignores stale ones', async () => {
+    const router = make({
+      routes,
+      beforeEach: async (to) => {
+        await flush();
+        return to.path !== '/login';
+      },
+    });
+    window.history.replaceState(null, '', '/about');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    window.history.replaceState(null, '', '/login');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    await flush();
+    await flush();
+    expect(router.location.value.path).toBe('/');
+  });
+});
+
+describe('nested routes', () => {
+  const build = () => {
+    const calls = { layout: 0, index: 0, detail: 0 };
+    const router = make({
+      routes: [
+        {
+          path: '/users',
+          view: () => {
+            calls.layout++;
+            const wrapper = document.createElement('section');
+            wrapper.append(page('layout'), router.outlet({ id: 'inner' }));
+            return wrapper;
+          },
+          children: [
+            {
+              path: '',
+              view: () => {
+                calls.index++;
+                return page('list');
+              },
+            },
+            {
+              path: ':id',
+              view: ({ params }) => {
+                calls.detail++;
+                return page(`user ${params.id}`);
+              },
+            },
+          ],
+        },
+        { path: '/other', view: () => page('other') },
+      ],
+      notFound: () => page('missing'),
+    });
+    return { router, calls };
+  };
+
+  const text = (outlet: Element) => inner(outlet as never).textContent;
+
+  it('renders the layout and the child in a nested outlet', async () => {
+    const { router } = build();
+    window.history.replaceState(null, '', '/users/5');
+    router.navigate('/users/5');
+    const outlet = router.outlet();
+    document.body.append(outlet);
+    await flush();
+    expect(text(outlet)).toContain('layout');
+    const nested = inner(outlet).querySelector('section')!.lastElementChild as never;
+    expect(inner(nested).textContent).toBe('user 5');
+  });
+
+  it('keeps the layout while the child changes', async () => {
+    const { router, calls } = build();
+    const outlet = router.outlet();
+    document.body.append(outlet);
+    await router.navigate('/users');
+    await router.navigate('/users/1');
+    await router.navigate('/users/2');
+    expect(calls.layout).toBe(1);
+    expect(calls.index).toBe(1);
+    expect(calls.detail).toBe(2);
+    const nested = inner(outlet).querySelector('section')!.lastElementChild as never;
+    expect(inner(nested).textContent).toBe('user 2');
+  });
+
+  it('rebuilds the layout when the route outside it changes', async () => {
+    const { router, calls } = build();
+    const outlet = router.outlet();
+    document.body.append(outlet);
+    await router.navigate('/users');
+    await router.navigate('/other');
+    await router.navigate('/users');
+    expect(calls.layout).toBe(2);
+    expect(text(outlet)).toContain('layout');
+  });
+
+  it('rebuilds a layout whose own parameters changed and keeps one whose did not', async () => {
+    const calls = { layout: 0 };
+    const router = make({
+      routes: [
+        {
+          path: '/teams/:team',
+          view: () => {
+            calls.layout++;
+            return router.outlet();
+          },
+          children: [{ path: 'members/:member', view: () => page('member') }],
+        },
+      ],
+    });
+    document.body.append(router.outlet());
+    await router.navigate('/teams/a/members/1');
+    await router.navigate('/teams/a/members/2');
+    expect(calls.layout).toBe(1);
+    await router.navigate('/teams/b/members/2');
+    expect(calls.layout).toBe(2);
+  });
+
+  it('renders nothing in an outlet deeper than the matched chain', async () => {
+    const router = make({
+      routes: [{ path: '/', view: () => router.outlet() }],
+      notFound: () => page('missing'),
+    });
+    const outlet = router.outlet();
+    document.body.append(outlet);
+    await flush();
+    const nested = inner(outlet).firstElementChild as never;
+    expect(inner(nested).childNodes).toHaveLength(0);
+  });
+
+  it('exposes the chain in match', async () => {
+    const { router } = build();
+    await router.navigate('/users/3');
+    const match = router.match.value!;
+    expect(match.routes).toHaveLength(2);
+    expect(match.route).toBe(match.routes[1]);
+    expect(match.params).toEqual({ id: '3' });
+  });
+
+  it('shows notFound when no route matches', async () => {
+    const { router } = build();
+    const outlet = router.outlet();
+    document.body.append(outlet);
+    await router.navigate('/nowhere');
+    expect(text(outlet)).toBe('missing');
+  });
+});

@@ -1,5 +1,7 @@
 export { createRouter } from '@em/router/router';
 export type {
+  Guard,
+  GuardResult,
   LinkProps,
   NavigateOptions,
   OutletProps,

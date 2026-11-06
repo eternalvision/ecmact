@@ -1,6 +1,9 @@
 import type { Component } from '@em/component';
 import { em } from '@em/em';
-import { matchPath, compilePattern } from '@em/router/match';
+import { createContext, consume, provide } from '@em/context';
+import { flattenRoutes } from '@em/router/flatten';
+import { runGuards } from '@em/router/guards';
+import { compilePattern, matchPath } from '@em/router/match';
 import { computed, effect, signal, untracked, type ReadonlySignal } from '@em/signals';
 import { tags } from '@em/tags';
 import type { ComponentProps } from '@em/types';
@@ -31,19 +34,39 @@ export interface RouteContext extends RouterLocation {
  */
 type View = (context: RouteContext) => Node | Promise<Node>;
 
+/**
+ * What a guard decides: `true` or nothing to proceed, `false` to cancel, a path to redirect there instead.
+ */
+export type GuardResult = boolean | string | void;
+
+/**
+ * Runs before a navigation commits. It may be asynchronous.
+ *
+ * @param to - Where the navigation is going: the location, the matched parameters and the router.
+ * @param from - The location the navigation starts from.
+ * @returns The decision, or a promise of it.
+ */
+export type Guard = (to: RouteContext, from: RouterLocation) => GuardResult | Promise<GuardResult>;
+
 /** Maps a path pattern to a view. */
 export interface Route {
   /** The pattern: `/`, `/about`, `/users/:id`, `/files/*` or `*`. The first matching route wins. */
   path: string;
-  /** Renders the route. */
+  /** Renders the route. For a route with `children` it renders the layout, which places the child with `router.outlet()`. */
   view: View;
+  /** Routes shown inside this one. Their paths are relative to this route's path; a layout never matches alone. */
+  children?: Route[];
+  /** Runs before the router enters this route, after `beforeEach`. */
+  beforeEnter?: Guard;
 }
 
 /** The route that matches the current path. */
 export interface RouteMatch {
-  /** The matched route. */
+  /** The matched route: the innermost one for nested routes. */
   route: Route;
-  /** The decoded parameters. */
+  /** The matched route and the layouts around it, outermost first. */
+  routes: Route[];
+  /** The decoded parameters, of the whole path. */
   params: Record<string, string>;
 }
 
@@ -55,6 +78,8 @@ export interface RouterOptions {
   base?: string;
   /** The view for paths that no route matches. Without it the outlet stays empty. */
   notFound?: View;
+  /** Runs before every navigation, including the first one and back and forward. */
+  beforeEach?: Guard;
 }
 
 /** Options for `navigate`. */
@@ -87,8 +112,10 @@ export interface Router {
    *
    * @param to - An app path starting with `/` (the base is added), or a URL.
    * @param options - Whether to replace the entry and whether to scroll to the top.
+   * @returns Whether the navigation happened: `false` if a guard cancelled it. Without async guards the location is
+   * already updated when `navigate` returns.
    */
-  navigate(to: string, options?: NavigateOptions): void;
+  navigate(to: string, options?: NavigateOptions): Promise<boolean>;
   /** Goes one entry back in the history. */
   back(): void;
   /** Goes one entry forward in the history. */
@@ -124,25 +151,38 @@ const stripBase = (pathname: string, base: string) =>
     : pathname;
 
 /**
+ * Reads the path, query and hash of a URL, relative to the base.
+ *
+ * @param url - The URL or `window.location`.
+ * @param base - The base path without a trailing slash, or an empty string.
+ * @returns The path, query and hash.
+ */
+const toLocation = (
+  url: Pick<URL, 'pathname' | 'search' | 'hash'>,
+  base: string,
+): RouterLocation => ({
+  path: stripBase(url.pathname, base),
+  query: new URLSearchParams(url.search),
+  hash: url.hash,
+});
+
+/**
  * Reads the current browser location, relative to the base.
  *
  * @param base - The base path without a trailing slash, or an empty string.
  * @returns The path, query and hash.
  */
-const readLocation = (base: string): RouterLocation => ({
-  path: stripBase(window.location.pathname, base),
-  query: new URLSearchParams(window.location.search),
-  hash: window.location.hash,
-});
+const readLocation = (base: string) => toLocation(window.location, base);
 
 /**
- * Tells whether a view result is a promise.
+ * Tells whether a value is a promise.
  *
- * @param value - What a view returned.
+ * @template T - The type the promise resolves to.
+ * @param value - A value or a promise of it.
  * @returns `true` for thenables.
  */
-const isPromise = (value: unknown): value is Promise<Node> =>
-  typeof (value as Promise<Node> | undefined)?.then === 'function';
+const isPromise = <T>(value: T | Promise<T>): value is Promise<T> =>
+  typeof (value as Promise<T> | undefined)?.then === 'function';
 
 /**
  * Tells whether a link target stays on the current origin.
@@ -166,24 +206,63 @@ const isInternal = (to: string, base: string) =>
  * @param options - The routes, the optional base path and the view for unknown paths.
  * @returns The router.
  */
-export const createRouter = ({ routes, base: rawBase = '', notFound }: RouterOptions): Router => {
+export const createRouter = ({
+  routes,
+  base: rawBase = '',
+  notFound,
+  beforeEach,
+}: RouterOptions): Router => {
   const base = rawBase.replace(/\/+$/, '');
-  const compiled = routes.map((route) => ({ route, pattern: compilePattern(route.path) }));
+  const flat = flattenRoutes(routes);
+  const depthContext = createContext<{ depth: number }>('ecmact:router-depth');
+  const ids = new Map<Route, number>();
   const location = signal(readLocation(base));
+  let pending = 0;
+  const maxRedirects = 10;
+
+  /**
+   * Finds the route that matches a path.
+   *
+   * @param path - The path without the base.
+   * @returns The route entry and the parameters, or `undefined`.
+   */
+  const find = (path: string) => {
+    for (const entry of flat) {
+      const params = matchPath(entry.pattern, path);
+      if (params) return { entry, params };
+    }
+    return undefined;
+  };
+
+  /**
+   * Runs the guards that apply to a location.
+   *
+   * @param target - The location to enter.
+   * @returns The decision, or a promise of it.
+   */
+  const check = (target: RouterLocation) => {
+    const found = find(target.path);
+    const guards = [
+      ...(beforeEach ? [beforeEach] : []),
+      ...(found?.entry.chain.flatMap((route) => route.beforeEnter ?? []) ?? []),
+    ];
+    if (guards.length === 0) return true;
+    return runGuards(guards, { ...target, params: found?.params ?? {}, router }, location.value);
+  };
   /**
    * Copies the browser location into the `location` signal.
    */
   const synchronize = () => {
     location.value = readLocation(base);
   };
-  window.addEventListener('popstate', synchronize);
+
+  const current = computed(() => find(location.value.path));
 
   const match = computed<RouteMatch | undefined>(() => {
-    for (const { route, pattern } of compiled) {
-      const params = matchPath(pattern, location.value.path);
-      if (params) return { route, params };
-    }
-    return undefined;
+    const entry = current.value;
+    if (!entry) return undefined;
+    const { chain } = entry.entry;
+    return { route: chain[chain.length - 1], routes: chain, params: entry.params };
   });
 
   const viewKey = computed(() => `${location.value.path}?${location.value.query.toString()}`);
@@ -191,22 +270,88 @@ export const createRouter = ({ routes, base: rawBase = '', notFound }: RouterOpt
   /**
    * Navigates to a path or URL. Urls on another origin are handed to the browser.
    * Navigating to the current url replaces the history entry instead of adding one.
+   * Guards run first; a guard may cancel the navigation or redirect it.
    *
    * @param to - An app path starting with `/` (the base is added), or a URL.
    * @param options - Whether to replace the entry and whether to scroll to the top.
+   * @param redirects - How many redirects led here, to stop a redirect loop.
+   * @returns Whether the navigation happened.
    */
-  const navigate = (to: string, { replace = false, scroll = true }: NavigateOptions = {}) => {
+  const go = (
+    to: string,
+    { replace = false, scroll = true }: NavigateOptions,
+    redirects: number,
+  ): Promise<boolean> => {
     const url = new URL(to.startsWith('/') ? base + to : to, window.location.href);
     if (url.origin !== window.location.origin) {
       window.location.assign(url.href);
-      return;
+      return Promise.resolve(true);
     }
-    const target = url.pathname + url.search + url.hash;
-    const current = window.location.pathname + window.location.search + window.location.hash;
-    window.history[replace || target === current ? 'replaceState' : 'pushState'](null, '', target);
-    synchronize();
-    if (scroll) window.scrollTo(0, 0);
+    const id = ++pending;
+    /**
+     * Applies the decision of the guards.
+     *
+     * @param decision - `true` to proceed, `false` to cancel, a path to redirect to.
+     * @returns Whether the navigation happened.
+     */
+    const decide = (decision: boolean | string): Promise<boolean> => {
+      if (id !== pending || decision === false) return Promise.resolve(false);
+      if (typeof decision === 'string') {
+        if (redirects >= maxRedirects) {
+          throw new Error(
+            `ecmact router: more than ${maxRedirects} redirects, the last one to "${decision}"`,
+          );
+        }
+        return go(decision, { replace: true, scroll }, redirects + 1);
+      }
+      const target = url.pathname + url.search + url.hash;
+      const now = window.location.pathname + window.location.search + window.location.hash;
+      window.history[replace || target === now ? 'replaceState' : 'pushState'](null, '', target);
+      synchronize();
+      if (scroll) window.scrollTo(0, 0);
+      return Promise.resolve(true);
+    };
+    const decision = check(toLocation(url, base));
+    return isPromise(decision) ? decision.then(decide) : decide(decision);
   };
+
+  /**
+   * Navigates to a path or URL.
+   *
+   * @param to - An app path starting with `/` (the base is added), or a URL.
+   * @param options - Whether to replace the entry and whether to scroll to the top.
+   * @returns Whether the navigation happened.
+   */
+  const navigate = (to: string, options: NavigateOptions = {}) => go(to, options, 0);
+
+  /**
+   * Follows back and forward. The browser has already changed the URL, so a guard that cancels puts the old one back.
+   */
+  const onPopState = () => {
+    const id = ++pending;
+    /**
+     * Applies the decision of the guards.
+     *
+     * @param decision - `true` to proceed, `false` to cancel, a path to redirect to.
+     */
+    const decide = (decision: boolean | string) => {
+      if (id !== pending) return;
+      if (decision === true) {
+        synchronize();
+      } else if (decision === false) {
+        const { path, query, hash } = location.value;
+        const search = query.toString();
+        window.history.replaceState(null, '', `${base}${path}${search && `?${search}`}${hash}`);
+      } else {
+        void go(decision, { replace: true }, 1);
+      }
+    };
+    const decision = check(readLocation(base));
+    if (isPromise(decision)) void decision.then(decide);
+    else decide(decision);
+  };
+
+  window.addEventListener('popstate', onPopState);
 
   const router: Router = {
     location,
@@ -228,7 +373,7 @@ export const createRouter = ({ routes, base: rawBase = '', notFound }: RouterOpt
      * Stops listening to `popstate`.
      */
     dispose: () => {
-      window.removeEventListener('popstate', synchronize);
+      window.removeEventListener('popstate', onPopState);
     },
     /**
      * Creates an anchor that navigates without a page load on plain left clicks.
@@ -269,26 +414,42 @@ export const createRouter = ({ routes, base: rawBase = '', notFound }: RouterOpt
      */
     outlet: (props = {}) => {
       let token = 0;
+      const level = { depth: 0 };
       return em.Outlet({
         ...props,
+        provide: [provide(depthContext, level)],
         /**
          * Follows the route while the outlet is in the document and renders its view.
+         * An outlet inside a layout renders the next route of the chain.
          *
          * @param _ - The inner element, not used.
          * @param component - The outlet.
          * @returns A function that stops following the route and drops pending views.
          */
         mounted: (_: unknown, component: Component<'div'>) => {
+          const parent = consume(depthContext, component);
+          level.depth = parent ? parent.depth + 1 : 0;
           let rendered: string | undefined;
           const stop = effect(() => {
-            const key = viewKey.value;
+            const entry = current.value;
+            const { depth } = level;
+            const route = entry?.entry.chain[depth];
+            let key = `${viewKey.value}`;
+            if (entry && route) {
+              if (!ids.has(route)) ids.set(route, ids.size);
+              const names = compilePattern(entry.entry.paths[depth]).names;
+              const own = names.map((name) => entry.params[name]).join('\0');
+              const last = depth === entry.entry.chain.length - 1;
+              key = `${ids.get(route)}|${own}|${last ? viewKey.value : ''}`;
+            } else if (entry) {
+              key = 'none';
+            }
             if (key === rendered) return;
             rendered = key;
-            const found = untracked(() => match.value);
-            const view = found ? found.route.view : notFound;
+            const view = entry ? route?.view : notFound;
             const context = untracked(() => ({
               ...location.value,
-              params: found?.params ?? {},
+              params: entry?.params ?? {},
               router,
             }));
             const own = ++token;
@@ -315,5 +476,18 @@ export const createRouter = ({ routes, base: rawBase = '', notFound }: RouterOpt
       } as never) as Component<'div'>;
     },
   };
+
+  const initial = check(location.value);
+  /**
+   * Follows a redirect from a guard of the first location. Cancelling has no effect there: there is nowhere to go back to.
+   *
+   * @param decision - The decision of the guards.
+   */
+  const settle = (decision: boolean | string) => {
+    if (typeof decision === 'string') void go(decision, { replace: true, scroll: false }, 1);
+  };
+  if (isPromise(initial)) void initial.then(settle);
+  else settle(initial);
+
   return router;
 };
