@@ -51,7 +51,7 @@ jobs:
           mv "$RUNNER_TEMP/site/widget/widget/price-widget.js" "$RUNNER_TEMP/site/widget/price-widget.js"
           rm -rf "$RUNNER_TEMP/site/widget/widget"
           cp .github/pages/embed.html "$RUNNER_TEMP/site/widget/embed.html"
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: ${{ runner.temp }}/site
 
