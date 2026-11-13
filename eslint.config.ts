@@ -11,7 +11,7 @@ export default defineConfig([
   tseslint.configs.stylistic,
   prettier,
   {
-    files: ['src/**/*.ts', 'packages/*/src/**/*.ts'],
+    files: ['src/**/*.ts', 'packages/*/src/**/*.ts', 'scripts/**/*.ts'],
     extends: [jsdoc.configs['flat/recommended-typescript-error']],
     rules: {
       'jsdoc/tag-lines': ['error', 'never', { startLines: 1, tags: { example: { lines: 'any' } } }],

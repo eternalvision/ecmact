@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitest/config';
+import { playwright } from '@vitest/browser-playwright';
 import dts from 'vite-plugin-dts';
 
 export default defineConfig({
@@ -6,11 +7,37 @@ export default defineConfig({
   resolve: { tsconfigPaths: true },
   plugins: [dts({ entryRoot: 'src', include: ['src'], tsconfigPath: 'tsconfig.json' })],
   test: {
-    environment: 'happy-dom',
-    environmentOptions: {
-      happyDOM: { settings: { navigation: { disableMainFrameNavigation: true } } },
-    },
-    include: ['tests/**/*.test.ts'],
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'dom',
+          environment: 'happy-dom',
+          environmentOptions: {
+            happyDOM: { settings: { navigation: { disableMainFrameNavigation: true } } },
+          },
+          include: ['tests/**/*.test.ts'],
+          exclude: ['tests/browser/**'],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: 'browser',
+          include: ['tests/**/*.test.ts'],
+          browser: {
+            enabled: true,
+            provider: playwright(),
+            headless: true,
+            instances: [
+              { browser: 'chromium', name: 'chromium' },
+              { browser: 'firefox', name: 'firefox' },
+              { browser: 'webkit', name: 'webkit' },
+            ],
+          },
+        },
+      },
+    ],
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
