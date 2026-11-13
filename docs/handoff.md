@@ -1,42 +1,40 @@
-# Handoff: ECMact after 3.0 (2026-11-13)
+# Handoff: browser tests, F3 done (2026-11-13)
 
-State: F0 overview is done. No feature is in progress. Next is F1 for the first item of the roadmap.
+State: F3 done on 2026-11-13, next is F4, starting with US1.1 (#5). Roadmap item 1, "tests in Chromium, Firefox and WebKit in CI". Branch `main`, nothing committed yet.
 
 ## What the project is
 
-ECMact is a small library for embeddable widgets and reactive interfaces in plain TypeScript: plain DOM elements from `tags`, components and widgets as custom elements with a Shadow DOM, signals, a store, an HTTP client, a router, no dependencies and no compiler. The repository holds the library (`src`), the website with the documentation in English and Russian (`packages/site`) and the scaffolder (`packages/create-ecmact`).
+ECMact is a small TypeScript library for embeddable widgets, no dependencies. The repository holds the library (`src`), the site (`packages/site`) and the scaffolder (`packages/create-ecmact`). `ecmact@3.0.0` and `create-ecmact@0.4.0` are on npm.
 
 ## Done
 
-- `ecmact@3.0.0` and `create-ecmact@0.4.0` are on npm; the site is deployed from `main`.
-- The API was rewritten for 3.0; the README, the site and the templates describe it.
-- Positioning: a toolkit for embeddable widgets. The comparison page, `npm run size`, the benchmark and the stability promise are in.
+- F0 overview (`AGENTS.md`, this file).
+- F1: `docs/plans/2026-11-13-browser-tests-spec.md`, version 1.1, approved.
+- F2: `docs/plans/2026-11-13-browser-tests-plan.md`, version 1.0, approved.
+- F3: milestone "Browser tests" (#1), labels `browser-tests` and `P1`-`P5`, issues #5-#18 (US1.1-US5.2), "Depends on" in each body and "blocked by" links in GitHub. Issue numbers are written into the plan.
 
-## Roadmap, in this order
+## Next step
 
-1. Trust: tests in Chromium, Firefox and WebKit in CI; a patch release with the rough edges listed below.
-2. Widgets (3.1): a minified build for a script tag and a CDN; properties next to attributes; type declarations for hosts (React, Vue, TypeScript); a lazy loader.
-3. Reach: a playground on the site; two or three widget templates in `create-ecmact`; an article and a Show HN.
+F4 in a new session: US1.1 (#5) on branch `feature/5-browser-runner` from `main`. After it, US1.2 (#6); US2.1-US2.4 (#7-#10) need only #5.
 
 ## Open questions
 
-- Rough edges found while documenting 3.0, not decided yet: an `effect` that returns something that is not a function fails on its next run; a store action that reads through `get()` is not followed in a reactive function; a function passed to an attribute by mistake is treated as reactive without a warning; `as` of a styled element needs a cast for the props of the new tag.
-- Recipes and Composition were removed from the README during the rewrite; restore them or not.
-- The description of the repository on GitHub ("About") still has the old text.
+- The review of the specification by another model was not done.
+- Not verified (plan section 2): how `knownFailure` learns the engine; `vi.resetModules` in browser mode; Chromium coverage at 100%; Node 26.
+- The links to the spec and plan in the issues point to `main` and work only after `docs/` is committed.
 
 ## Risks
 
-- Everything was checked in Chromium and happy-dom only. Firefox and Safari are not verified.
-- The website texts and the README were written by agents and checked by tools (types of every sample, anchors, exports), not read by the owner.
+- R1: the number of failing tests is known only after the first run (US2.5 is L).
+- D23 changes the bundle size by a few bytes, a deviation from spec section 7.
+- WebKit from Playwright is not Safari; macOS runner cost not verified.
 
 ## Decisions (do not reopen)
 
-- D1 2026-11-12: 3.0 breaks the API. `tags` returns plain elements, children are positional, a function is reactive, signals keep `.value`.
-- D2 2026-11-13: direction is embeddable widgets. No SSR, no larger router, no virtualization.
-- D3 2026-11-13: 3.0 is the baseline; 3.x makes no breaking changes; no date is promised for the next major.
-- D4 2026-11-13: `create-ecmact` keeps its own version line (0.4.0).
-- D5 2026-11-13: work follows the spec driven development rule: phases F0-F6, strict gates, every phase in a new session.
+- D1-D5: 3.0 API, widget direction, no breaking changes in 3.x, own version line of `create-ecmact`, spec driven development.
+- D6-D21: see the specification.
+- D22-D26 2026-11-13 (plan section 1): engine by `--project` with scripts `test:dom`, `test:chromium`, `test:firefox`, `test:webkit`, `test:browsers`, `browsers:install`; internal `src/utils/env.ts` for `document`, `location`, `HTMLElement`; browser-only tests in `tests/browser/` with a closed list; new scripts and `check-tests` in TypeScript, other `.mjs` later; known failures in `tests/knownFailures.ts` with `knownFailure(issue)`.
 
 ## Prompt for the new session
 
-We continue ECMact. Read `docs/handoff.md` and `AGENTS.md`. Start F1 for roadmap item 1, tests in three browsers in CI: write the specification `docs/plans/YYYY-MM-DD-browser-tests-spec.md`, ask me the questions one at a time, write no code.
+We continue ECMact. Read `docs/handoff.md`, `AGENTS.md`, the rule `~/.claude/rules/spec-driven-development.md` and the plan `docs/plans/2026-11-13-browser-tests-plan.md`. This session is F4 for US1.1, issue #5, on branch `feature/5-browser-runner` from `main`: implement it by the plan, run the gate and `npm run test:browsers`, show how each AC is verified. Commit, push and PR only when the owner asks.
