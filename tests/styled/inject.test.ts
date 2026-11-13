@@ -1,15 +1,14 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { applyStyleSheets } from '@em/render/applyStyleSheets';
 import { inject, isStyleRoot } from '@em/styled/inject';
 import { resetWarnings } from '@em/utils/warn';
-import { createRoot, createState } from '@tests/helpers';
+import { cleanStyles, createRoot, createState } from '@tests/helpers';
 
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
   resetWarnings();
-  document.head.replaceChildren();
-  document.adoptedStyleSheets = [];
+  cleanStyles();
 });
 
 const texts = (root: ParentNode) =>
@@ -81,17 +80,17 @@ describe('inject with constructable stylesheets', () => {
 });
 
 describe('inject without constructable stylesheets', () => {
-  beforeEach(() => {
-    vi.stubGlobal('CSSStyleSheet', undefined);
-  });
+  const stub = () => vi.stubGlobal('CSSStyleSheet', undefined);
 
   it('appends a style element per rule to the head of the document', () => {
+    stub();
     inject(document, ['.a { color: red; }', '.b { color: blue; }']);
     inject(document, ['.a { color: red; }']);
     expect(texts(document.head)).toEqual(['.a { color: red; }', '.b { color: blue; }']);
   });
 
   it('appends to a shadow root', () => {
+    stub();
     const root = createRoot();
     inject(root, ['.a { color: red; }']);
     expect(texts(root)).toEqual(['.a { color: red; }']);
@@ -99,6 +98,7 @@ describe('inject without constructable stylesheets', () => {
   });
 
   it('starts again when the style elements were removed', () => {
+    stub();
     const root = createRoot();
     inject(root, ['.a { color: red; }']);
     root.replaceChildren();

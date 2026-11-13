@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { configure } from '@em';
 import { resetConfig } from '@em/core/config';
 import { applyStyleSheets } from '@em/render/applyStyleSheets';
-import { createRoot, createState } from '@tests/helpers';
+import { cleanStyles, createRoot, createState } from '@tests/helpers';
 
 const rules = (sheet: CSSStyleSheet) => Array.from(sheet.cssRules, (rule) => rule.cssText).join('');
 const property = '@property --tw-x { syntax: "*"; inherits: false; }';
@@ -11,7 +11,7 @@ const hoisted = () => Array.from(document.head.querySelectorAll('style[data-ecma
 afterEach(() => {
   resetConfig();
   vi.unstubAllGlobals();
-  document.head.replaceChildren();
+  cleanStyles();
 });
 
 describe('applyStyleSheets with constructable stylesheets', () => {

@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { css, em, keyframes, mount, signal, styled, tags, ThemeProvider } from '@em';
 import { resetWarnings } from '@em/utils/warn';
-import { sheet } from '@tests/helpers';
+import { cleanStyles, sheet, styledRules, watchRules } from '@tests/helpers';
 
 const text = (css: string) =>
   Object.assign([css], { raw: [css] }) as unknown as TemplateStringsArray;
 
 beforeEach(() => {
-  vi.stubGlobal('CSSStyleSheet', undefined);
+  watchRules();
   vi.spyOn(console, 'warn').mockImplementation(() => {});
 });
 
@@ -16,7 +16,7 @@ afterEach(() => {
   vi.restoreAllMocks();
   resetWarnings();
   document.body.replaceChildren();
-  document.head.replaceChildren();
+  cleanStyles();
 });
 
 describe('styled', () => {
@@ -318,25 +318,23 @@ describe('where the styles go', () => {
   const Box = styled.div`
     margin: 0;
   `;
-  const styles = (root: ParentNode) =>
-    Array.from(root.querySelectorAll('style[data-ecmact="styled"]'), (node) => node.textContent);
 
   it('waits until the element is in a document', () => {
     const box = Box();
-    expect(styles(document.head)).toEqual([]);
+    expect(styledRules(document)).toEqual([]);
     mount(document.body, tags.section(box));
-    expect(styles(document.head)).toHaveLength(1);
+    expect(styledRules(document)).toHaveLength(1);
   });
 
   it('adds a rule once however many elements use it', () => {
     mount(document.body, Box(), Box());
-    expect(styles(document.head)).toHaveLength(1);
+    expect(styledRules(document)).toHaveLength(1);
   });
 
   it('goes to the shadow root of the component that the element is in', () => {
     const card = em.Card(Box());
     document.body.append(card);
-    expect(styles(card.shadowRoot!)).toHaveLength(1);
-    expect(styles(document.head)).toEqual([]);
+    expect(styledRules(card.shadowRoot!)).toHaveLength(1);
+    expect(styledRules(document)).toEqual([]);
   });
 });

@@ -3,7 +3,7 @@ import { configure, effect, em, signal, tags } from '@em';
 import { Component, init } from '@em/core/component';
 import { resetConfig } from '@em/core/config';
 import { resetWarnings } from '@em/utils/warn';
-import { tick } from '@tests/helpers';
+import { cleanStyles, tick } from '@tests/helpers';
 
 let spy: ReturnType<typeof vi.spyOn>;
 
@@ -17,7 +17,7 @@ afterEach(() => {
   resetConfig();
   vi.unstubAllGlobals();
   document.body.replaceChildren();
-  document.head.replaceChildren();
+  cleanStyles();
 });
 
 const rules = (sheet: CSSStyleSheet) => Array.from(sheet.cssRules, (rule) => rule.cssText).join('');

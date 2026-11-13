@@ -1,16 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { css, keyframes, styled } from '@em';
 import { join } from '@em/styled/template';
-import { sheet } from '@tests/helpers';
+import { cleanStyles, sheet, watchRules } from '@tests/helpers';
 
 beforeEach(() => {
-  vi.stubGlobal('CSSStyleSheet', undefined);
+  watchRules();
 });
 
 afterEach(() => {
-  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
   document.body.replaceChildren();
-  document.head.replaceChildren();
+  cleanStyles();
 });
 
 describe('css', () => {
