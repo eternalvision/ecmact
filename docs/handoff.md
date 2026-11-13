@@ -1,20 +1,21 @@
-# Handoff: browser tests, US1.1 done (2026-11-13)
+# Handoff: browser tests, US1.2 done (2026-11-13)
 
-State: F4, US1.1 (#5) done on branch `feature/5-browser-runner`, PR #19 (not merged). Next is US1.2 (#6). Plan: `docs/plans/2026-11-13-browser-tests-plan.md`.
+State: F4, US1.2 (#6) done on branch `feature/6-structure-checks` (stacked on `feature/5-browser-runner`, PR #19 not merged). Next are US2.1-US2.4 (#7-#10). Plan: `docs/plans/2026-11-13-browser-tests-plan.md`.
 
 ## Done
 
 - F0-F3 (spec v1.1 and plan v1.0 approved, issues #5-#18 in milestone "Browser tests").
-- US1.1: `vite.config.ts` projects `dom`, `chromium`, `firefox`, `webkit`; scripts `test:dom`, `test:chromium`, `test:firefox`, `test:webkit`, `test:browsers`, `browsers:install`; `scripts/check-browsers.ts`. Gate green on Node 22. The first engine run (Chromium and Firefox 7 failures, WebKit 15) and the first Chromium coverage (99.76/99.61/100/99.86) are in a comment on PR #19.
+- US1.1 (#5, PR #19): projects `dom`, `chromium`, `firefox`, `webkit`, the `test:*` scripts, `scripts/check-browsers.ts`. Engine failures: Chromium and Firefox 7, WebKit 15; Chromium coverage 99.76/99.61/100/99.86.
+- US1.2 (#6): `scripts/check-tests.ts` (mirror check, closed list of six names in `tests/browser/`, registry check), `tests/knownFailures.ts` with `knownFailure(issue)`. AC verification is in a comment on its PR.
 
 ## Next step
 
-US1.2 (#6) on branch `feature/6-structure-checks` from `main` after PR #19 is merged, or from `feature/5-browser-runner` if it is not merged yet. US2.1-US2.4 (#7-#10) need only #5.
+US2.1-US2.4 (#7-#10), one branch and PR each, from `main` once #19 (and #6) are merged, otherwise stacked on `feature/6-structure-checks`. US2.1 first if they run in one session, because it adds `src/utils/env.ts` (D23).
 
 ## Open questions
 
-- The review of the specification by another model was not done. US1.1 has had no F5 review yet.
-- Not verified: how `knownFailure` learns the engine (US1.2); `vi.resetModules` in browser mode (US2.1); Node 26.
+- The review of the specification by another model was not done. US1.1 and US1.2 have had no F5 review yet.
+- Not verified: `vi.resetModules` in browser mode (US2.1); Node 26.
 
 ## Risks
 
@@ -25,7 +26,8 @@ US1.2 (#6) on branch `feature/6-structure-checks` from `main` after PR #19 is me
 
 - D1-D21: see the specification. D22-D26: plan section 1.
 - D27 2026-11-13 (US1.1, deviations from the plan): `check-browsers.ts` launches the engine headless, because `executablePath()` misses the Chromium headless shell. `test:chromium` adds `--coverage.reportOnFailure`. `test:browsers` runs all three engines and fails at the end (POSIX `sh`). `npm test` calls `test:dom` instead of `vitest run --coverage`, with the same meaning. `.vitest/` is ignored.
+- D28 2026-11-13 (US1.2): `knownFailure` learns the engine through `provide: { engine }` on each browser instance and `inject('engine')`; the happy-dom run provides nothing, so the helper returns `{}` there without importing `vitest/browser`. The check imports the registry by its file path (Node type stripping) and finds uses by the text `knownFailure(<number>)`, so the issue must be a number literal. One entry per issue, used by exactly one test of `entry.file` containing `entry.test`.
 
 ## Prompt for the new session
 
-We continue ECMact. Read `docs/handoff.md`, `AGENTS.md`, the rule `~/.claude/rules/spec-driven-development.md` and the plan `docs/plans/2026-11-13-browser-tests-plan.md` (sections 4, 5 and US1.2). This session is F4 for US1.2, issue #6: rewrite `scripts/check-tests.mjs` as `scripts/check-tests.ts`, add `tests/knownFailures.ts` with `knownFailure(issue)` and the closed list of `tests/browser/`. Run the gate and `npm run test:browsers` on Node 22, and show how each AC is verified.
+We continue ECMact. Read `docs/handoff.md`, `AGENTS.md`, the rule `~/.claude/rules/spec-driven-development.md` and the plan `docs/plans/2026-11-13-browser-tests-plan.md` (sections 4, 5 and US2.1-US2.4). This session is F4 for US2.1-US2.4, issues #7-#10: make the shared tests pass in every engine by the rules of plan section 5, with `knownFailure` for library defects in Firefox or WebKit (tell the owner, no issue without them). Run the gate and `npm run test:browsers` on Node 22, and show how each AC is verified.
