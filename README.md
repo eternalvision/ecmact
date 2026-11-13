@@ -1931,7 +1931,7 @@ src/
     trimTrailingSlashes.ts  trims the slashes at the end of a URL
     warn.ts               development warnings
 tests/                    mirrors src/, plus helpers.ts
-scripts/check-tests.mjs   checks that tests mirror src in every package
+scripts/check-tests.ts    checks that tests mirror src, the browser-only list and known failures
 scripts/check-template.mjs  generates every variant of the starter and checks it
 packages/create-ecmact/
   src/

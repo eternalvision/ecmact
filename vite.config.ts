@@ -30,9 +30,9 @@ export default defineConfig({
             provider: playwright(),
             headless: true,
             instances: [
-              { browser: 'chromium', name: 'chromium' },
-              { browser: 'firefox', name: 'firefox' },
-              { browser: 'webkit', name: 'webkit' },
+              { browser: 'chromium', name: 'chromium', provide: { engine: 'chromium' } },
+              { browser: 'firefox', name: 'firefox', provide: { engine: 'firefox' } },
+              { browser: 'webkit', name: 'webkit', provide: { engine: 'webkit' } },
             ],
           },
         },
