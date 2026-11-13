@@ -1,10 +1,13 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, inject, it, vi, type MockInstance } from 'vitest';
 import {
   createRouter,
   type RouteContext,
   type Router,
   type RouterOptions,
 } from '@em/router/router';
+import { leavePage } from '@em/utils/env';
+
+vi.mock('@em/utils/env', { spy: true });
 
 const created: Router[] = [];
 
@@ -31,11 +34,40 @@ const click = (target: Element, init: MouseEventInit = {}) => {
   return event;
 };
 
-beforeEach(() => {
-  window.history.replaceState(null, '', '/');
-});
+/** WebKit throws after 100 calls of `pushState` and `replaceState` by one page in 10 seconds. */
+const historyLimit = { calls: 90, span: 10_000 };
+/** The times of the history calls of this file, for the limit of WebKit. */
+const historyCalls: number[] = [];
+let pushState: MockInstance<History['pushState']>;
+let replaceState: MockInstance<History['replaceState']>;
+
+/**
+ * In WebKit, waits until the next test cannot exceed the limit of history calls: 10 seconds after the last
+ * call, when the page has made close to 100 calls since its count started.
+ */
+const historyBudget = async () => {
+  const now = Date.now();
+  const recent = historyCalls.filter((time) => now - time < historyLimit.span);
+  if (inject('engine') !== 'webkit' || recent.length < historyLimit.calls) return;
+  await new Promise((done) =>
+    setTimeout(done, recent[recent.length - 1] + historyLimit.span - now),
+  );
+  historyCalls.splice(0);
+};
+
+beforeEach(async () => {
+  await historyBudget();
+  if (window.location.pathname + window.location.search + window.location.hash !== '/') {
+    window.history.replaceState(null, '', '/');
+    historyCalls.push(Date.now());
+  }
+  pushState = vi.spyOn(window.history, 'pushState');
+  replaceState = vi.spyOn(window.history, 'replaceState');
+}, 15_000);
 
 afterEach(() => {
+  const count = pushState.mock.calls.length + replaceState.mock.calls.length;
+  historyCalls.push(...Array.from({ length: count }, () => Date.now()));
   created.splice(0).forEach((router) => router.dispose());
   document.body.replaceChildren();
   vi.restoreAllMocks();
@@ -99,12 +131,12 @@ describe('location', () => {
 describe('navigate', () => {
   it('pushes a history entry and updates the location', () => {
     const router = make({ routes: [] });
-    const length = window.history.length;
     router.navigate('/users/2?tab=a#x');
     expect(window.location.pathname + window.location.search + window.location.hash).toBe(
       '/users/2?tab=a#x',
     );
-    expect(window.history.length).toBe(length + 1);
+    expect(pushState).toHaveBeenCalledTimes(1);
+    expect(replaceState).not.toHaveBeenCalled();
     expect(router.location.value.path).toBe('/users/2');
     expect(router.location.value.query.get('tab')).toBe('a');
     expect(router.location.value.hash).toBe('#x');
@@ -112,18 +144,19 @@ describe('navigate', () => {
 
   it('replaces the entry when asked to', () => {
     const router = make({ routes: [] });
-    const length = window.history.length;
     router.navigate('/replaced', { replace: true });
-    expect(window.history.length).toBe(length);
+    expect(pushState).not.toHaveBeenCalled();
+    expect(replaceState).toHaveBeenCalledTimes(1);
     expect(window.location.pathname).toBe('/replaced');
   });
 
   it('replaces the entry when the url does not change', () => {
     const router = make({ routes: [] });
     router.navigate('/same');
-    const length = window.history.length;
+    expect(pushState).toHaveBeenCalledTimes(1);
     router.navigate('/same');
-    expect(window.history.length).toBe(length);
+    expect(pushState).toHaveBeenCalledTimes(1);
+    expect(replaceState).toHaveBeenCalledTimes(1);
   });
 
   it('prefixes absolute paths with the base', () => {
@@ -142,15 +175,9 @@ describe('navigate', () => {
 
   it('hands other origins to the browser', () => {
     const router = make({ routes: [] });
-    const assign = vi.fn();
-    vi.spyOn(window, 'location', 'get').mockReturnValue({
-      ...window.location,
-      assign,
-      href: 'http://localhost:3000/',
-      origin: 'http://localhost:3000',
-    } as Location);
+    vi.mocked(leavePage).mockImplementationOnce(() => {});
     router.navigate('https://example.com/x');
-    expect(assign).toHaveBeenCalledWith('https://example.com/x');
+    expect(leavePage).toHaveBeenCalledWith('https://example.com/x');
   });
 
   it('scrolls to the top by default and can skip it', () => {
@@ -365,9 +392,9 @@ describe('link', () => {
     const router = make({ routes });
     const link = router.link({ to: '/about', replace: true });
     document.body.append(link);
-    const length = window.history.length;
     click(link);
-    expect(window.history.length).toBe(length);
+    expect(pushState).not.toHaveBeenCalled();
+    expect(replaceState).toHaveBeenCalledTimes(1);
     expect(router.location.value.path).toBe('/about');
   });
 
@@ -531,10 +558,10 @@ describe('guards', () => {
         { path: '/login', view: () => page('login') },
       ],
     });
-    const length = window.history.length;
     expect(await router.navigate('/private')).toBe(true);
     expect(router.location.value.path).toBe('/login');
-    expect(window.history.length).toBe(length);
+    expect(pushState).not.toHaveBeenCalled();
+    expect(replaceState).toHaveBeenCalledTimes(1);
   });
 
   it('waits for async guards', async () => {

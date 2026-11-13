@@ -13,7 +13,9 @@ const send = (config: HttpRequestConfig) => dispatch(mergeConfig(libraryDefaults
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
-  document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  ['XSRF-TOKEN', 'tok'].forEach((name) => {
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+  });
 });
 
 describe('dispatch request', () => {

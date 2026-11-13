@@ -266,11 +266,14 @@ describe('persist', () => {
   });
 
   it('uses localStorage by default', () => {
-    localStorage.clear();
-    const store = createBase(persist<State>(() => ({ count: 0, note: '' }), { name: 'default' }));
-    store.setState({ count: 1 });
-    expect(JSON.parse(localStorage.getItem('default')!).state.count).toBe(1);
-    localStorage.clear();
+    localStorage.removeItem('default');
+    try {
+      const store = createBase(persist<State>(() => ({ count: 0, note: '' }), { name: 'default' }));
+      store.setState({ count: 1 });
+      expect(JSON.parse(localStorage.getItem('default')!).state.count).toBe(1);
+    } finally {
+      localStorage.removeItem('default');
+    }
   });
 });
 

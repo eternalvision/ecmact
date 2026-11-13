@@ -7,6 +7,7 @@ import { compilePattern, matchPath } from '@em/router/match';
 import { computed, effect, signal, untracked, type ReadonlySignal } from '@em/signals/signals';
 import { tags } from '@em/core/tags';
 import type { Child, ComponentProps, Props } from '@em/types';
+import { leavePage } from '@em/utils/env';
 import { trimTrailingSlashes } from '@em/utils/trimTrailingSlashes';
 
 /** The part of the URL a router works with. */
@@ -286,7 +287,7 @@ export const createRouter = ({
   ): Promise<boolean> => {
     const url = new URL(to.startsWith('/') ? base + to : to, window.location.href);
     if (url.origin !== window.location.origin) {
-      window.location.assign(url.href);
+      leavePage(url.href);
       return Promise.resolve(true);
     }
     const id = ++pending;

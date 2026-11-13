@@ -24,3 +24,12 @@ export const pageLocation = (): Location | undefined => globalThis.location;
  * @returns The class, or `undefined` where there is no DOM.
  */
 export const pageHTMLElement = (): typeof HTMLElement | undefined => globalThis.HTMLElement;
+
+/**
+ * Leaves the page for a URL, as a link to another origin does.
+ *
+ * @param href - The URL.
+ */
+export const leavePage = (href: string) => {
+  globalThis.location.assign(href);
+};
