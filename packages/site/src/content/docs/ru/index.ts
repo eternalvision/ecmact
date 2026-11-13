@@ -1,4 +1,5 @@
 import { translation as api } from '@site/content/docs/ru/api';
+import { translation as comparison } from '@site/content/docs/ru/comparison';
 import { translation as components } from '@site/content/docs/ru/components';
 import { translation as context } from '@site/content/docs/ru/context';
 import { translation as data } from '@site/content/docs/ru/data';
@@ -20,6 +21,7 @@ import { translation as widgets } from '@site/content/docs/ru/widgets';
 /** The Russian translation of every documentation page, by slug. */
 export const russian: Record<string, string[]> = {
   'getting-started': gettingStarted,
+  comparison,
   components,
   signals,
   styling,

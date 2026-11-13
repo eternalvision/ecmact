@@ -70,7 +70,7 @@ describe('start and the language', () => {
     localeStore.cycle();
     expect(target.querySelector('.nav a')?.textContent).toBe('Документация');
     expect(document.documentElement.lang).toBe('ru');
-    expect(document.title).toContain('Реактивные интерфейсы');
+    expect(document.title).toContain('Виджеты для любого сайта');
     expect(target.querySelectorAll('header.site-header')).toHaveLength(1);
     expect(target.querySelectorAll('footer.site-footer')).toHaveLength(1);
     stop();

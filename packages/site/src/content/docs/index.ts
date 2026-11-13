@@ -1,4 +1,5 @@
 import { page as api } from '@site/content/docs/api';
+import { page as comparison } from '@site/content/docs/comparison';
 import { page as components } from '@site/content/docs/components';
 import { page as context } from '@site/content/docs/context';
 import { page as data } from '@site/content/docs/data';
@@ -24,6 +25,7 @@ import type { Locale } from '@site/lib/i18n';
 /** Every documentation page, in reading order. */
 export const docs: DocPage[] = [
   gettingStarted,
+  comparison,
   components,
   signals,
   styling,

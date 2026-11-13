@@ -273,6 +273,9 @@ mount(
       'An item that is a new object under the same key gets its row rendered again, in place. Focus inside the row is restored by position, but other state of the old row, such as a scroll position, is lost. To update a row without replacing it, keep the item the same and let the row read signals.',
     ),
     p('The library does not virtualize. For long lists, paginate or render only the rows in view.'),
+    p(
+      'Measured in Chromium 156 on an Apple M5 with `npm run bench`: a keyed list of 1000 rows, each a `tr` with two `td`, is created in about 14 ms, and 10 000 rows in about 100 ms, including the next frame. Swapping two rows of 10 000 takes about 21 ms. The numbers come from one machine: use them to compare options, not as a promise.',
+    ),
     h2('Mounting'),
     p(
       '`mount(target, ...children)` appends children to an element, given as a selector or as the element. It takes anything a child can be and returns the container.',

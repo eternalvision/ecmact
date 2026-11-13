@@ -146,7 +146,7 @@ const en: Messages = {
     languageName: 'RU',
   },
   footer: {
-    tagline: 'Reactive interfaces on native Web Components. MIT licensed.',
+    tagline: 'Widgets for any website, in plain TypeScript. MIT licensed.',
     selfMade: 'This site is written with ECMact itself. ',
     source: 'Read its source.',
     learn: 'Learn',
@@ -310,9 +310,9 @@ const en: Messages = {
     },
   },
   home: {
-    heroTitle: 'Reactive interfaces on ',
-    heroAccent: 'native Web Components',
-    lead: 'ECMact is a small library with signals, a router, a store, an HTTP client, styled components and embeddable widgets. No virtual DOM, no dependencies, and nothing that has to be compiled.',
+    heroTitle: 'Widgets for any website, in ',
+    heroAccent: 'plain TypeScript',
+    lead: 'Build an embeddable widget with isolated styles and typed attributes, and ship it as one script tag. Signals, a store, an HTTP client and a router are built in. No dependencies, and nothing that has to be compiled.',
     start: 'Get started',
     live: 'See live examples',
     factsLabel: 'Facts',
@@ -348,9 +348,9 @@ const en: Messages = {
     tryStarter: 'Try the starter',
   },
   meta: {
-    tagline: 'Reactive interfaces on native Web Components',
+    tagline: 'Widgets for any website, in plain TypeScript',
     summary:
-      'ECMact is a small library for reactive interfaces on native Web Components: signals, a router, a store, an HTTP client, styled components and embeddable widgets, with no dependencies.',
+      'ECMact builds embeddable widgets and reactive interfaces in plain TypeScript: isolated styles, typed attributes and one script tag, with signals, a store, an HTTP client and a router built in. No dependencies, no compiler.',
     examplesTitle: 'Examples',
     examplesDescription:
       'Live ECMact demos with their source: signals, stores, styled components, an HTTP client and forms.',
@@ -382,7 +382,7 @@ const ru: Messages = {
     languageName: 'EN',
   },
   footer: {
-    tagline: 'Реактивные интерфейсы на нативных Web Components. Лицензия MIT.',
+    tagline: 'Виджеты для любого сайта на чистом TypeScript. Лицензия MIT.',
     selfMade: 'Этот сайт написан на самом ECMact. ',
     source: 'Читать его исходники.',
     learn: 'Изучать',
@@ -547,9 +547,9 @@ const ru: Messages = {
     },
   },
   home: {
-    heroTitle: 'Реактивные интерфейсы на ',
-    heroAccent: 'нативных Web Components',
-    lead: 'ECMact - небольшая библиотека: сигналы, роутер, стор, HTTP-клиент, styled-компоненты и встраиваемые виджеты. Без виртуального DOM, без зависимостей и без того, что нужно компилировать.',
+    heroTitle: 'Виджеты для любого сайта на ',
+    heroAccent: 'чистом TypeScript',
+    lead: 'Соберите встраиваемый виджет с изолированными стилями и типизированными атрибутами и отдайте его одним тегом script. Сигналы, стор, HTTP-клиент и роутер встроены. Без зависимостей и без того, что нужно компилировать.',
     start: 'Начать',
     live: 'Живые примеры',
     factsLabel: 'Факты',
@@ -584,9 +584,9 @@ const ru: Messages = {
     tryStarter: 'Попробовать стартер',
   },
   meta: {
-    tagline: 'Реактивные интерфейсы на нативных Web Components',
+    tagline: 'Виджеты для любого сайта на чистом TypeScript',
     summary:
-      'ECMact - небольшая библиотека для реактивных интерфейсов на нативных Web Components: сигналы, роутер, стор, HTTP-клиент, styled-компоненты и встраиваемые виджеты, без зависимостей.',
+      'ECMact собирает встраиваемые виджеты и реактивные интерфейсы на чистом TypeScript: изолированные стили, типизированные атрибуты и один тег script, а сигналы, стор, HTTP-клиент и роутер встроены. Без зависимостей и без компилятора.',
     examplesTitle: 'Примеры',
     examplesDescription:
       'Живые демо ECMact с исходниками: сигналы, сторы, styled-компоненты, HTTP-клиент и формы.',

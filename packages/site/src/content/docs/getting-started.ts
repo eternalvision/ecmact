@@ -85,5 +85,9 @@ mount(
       'Node.js 20.19 or newer for the scaffolder.',
       'TypeScript is optional, but the types are the best documentation: props, attributes and events are typed per tag.',
     ),
+    h2('Stability'),
+    p(
+      'Version 3.0 is the baseline. Within 3.x nothing that these docs describe is removed or changes its behaviour: code written for 3.0 keeps working on every later 3.x release. New features come in minor versions and fixes in patch versions.',
+    ),
   ],
 };

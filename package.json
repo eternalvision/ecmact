@@ -1,7 +1,7 @@
 {
   "name": "ecmact",
   "version": "3.0.0",
-  "description": "Small component library on native Web Components with typed props, signals and context",
+  "description": "Build embeddable widgets in plain TypeScript: isolated styles, typed attributes, one script tag. No dependencies, no compiler.",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -29,7 +29,8 @@
     "test:structure": "node scripts/check-tests.mjs",
     "build:all": "npm run build && npm run build --workspaces --if-present",
     "test:template": "node scripts/check-template.mjs",
-    "bench": "npm run build && node scripts/benchmark.mjs"
+    "bench": "npm run build && node scripts/benchmark.mjs",
+    "size": "node scripts/size.mjs"
   },
   "keywords": [
     "web-components",

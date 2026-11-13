@@ -31,7 +31,7 @@ describe('findDoc', () => {
 
 describe('neighbours', () => {
   it('gives the page before and after', () => {
-    expect(neighbours('components')).toEqual({ previous: docs[0], next: docs[2] });
+    expect(neighbours('comparison')).toEqual({ previous: docs[0], next: docs[2] });
   });
 
   it('has nothing before the first page and nothing after the last', () => {

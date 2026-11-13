@@ -1,108 +1,98 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-
-const require = createRequire(import.meta.url);
-const { chromium } = require('playwright');
 
 const library = readFileSync(fileURLToPath(new URL('../dist/index.js', import.meta.url)), 'utf8');
 const rounds = Number(process.env.ROUNDS ?? 7);
 const sizes = [1000, 10000];
+const html = process.env.BENCH_HTML;
 
 const page = `
 ${library}
+const { table, tbody, td, tr } = tags;
+const steps = ['create', 'update', 'swap', 'remove', 'append', 'clear'];
 const makeRows = (count, from = 0) =>
   Array.from({ length: count }, (_, index) => ({ id: from + index, label: signal('row ' + (from + index)) }));
-const rowOf = (row, shadow) =>
-  em.Row({
-    tag: 'tr',
-    key: row.id,
-    shadow,
-    children: [
-      tags.td({ content: String(row.id), shadow }),
-      tags.td({ content: row.label, shadow }),
-    ],
-  });
-window.bench = async (name, count, shadow, reuse) => {
+const frame = () => new Promise((done) => requestAnimationFrame(() => setTimeout(done)));
+const measure = async (action) => {
+  const start = performance.now();
+  action();
+  await frame();
+  return performance.now() - start;
+};
+const bench = async (count) => {
   document.body.replaceChildren();
-  const cache = new Map();
-  const rowFor = (row) => {
-    if (!reuse) return rowOf(row, shadow);
-    if (!cache.has(row.id)) cache.set(row.id, rowOf(row, shadow));
-    return cache.get(row.id);
-  };
-  const table = em.Table({ tag: 'tbody', shadow });
-  document.body.append(table);
-  let rows = [];
-  const paint = () => table.setState({ children: rows.map(rowFor) });
-  const frame = () => new Promise((done) => requestAnimationFrame(() => setTimeout(done)));
-  const measure = async (action) => {
-    const start = performance.now();
-    action();
-    await frame();
-    return performance.now() - start;
-  };
+  const rows = signal([]);
+  mount(
+    document.body,
+    table(tbody(each(rows, (row) => tr(td(String(row.id)), td(row.label)), { by: (row) => row.id }))),
+  );
   const results = {};
-  rows = makeRows(count);
-  results.create = await measure(paint);
-  results.update = await measure(() => rows.forEach((row, index) => index % 10 === 0 && (row.label.value += '!')));
-  [rows[1], rows[rows.length - 2]] = [rows[rows.length - 2], rows[1]];
-  results.swap = await measure(paint);
-  rows.splice(Math.floor(rows.length / 2), 1);
-  results.remove = await measure(paint);
-  rows = rows.concat(makeRows(count / 10, count));
-  results.append = await measure(paint);
-  rows = [];
-  results.clear = await measure(paint);
+  results.create = await measure(() => (rows.value = makeRows(count)));
+  results.update = await measure(() =>
+    rows.value.forEach((row, index) => index % 10 === 0 && (row.label.value += '!')),
+  );
+  results.swap = await measure(() => {
+    const next = [...rows.value];
+    [next[1], next[next.length - 2]] = [next[next.length - 2], next[1]];
+    rows.value = next;
+  });
+  results.remove = await measure(() => {
+    const next = [...rows.value];
+    next.splice(Math.floor(next.length / 2), 1);
+    rows.value = next;
+  });
+  results.append = await measure(() => (rows.value = rows.value.concat(makeRows(count / 10, count))));
+  results.clear = await measure(() => (rows.value = []));
   return results;
+};
+const median = (values) => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
+window.run = async (rounds, sizes) => {
+  const lines = [
+    '| rows | create | update 1 in 10 | swap two | remove one | append 10% | clear |',
+    '| ---- | ------ | -------------- | -------- | ---------- | ---------- | ----- |',
+  ];
+  for (const count of sizes) {
+    await bench(count);
+    const runs = [];
+    for (let round = 0; round < rounds; round++) runs.push(await bench(count));
+    const cells = steps.map((step) => median(runs.map((run) => run[step])).toFixed(1));
+    lines.push('| ' + [count, ...cells].join(' | ') + ' |');
+  }
+  document.body.replaceChildren();
+  return lines.join('\\n');
 };
 `;
 
 /**
- * Picks the middle value of a list of numbers.
+ * Writes the line that says what was measured and where.
  *
- * @param {number[]} values - The measurements.
- * @returns {number} The median.
+ * @param {string} browser - The name of the browser.
+ * @returns {string} The title of the table.
  */
-const median = (values) => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
+const title = (browser) =>
+  `ECMact list benchmark, ${browser}, median of ${rounds} runs, ms. Every row is a tr with two td, kept by key with each(); the time includes the next frame.`;
 
-const browser = await chromium.launch();
-const tab = await browser.newPage();
-await tab.setContent('<table></table>');
-await tab.addScriptTag({ type: 'module', content: page });
-await tab.waitForFunction('window.bench');
-
-console.log(`ECMact list benchmark, Chromium ${browser.version()}, median of ${rounds} runs, ms\n`);
-console.log(
-  '| rows | rows are | shadow | create | update 1 in 10 | swap two | remove one | append 10% | clear |',
-);
-console.log(
-  '| ---- | -------- | ------ | ------ | -------------- | -------- | ---------- | ---------- | ----- |',
-);
-for (const count of sizes) {
-  for (const [reuse, shadow] of [
-    [false, false],
-    [false, true],
-    [true, false],
-    [true, true],
-  ]) {
-    await tab.evaluate(([n, s, r]) => globalThis.bench('warmup', n, s, r), [count, shadow, reuse]);
-    const runs = [];
-    for (let round = 0; round < rounds; round++) {
-      runs.push(
-        await tab.evaluate(([n, s, r]) => globalThis.bench('run', n, s, r), [count, shadow, reuse]),
-      );
-    }
-    /**
-     * Formats the median of one measurement over all runs.
-     *
-     * @param {string} key - The measurement name.
-     * @returns {string} The median in milliseconds.
-     */
-    const cell = (key) => median(runs.map((run) => run[key])).toFixed(1);
-    console.log(
-      `| ${count} | ${reuse ? 'reused' : 'rebuilt'} | ${shadow ? 'yes' : 'no'} | ${cell('create')} | ${cell('update')} | ${cell('swap')} | ${cell('remove')} | ${cell('append')} | ${cell('clear')} |`,
-    );
-  }
+if (html) {
+  writeFileSync(
+    html,
+    `<!doctype html><meta charset="utf-8"><title>ECMact benchmark</title><body><script type="module">${page}
+const result = await window.run(${rounds}, ${JSON.stringify(sizes)});
+const output = document.createElement('pre');
+output.id = 'result';
+output.textContent = ${JSON.stringify(title('this browser'))} + '\\n\\n' + result;
+document.body.append(output);
+</script></body>`,
+  );
+  console.log(`wrote ${html}: open it in a browser, the table appears when the runs are done`);
+} else {
+  const { chromium } = createRequire(import.meta.url)('playwright');
+  const browser = await chromium.launch();
+  const tab = await browser.newPage();
+  await tab.setContent('<body></body>');
+  await tab.addScriptTag({ type: 'module', content: page });
+  await tab.waitForFunction('window.run');
+  console.log(`${title(`Chromium ${browser.version()}`)}\n`);
+  console.log(await tab.evaluate(([count, list]) => globalThis.run(count, list), [rounds, sizes]));
+  await browser.close();
 }
-await browser.close();

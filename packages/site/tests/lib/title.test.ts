@@ -7,7 +7,7 @@ afterEach(() => {
 
 describe('metaFor', () => {
   it('describes the home page', () => {
-    expect(metaFor('/').title).toBe('ECMact - Reactive interfaces on native Web Components');
+    expect(metaFor('/').title).toBe('ECMact - Widgets for any website, in plain TypeScript');
     expect(metaFor('').description).toContain('signals');
   });
 
@@ -19,7 +19,7 @@ describe('metaFor', () => {
     expect(metaFor('/widgets/').title).toBe('Widgets - ECMact');
     expect(metaFor('/examples/').title).toBe('Examples - ECMact');
     expect(metaFor('/docs/routing//').title).toBe('Routing - ECMact docs');
-    expect(metaFor('//').title).toBe('ECMact - Reactive interfaces on native Web Components');
+    expect(metaFor('//').title).toBe('ECMact - Widgets for any website, in plain TypeScript');
   });
 
   it('describes the widget gallery', () => {
@@ -61,9 +61,7 @@ describe('applyMeta', () => {
 
 describe('metaFor in Russian', () => {
   it('describes the pages in Russian', () => {
-    expect(metaFor('/', 'ru').title).toBe(
-      'ECMact - Реактивные интерфейсы на нативных Web Components',
-    );
+    expect(metaFor('/', 'ru').title).toBe('ECMact - Виджеты для любого сайта на чистом TypeScript');
     expect(metaFor('/examples', 'ru').title).toBe('Примеры - ECMact');
     expect(metaFor('/docs/routing', 'ru').title).toBe('Роутинг - ECMact документация');
     expect(metaFor('/docs/routing', 'ru').description).toContain('History API');

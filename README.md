@@ -13,7 +13,7 @@
 
 # ECMact
 
-Reactive interfaces in plain TypeScript that you can embed into any site.
+Build embeddable widgets in plain TypeScript: isolated styles, typed attributes, one script tag. No dependencies, no compiler.
 
 ECMact is a small library for reactive interfaces on the DOM. You build the page from function calls that return real DOM elements, and signals keep those elements up to date. There is no virtual DOM, no template language and no build step that the library depends on. The [website](https://eternalvision.github.io/ecmact/) has the same documentation, in English and Russian, with live examples.
 
@@ -54,9 +54,32 @@ ECMact is young, and a large application would have to build part of the infrast
 
 See [Limitations](#limitations) for the full list.
 
+## Compared with other libraries
+
+The same widget, a custom element with a Shadow DOM, one style rule and a button that counts its clicks and follows an attribute, was written in four libraries and built with Vite as one minified script with the library inside. All four behave the same in a browser.
+
+| Library                                      | Minified, kB | gzip, kB | brotli, kB |
+| -------------------------------------------- | ------------ | -------- | ---------- |
+| `vanjs-core` 1.6.2                           | 2.7          | 1.3      | 1.2        |
+| `ecmact` 3.0.0                               | 9.8          | 4.2      | 3.7        |
+| `solid-js` 1.9.19 with `solid-element` 1.9.2 | 14.2         | 5.3      | 4.8        |
+| `lit` 3.3.3                                  | 14.8         | 5.7      | 5.2        |
+
+Measured in November 2026. The numbers are for this small widget, not for the libraries as a whole. `npm run size` measures ECMact again; the four sources are on the [comparison page](https://eternalvision.github.io/ecmact/docs/comparison) of the website.
+
+- **VanJS** is the smallest: pick it when size matters most and the widget is small. It has no layer for custom elements, so the class, the shadow root, the observed attributes and the stylesheet are written by hand.
+- **Lit** is the closest in purpose: pick it for a set of components that many teams share. Markup is a template string in a class; ECMact uses function calls with props typed per tag, and has a store, an HTTP client and a router in the same package.
+- **Solid** has a compiler for JSX and, with SolidStart, server-side rendering: pick it for an application. ECMact needs no compiler, and a widget with its attributes, styles and events is one call.
+
+## Stability
+
+Version 3.0 is the baseline. Within 3.x nothing that this document describes is removed or changes its behaviour: code written for 3.0 keeps working on every later 3.x release. New features come in minor versions and fixes in patch versions.
+
 ## Table of contents
 
 - [What it is for](#what-it-is-for)
+- [Compared with other libraries](#compared-with-other-libraries)
+- [Stability](#stability)
 - [Quick start](#quick-start)
 - [Install](#install)
 - [First elements](#first-elements)
@@ -742,6 +765,15 @@ An item that is a new object under the same key gets its row rendered again, in 
 - A keyed list keeps the node of every item that is still there and only moves it, so reordering, removing or appending does not create the other rows again.
 - A row that reads signals updates only the text or attribute that changed, without the list being involved.
 - The library does not virtualize: every item is a real node. For long lists, paginate or render only the rows in view.
+
+Measured in Chromium 156 on an Apple M5 with `npm run bench`. Every row is a `tr` with two `td`, kept by key with `each`; median of 7 runs, in milliseconds, including the time until the next frame:
+
+| rows  | create | update 1 in 10 | swap two | remove one | append 10% | clear |
+| ----- | ------ | -------------- | -------- | ---------- | ---------- | ----- |
+| 1000  | 13.8   | 4.7            | 6.5      | 8.6        | 12.2       | 3.3   |
+| 10000 | 100.5  | 33.9           | 20.6     | 17.3       | 60.4       | 33.0  |
+
+The numbers come from one machine and will differ on yours: use them to compare options, not as a promise. `BENCH_HTML=bench.html npm run bench` writes a page that runs the same benchmark in any browser, without Playwright.
 
 ## Mounting
 
@@ -1799,18 +1831,20 @@ Inside `src/` and `tests/` (of every package), import through aliases instead of
 - ESLint (`no-restricted-imports`) rejects `./` and `../` imports in `src/` and `tests/`, so new files follow the rule automatically.
 - The build does not leak aliases: the JavaScript is bundled, and the declaration plugin rewrites `@em/...` to relative paths in the published `.d.ts` files.
 
-| Script                   | Description                                                                      |
-| ------------------------ | -------------------------------------------------------------------------------- |
-| `npm run build`          | Vite library build: ES, CJS and `.d.ts` into `dist/`                             |
-| `npm run build:all`      | The library and every package in `packages/`                                     |
-| `npm test`               | Structure check, then Vitest with V8 coverage, for the library and every package |
-| `npm run test:structure` | Checks that `tests/` mirrors `src/`                                              |
-| `npm run test:template`  | Generates every variant of the starter and checks it                             |
-| `npm run typecheck`      | `tsc --noEmit` for the library and every package                                 |
-| `npm run lint`           | ESLint (flat config, typescript-eslint, prettier)                                |
-| `npm run lint:fix`       | ESLint with autofix                                                              |
-| `npm run format`         | Prettier write                                                                   |
-| `npm run format:check`   | Prettier check                                                                   |
+| Script                   | Description                                                                            |
+| ------------------------ | -------------------------------------------------------------------------------------- |
+| `npm run build`          | Vite library build: ES, CJS and `.d.ts` into `dist/`                                   |
+| `npm run build:all`      | The library and every package in `packages/`                                           |
+| `npm test`               | Structure check, then Vitest with V8 coverage, for the library and every package       |
+| `npm run test:structure` | Checks that `tests/` mirrors `src/`                                                    |
+| `npm run test:template`  | Generates every variant of the starter and checks it                                   |
+| `npm run size`           | Measures the size of widget scripts with the library inside                            |
+| `npm run bench`          | Measures keyed lists in Chromium (needs `playwright`, or `BENCH_HTML` for any browser) |
+| `npm run typecheck`      | `tsc --noEmit` for the library and every package                                       |
+| `npm run lint`           | ESLint (flat config, typescript-eslint, prettier)                                      |
+| `npm run lint:fix`       | ESLint with autofix                                                                    |
+| `npm run format`         | Prettier write                                                                         |
+| `npm run format:check`   | Prettier check                                                                         |
 
 ### Documentation comments
 
