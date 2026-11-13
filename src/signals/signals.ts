@@ -49,6 +49,7 @@ const brand = Symbol('ecmact.signal');
 const maxRuns = 10000;
 
 let active: Listener | null = null;
+let owner: (() => void)[] | null = null;
 let batchDepth = 0;
 let flushing = false;
 const pending = new Set<Effect>();
@@ -368,8 +369,50 @@ export const computed = <T>(fn: () => T, equals?: (a: T, b: T) => boolean): Read
   new ComputedImpl(fn, equals);
 
 /**
+ * Runs `fn` now and again whenever a signal it read changes, without handing the effect to an owner.
+ * This is what the library uses for its own bindings, which it stops by itself.
+ *
+ * @param fn - The effect body.
+ * @returns A function that stops the effect.
+ */
+export const watch = (fn: () => void | (() => void)) => {
+  const instance = new Effect(fn);
+  instance.run();
+  return () => instance.dispose();
+};
+
+/**
+ * Registers a function to run when the current owner is disposed. Does nothing without an owner.
+ *
+ * @param cleanup - The function to run.
+ */
+export const onCleanup = (cleanup: () => void) => {
+  owner?.push(cleanup);
+};
+
+/**
+ * Runs `fn` as an owner: every effect and resource created while it runs is collected, so that they can be
+ * stopped together. The `mounted` hook of a component runs this way.
+ *
+ * @template T - The result type of `fn`.
+ * @param fn - The function to run.
+ * @returns The result of `fn`, and a function that stops everything that was created.
+ */
+export const owned = <T>(fn: () => T): [T, () => void] => {
+  const previous = owner;
+  const cleanups: (() => void)[] = [];
+  owner = cleanups;
+  try {
+    return [fn(), () => cleanups.splice(0).forEach((cleanup) => cleanup())];
+  } finally {
+    owner = previous;
+  }
+};
+
+/**
  * Runs `fn` now and again whenever a signal it read changes. Dependencies are tracked anew on every run.
- * `fn` may return a cleanup that runs before the next run and when the effect is stopped.
+ * `fn` may return a cleanup that runs before the next run and when the effect is stopped. An effect created
+ * in the `mounted` hook of a component is stopped when the component leaves the document.
  *
  * @example
  * const stop = effect(() => console.log(count.value));
@@ -378,9 +421,9 @@ export const computed = <T>(fn: () => T, equals?: (a: T, b: T) => boolean): Read
  * @returns A function that stops the effect.
  */
 export const effect = (fn: () => void | (() => void)) => {
-  const instance = new Effect(fn);
-  instance.run();
-  return () => instance.dispose();
+  const stop = watch(fn);
+  onCleanup(stop);
+  return stop;
 };
 
 /**

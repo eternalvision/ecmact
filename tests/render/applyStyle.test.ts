@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { applyStyle } from '@em/render/applyStyle';
+import { applyStyle, setStyle } from '@em/render/applyStyle';
 import { resetWarnings } from '@em/utils/warn';
 
 let spy: ReturnType<typeof vi.spyOn>;
@@ -83,5 +83,55 @@ describe('applyStyle', () => {
       new Set(),
     );
     expect(spy).not.toHaveBeenCalled();
+  });
+});
+
+describe('setStyle', () => {
+  it('sets a property and returns its kebab-case name', () => {
+    const element = document.createElement('div');
+    expect(setStyle(element, 'fontSize', '12px')).toBe('font-size');
+    expect(element.style.fontSize).toBe('12px');
+  });
+
+  it('removes the property for empty values and returns nothing', () => {
+    const element = document.createElement('div');
+    setStyle(element, 'color', 'red');
+    expect(setStyle(element, 'color', null)).toBeUndefined();
+    expect(element.style.color).toBe('');
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('removes the property and warns for values that cannot be set', () => {
+    const element = document.createElement('div');
+    setStyle(element, 'color', 'red');
+    setStyle(element, 'color', {});
+    expect(element.style.color).toBe('');
+    expect(spy).toHaveBeenCalledWith(
+      'ecmact: style "color" was ignored, object values cannot be set',
+    );
+  });
+
+  it('sets a number as pixels for a length', () => {
+    const element = document.createElement('div');
+    setStyle(element, 'width', 240);
+    setStyle(element, 'marginTop', 0);
+    expect(element.style.width).toBe('240px');
+    expect(element.style.marginTop).toBe('0px');
+  });
+
+  it('keeps a number as it is for properties that take plain numbers', () => {
+    const element = document.createElement('div');
+    setStyle(element, 'opacity', 0.5);
+    setStyle(element, 'zIndex', 2);
+    setStyle(element, 'flexGrow', 1);
+    expect(element.style.opacity).toBe('0.5');
+    expect(element.style.zIndex).toBe('2');
+    expect(element.style.flexGrow).toBe('1');
+  });
+
+  it('sets custom properties by their own name, numbers without a unit', () => {
+    const element = document.createElement('div');
+    expect(setStyle(element, '--gapSize', 4)).toBe('--gapSize');
+    expect(element.style.getPropertyValue('--gapSize')).toBe('4');
   });
 });

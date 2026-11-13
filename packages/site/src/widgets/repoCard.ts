@@ -1,6 +1,8 @@
-import { computed, defineWidget, effect, untracked } from 'ecmact';
+import { defineWidget, effect, resource, tags, untracked } from 'ecmact';
 import { api, describeError } from '@site/widgets/api';
-import { attachedResource, compact, part, sheet, tag } from '@site/widgets/kit';
+import { compact, widgetCss } from '@site/widgets/kit';
+
+const { a, button, div, p, span } = tags;
 
 /** What the widget shows about a repository. */
 interface Repository {
@@ -36,7 +38,7 @@ const css = `
     color: var(--w-fg, #e6edf3);
   }
   .head { display: flex; align-items: center; gap: 0.5rem; }
-  .head svg { flex: none; fill: var(--w-muted, #7d8590); }
+  .icon { display: flex; flex: none; fill: var(--w-muted, #7d8590); }
   a.name { color: var(--w-accent, #4493f8); font-weight: 600; font-size: 1.05rem; text-decoration: none; word-break: break-all; }
   a.name:hover { text-decoration: underline; }
   .pill { margin-inline-start: auto; padding: 0 0.5rem; border: 1px solid var(--w-border, #30363d); border-radius: 999px; font-size: 0.72rem; color: var(--w-muted, #7d8590); }
@@ -48,8 +50,7 @@ const css = `
   button:hover { border-color: var(--w-accent, #4493f8); }
 `;
 
-const octicon =
-  'M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8ZM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.249.249 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2Z';
+const octicon = `<svg viewBox="0 0 16 16" width="16" height="16"><path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8ZM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.249.249 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2Z"/></svg>`;
 
 /**
  * Tells whether text names a GitHub repository, `owner/name`, with nothing else in it: no further path segments, no
@@ -78,135 +79,87 @@ export const isRepository = (value: string) => {
 export const defineRepoCard = () =>
   defineWidget(
     'repo-card',
-    ({ host, props, emit }) => {
+    ({ props, emit }) => {
       /**
-       * Reads the repository to show: the attribute, or the default.
+       * Reads the repository to show: the attribute, or the default when it is blank.
        *
        * @returns The text.
        */
-      const name = () => (props.repo.value ?? '').trim() || 'eternalvision/ecmact';
-      const repository = attachedResource<Repository>(({ signal }) => {
+      const name = () => props.repo.trim() || 'eternalvision/ecmact';
+      const repository = resource(({ signal }) => {
         const repo = name();
         if (!isRepository(repo)) throw new Error('Use the form owner/name.');
-        return api
-          .get<Repository>(`https://api.github.com/repos/${repo}`, {
-            headers: { Accept: 'application/vnd.github+json' },
-            signal,
-          })
-          .then((response) => response.data);
+        return api.get<Repository>(`https://api.github.com/repos/${repo}`, {
+          headers: { Accept: 'application/vnd.github+json' },
+          signal,
+        }).data;
       });
-      /** The repository to show: not the old one beside the message that a newer request failed. */
-      const data = computed(() =>
-        repository.error.value === undefined ? repository.data.value : undefined,
-      );
       /**
-       * Makes a text that follows the repository.
+       * Reads the repository to show: not the old one beside the message that a newer request failed.
        *
-       * @param read - Picks the text out of the repository.
-       * @returns The text, empty while there is no repository.
+       * @returns The repository, or `undefined`.
        */
-      const text = (read: (value: Repository) => string) =>
-        computed(() => (data.value ? read(data.value) : ''));
-      let announced: Repository | undefined;
+      const shown = () => (repository.error === undefined ? repository.data : undefined);
 
-      const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      icon.setAttribute('viewBox', '0 0 16 16');
-      icon.setAttribute('width', '16');
-      icon.setAttribute('height', '16');
-      icon.setAttribute('aria-hidden', 'true');
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', octicon);
-      icon.append(path);
-
-      const root = tag('div', {
-        class: 'card',
-        /**
-         * Starts the request and announces each repository once it has loaded.
-         *
-         * @returns The cleanup that stops both.
-         */
-        mounted: () => {
-          const stopLoading = repository.attach();
-          const stopAnnouncing = effect(() => {
-            const loaded = repository.data.value;
-            if (!loaded || loaded === announced) return;
-            announced = loaded;
-            untracked(() =>
-              emit('loaded', { repo: loaded.full_name, stars: loaded.stargazers_count }),
-            );
-          });
-          return () => {
-            stopAnnouncing();
-            stopLoading();
-          };
-        },
-        children: [
-          part(
-            'div',
-            'head',
-            icon,
-            tag('a', {
-              class: 'name',
-              target: computed(() => (data.value ? '_blank' : null)),
-              rel: 'noreferrer',
-              href: computed(() => data.value?.html_url ?? null),
-              content: computed(() => data.value?.full_name ?? name()),
-            } as never),
-            tag('span', { class: 'pill', content: 'Public' }),
-          ),
-          tag('p', {
-            class: 'about',
-            content: computed(() =>
-              data.value
-                ? (data.value.description ?? 'No description.')
-                : repository.loading.value
-                  ? 'Loading...'
-                  : '',
-            ),
-          }),
-          tag('div', {
-            class: 'stats',
-            hidden: computed(() => !data.value),
-            children: [
-              tag('span', {
-                content: text((value) => `★ ${compact(value.stargazers_count)} stars`),
-              }),
-              tag('span', { content: text((value) => `⑂ ${compact(value.forks_count)} forks`) }),
-              tag('span', {
-                content: text((value) => `${compact(value.open_issues_count)} issues`),
-              }),
-              tag('span', {
-                class: 'lang',
-                content: text((value) => value.language ?? ''),
-                hidden: computed(() => !data.value?.language),
-              }),
-              tag('span', {
-                content: text((value) => value.license?.spdx_id ?? ''),
-                hidden: computed(() => !data.value?.license),
-              }),
-            ],
-          }),
-          tag('div', {
-            class: 'error',
-            hidden: computed(() => repository.error.value === undefined),
-            children: [
-              tag('p', {
-                class: 'state',
-                content: computed(() => describeError(repository.error.value)),
-              }),
-              tag('button', {
-                type: 'button',
-                content: 'Try again',
-                /** Loads the repository again. */
-                onclick: () => {
-                  repository.refetch();
-                },
-              }),
-            ],
-          }),
-        ],
+      effect(() => {
+        const loaded = repository.data;
+        if (!loaded) return;
+        untracked(() => emit('loaded', { repo: loaded.full_name, stars: loaded.stargazers_count }));
       });
-      return sheet(host, css, root);
+
+      return div(
+        { class: 'card' },
+        div(
+          { class: 'head' },
+          span({ class: 'icon', 'aria-hidden': 'true', html: octicon }),
+          a(
+            {
+              class: 'name',
+              rel: 'noreferrer',
+              /**
+               * Gives the link an address once there is a repository to open.
+               *
+               * @returns The address of the repository page, or `undefined`.
+               */
+              href: () => shown()?.html_url,
+              /**
+               * Opens the repository in a new tab.
+               *
+               * @returns `_blank` once there is a repository to open.
+               */
+              target: () => shown() && '_blank',
+            },
+            () => shown()?.full_name ?? name(),
+          ),
+          span({ class: 'pill' }, 'Public'),
+        ),
+        p({ class: 'about' }, () => {
+          const repo = shown();
+          if (repo) return repo.description ?? 'No description.';
+          return repository.loading && 'Loading...';
+        }),
+        () => {
+          const repo = shown();
+          return (
+            repo &&
+            div(
+              { class: 'stats' },
+              span(`★ ${compact(repo.stargazers_count)} stars`),
+              span(`⑂ ${compact(repo.forks_count)} forks`),
+              span(`${compact(repo.open_issues_count)} issues`),
+              repo.language && span({ class: 'lang' }, repo.language),
+              repo.license && span(repo.license.spdx_id),
+            )
+          );
+        },
+        () =>
+          repository.error !== undefined &&
+          div(
+            { class: 'error' },
+            p({ class: 'state' }, describeError(repository.error)),
+            button({ type: 'button', onclick: repository.refetch }, 'Try again'),
+          ),
+      );
     },
-    { attributes: ['repo'] },
+    { attributes: { repo: 'eternalvision/ecmact' }, css: widgetCss(css) },
   );

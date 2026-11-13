@@ -1,16 +1,16 @@
-import type { Router } from 'ecmact';
+import { tags, type Router } from 'ecmact';
 import { featuresFor, useCasesFor } from '@site/content/features';
 import { text } from '@site/content/messages';
 import { findDemo } from '@site/demos/index';
-import { link } from '@site/lib/component';
-import { el, icon } from '@site/lib/dom';
+import { icon } from '@site/lib/dom';
 import { currentLocale } from '@site/lib/i18n';
-import { followInternalLinks } from '@site/lib/links';
 import { withBase } from '@site/lib/paths';
 import { CodeBlock } from '@site/ui/codeBlock';
 import { copyButton } from '@site/ui/copyButton';
 import { DemoFrame } from '@site/ui/demoFrame';
 import { external, outside } from '@site/ui/header';
+
+const { a, code, div, h1, h2, h3, img, li, main, p, section, span, strong, ul } = tags;
 
 const install = 'npm create ecmact@latest my-app';
 
@@ -22,22 +22,21 @@ const install = 'npm create ecmact@latest my-app';
 const m = () => text().home;
 
 const app = `
-import { computed, createHttp, createRouter, createStore, mount, resource, tags } from 'ecmact';
+import { createHttp, createRouter, createStore, mount, tags } from 'ecmact';
 
 const api = createHttp({ baseURL: '/api', retry: 2 });
-const cart = createStore<{ count: number; add: () => void }>((set) => ({
-  count: 0,
+const cart = createStore({ count: 0 }, (set) => ({
   add: () => set((state) => ({ count: state.count + 1 })),
 }));
 
 const router = createRouter({
   routes: [
-    { path: '/', view: () => tags.h1({ content: 'Shop' }) },
+    { path: '/', view: () => tags.h1('Shop') },
     {
       path: '/products',
       view: () => {
-        const products = resource(({ signal }) => api.get('/products', { signal }).then((r) => r.data));
-        return tags.p({ content: computed(() => (products.loading.value ? 'Loading...' : 'Loaded')) });
+        const products = api.resource('/products');
+        return tags.p(() => (products.loading ? 'Loading...' : 'Loaded'));
       },
     },
   ],
@@ -45,25 +44,25 @@ const router = createRouter({
 
 mount(
   '#app',
-  tags.button({ content: cart.select((state) => \`Cart (\${state.count})\`), onclick: () => cart.getState().add() }),
+  tags.button({ onclick: cart.add }, () => \`Cart (\${cart.count})\`),
   router.outlet(),
 );
 `;
 
 const widget = `
-import { computed, defineWidget, signal, tags } from 'ecmact';
+import { defineWidget, signal, tags } from 'ecmact';
 
 defineWidget(
   'price-widget',
   ({ props, emit }) => {
     const quantity = signal(1);
-    const total = computed(() => Number(props.price.value) * quantity.value);
-    return tags.button({
-      content: computed(() => \`Add \${quantity.value} for \${total.value}\`),
-      onclick: () => emit('add', { total: total.value }),
-    });
+    const total = () => props.price * quantity.value;
+    return tags.button(
+      { onclick: () => emit('add', { total: total() }) },
+      () => \`Add \${quantity.value} for \${total()}\`,
+    );
   },
-  { attributes: ['price'] },
+  { attributes: { price: 0 } },
 );
 `;
 
@@ -72,17 +71,32 @@ const embed = `
 <price-widget price="49"></price-widget>
 `;
 
+const badges = [
+  [
+    'https://img.shields.io/npm/v/ecmact?logo=npm&color=CB3837&label=npm',
+    'npm version',
+    external.npm,
+  ],
+  ['https://img.shields.io/npm/dm/ecmact?logo=npm&color=CB3837', 'npm downloads', external.npm],
+  [
+    'https://img.shields.io/github/actions/workflow/status/eternalvision/ecmact/ci.yml?branch=main&logo=github&label=CI',
+    'CI status',
+    `${external.github}/actions`,
+  ],
+  ['https://img.shields.io/npm/l/ecmact', 'MIT license', `${external.github}/blob/main/LICENSE`],
+] as const;
+
 /**
- * Builds a link that looks like a button.
+ * Shows the command that creates a project, with a button that copies it.
  *
- * @param router - The router.
- * @param to - The path.
- * @param label - The text.
- * @param kind - `button` or `button ghost`.
- * @returns The link.
+ * @returns The element.
  */
-const action = (router: Router, to: string, label: string, kind: string) =>
-  link(router, to, label, kind);
+const installLine = () =>
+  div(
+    { class: 'install' },
+    code(span({ class: 'prompt' }, '$'), ` ${install}`),
+    copyButton(install, 'code-copy'),
+  );
 
 /**
  * The hero: logo, promise, install command, calls to action and badges.
@@ -91,59 +105,29 @@ const action = (router: Router, to: string, label: string, kind: string) =>
  * @returns The section.
  */
 const hero = (router: Router) =>
-  el(
-    'section',
+  section(
     { class: 'hero wrap' },
-    el('img', {
+    img({
       class: 'hero-logo',
-      attrs: { src: withBase('/ecmact-logo.png'), alt: 'ECMact', width: '856', height: '283' },
+      src: withBase('/ecmact-logo.png'),
+      alt: 'ECMact',
+      width: 856,
+      height: 283,
     }),
-    el('h1', {}, m().heroTitle, el('span', { class: 'accent' }, m().heroAccent)),
-    el('p', { class: 'lead' }, m().lead),
-    el(
-      'div',
-      { class: 'install' },
-      el('code', {}, el('span', { class: 'prompt' }, '$'), ` ${install}`),
-      copyButton(install, 'code-copy'),
-    ),
-    el(
-      'div',
+    h1(m().heroTitle, span({ class: 'accent' }, m().heroAccent)),
+    p({ class: 'lead' }, m().lead),
+    installLine(),
+    div(
       { class: 'actions' },
-      action(router, '/docs/getting-started', m().start, 'button'),
-      action(router, '/examples', m().live, 'button ghost'),
+      router.link({ to: '/docs/getting-started', class: 'button' }, m().start),
+      router.link({ to: '/examples', class: 'button ghost' }, m().live),
       outside(external.github, 'GitHub', 'button ghost'),
       outside(external.npm, 'npm', 'button ghost'),
     ),
-    el(
-      'p',
+    p(
       { class: 'badges' },
-      ...[
-        [
-          'https://img.shields.io/npm/v/ecmact?logo=npm&color=CB3837&label=npm',
-          'npm version',
-          external.npm,
-        ],
-        [
-          'https://img.shields.io/npm/dm/ecmact?logo=npm&color=CB3837',
-          'npm downloads',
-          external.npm,
-        ],
-        [
-          'https://img.shields.io/github/actions/workflow/status/eternalvision/ecmact/ci.yml?branch=main&logo=github&label=CI',
-          'CI status',
-          `${external.github}/actions`,
-        ],
-        [
-          'https://img.shields.io/npm/l/ecmact',
-          'MIT license',
-          `${external.github}/blob/main/LICENSE`,
-        ],
-      ].map(([src, alt, href]) =>
-        el(
-          'a',
-          { attrs: { href: href as string, target: '_blank', rel: 'noreferrer' } },
-          el('img', { attrs: { src: src as string, alt: alt as string, height: '20' } }),
-        ),
+      badges.map(([src, alt, href]) =>
+        a({ href, target: '_blank', rel: 'noreferrer' }, img({ src, alt, height: 20 })),
       ),
     ),
   );
@@ -154,12 +138,9 @@ const hero = (router: Router) =>
  * @returns The section.
  */
 const facts = () =>
-  el(
-    'section',
-    { class: 'facts wrap', attrs: { 'aria-label': m().factsLabel } },
-    ...m().facts.map(([value, label]) =>
-      el('div', { class: 'fact' }, el('strong', {}, value), el('span', {}, label)),
-    ),
+  section(
+    { class: 'facts wrap', 'aria-label': m().factsLabel },
+    m().facts.map(([value, label]) => div({ class: 'fact' }, strong(value), span(label))),
   );
 
 /**
@@ -168,53 +149,42 @@ const facts = () =>
  * @param router - The router.
  * @returns The section.
  */
-const featureGrid = (router: Router) => {
-  const section = el(
-    'section',
-    { class: 'wrap section', attrs: { id: 'features' } },
-    el('h2', {}, m().featuresTitle),
-    el('p', { class: 'section-lead' }, m().featuresLead),
-    el(
-      'div',
+const featureGrid = (router: Router) =>
+  section(
+    { class: 'wrap section', id: 'features' },
+    h2(m().featuresTitle),
+    p({ class: 'section-lead' }, m().featuresLead),
+    div(
       { class: 'cards' },
-      ...featuresFor(currentLocale()).map((feature) =>
-        el(
-          'a',
-          {
-            class: 'card',
-            attrs: {
-              href: withBase(`/docs/${feature.page}`),
-              'data-internal': `/docs/${feature.page}`,
-            },
-          },
-          el('span', { class: 'card-icon' }, icon(feature.icon)),
-          el('h3', {}, feature.title),
-          el('p', {}, feature.text),
+      featuresFor(currentLocale()).map((feature) =>
+        router.link(
+          { to: `/docs/${feature.page}`, class: 'card' },
+          span({ class: 'card-icon' }, icon(feature.icon)),
+          h3(feature.title),
+          p(feature.text),
         ),
       ),
     ),
   );
-  followInternalLinks(section, router);
-  return section;
-};
 
 /**
  * Two live demos side by side, so that the page proves something at once.
  *
  * @returns The section.
  */
-const live = () => {
-  const shown = ['counter', 'styled']
-    .map((id) => findDemo(id))
-    .filter((demo) => demo !== undefined);
-  return el(
-    'section',
+const live = () =>
+  section(
     { class: 'wrap section' },
-    el('h2', {}, m().liveTitle),
-    el('p', { class: 'section-lead' }, m().liveLead),
-    el('div', { class: 'demo-grid' }, ...shown.map((demo) => DemoFrame(demo))),
+    h2(m().liveTitle),
+    p({ class: 'section-lead' }, m().liveLead),
+    div(
+      { class: 'demo-grid' },
+      ['counter', 'styled']
+        .map((id) => findDemo(id))
+        .filter((demo) => demo !== undefined)
+        .map((demo) => DemoFrame(demo)),
+    ),
   );
-};
 
 /**
  * The section about embedding: the widget, and the two lines that put it on any page.
@@ -223,25 +193,24 @@ const live = () => {
  * @returns The section.
  */
 const embedding = (router: Router) =>
-  el(
-    'section',
+  section(
     { class: 'wrap section split' },
-    el(
-      'div',
+    div(
       { class: 'split-text' },
-      el('h2', {}, m().embedTitle),
-      el('p', {}, m().embedText),
-      el('ul', { class: 'ticks' }, ...m().embedTicks.map((tick) => el('li', {}, tick))),
-      el(
-        'p',
+      h2(m().embedTitle),
+      p(m().embedText),
+      ul(
+        { class: 'ticks' },
+        m().embedTicks.map((tick) => li(tick)),
+      ),
+      p(
         { class: 'actions' },
-        action(router, '/widgets', m().embedGallery, 'button'),
+        router.link({ to: '/widgets', class: 'button' }, m().embedGallery),
         outside(`${external.widget}embed.html`, m().embedForeign, 'button ghost'),
-        action(router, '/docs/widgets', m().embedGuide, 'button ghost'),
+        router.link({ to: '/docs/widgets', class: 'button ghost' }, m().embedGuide),
       ),
     ),
-    el(
-      'div',
+    div(
       { class: 'split-code' },
       CodeBlock({ code: widget.trim(), language: 'ts', title: 'widget.ts' }),
       CodeBlock({ code: embed.trim(), language: 'html', title: 'any page' }),
@@ -254,16 +223,12 @@ const embedding = (router: Router) =>
  * @returns The section.
  */
 const uses = () =>
-  el(
-    'section',
+  section(
     { class: 'wrap section' },
-    el('h2', {}, m().usesTitle),
-    el(
-      'div',
+    h2(m().usesTitle),
+    div(
       { class: 'uses' },
-      ...useCasesFor(currentLocale()).map((use) =>
-        el('div', { class: 'use' }, el('h3', {}, use.title), el('p', {}, use.text)),
-      ),
+      useCasesFor(currentLocale()).map((use) => div({ class: 'use' }, h3(use.title), p(use.text))),
     ),
   );
 
@@ -273,11 +238,10 @@ const uses = () =>
  * @returns The section.
  */
 const whole = () =>
-  el(
-    'section',
+  section(
     { class: 'wrap section' },
-    el('h2', {}, m().wholeTitle),
-    el('p', { class: 'section-lead' }, m().wholeLead),
+    h2(m().wholeTitle),
+    p({ class: 'section-lead' }, m().wholeLead),
     CodeBlock({ code: app.trim(), language: 'ts', title: 'main.ts' }),
   );
 
@@ -288,20 +252,13 @@ const whole = () =>
  * @returns The section.
  */
 const closing = (router: Router) =>
-  el(
-    'section',
+  section(
     { class: 'wrap section closing' },
-    el('h2', {}, m().closingTitle),
-    el(
-      'div',
-      { class: 'install' },
-      el('code', {}, el('span', { class: 'prompt' }, '$'), ` ${install}`),
-      copyButton(install, 'code-copy'),
-    ),
-    el(
-      'p',
+    h2(m().closingTitle),
+    installLine(),
+    p(
       { class: 'actions' },
-      action(router, '/docs/getting-started', m().guide, 'button'),
+      router.link({ to: '/docs/getting-started', class: 'button' }, m().guide),
       outside(external.starter, m().tryStarter, 'button ghost'),
     ),
   );
@@ -313,8 +270,7 @@ const closing = (router: Router) =>
  * @returns The page.
  */
 export const home = (router: Router) =>
-  el(
-    'main',
+  main(
     { class: 'home' },
     hero(router),
     facts(),

@@ -1,6 +1,8 @@
+import { tags } from 'ecmact';
 import { text } from '@site/content/messages';
-import { el } from '@site/lib/dom';
 import type { Heading } from '@site/ui/blocks';
+
+const { a, h2, li, nav, ul } = tags;
 
 /**
  * The table of contents of a page: its headings as links to anchors. Anchors are plain `#id` links, so the browser
@@ -10,18 +12,14 @@ import type { Heading } from '@site/ui/blocks';
  * @returns The navigation element.
  */
 export const Toc = (headings: Heading[]) =>
-  el(
-    'nav',
-    { class: 'toc', attrs: { 'aria-label': text().docs.onThisPage } },
-    el('h2', {}, text().docs.onThisPage),
-    el(
-      'ul',
-      {},
-      ...headings.map((heading) =>
-        el(
-          'li',
-          { class: heading.level === 3 ? 'toc-sub' : undefined },
-          el('a', { attrs: { href: `#${heading.id}` } }, heading.text),
+  nav(
+    { class: 'toc', 'aria-label': text().docs.onThisPage },
+    h2(text().docs.onThisPage),
+    ul(
+      headings.map((heading) =>
+        li(
+          { class: heading.level === 3 && 'toc-sub' },
+          a({ href: `#${heading.id}` }, heading.text),
         ),
       ),
     ),

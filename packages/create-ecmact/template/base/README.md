@@ -33,7 +33,7 @@ Open the address that Vite prints and edit `src/app.ts`. The same commands work 
 | `src/styles.css`     | Global styles and the color variables (dark, and light by system preference). |
 | `public/favicon.png` | The favicon.                                                                  |
 
-A component is a function that returns an element, styled by its own `css`. Props accept signals, so `content: computed(() => ...)` updates by itself. See the [documentation](https://github.com/eternalvision/ecmact#readme) for props, signals, routing and data fetching.
+A component is a function that returns an element. `tags.button(...)` makes a plain element, and `em.Counter({ css }, ...)` wraps elements in a component with its own styles. Props and children accept signals and functions, so `` () => `count is ${count.value}` `` updates by itself. See the [documentation](https://github.com/eternalvision/ecmact#readme) for props, signals, routing and data fetching.
 
 ## Code quality
 

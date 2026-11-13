@@ -52,6 +52,7 @@ const open = async (wait = 10) => {
 const add = async (root: ShadowRoot, title: string) => {
   const input = root.querySelector('input')!;
   input.value = title;
+  input.dispatchEvent(new Event('input'));
   root.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
   await vi.advanceTimersByTimeAsync(10);
 };
@@ -67,6 +68,7 @@ describe('posts demo', () => {
     const { root, titles, footer } = await open();
     await add(root, 'Third');
     expect(titles()).toEqual(['First', 'Second', 'Third']);
+    expect(root.querySelector('input')!.value).toBe('');
     expect(footer()).toContain('2 requests');
   });
 

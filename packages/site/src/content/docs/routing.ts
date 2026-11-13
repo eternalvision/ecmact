@@ -16,18 +16,20 @@ export const page: DocPage = {
       `
 import { createRouter, mount, tags } from 'ecmact';
 
+const { h1, nav, p } = tags;
+
 const router = createRouter({
   routes: [
-    { path: '/', view: () => tags.h1({ content: 'Home' }) },
-    { path: '/users/:id', view: ({ params }) => tags.h1({ content: \`User \${params.id}\` }) },
-    { path: '/files/*', view: ({ params }) => tags.p({ content: params['*'] }) },
+    { path: '/', view: () => h1('Home') },
+    { path: '/users/:id', view: ({ params }) => h1(\`User \${params.id}\`) },
+    { path: '/files/*', view: ({ params }) => p(params['*']) },
   ],
-  notFound: () => tags.h1({ content: 'Not found' }),
+  notFound: () => h1('Not found'),
 });
 
 mount(
   '#app',
-  tags.nav({ children: [router.link({ to: '/', content: 'Home' }), router.link({ to: '/users/1', content: 'User 1' })] }),
+  nav(router.link({ to: '/' }, 'Home'), ' ', router.link({ to: '/users/1' }, 'User 1')),
   router.outlet(),
 );
 `,
@@ -41,18 +43,55 @@ mount(
       ['`*`', 'Any path, as a catch-all', "`{ '*': 'a/b' }`"],
     ),
     p(
-      'The first matching route wins. A `view` receives `path`, `params`, `query` (a `URLSearchParams`), `hash` and the `router`, and returns a node or a promise of one. A promise is how code splitting works: the outlet stays empty until it resolves, and a late result is dropped if the route changed.',
+      'The first matching route wins. A `view` receives `path`, `params`, `query` (a `URLSearchParams`), `hash` and the `router`, and returns a node or a promise of one. A promise is how code splitting works: the outlet stays as it is until the promise resolves, and a late result is dropped if the route changed.',
     ),
     code(
       'ts',
-      "{ path: '/settings', view: async () => (await import('./settings')).settingsView() }",
+      `
+import { createRouter, tags } from 'ecmact';
+
+const { h1 } = tags;
+
+const router = createRouter({
+  routes: [
+    { path: '/', view: () => h1('Home') },
+    { path: '/settings', view: async () => (await import('./settings')).settingsView() },
+  ],
+});
+`,
     ),
-    h2('Links and navigation'),
+    h2('The outlet, links and navigation'),
     ul(
-      '`router.link({ to, content })` returns an anchor with a real `href`, so middle click and copy link work. A plain left click navigates without a page load; modifier keys, other buttons, `target` and other origins are left to the browser.',
-      '`router.navigate(to, { replace, scroll })` returns a promise of whether the navigation happened. Without async guards the location is already updated when it returns.',
+      '`router.outlet(props?)` returns a `<router-outlet>` component that shows the view of the current route. It renders into the light DOM, so the CSS of the page styles the views.',
+      '`router.link({ to, replace?, ...props }, ...children)` returns a real `<a>` with an `href`, so middle click and copy link work. A plain left click navigates without a page load. Modifier keys, other buttons, `target`, `download` and other origins are left to the browser.',
       'The link gets `aria-current="page"` while its path is the current one.',
-      '`base` serves the app from a sub-path: `createRouter({ base: "/ecmact", routes })`. This site does exactly that on GitHub Pages.',
+      '`router.navigate(to, { replace, scroll })` returns a promise of whether the navigation happened. Without async guards the location is already updated when it returns. It scrolls to the top unless `scroll` is `false`.',
+      '`router.back()` and `router.forward()` move through the history. `router.dispose()` stops listening to it.',
+      '`router.location` and `router.match` are signals: the current path, query and hash, and the route that matches.',
+      '`base` serves the app from a sub-path: `createRouter({ base: "/app", routes })`.',
+    ),
+    code(
+      'ts',
+      `
+import { createRouter, mount, tags } from 'ecmact';
+
+const { h1, p } = tags;
+
+const router = createRouter({
+  routes: [
+    { path: '/', view: () => h1('Home') },
+    { path: '/search', view: ({ query }) => h1(\`Results for \${query.get('q') ?? ''}\`) },
+  ],
+});
+
+mount(
+  '#app',
+  p(() => \`You are at \${router.location.value.path}\`),
+  router.outlet({ class: 'view' }),
+);
+
+await router.navigate('/search?q=signals');
+`,
     ),
     h2('Nested routes'),
     p(
@@ -61,18 +100,24 @@ mount(
     code(
       'ts',
       `
+import { createRouter, mount, tags } from 'ecmact';
+
+const { h1, p, section } = tags;
+
 const router = createRouter({
   routes: [
     {
       path: '/users',
-      view: () => tags.section({ children: [tags.h1({ content: 'Users' }), router.outlet()] }),
+      view: () => section(h1('Users'), router.outlet()),
       children: [
-        { path: '', view: () => tags.p({ content: 'Pick a user' }) },
-        { path: ':id', view: ({ params }) => tags.p({ content: \`User \${params.id}\` }) },
+        { path: '', view: () => p('Pick a user') },
+        { path: ':id', view: ({ params }) => p(\`User \${params.id}\`) },
       ],
     },
   ],
 });
+
+mount('#app', router.outlet());
 `,
     ),
     p(
@@ -85,11 +130,18 @@ const router = createRouter({
     code(
       'ts',
       `
+import { createRouter, signal, tags } from 'ecmact';
+
+const { h1 } = tags;
+
+const session = signal<{ admin: boolean } | null>(null);
+
 const router = createRouter({
   beforeEach: (to) => (to.path.startsWith('/admin') && !session.value ? '/login' : true),
   routes: [
-    { path: '/admin', view: adminView, beforeEnter: async () => (await can('admin')) || '/' },
-    { path: '/login', view: loginView },
+    { path: '/', view: () => h1('Home') },
+    { path: '/admin', view: () => h1('Admin'), beforeEnter: () => session.value?.admin || '/' },
+    { path: '/login', view: () => h1('Sign in') },
   ],
 });
 
@@ -107,7 +159,7 @@ if (await router.navigate('/admin')) console.log('navigated');
     ),
     callout(
       'note',
-      'Only history mode is supported, so the server must answer unknown paths with `index.html` (the default of Vite and of most hosts with an SPA fallback). There are no transitions and no scroll restoration.',
+      'Only history mode is supported, so the server must answer unknown paths with `index.html` (the default of Vite and of most hosts with an SPA fallback). There are no transitions, no scroll restoration and no route-level data loading.',
     ),
   ],
 };

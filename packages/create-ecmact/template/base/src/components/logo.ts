@@ -1,7 +1,10 @@
-import { em } from 'ecmact';
+import { em, tags } from 'ecmact';
 import logo from '../assets/ecmact-logo.png';
 
 const logoCss = `
+  :host {
+    display: block;
+  }
   img {
     display: block;
     width: min(26rem, 82vw);
@@ -26,4 +29,4 @@ const logoCss = `
  * @returns The logo component.
  */
 export const Logo = () =>
-  em.Logo({ tag: 'img', src: logo, alt: 'ECMact', width: 856, height: 283, css: logoCss });
+  em.Logo({ css: logoCss }, tags.img({ src: logo, alt: 'ECMact', width: 856, height: 283 }));

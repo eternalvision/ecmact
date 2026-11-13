@@ -13,39 +13,37 @@ export const api: Record<string, ApiEntry[]> = {
   Components: [
     {
       name: 'em',
-      summary: 'Factory for custom-element components: `em.Name(props)`.',
+      summary:
+        'Components: custom elements with a shadow root, a stylesheet and a lifecycle: `em.Name(props, ...children)`.',
       page: 'components',
     },
     {
       name: 'tags',
-      summary: 'Factories for standard tags: `tags.div(props)`.',
+      summary:
+        'Plain DOM elements with reactive props and children: `tags.div(props, ...children)`.',
       page: 'components',
     },
     {
       name: 'each',
       summary:
-        'A keyed list that follows an array or a signal of an array: `each(items, render, options)`.',
+        'A keyed list that follows an array, a signal or a function: `each(items, render, options)`.',
       page: 'components',
     },
     {
       name: 'mount',
-      summary: 'Appends components to a container given as a selector or an element.',
+      summary: 'Appends children to a container given as a selector or an element.',
       page: 'components',
     },
     {
       name: 'configure',
-      summary: 'Global defaults: Shadow DOM, shared stylesheets, error handler, warnings.',
+      summary:
+        'Global defaults: Shadow DOM, the prefix of component names, shared stylesheets, error handler, warnings.',
       page: 'styling',
     },
-    { name: 'createContext', summary: 'Creates a context key.', page: 'context' },
     {
-      name: 'provide',
-      summary: 'Pairs a context with a value for the `provide` prop.',
-      page: 'context',
-    },
-    {
-      name: 'consume',
-      summary: 'Reads the nearest provided value above an element.',
+      name: 'createContext',
+      summary:
+        'Creates a context: `provide` offers a value to the elements below, `use` reads the nearest one.',
       page: 'context',
     },
   ],
@@ -66,12 +64,12 @@ export const api: Record<string, ApiEntry[]> = {
     { name: 'isSignal', summary: 'Type guard for signals and computed values.', page: 'signals' },
   ],
   Styling: [
-    { name: 'styled', summary: 'Components from CSS in tagged templates.', page: 'styled' },
-    { name: 'css', summary: 'A shareable piece of CSS for styled components.', page: 'styled' },
-    { name: 'keyframes', summary: 'Frames of an animation for styled components.', page: 'styled' },
+    { name: 'styled', summary: 'Elements from CSS in tagged templates.', page: 'styled' },
+    { name: 'css', summary: 'A shareable piece of CSS for styled elements.', page: 'styled' },
+    { name: 'keyframes', summary: 'Frames of an animation for styled elements.', page: 'styled' },
     {
       name: 'ThemeProvider',
-      summary: 'Offers a theme to styled components below it.',
+      summary: 'Offers a theme to the styled elements below it.',
       page: 'styled',
     },
     { name: 'themeContext', summary: 'The context that carries the theme.', page: 'styled' },
@@ -89,30 +87,30 @@ export const api: Record<string, ApiEntry[]> = {
     },
   ],
   State: [
-    { name: 'createStore', summary: 'A store with selectors as signals.', page: 'state' },
     {
-      name: 'combine',
-      summary: 'Initial values plus actions, with inferred types.',
+      name: 'createStore',
+      summary:
+        'A store of values and actions, with persistence and Redux DevTools as options: `createStore(initial, actions, options)`.',
       page: 'state',
     },
-    { name: 'persist', summary: 'Keeps part of the state in a storage.', page: 'state' },
     {
       name: 'createJSONStorage',
-      summary: 'A JSON storage over `localStorage`, `sessionStorage` or any string storage.',
+      summary:
+        'A JSON storage for the `persist` option, over `localStorage`, `sessionStorage` or any string storage.',
       page: 'state',
     },
-    { name: 'devtools', summary: 'Connects a store to Redux DevTools.', page: 'state' },
     { name: 'shallow', summary: 'One-level comparison for selectors.', page: 'state' },
   ],
   Data: [
     {
       name: 'resource',
-      summary: 'An async function as `data`, `error` and `loading` signals.',
+      summary:
+        'An async function as `data`, `error` and `loading`, which reactive functions follow.',
       page: 'data',
     },
     {
       name: 'createHttp',
-      summary: 'An HTTP client on `fetch` with interceptors and retries.',
+      summary: 'An HTTP client on `fetch` with interceptors, retries and resources.',
       page: 'http',
     },
     { name: 'http', summary: 'A ready-made client with the library defaults.', page: 'http' },
@@ -154,15 +152,14 @@ export const areasRu: Record<string, string> = {
 
 /** What each export is for, in Russian. */
 export const apiRu: Record<string, string> = {
-  em: 'Фабрика компонентов-кастомных элементов: `em.Name(props)`.',
-  tags: 'Фабрики стандартных тегов: `tags.div(props)`.',
-  each: 'Список с ключами, который следует за массивом или сигналом массива: `each(items, render, options)`.',
-  mount: 'Добавляет компоненты в контейнер, заданный селектором или элементом.',
+  em: 'Компоненты: кастомные элементы с shadow root, таблицей стилей и жизненным циклом: `em.Name(props, ...children)`.',
+  tags: 'Обычные DOM-элементы с реактивными пропсами и детьми: `tags.div(props, ...children)`.',
+  each: 'Список с ключами, который следует за массивом, сигналом или функцией: `each(items, render, options)`.',
+  mount: 'Добавляет детей в контейнер, заданный селектором или элементом.',
   configure:
-    'Глобальные значения по умолчанию: Shadow DOM, общие таблицы стилей, обработчик ошибок, предупреждения.',
-  createContext: 'Создаёт ключ контекста.',
-  provide: 'Связывает контекст со значением для пропа `provide`.',
-  consume: 'Читает ближайшее предоставленное значение над элементом.',
+    'Глобальные значения по умолчанию: Shadow DOM, префикс имён компонентов, общие таблицы стилей, обработчик ошибок, предупреждения.',
+  createContext:
+    'Создаёт контекст: `provide` предоставляет значение элементам ниже, `use` читает ближайшее.',
   signal: 'Записываемое реактивное значение.',
   computed:
     'Производное значение, ленивое и мемоизированное, с необязательным отсечением по равенству.',
@@ -170,22 +167,21 @@ export const apiRu: Record<string, string> = {
   batch: 'Группирует записи, чтобы эффекты выполнялись один раз.',
   untracked: 'Читает сигналы без подписки.',
   isSignal: 'Проверка типа для сигналов и вычисляемых значений.',
-  styled: 'Компоненты из CSS в шаблонных литералах.',
-  css: 'Переиспользуемый кусок CSS для styled-компонентов.',
-  keyframes: 'Кадры анимации для styled-компонентов.',
-  ThemeProvider: 'Предоставляет тему styled-компонентам ниже.',
+  styled: 'Элементы из CSS в шаблонных литералах.',
+  css: 'Переиспользуемый кусок CSS для styled-элементов.',
+  keyframes: 'Кадры анимации для styled-элементов.',
+  ThemeProvider: 'Предоставляет тему styled-элементам ниже.',
   themeContext: 'Контекст, который несёт тему.',
   useTheme: 'Читает сигнал темы, действующей для элемента.',
   createRouter: 'Роутер на History API с outlet, ссылками, вложенными маршрутами и гардами.',
-  createStore: 'Стор с селекторами-сигналами.',
-  combine: 'Начальные значения плюс действия, с выводом типов.',
-  persist: 'Хранит часть состояния в хранилище.',
+  createStore:
+    'Стор из значений и действий, с сохранением и Redux DevTools в опциях: `createStore(initial, actions, options)`.',
   createJSONStorage:
-    'JSON-хранилище поверх `localStorage`, `sessionStorage` или любого строкового хранилища.',
-  devtools: 'Подключает стор к Redux DevTools.',
+    'JSON-хранилище для опции `persist` поверх `localStorage`, `sessionStorage` или любого строкового хранилища.',
   shallow: 'Сравнение на один уровень для селекторов.',
-  resource: 'Асинхронная функция как сигналы `data`, `error` и `loading`.',
-  createHttp: 'HTTP-клиент на `fetch` с интерцепторами и повторами.',
+  resource:
+    'Асинхронная функция как `data`, `error` и `loading`, за которыми следят реактивные функции.',
+  createHttp: 'HTTP-клиент на `fetch` с интерцепторами, повторами и ресурсами.',
   http: 'Готовый клиент с настройками библиотеки по умолчанию.',
   HttpError: 'Ошибка неудавшегося запроса.',
   CanceledError: 'Ошибка отменённого запроса.',

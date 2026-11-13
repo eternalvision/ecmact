@@ -53,7 +53,8 @@ export const demos: Demo[] = [
   {
     id: 'counter',
     title: 'Signals',
-    description: 'A signal, a computed value and props bound to them: only two texts update.',
+    description:
+      'A signal, a value computed from it and two texts that follow them: nothing else updates.',
     page: 'signals',
     create: counter.create,
     source: cleanSource(counterSource),
@@ -61,8 +62,7 @@ export const demos: Demo[] = [
   {
     id: 'todo',
     title: 'Keyed list and store',
-    description:
-      'A store holds the to-dos, a keyed list shows them, a selected signal counts them.',
+    description: 'A store holds the to-dos, a keyed list shows them, a function child counts them.',
     page: 'components',
     create: todo.create,
     source: cleanSource(todoSource),
@@ -78,7 +78,7 @@ export const demos: Demo[] = [
   {
     id: 'store',
     title: 'Persistent store',
-    description: 'persist() keeps the notes in localStorage: add one and reload the page.',
+    description: 'The persist option keeps the notes in localStorage: add one and reload the page.',
     page: 'state',
     create: store.create,
     source: cleanSource(storeSource),
@@ -130,7 +130,7 @@ export const demos: Demo[] = [
     id: 'lifecycle',
     title: 'Lifecycle hooks',
     description:
-      'mounted, unmounted, beforeUpdate and updated on a clock you can remove and freeze.',
+      'mounted with a cleanup, an effect that stops by itself and unmounted, on a clock you can remove.',
     page: 'lifecycle',
     create: lifecycle.create,
     source: cleanSource(lifecycleSource),

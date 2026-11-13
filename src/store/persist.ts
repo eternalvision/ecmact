@@ -167,7 +167,9 @@ const chain = <A, B>(value: A | Promise<A>, next: (resolved: A) => B | Promise<B
  * lets the code run where the storage does not exist.
  *
  * @example
- * persist(creator, { name: 'cart', storage: createJSONStorage(() => sessionStorage) });
+ * createStore({ items: [] }, undefined, {
+ *   persist: { name: 'cart', storage: createJSONStorage(() => sessionStorage) },
+ * });
  *
  * @template S - The persisted part of the state.
  * @param getStorage - Returns the string storage.
@@ -220,16 +222,11 @@ export const createJSONStorage = <S>(
  * Keeps part of the state in a storage: reads it when the store is created and writes it after every change.
  * The initial state is not written until the first change.
  *
- * @example
- * const cart = createStore(
- *   persist<{ items: string[] }>(() => ({ items: [] }), { name: 'cart' }),
- * );
- *
  * @template T - The state.
  * @template S - The persisted part of the state.
  * @param creator - Builds the initial state.
  * @param initialOptions - Where and what to persist.
- * @returns A creator for `createStore`. The store gets a `persist` property.
+ * @returns A creator for the store. The store gets a `persist` property.
  */
 export const persist =
   <T, S = T>(creator: StateCreator<T>, initialOptions: PersistOptions<T, S>): StateCreator<T> =>

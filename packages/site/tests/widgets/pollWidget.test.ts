@@ -73,39 +73,39 @@ describe('votesFor and changeVotes', () => {
 describe('createPollStore', () => {
   it('moves a vote and takes it back', () => {
     const poll = createPollStore('store-test', { a: 1, b: 0 });
-    poll.getState().vote('a');
-    expect(poll.getState().votes).toEqual({ a: 2, b: 0 });
-    poll.getState().vote('b');
-    expect(poll.getState().votes).toEqual({ a: 1, b: 1 });
-    poll.getState().reset();
-    expect(poll.getState().votes).toEqual({ a: 1, b: 0 });
-    expect(poll.getState().chosen).toBeNull();
-    poll.getState().reset();
-    expect(poll.getState().votes).toEqual({ a: 1, b: 0 });
+    poll.vote('a');
+    expect(poll.votes).toEqual({ a: 2, b: 0 });
+    poll.vote('b');
+    expect(poll.votes).toEqual({ a: 1, b: 1 });
+    poll.reset();
+    expect(poll.votes).toEqual({ a: 1, b: 0 });
+    expect(poll.chosen).toBeNull();
+    poll.reset();
+    expect(poll.votes).toEqual({ a: 1, b: 0 });
   });
 
   it('copes with a choice that the votes do not know', () => {
     const poll = createPollStore('store-ghost', {});
     poll.setState({ chosen: 'Gone', votes: {} });
-    poll.getState().vote('x');
-    expect(poll.getState().votes).toEqual({ Gone: 0, x: 1 });
+    poll.vote('x');
+    expect(poll.votes).toEqual({ Gone: 0, x: 1 });
     poll.setState({ chosen: 'Lost', votes: {} });
-    poll.getState().reset();
-    expect(poll.getState().votes).toEqual({ Lost: 0 });
+    poll.reset();
+    expect(poll.votes).toEqual({ Lost: 0 });
   });
 
   it('counts a vote for an option that was not seeded', () => {
     const poll = createPollStore('store-extra', {});
-    poll.getState().vote('x');
-    expect(poll.getState().votes).toEqual({ x: 1 });
+    poll.vote('x');
+    expect(poll.votes).toEqual({ x: 1 });
   });
 
   it('reads a stored poll back, and keeps it in storage after a vote', () => {
     store('stored', { votes: { a: 4, b: 1 }, chosen: 'b' });
     const poll = createPollStore('stored', { a: 0, b: 0 });
-    expect(poll.getState().votes).toEqual({ a: 4, b: 1 });
-    expect(poll.getState().chosen).toBe('b');
-    poll.getState().vote('a');
+    expect(poll.votes).toEqual({ a: 4, b: 1 });
+    expect(poll.chosen).toBe('b');
+    poll.vote('a');
     expect(JSON.parse(localStorage.getItem('ecmact-poll:stored') ?? '{}').state).toEqual({
       votes: { a: 5, b: 0 },
       chosen: 'a',
@@ -116,15 +116,15 @@ describe('createPollStore', () => {
     for (const state of [null, 'text', 5, [], { votes: null, chosen: 5 }, { votes: [1, 2] }]) {
       store('broken', state);
       const poll = createPollStore('broken', { a: 3 });
-      expect(poll.getState().votes).toEqual({ a: 3 });
-      expect(poll.getState().chosen).toBeNull();
+      expect(poll.votes).toEqual({ a: 3 });
+      expect(poll.chosen).toBeNull();
     }
   });
 
   it('drops stored counts that are not finite, non-negative numbers', () => {
     store('counts', { votes: { a: 2, b: -1, c: 'x', d: null, e: 7 }, chosen: 'e' });
     const poll = createPollStore('counts', {});
-    expect(poll.getState().votes).toEqual({ a: 2, e: 7 });
+    expect(poll.votes).toEqual({ a: 2, e: 7 });
   });
 });
 
@@ -133,7 +133,7 @@ describe('pollStore', () => {
     const first = pollStore('shared-store', { a: 1 });
     const second = pollStore('shared-store', { a: 9 });
     expect(second).toBe(first);
-    expect(second.getState().votes).toEqual({ a: 1 });
+    expect(second.votes).toEqual({ a: 1 });
     expect(pollStore('other-store', {})).not.toBe(first);
   });
 });

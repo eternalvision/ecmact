@@ -1,4 +1,4 @@
-import { computed, em, signal } from 'ecmact';
+import { em, signal, tags } from 'ecmact';
 
 const counterCss = `
   button {
@@ -26,19 +26,14 @@ const counterCss = `
 `;
 
 /**
- * A button that counts its clicks. The label is computed from a signal, so it updates by itself.
+ * A button that counts its clicks. The label is a function that reads a signal, so it updates by itself.
  *
- * @returns The button component.
+ * @returns The counter component.
  */
 export const Counter = () => {
   const count = signal(0);
-  return em.Counter({
-    tag: 'button',
-    type: 'button',
-    content: computed(() => `count is ${count.value}`),
-    onclick: () => {
-      count.value += 1;
-    },
-    css: counterCss,
-  });
+  return em.Counter(
+    { css: counterCss },
+    tags.button({ type: 'button', onclick: () => count.value++ }, () => `count is ${count.value}`),
+  );
 };

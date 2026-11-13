@@ -1,7 +1,7 @@
-import type { Router } from 'ecmact';
+import { tags, type Router } from 'ecmact';
 import { text } from '@site/content/messages';
-import { link } from '@site/lib/component';
-import { el } from '@site/lib/dom';
+
+const { h1, main, p } = tags;
 
 /**
  * The page for an address that matches nothing.
@@ -11,17 +11,14 @@ import { el } from '@site/lib/dom';
  */
 export const notFound = (router: Router) => {
   const m = text().notFound;
-  return el(
-    'main',
+  return main(
     { class: 'wrap page-simple' },
-    el('h1', {}, m.title),
-    el('p', { class: 'lead' }, m.lead),
-    el(
-      'p',
-      {},
-      link(router, '/', m.home, 'button'),
+    h1(m.title),
+    p({ class: 'lead' }, m.lead),
+    p(
+      router.link({ to: '/', class: 'button' }, m.home),
       ' ',
-      link(router, '/docs', m.docs, 'button ghost'),
+      router.link({ to: '/docs', class: 'button ghost' }, m.docs),
     ),
   );
 };

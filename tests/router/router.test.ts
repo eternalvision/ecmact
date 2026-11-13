@@ -5,7 +5,6 @@ import {
   type Router,
   type RouterOptions,
 } from '@em/router/router';
-import { inner } from '@tests/helpers';
 
 const created: Router[] = [];
 
@@ -201,7 +200,7 @@ describe('outlet', () => {
     const router = make({ routes: [{ path: '/', view: () => page('home') }] });
     const outlet = router.outlet();
     document.body.append(outlet);
-    expect(inner(outlet).textContent).toBe('home');
+    expect(outlet.textContent).toBe('home');
   });
 
   it('passes the context to the view', () => {
@@ -227,7 +226,7 @@ describe('outlet', () => {
     const outlet = router.outlet();
     document.body.append(outlet);
     router.navigate('/about');
-    expect(inner(outlet).textContent).toBe('about');
+    expect(outlet.textContent).toBe('about');
   });
 
   it('re-renders when only the query changes, not when only the hash changes', () => {
@@ -248,7 +247,7 @@ describe('outlet', () => {
     const outlet = router.outlet();
     document.body.append(outlet);
     router.navigate('/nope');
-    expect(inner(outlet).textContent).toBe('missing /nope');
+    expect(outlet.textContent).toBe('missing /nope');
   });
 
   it('renders nothing when no route matches and there is no notFound', () => {
@@ -256,16 +255,16 @@ describe('outlet', () => {
     const outlet = router.outlet();
     document.body.append(outlet);
     router.navigate('/nope');
-    expect(inner(outlet).childNodes).toHaveLength(0);
+    expect(outlet.children).toHaveLength(0);
   });
 
   it('renders asynchronous views when they resolve', async () => {
     const router = make({ routes: [{ path: '/', view: async () => page('lazy') }] });
     const outlet = router.outlet();
     document.body.append(outlet);
-    expect(inner(outlet).textContent).toBe('');
+    expect(outlet.textContent).toBe('');
     await flush();
-    expect(inner(outlet).textContent).toBe('lazy');
+    expect(outlet.textContent).toBe('lazy');
   });
 
   it('ignores an asynchronous view that resolves after the route changed', async () => {
@@ -282,7 +281,7 @@ describe('outlet', () => {
     router.navigate('/fast');
     finish(page('slow'));
     await flush();
-    expect(inner(outlet).textContent).toBe('fast');
+    expect(outlet.textContent).toBe('fast');
   });
 
   it('does not render a pending view after the outlet is removed', async () => {
@@ -295,7 +294,7 @@ describe('outlet', () => {
     outlet.remove();
     finish(page('late'));
     await flush();
-    expect(inner(outlet).textContent).toBe('');
+    expect(outlet.textContent).toBe('');
   });
 
   it('does not depend on the signals read inside a view', () => {
@@ -323,7 +322,7 @@ describe('outlet', () => {
 
   it('passes props to the outlet element', () => {
     const router = make({ routes: [] });
-    expect(inner(router.outlet({ class: 'view' })).className).toBe('view');
+    expect(router.outlet({ class: 'view' }).className).toBe('view');
   });
 });
 
@@ -335,20 +334,20 @@ describe('link', () => {
 
   it('renders an anchor with the target as href', () => {
     const router = make({ routes });
-    const link = router.link({ to: '/about', content: 'About' });
-    expect(inner(link).localName).toBe('a');
-    expect(inner(link).getAttribute('href')).toBe('/about');
-    expect(inner(link).textContent).toBe('About');
+    const link = router.link({ to: '/about' }, 'About');
+    expect(link.localName).toBe('a');
+    expect(link.getAttribute('href')).toBe('/about');
+    expect(link.textContent).toBe('About');
   });
 
   it('prefixes the href with the base', () => {
     const router = make({ routes, base: '/app' });
-    expect(inner(router.link({ to: '/about' })).getAttribute('href')).toBe('/app/about');
+    expect(router.link({ to: '/about' }).getAttribute('href')).toBe('/app/about');
   });
 
   it('keeps relative and absolute urls as written', () => {
     const router = make({ routes });
-    expect(inner(router.link({ to: 'https://example.com' })).getAttribute('href')).toBe(
+    expect(router.link({ to: 'https://example.com' }).getAttribute('href')).toBe(
       'https://example.com',
     );
   });
@@ -357,7 +356,7 @@ describe('link', () => {
     const router = make({ routes });
     const link = router.link({ to: '/about' });
     document.body.append(link);
-    const event = click(inner(link));
+    const event = click(link);
     expect(event.defaultPrevented).toBe(true);
     expect(router.location.value.path).toBe('/about');
   });
@@ -367,7 +366,7 @@ describe('link', () => {
     const link = router.link({ to: '/about', replace: true });
     document.body.append(link);
     const length = window.history.length;
-    click(inner(link));
+    click(link);
     expect(window.history.length).toBe(length);
     expect(router.location.value.path).toBe('/about');
   });
@@ -382,9 +381,9 @@ describe('link', () => {
       { shiftKey: true },
       { altKey: true },
     ]) {
-      click(inner(link), init);
+      click(link, init);
     }
-    click(inner(link), { button: 1 });
+    click(link, { button: 1 });
     expect(router.location.value.path).toBe('/');
   });
 
@@ -393,8 +392,8 @@ describe('link', () => {
     const blank = router.link({ to: '/about', target: '_blank' });
     const download = router.link({ to: '/about', download: true });
     document.body.append(blank, download);
-    click(inner(blank));
-    click(inner(download));
+    click(blank);
+    click(download);
     expect(router.location.value.path).toBe('/');
   });
 
@@ -402,7 +401,7 @@ describe('link', () => {
     const router = make({ routes });
     const link = router.link({ to: '/about', target: '_self' });
     document.body.append(link);
-    click(inner(link));
+    click(link);
     expect(router.location.value.path).toBe('/about');
   });
 
@@ -410,7 +409,7 @@ describe('link', () => {
     const router = make({ routes });
     const link = router.link({ to: 'https://example.com/x' });
     document.body.append(link);
-    click(inner(link));
+    click(link);
     expect(router.location.value.path).toBe('/');
   });
 
@@ -419,7 +418,7 @@ describe('link', () => {
     const onclick = vi.fn((event: Event) => event.preventDefault());
     const link = router.link({ to: '/about', onclick });
     document.body.append(link);
-    click(inner(link));
+    click(link);
     expect(onclick).toHaveBeenCalledTimes(1);
     expect(router.location.value.path).toBe('/');
   });
@@ -429,7 +428,7 @@ describe('link', () => {
     const handler = vi.fn((event: Event) => event.preventDefault());
     const link = router.link({ to: '/about', onclick: { handler } });
     document.body.append(link);
-    click(inner(link));
+    click(link);
     expect(handler).toHaveBeenCalledTimes(1);
     expect(router.location.value.path).toBe('/');
   });
@@ -438,7 +437,7 @@ describe('link', () => {
     const router = make({ routes });
     const link = router.link({ to: '/about' });
     document.body.append(link);
-    expect(() => click(inner(link))).not.toThrow();
+    expect(() => click(link)).not.toThrow();
   });
 
   it('marks the current page with aria-current', () => {
@@ -446,18 +445,18 @@ describe('link', () => {
     const home = router.link({ to: '/' });
     const about = router.link({ to: '/about?x=1#y' });
     document.body.append(home, about);
-    expect(inner(home).getAttribute('aria-current')).toBe('page');
-    expect(inner(about).hasAttribute('aria-current')).toBe(false);
+    expect(home.getAttribute('aria-current')).toBe('page');
+    expect(about.hasAttribute('aria-current')).toBe(false);
     router.navigate('/about');
-    expect(inner(home).hasAttribute('aria-current')).toBe(false);
-    expect(inner(about).getAttribute('aria-current')).toBe('page');
+    expect(home.hasAttribute('aria-current')).toBe(false);
+    expect(about.getAttribute('aria-current')).toBe('page');
   });
 
   it('treats an empty path as the root for aria-current', () => {
     const router = make({ routes });
     const link = router.link({ to: '?tab=1' });
     document.body.append(link);
-    expect(inner(link).getAttribute('aria-current')).toBe('page');
+    expect(link.getAttribute('aria-current')).toBe('page');
   });
 });
 
@@ -693,7 +692,7 @@ describe('nested routes', () => {
     return { router, calls };
   };
 
-  const text = (outlet: Element) => inner(outlet as never).textContent;
+  const text = (outlet: Element) => outlet.textContent;
 
   it('renders the layout and the child in a nested outlet', async () => {
     const { router } = build();
@@ -703,8 +702,8 @@ describe('nested routes', () => {
     document.body.append(outlet);
     await flush();
     expect(text(outlet)).toContain('layout');
-    const nested = inner(outlet).querySelector('section')!.lastElementChild as never;
-    expect(inner(nested).textContent).toBe('user 5');
+    const nested = outlet.querySelector('section')!.lastElementChild!;
+    expect(nested.textContent).toBe('user 5');
   });
 
   it('keeps the layout while the child changes', async () => {
@@ -717,8 +716,8 @@ describe('nested routes', () => {
     expect(calls.layout).toBe(1);
     expect(calls.index).toBe(1);
     expect(calls.detail).toBe(2);
-    const nested = inner(outlet).querySelector('section')!.lastElementChild as never;
-    expect(inner(nested).textContent).toBe('user 2');
+    const nested = outlet.querySelector('section')!.lastElementChild!;
+    expect(nested.textContent).toBe('user 2');
   });
 
   it('rebuilds the layout when the route outside it changes', async () => {
@@ -762,8 +761,8 @@ describe('nested routes', () => {
     const outlet = router.outlet();
     document.body.append(outlet);
     await flush();
-    const nested = inner(outlet).firstElementChild as never;
-    expect(inner(nested).childNodes).toHaveLength(0);
+    const nested = outlet.firstElementChild!;
+    expect(nested.children).toHaveLength(0);
   });
 
   it('exposes the chain in match', async () => {

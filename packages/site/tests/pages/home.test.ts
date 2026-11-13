@@ -1,3 +1,4 @@
+import { mount } from 'ecmact';
 import { afterEach, describe, expect, it } from 'vitest';
 import { features, useCases } from '@site/content/features';
 import { home } from '@site/pages/home';
@@ -12,7 +13,7 @@ describe('home', () => {
   const build = () => {
     const router = makeRouter('/');
     const page = home(router);
-    document.body.append(page);
+    mount(document.body, page);
     return { page, router };
   };
 
@@ -34,6 +35,8 @@ describe('home', () => {
     const { page, router } = build();
     const cards = [...page.querySelectorAll<HTMLAnchorElement>('.card')];
     expect(cards).toHaveLength(features.length);
+    expect(cards[0]!.localName).toBe('a');
+    expect(cards[0]!.querySelector('.card-icon svg')).not.toBeNull();
     cards[0]!.click();
     expect(router.location.value.path).toBe(`/docs/${features[0]!.page}`);
   });
@@ -46,13 +49,25 @@ describe('home', () => {
     expect(page.textContent).toContain('A whole app, one import');
     expect(page.querySelector('.closing .install')).not.toBeNull();
   });
+
+  it('shows samples written for the current API', () => {
+    const { page } = build();
+    const samples = [...page.querySelectorAll('.split-code pre, .section > .code pre')].map(
+      (pre) => pre.textContent,
+    );
+    expect(samples.some((sample) => sample.includes("api.resource('/products')"))).toBe(true);
+    expect(samples.some((sample) => sample.includes('attributes: { price: 0 }'))).toBe(true);
+    samples.forEach((sample) =>
+      expect(sample).not.toMatch(/content:|\.getState\(\)|props\.price\.value/),
+    );
+  });
 });
 
 describe('home in Russian', () => {
   it('has the hero, the cards and the sections in Russian', async () => {
     await useLocale('ru');
     const page = home(makeRouter('/'));
-    document.body.append(page);
+    mount(document.body, page);
     expect(page.querySelector('.hero h1')?.textContent).toBe(
       'Реактивные интерфейсы на нативных Web Components',
     );

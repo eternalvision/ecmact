@@ -1,58 +1,129 @@
-import { callout, code, demo, h2, p, ul } from '@site/content/builders';
+import { callout, code, demo, h2, p, table, ul } from '@site/content/builders';
 import type { DocPage } from '@site/content/types';
 
-/** Form controls: live values and form-associated fields. */
+/** Form controls: two-way binding, live values and form-associated fields. */
 export const page: DocPage = {
   slug: 'forms',
   title: 'Forms',
   summary:
-    'Live form values, and fields that take part in the form around them across the Shadow DOM.',
+    'Two-way binding with bind, live control values, and fields that reach the form across a Shadow DOM.',
   group: 'Core',
   blocks: [
-    h2('Form controls'),
+    h2('Two-way binding'),
     p(
-      '`value`, `checked`, `selected` and `indeterminate` are written as DOM properties, so they keep working after the user has interacted with the control. An attribute only sets the default. The attribute is still set for `value`, `checked` and `selected`, so selectors such as `[checked]` match.',
+      '`bind` ties an `input`, a `select` or a `textarea` to a signal both ways: the control shows the signal, and what the user enters is written to it. No `oninput` handler is needed.',
     ),
     code(
       'ts',
       `
-const name = signal('');
+import { mount, signal, tags } from 'ecmact';
 
-tags.input({
-  value: name,
-  oninput: (event) => (name.value = (event.target as HTMLInputElement).value),
-});
+const { input, label, option, p, select } = tags;
+
+const name = signal('');
+const age = signal(30);
+const agree = signal(false);
+const plan = signal('free');
+
+mount(
+  '#app',
+  input({ placeholder: 'Name', bind: name }),
+  input({ type: 'number', bind: age }),
+  label(input({ type: 'checkbox', bind: agree }), ' I agree'),
+  select({ bind: plan }, option({ value: 'free' }, 'Free'), option({ value: 'pro' }, 'Pro')),
+  p(() => \`\${name.value}, \${age.value}, \${plan.value}, \${agree.value ? 'agreed' : 'not agreed'}\`),
+);
+`,
+    ),
+    table(
+      ['Control', 'Signal'],
+      ['Text `input`, `textarea`, `select`', '`Signal<string>`'],
+      ['`input` of type `checkbox`', '`Signal<boolean>`'],
+      [
+        '`input` of type `radio`',
+        '`Signal<string>`: the button is checked when its `value` equals the signal.',
+      ],
+      [
+        '`input` of type `number` or `range`',
+        '`Signal<number>` if the signal holds a number, text otherwise. An empty field gives `NaN`.',
+      ],
+      ['`select` with `multiple`', '`Signal<string[]>`: the values of the selected options.'],
+    ),
+    p(
+      'Text that the control already shows is not written again, so the cursor stays where the user is typing.',
+    ),
+    h2('Live values'),
+    p(
+      'Without `bind`, `value`, `checked`, `selected` and `indeterminate` are written as DOM properties, so they keep working after the user has interacted with the control. An attribute alone only sets the default. The attribute is still set for `value`, `checked` and `selected`, so selectors such as `[checked]` match.',
+    ),
+    code(
+      'ts',
+      `
+import { mount, signal, tags } from 'ecmact';
+
+const { button, input } = tags;
+
+const query = signal('');
+
+mount(
+  '#app',
+  input({
+    value: query,
+    oninput: (event) => (query.value = (event.target as HTMLInputElement).value.toUpperCase()),
+  }),
+  button({ onclick: () => (query.value = '') }, 'Clear'),
+);
 `,
     ),
     ul(
-      'A property is written when its prop **changes**, not on every update. An unrelated update does not reset what the user typed.',
-      'To clear a field, change the prop. A prop that was never updated is not rewritten: if you do not track the value in a signal, clear it through a `ref`.',
+      'A plain value is written once, when the element is created. A signal or a function is written again whenever it changes.',
       'Properties are applied after the children, so a `select` can take a `value` that matches one of its options.',
     ),
-    h2('Fields inside a form'),
+    h2('Fields inside a component'),
     p(
-      'A control inside a Shadow DOM does not take part in the submission or validation of the `<form>` around it. Set `field: true` on a component with an `input`, `select` or `textarea` tag and it becomes a form-associated custom element: the form sees its `name`, its value and its validity.',
+      'A control inside a Shadow DOM does not take part in the submission or validation of the `<form>` around it. Set `field: true` on the component and it becomes a form-associated custom element: the form sees its `name` and the value and validity of the first `input`, `select` or `textarea` inside it.',
     ),
     demo('form'),
     code(
       'ts',
       `
-const email = em.Field({ tag: 'input', type: 'email', name: 'email', required: true, field: true });
-const agree = em.Field({ tag: 'input', type: 'checkbox', name: 'agree', value: 'yes', field: true });
+import { em, mount, tags } from 'ecmact';
 
-form.append(email, agree);
-form.checkValidity();
-new FormData(form);
+const { button, form, input, label } = tags;
+
+const email = em.EmailField(
+  { field: true, name: 'email', css: 'input { padding: 8px; }' },
+  input({ type: 'email', required: true }),
+);
+
+const agree = em.AgreeField({ field: true, name: 'agree' }, input({ type: 'checkbox', value: 'yes' }));
+
+mount(
+  '#app',
+  form(
+    {
+      onsubmit: (event) => {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget as HTMLFormElement);
+        console.log(Object.fromEntries(data));
+      },
+    },
+    email,
+    label(agree, ' I agree'),
+    button('Sign up'),
+  ),
+);
 `,
     ),
     ul(
-      '`name` and `disabled` are copied to the host element, where forms look for them. `required`, `pattern`, `minlength` and the other constraints are evaluated on the inner control, and the form reports them as for a native one.',
-      'A checkbox or radio contributes its value only while checked; a multiple `select` contributes every selected option.',
-      '`form.reset()` puts the inner control back to its default, and a disabled `<fieldset>` disables it.',
+      '`name` and `disabled` are props of the component: they are set on the custom element, where forms look for them. `required`, `pattern`, `minlength` and the other constraints are evaluated on the control inside, and the form reports them as for a native one.',
+      'A checkbox or a radio contributes its value only while checked. A multiple `select` contributes every selected option.',
+      '`form.reset()` puts the control back to its default, and a disabled `<fieldset>` disables it.',
+      'A control with `bind` tells the field when the signal changed it, so the form always has the current value.',
     ),
     callout(
       'note',
-      '`field` needs `ElementInternals`. For `select`, give the options through `html`, because the options of a native `select` must be real `option` elements. Labels (`<label for>`) still do not cross the shadow boundary: put the control inside the label (a click on the label is forwarded to the control inside the component) or use `aria-label`.',
+      '`field` needs `ElementInternals`. Labels with `for` and `id` do not cross the shadow boundary: put the component inside the `<label>`, where a click on the label is forwarded to the control, or use `aria-label`. A component with `shadow: false` and plain elements need none of this: their controls are in the form already.',
     ),
   ],
 };

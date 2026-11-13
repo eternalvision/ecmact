@@ -13,9 +13,10 @@ describe('copyButton', () => {
     vi.useFakeTimers();
     const writeText = vi.fn(async () => {});
     vi.stubGlobal('navigator', { clipboard: { writeText } });
-    const button = copyButton('npm i', 'code-copy');
-    document.body.append(button);
-    const inner = button.querySelector('button')!;
+    const inner = copyButton('npm i', 'code-copy');
+    document.body.append(inner);
+    expect(inner.localName).toBe('button');
+    expect(inner.getAttribute('aria-label')).toBe('Copy to the clipboard');
     expect(inner.textContent).toBe('Copy');
     expect(inner.className).toBe('code-copy');
     inner.click();
@@ -30,9 +31,8 @@ describe('copyButton', () => {
     vi.useFakeTimers();
     vi.stubGlobal('navigator', {});
     document.execCommand = vi.fn(() => false);
-    const button = copyButton('x', 'c');
-    document.body.append(button);
-    const inner = button.querySelector('button')!;
+    const inner = copyButton('x', 'c');
+    document.body.append(inner);
     inner.click();
     await vi.advanceTimersByTimeAsync(0);
     expect(inner.textContent).toBe('Failed');
@@ -42,7 +42,7 @@ describe('copyButton', () => {
 describe('copyButton in Russian', () => {
   it('says so in Russian', async () => {
     await useLocale('ru');
-    expect(copyButton('x', 'c').querySelector('button')?.textContent).toBe('Копировать');
+    expect(copyButton('x', 'c').textContent).toBe('Копировать');
     await resetLocale();
   });
 });

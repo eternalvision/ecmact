@@ -37,13 +37,28 @@ npm create ecmact@latest my-widget -- --template widget
       '**Prettier** with an `.editorconfig` and VS Code settings; **ESLint** with the strict, type-aware `typescript-eslint` rule sets plus rules for correctness, safety (no `innerHTML`) and style.',
       'It works with npm, pnpm, yarn and bun.',
     ),
-    h2('Testing components'),
+    h2('Testing'),
     p(
-      'Components are ordinary custom elements, so any DOM test environment works. happy-dom is fast and enough for most tests: create the component, append it to `document.body`, interact and assert.',
+      'A factory returns a real DOM element, so any DOM test environment works. happy-dom is fast and enough for most tests: create the element, put it into the page with `mount`, interact and assert.',
     ),
     code(
       'ts',
       `
+import { signal, tags } from 'ecmact';
+
+const { button } = tags;
+
+export const Counter = () => {
+  const count = signal(0);
+  return button({ onclick: () => count.value++ }, () => \`count is \${count.value}\`);
+};
+`,
+      'src/counter.ts',
+    ),
+    code(
+      'ts',
+      `
+import { mount } from 'ecmact';
 import { afterEach, expect, it } from 'vitest';
 import { Counter } from './counter';
 
@@ -51,16 +66,20 @@ afterEach(() => document.body.replaceChildren());
 
 it('counts clicks', () => {
   const counter = Counter();
-  document.body.append(counter);
-  const button = counter.shadowRoot!.firstElementChild as HTMLButtonElement;
+  mount(document.body, counter);
 
-  button.click();
-  button.click();
+  counter.click();
+  counter.click();
 
-  expect(button.textContent).toBe('count is 2');
+  expect(counter.textContent).toBe('count is 2');
 });
 `,
-      'counter.test.ts',
+      'src/counter.test.ts',
+    ),
+    ul(
+      'Signals update the DOM synchronously, so there is nothing to wait for after a click or a write.',
+      'The children of an `em` component are in its `shadowRoot`: `card.shadowRoot.querySelector("h2")`.',
+      'Use `mount`, not `append`, so that context lookups and styled components find their place, see [Mounting](/docs/components).',
     ),
     callout(
       'note',

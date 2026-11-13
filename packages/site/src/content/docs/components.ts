@@ -1,72 +1,114 @@
 import { callout, code, demo, h2, h3, p, table, ul } from '@site/content/builders';
 import type { DocPage } from '@site/content/types';
 
-/** Components: the factories, the props, children, events and lists. */
+/** Elements and components: the factories, props, children, events, lists and mounting. */
 export const page: DocPage = {
   slug: 'components',
-  title: 'Components',
+  title: 'Elements and components',
   summary:
-    'The em and tags factories, props, content, children, events, refs, updates and keyed lists.',
+    'The tags and em factories, props, children, reactive values, events, refs, lists and mount.',
   group: 'Core',
   blocks: [
     p(
-      'Every component is a custom element created through one factory. `em.Name(props)` registers `<em-name>` the first time it is used and returns an element. `tags.div(props)` is the same for a standard tag, so you do not have to write `tag` yourself.',
+      'There are two factories. `tags` creates plain DOM elements: `tags.button(...)` returns an `HTMLButtonElement`, with no wrapper around it. `em` creates components: custom elements with a shadow root, their own stylesheet and lifecycle hooks. Use `tags` for everything, and `em` where you need style isolation or hooks.',
     ),
     code(
       'ts',
       `
-import { em, tags } from 'ecmact';
+import { mount, tags } from 'ecmact';
 
-const card = em.Card({ tag: 'article', content: 'A card', class: 'card' });
-const button = tags.button({ type: 'button', content: 'Save', onclick: () => save() });
+const { a, article, h2, p } = tags;
+
+const card = article(
+  { class: 'card' },
+  h2('ECMact'),
+  p('Reactive interfaces on the DOM.'),
+  a({ href: '/docs/getting-started' }, 'Read the docs'),
+);
+
+mount('#app', card);
+`,
+    ),
+    p(
+      'The first argument is the props if it is a plain object. Everything else is children, in order. Both are optional: `p()`, `p("text")` and `p({ class: "lead" }, "text")` all work.',
+    ),
+    h2('Children'),
+    table(
+      ['Child', 'What is rendered'],
+      ['A node', 'The node itself: an element, a component, a text node, a fragment.'],
+      ['A string or a number', 'Text. It is never parsed as HTML.'],
+      ['An array', 'Its items, in order. Nested arrays are flattened.'],
+      ['`false`, `true`, `null`, `undefined`', 'Nothing, so conditions are plain expressions.'],
+      [
+        'A signal or a function',
+        'A reactive region: it is rendered again when the signals it reads change.',
+      ],
+    ),
+    p(
+      'A reactive child may return text, a node, a list or nothing. That is how conditional rendering works: return the element or `null`.',
+    ),
+    code(
+      'ts',
+      `
+import { mount, signal, tags } from 'ecmact';
+
+const { button, p, section } = tags;
+
+const open = signal(false);
+const unread = signal(3);
+const details = p('Shown only while the panel is open.');
+
+mount(
+  '#app',
+  section(
+    button({ onclick: () => (open.value = !open.value) }, () => (open.value ? 'Hide' : 'Show')),
+    () => (open.value ? details : null),
+    p('Unread: ', unread),
+  ),
+);
 `,
     ),
     h2('Props'),
     table(
       ['Prop', 'Meaning'],
-      ['`tag`', 'The tag of the inner element. Defaults to `div`.'],
-      ['`content`', 'Text content. Never parsed as HTML.'],
-      ['`html`', 'Raw HTML for the inner element. Use it only for markup you control.'],
-      ['`children`', 'Nodes, text, numbers and signals to put inside.'],
-      ['`style`', 'Inline styles with camelCase keys. Values may be signals.'],
-      ['`css`', 'Stylesheet text scoped to the shadow root.'],
-      ['`ref`', 'Called once with the inner element, right after it is created.'],
-      ['`shadow`', 'Render into the light DOM when `false`. Read on the first render.'],
-      ['`key`', 'Identifies a component among its siblings in a list.'],
-      ['`on<event>`', 'An event listener: `onclick`, `oninput`, `onkeydown`, and so on.'],
       [
-        '`mounted`, `unmounted`, `beforeUpdate`, `updated`',
-        'Lifecycle hooks, see [Lifecycle](/docs/lifecycle).',
+        '`class`',
+        'Class names: text, a list, or an object of switches. See [Styling](/docs/styling).',
       ],
-      ['`provide`, `error`, `field`', 'Context values, error handling and form association.'],
-      ['anything else', 'Becomes an attribute of the inner element.'],
+      [
+        '`style`',
+        'Inline styles with camelCase keys. A number is a length in pixels. See [Styling](/docs/styling).',
+      ],
+      ['`html`', 'Trusted markup for the content of the element.'],
+      ['`ref`', 'A function called once with the element, right after it is built.'],
+      [
+        '`bind`',
+        'A signal tied to an `input`, `select` or `textarea` both ways. See [Forms](/docs/forms).',
+      ],
+      ['`on<event>`', 'An event listener: `onclick`, `oninput`, `onkeydown`, and so on.'],
+      ['`provide`', 'Values offered to the elements below. See [Context](/docs/context).'],
+      [
+        '`error`',
+        'A handler for errors of this element and of everything below it. See [Lifecycle](/docs/lifecycle).',
+      ],
+      ['anything else', 'An attribute of the element.'],
     ),
-    h2('Content and children'),
+    callout(
+      'note',
+      'An element with `html` ignores its children, with a warning. `html` uses `innerHTML` and does not sanitize, see the [security model](/docs/security).',
+    ),
+    h3('Attributes'),
     p(
-      'Text goes in `content`. Structure goes in `children`, which takes nodes: components, plain DOM elements, strings and numbers. `false`, `true`, `null` and `undefined` render nothing, so conditions are plain expressions.',
+      'Strings and numbers are set as they are and `true` sets an empty attribute. `false`, `null` and `undefined` remove the attribute. Names are the HTML ones: `class`, not `className`. `value`, `checked`, `selected` and `indeterminate` are also written as DOM properties.',
     ),
     code(
       'ts',
       `
-const panel = em.Panel({
-  tag: 'section',
-  children: [
-    tags.h2({ content: 'Inbox' }),
-    unread > 0 && tags.span({ content: \`\${unread} unread\` }),
-    'plain text works too',
-  ],
-});
-`,
-    ),
-    h2('Attributes'),
-    p(
-      'Any prop that is not reserved and does not start with `on` is set on the inner element: strings and numbers as they are, `true` as an empty attribute, and `false`, `null` and `undefined` remove it. Attribute names are the HTML ones: `class`, not `className`.',
-    ),
-    code(
-      'ts',
-      `
-em.Field({
-  tag: 'input',
+import { tags } from 'ecmact';
+
+const { input } = tags;
+
+const email = input({
   type: 'email',
   placeholder: 'you@example.com',
   required: true,
@@ -75,92 +117,169 @@ em.Field({
 });
 `,
     ),
+    h3('Reactive props'),
+    p(
+      'Any attribute, `html`, `class`, `style` and each value inside `style` take a plain value, a signal, or a function that reads signals. The element follows the signals and updates only that attribute or style. `on<event>` handlers and `ref` are functions too, but they are never treated as reactive.',
+    ),
+    code(
+      'ts',
+      `
+import { mount, signal, tags } from 'ecmact';
+
+const { button } = tags;
+
+const count = signal(0);
+
+mount(
+  '#app',
+  button(
+    {
+      disabled: () => count.value >= 3,
+      title: () => \`\${3 - count.value} clicks left\`,
+      style: { opacity: () => (count.value >= 3 ? 0.5 : 1) },
+      onclick: () => count.value++,
+    },
+    'Click me, three times at most',
+  ),
+);
+`,
+    ),
+    p(
+      'Props are applied once, when the element is created. To change something later, write to a signal that the prop reads, or change the DOM element directly: it is an ordinary element.',
+    ),
     h2('Events'),
     p(
-      'A prop that starts with `on` and holds a function becomes a listener on the inner element. Listeners are replaced on every update, so there are no duplicates, and removing the prop removes the listener. A string value is never evaluated.',
+      'A prop that starts with `on` is a listener on the element. The handler is typed with the right event. To listen in the capture phase, passively or once, pass an object with a `handler` and the options. A string is never evaluated.',
     ),
     code(
       'ts',
       `
-tags.input({
+import { tags } from 'ecmact';
+
+const { div, input } = tags;
+
+const search = input({
   oninput: (event) => console.log((event.target as HTMLInputElement).value),
-  onkeydown: (event) => event.key === 'Enter' && submit(),
+  onkeydown: (event) => {
+    if (event.key === 'Enter') console.log('submit');
+  },
 });
 
-tags.div({
-  onwheel: { handler: (event) => scrollBy(event.deltaY), passive: true },
-  onclick: { handler: log, capture: true },
+const area = div({
+  onwheel: { handler: (event) => console.log(event.deltaY), passive: true },
+  onclick: { handler: () => console.log('first click only'), once: true },
 });
 `,
-    ),
-    p(
-      'To listen in the capture phase or passively, pass an object with a `handler` and `capture` or `passive`. Events bubble out of the Shadow DOM by the usual rules, retargeted to the host.',
     ),
     h2('Refs'),
-    code(
-      'ts',
-      `
-let input!: HTMLInputElement;
-
-tags.input({ ref: (element) => (input = element) });
-
-input.focus();
-`,
-    ),
-    h2('Updating a component'),
     p(
-      '`setState(props)` merges new props into the current ones and updates the element in place: the DOM node is reused, so focus, selection and typed text survive. `props` reads and replaces all props.',
+      'A factory returns the element, so most of the time a variable is enough. `ref` helps when the element is created in the middle of a tree.',
     ),
     code(
       'ts',
       `
-const status = tags.p({ content: 'Idle' });
+import { mount, tags } from 'ecmact';
 
-status.setState({ content: 'Saving...', style: { opacity: 0.6 } });
+const { button, form, input } = tags;
+
+let field!: HTMLInputElement;
+
+mount(
+  '#app',
+  form(
+    input({ ref: (element) => (field = element) }),
+    button({ type: 'button', onclick: () => field.focus() }, 'Focus the field'),
+  ),
+);
 `,
     ),
-    callout(
-      'note',
-      '`setState` shallow-merges: a nested object such as `style` is replaced, not merged. To change one style property, pass the whole object. Or bind props to [signals](/docs/signals) and skip `setState`.',
-    ),
-    h2('Lists and keys'),
+    h2('Custom tags'),
     p(
-      'Give each component in a list a `key`. The list is then reconciled by key: components are matched, moved with a minimal number of moves and kept, with their state, when the list changes.',
+      'A name with a hyphen creates that custom element and accepts any attribute: `tags["x-widget"]({ mode: "compact" })`.',
+    ),
+    h2('Components'),
+    p(
+      '`em.Name(props, ...children)` registers a custom element the first time the name is used and returns an instance. The children go into an open shadow root, and the `css` prop is a stylesheet that applies only to them.',
+    ),
+    code(
+      'ts',
+      `
+import { em, mount, tags } from 'ecmact';
+
+const { h2, p } = tags;
+
+const card = em.UserCard(
+  {
+    css: \`
+      :host { display: block; padding: 16px; border: 1px solid #d0d7e2; border-radius: 12px; }
+      h2 { margin: 0; }
+    \`,
+  },
+  h2('Ada Lovelace'),
+  p('Engineer'),
+);
+
+mount('#app', card);
+`,
+    ),
+    ul(
+      '**Names.** The words of a camelCase name are joined with hyphens: `em.UserCard` is `<user-card>`. A name of one word gets a prefix, because a custom element name must contain a hyphen: `em.Card` is `<em-card>`.',
+      '**The prefix.** `configure({ prefix: "my" })` makes `em.Card` a `<my-card>`. With `configure({ prefix: "" })` every name must have two words, and a name of one word throws.',
+      '**Props.** Attributes, `class`, `style`, listeners and `ref` apply to the custom element itself.',
+      '**Component props.** `css`, `shadow`, `mounted` and `unmounted` are described in [Styling](/docs/styling) and [Lifecycle](/docs/lifecycle). `field`, `name` and `disabled` are described in [Forms](/docs/forms).',
+    ),
+    h2('Lists'),
+    p(
+      '`each(items, render, options)` renders one node per item and keeps the list in step with the data. Put it among the children of any element: the nodes are placed right there, with no wrapper.',
     ),
     demo('todo'),
-    h3('The each helper'),
-    p(
-      '`each(items, render, options)` builds such a list for you. It takes an array or a signal of an array and a function that makes one component per item, keys the items, follows the signal while the list is in the document and reconciles the list when the array changes. The list is an ordinary component, a `div` unless `tag` says otherwise.',
-    ),
     code(
       'ts',
       `
-import { each, signal, tags } from 'ecmact';
+import { each, mount, signal, tags } from 'ecmact';
+
+const { button, li, ul } = tags;
 
 const todos = signal([{ id: 1, title: 'Write docs' }]);
 
-const list = each(todos, (todo) => tags.li({ content: todo.title }), {
-  tag: 'ul',
-  by: (todo) => todo.id,
-  empty: 'Nothing to do',
-});
-
-todos.value = [...todos.value, { id: 2, title: 'Ship it' }];
+mount(
+  '#app',
+  ul(
+    each(todos, (todo) => li(todo.title), {
+      by: (todo) => todo.id,
+      empty: li('Nothing to do'),
+    }),
+  ),
+  button(
+    {
+      onclick: () => {
+        todos.value = [...todos.value, { id: todos.value.length + 1, title: 'Ship it' }];
+      },
+    },
+    'Add',
+  ),
+);
 `,
     ),
     ul(
+      '`items` is an array, a signal of an array, or a function that returns one. Put a new array into the signal: an array that is changed in place is not noticed.',
+      '`render` receives the item and its position and returns a node.',
       '`by` gives an item its key. Without it a string or a number is its own key and anything else is keyed by its position, so give `by` for objects.',
-      '`empty` is shown while there are no items. Everything else in the options is a prop of the list element.',
-      '`render` must return a component, because a key belongs to a component. Put a new array into the signal: an array that is changed in place is not noticed.',
+      '`empty` is shown while there are no items.',
+      'When the list changes, an item that is still there keeps its node. Nodes are added, moved and removed with as few DOM operations as possible.',
     ),
-    h3('Performance of large lists'),
+    callout(
+      'note',
+      'An item that is a new object under the same key gets its row rendered again, in place. Focus inside the row is restored by position, but other state of the old row, such as a scroll position, is lost. To update a row without replacing it, keep the item the same and let the row read signals.',
+    ),
+    p('The library does not virtualize. For long lists, paginate or render only the rows in view.'),
+    h2('Mounting'),
     p(
-      'Measured in Chromium, a thousand rows (three components each) take about 95 ms to create. If you keep one component per key in a `Map` and pass the same instances again, swapping and removing rows is 6 to 8 times cheaper than recreating them. Ten thousand rows take about a second to create: paginate or render only the rows in view.',
+      '`mount(target, ...children)` appends children to an element, given as a selector or as the element. It takes anything a child can be and returns the container.',
     ),
-    ul(
-      'Create child components in the render step when they depend on state, and give them a `key`.',
-      'For large lists keep a component per key and update it with `setState` or signals.',
-      'The library does not virtualize.',
+    callout(
+      'warning',
+      'Use `mount` for the top of the tree, not `parent.append(...)`. Two things are resolved when elements enter the document: [context](/docs/context) lookups made in reactive functions, and the styles of [styled components](/docs/styled). The library does that when elements arrive through `mount`, an `em` component, `each`, a reactive region or a [widget](/docs/widgets). A plain `append` does not trigger it.',
     ),
   ],
 };

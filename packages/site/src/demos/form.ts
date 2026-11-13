@@ -1,19 +1,9 @@
-import { em, tags } from 'ecmact';
+import { em, signal, tags } from 'ecmact';
 
-const buttonCss = `
-  button {
-    padding: 0.5rem 1rem;
-    border: 0;
-    border-radius: 10px;
-    background: var(--primary);
-    color: white;
-    font: inherit;
-    font-weight: 600;
-    cursor: pointer;
-  }
-`;
+const { button, form, input, pre } = tags;
 
-const fieldCss = `
+const css = `
+  :host { display: block; margin-bottom: 0.5rem; }
   input {
     width: 100%;
     box-sizing: border-box;
@@ -28,45 +18,51 @@ const fieldCss = `
 `;
 
 /**
- * A native form whose fields are ECMact components in a Shadow DOM. With `field: true` they still take part in
- * the form: it validates them, blocks an invalid submit and reads their values with `FormData`.
+ * A native form whose fields are components with their inputs in a Shadow DOM. With `field: true` they still take
+ * part in the form: it validates them, blocks an invalid submit and reads their values with `FormData`.
  *
  * @returns The demo.
  */
 export const create = () => {
-  const result = document.createElement('pre');
-  result.textContent = 'Submit the form to see its data.';
+  const result = signal('Submit the form to see its data.');
 
-  const form = document.createElement('form');
-  form.addEventListener('submit', (event) => {
-    event.preventDefault();
-    result.textContent = JSON.stringify(Object.fromEntries(new FormData(form)), null, 2);
-  });
-
-  form.append(
-    em.Email({
-      shadow: true,
-      css: fieldCss,
-      field: true,
-      tag: 'input',
-      type: 'email',
-      name: 'email',
-      required: true,
-      placeholder: 'you@example.com',
-      'aria-label': 'Email',
-    }),
-    em.Name({
-      shadow: true,
-      css: fieldCss,
-      field: true,
-      tag: 'input',
-      name: 'name',
-      minlength: 2,
-      placeholder: 'Your name (2+ letters)',
-      'aria-label': 'Name',
-    }),
-    tags.button({ shadow: true, css: buttonCss, type: 'submit', content: 'Send' }),
-    result,
+  return form(
+    {
+      onsubmit: (event) => {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget as HTMLFormElement);
+        result.value = JSON.stringify(Object.fromEntries(data), null, 2);
+      },
+    },
+    em.Email(
+      { css, field: true, name: 'email' },
+      input({
+        type: 'email',
+        required: true,
+        placeholder: 'you@example.com',
+        'aria-label': 'Email',
+      }),
+    ),
+    em.Name(
+      { css, field: true, name: 'name' },
+      input({ minlength: 2, placeholder: 'Your name (2+ letters)', 'aria-label': 'Name' }),
+    ),
+    button(
+      {
+        type: 'submit',
+        style: {
+          padding: '0.5rem 1rem',
+          border: 0,
+          borderRadius: 10,
+          background: 'var(--primary)',
+          color: 'white',
+          font: 'inherit',
+          fontWeight: 600,
+          cursor: 'pointer',
+        },
+      },
+      'Send',
+    ),
+    pre(result),
   );
-  return form;
 };

@@ -1,5 +1,20 @@
 import { api, apiRu, areasRu } from '@site/content/api';
 
+/** Области экспортируемых типов и страница, где они описаны, в порядке английской таблицы. */
+const types: [string, string][] = [
+  ['Элементы', 'components'],
+  ['Компоненты', 'components'],
+  ['Конфигурация и ошибки', 'lifecycle'],
+  ['Контекст', 'context'],
+  ['Сигналы', 'signals'],
+  ['Styled-компоненты', 'styled'],
+  ['Роутинг', 'routing'],
+  ['Состояние', 'state'],
+  ['Данные', 'data'],
+  ['HTTP-клиент', 'http'],
+  ['Виджеты', 'widgets'],
+];
+
 /** Русский перевод страницы "API reference", в порядке `texts`: собирается из таблицы `api`. */
 export const translation: string[] = [
   'Справочник API',
@@ -16,4 +31,10 @@ export const translation: string[] = [
       `[документация](/docs/${entry.page})`,
     ]),
   ]),
+  'Экспортируемые типы',
+  'Импортируйте их через `import type { ... } from "ecmact"`.',
+  'Область',
+  'Типы',
+  'Читать',
+  ...types.flatMap(([area, slug]) => [area, '', `[документация](/docs/${slug})`]),
 ];

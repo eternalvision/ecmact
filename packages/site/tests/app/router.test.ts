@@ -1,3 +1,4 @@
+import { mount } from 'ecmact';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createSiteRouter, siteRoutes } from '@site/app/router';
 import { docs } from '@site/content/docs/index';
@@ -14,8 +15,8 @@ afterEach(() => {
 const open = (path: string) => {
   window.history.replaceState(null, '', path);
   const router = createSiteRouter();
-  const outlet = router.outlet({ shadow: false });
-  document.body.append(outlet);
+  const outlet = router.outlet();
+  mount(document.body, outlet);
   return { router, outlet };
 };
 

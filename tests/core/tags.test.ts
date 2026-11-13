@@ -1,37 +1,46 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest';
-import { tags, type Component } from '@em';
-import { inner } from '@tests/helpers';
+import { signal, tags } from '@em';
 
 describe('tags', () => {
-  it('renders the named tag', () => {
-    expect(inner(tags.button({ content: 'go' })).localName).toBe('button');
-    expect(inner(tags.a({ href: '/x' })).getAttribute('href')).toBe('/x');
+  it('creates the plain element of the tag', () => {
+    const button = tags.button('go');
+    expect(button).toBeInstanceOf(HTMLButtonElement);
+    expect(button.outerHTML).toBe('<button>go</button>');
   });
 
-  it('works without props', () => {
-    expect(inner(tags.section()).localName).toBe('section');
+  it('works without arguments', () => {
+    expect(tags.section().outerHTML).toBe('<section></section>');
   });
 
-  it('applies props, events and children like em', () => {
+  it('takes props first and children after them', () => {
     const onclick = vi.fn();
-    const child = tags.span({ content: 'child' });
-    const button = tags.button({
-      content: 'x',
-      onclick,
-      style: { color: 'red' },
-      children: [child],
-    });
-    inner(button).click();
+    const child = tags.span('child');
+    const button = tags.button({ onclick, style: { color: 'red' } }, 'x', child);
+    button.click();
     expect(onclick).toHaveBeenCalledTimes(1);
-    expect(inner(button).style.color).toBe('red');
-    expect(inner(button).contains(child)).toBe(true);
+    expect(button.style.color).toBe('red');
+    expect(button.lastChild).toBe(child);
   });
 
-  it('keeps the tag when updating', () => {
-    const input = tags.input({ type: 'text' });
-    input.setState({ placeholder: 'name' });
-    expect(inner(input).localName).toBe('input');
-    expect(inner(input).getAttribute('placeholder')).toBe('name');
+  it('can be destructured', () => {
+    const { ul, li } = tags;
+    expect(ul(li('one'), li('two')).outerHTML).toBe('<ul><li>one</li><li>two</li></ul>');
+  });
+
+  it('renders functions and signals reactively', () => {
+    const count = signal(0);
+    const button = tags.button(
+      { disabled: () => count.value > 1 },
+      () => `count is ${count.value}`,
+    );
+    expect(button.textContent).toBe('count is 0');
+    count.value = 2;
+    expect(button.textContent).toBe('count is 2');
+    expect(button.hasAttribute('disabled')).toBe(true);
+  });
+
+  it('creates custom elements by name', () => {
+    expect(tags['x-widget']({ any: 'thing' }).outerHTML).toBe('<x-widget any="thing"></x-widget>');
   });
 
   it('returns undefined for symbols and then', () => {
@@ -39,16 +48,18 @@ describe('tags', () => {
     expect((tags as unknown as Record<string, unknown>).then).toBeUndefined();
   });
 
-  it('rejects invalid names', () => {
-    expect(() => (tags as unknown as Record<string, unknown>)['bad name']).toThrow(TypeError);
+  it('is safe to await', async () => {
+    await expect(Promise.resolve(tags)).resolves.toBe(tags);
   });
 
-  it('infers the component type from the tag', () => {
-    expectTypeOf(tags.a({ href: '/' })).toEqualTypeOf<Component<'a'>>();
-    expectTypeOf(tags.input()).toEqualTypeOf<Component<'input'>>();
+  it('infers the element type from the tag', () => {
+    expectTypeOf(tags.a({ href: '/' })).toEqualTypeOf<HTMLAnchorElement>();
+    expectTypeOf(tags.input()).toEqualTypeOf<HTMLInputElement>();
+    expectTypeOf(tags.div('text')).toEqualTypeOf<HTMLDivElement>();
+    expectTypeOf(tags['x-widget']()).toEqualTypeOf<HTMLElement>();
   });
 
-  it('types attributes, events and hooks by tag', () => {
+  it('types attributes, events and ref by tag', () => {
     tags.input({
       type: 'email',
       'data-id': 1,
@@ -57,10 +68,12 @@ describe('tags', () => {
     });
     // @ts-expect-error src is not an anchor attribute
     tags.a({ src: 'x' });
-    // @ts-expect-error tag is fixed by the factory
-    tags.a({ tag: 'div' });
     // @ts-expect-error unknown input type
     tags.input({ type: 'bogus' });
+    // @ts-expect-error misspelled event
+    tags.div({ onclik: () => {} });
+    // @ts-expect-error css belongs to components
+    tags.div({ css: 'a {}' });
     expect(true).toBe(true);
   });
 });

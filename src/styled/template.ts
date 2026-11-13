@@ -100,7 +100,7 @@ export const join = (
  * @param text - The text to hash.
  * @returns A base 36 string.
  */
-const hash = (text: string) =>
+export const hash = (text: string) =>
   Array.from(text)
     .reduce((value, character) => (value * 33) ^ character.charCodeAt(0), 5381)
     .toString(36)

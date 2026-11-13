@@ -15,7 +15,9 @@ const open = () => {
   const root = demo.shadowRoot!;
   const notes = () => [...root.querySelectorAll('li')].map((li) => li.textContent);
   const add = (text: string) => {
-    root.querySelector<HTMLInputElement>('input[placeholder]')!.value = text;
+    const input = root.querySelector<HTMLInputElement>('input[placeholder]')!;
+    input.value = text;
+    input.dispatchEvent(new Event('input'));
     root.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
   };
   return { root, notes, add };
@@ -31,7 +33,8 @@ describe('store demo', () => {
   it('saves a note to localStorage and brings it back in a new instance', () => {
     const first = open();
     first.add(' Hello ');
-    expect(first.notes()).toHaveLength(2);
+    expect(first.notes()).toEqual(['Reload the page: I will still be here', 'Hello']);
+    expect(first.root.querySelector<HTMLInputElement>('input[placeholder]')!.value).toBe('');
     expect(JSON.parse(localStorage.getItem('ecmact-site-notes')!).state.notes).toContain('Hello');
     document.body.replaceChildren();
     expect(open().notes()).toContain('Hello');

@@ -13,6 +13,7 @@ const open = () => {
   const add = (text: string) => {
     const input = root.querySelector<HTMLInputElement>('input[placeholder]')!;
     input.value = text;
+    input.dispatchEvent(new Event('input'));
     root.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
   };
   return { root, items, add };

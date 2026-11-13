@@ -21,19 +21,19 @@ export const features: Feature[] = [
       'M12 22.08V12',
     ],
     title: 'Native Web Components',
-    text: 'Every component is a real custom element in an open Shadow DOM. No virtual DOM, no template language, no compiler.',
+    text: 'Elements are real DOM elements, components are real custom elements with an open Shadow DOM. No virtual DOM, no template language, no compiler.',
     page: 'components',
   },
   {
     icon: ['M13 2 3 14h9l-1 8 10-12h-9l1-8z'],
     title: 'Signals',
-    text: 'Push-based signals, computed values and effects. Bind a prop to a signal and only that node updates.',
+    text: 'Push-based signals, computed values and effects. Give a prop or a child a signal or a function, and only that node updates.',
     page: 'signals',
   },
   {
     icon: ['M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z'],
     title: 'Styled components',
-    text: 'CSS in tagged templates with props, signals, themes and animations, scoped to the component.',
+    text: 'CSS in tagged templates with props, themes and animations, on real elements with a generated class.',
     page: 'styled',
   },
   {
@@ -49,7 +49,7 @@ export const features: Feature[] = [
       'M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5',
     ],
     title: 'State management',
-    text: 'A zustand-style store with selectors as signals, persistence and Redux DevTools.',
+    text: 'A store of values and typed actions that reactive functions follow, with persistence and Redux DevTools as options.',
     page: 'state',
   },
   {
@@ -65,7 +65,7 @@ export const features: Feature[] = [
   {
     icon: ['M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'],
     title: 'Isolation by design',
-    text: 'Shadow DOM keeps your styles out of the page and the page out of your styles. Themes cross it as CSS variables.',
+    text: 'A component or a widget keeps its styles in a Shadow DOM: out of the page, and the page out of them. Themes cross it as CSS variables.',
     page: 'styling',
   },
   {
@@ -83,7 +83,7 @@ export const features: Feature[] = [
       'M10 9H8',
     ],
     title: 'Forms that work',
-    text: 'Live values for controls, and fields that join the surrounding form across the Shadow DOM.',
+    text: 'Two-way binding of controls to signals, and fields that join the surrounding form across the Shadow DOM.',
     page: 'forms',
   },
   {
@@ -93,7 +93,7 @@ export const features: Feature[] = [
       'M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15',
     ],
     title: 'Lifecycle and errors',
-    text: 'Mount, update and cleanup hooks, and one place to handle every error the app throws.',
+    text: 'Mount and unmount hooks with automatic cleanup, and error handlers for a part of the tree or for the whole app.',
     page: 'lifecycle',
   },
   {
@@ -114,15 +114,15 @@ export const features: Feature[] = [
 export const featuresRu: { title: string; text: string }[] = [
   {
     title: 'Нативные Web Components',
-    text: 'Каждый компонент - настоящий кастомный элемент в открытом Shadow DOM. Нет виртуального DOM, нет языка шаблонов, нет компилятора.',
+    text: 'Элементы - настоящие DOM-элементы, компоненты - настоящие кастомные элементы с открытым Shadow DOM. Нет виртуального DOM, нет языка шаблонов, нет компилятора.',
   },
   {
     title: 'Сигналы',
-    text: 'Сигналы с push-моделью, вычисляемые значения и эффекты. Привяжите проп к сигналу, и обновится только этот узел.',
+    text: 'Сигналы с push-моделью, вычисляемые значения и эффекты. Дайте пропу или ребёнку сигнал или функцию, и обновится только этот узел.',
   },
   {
     title: 'Styled-компоненты',
-    text: 'CSS в шаблонных литералах с пропсами, сигналами, темами и анимациями, в области видимости компонента.',
+    text: 'CSS в шаблонных литералах с пропсами, темами и анимациями, на настоящих элементах со сгенерированным классом.',
   },
   {
     title: 'Роутер',
@@ -130,7 +130,7 @@ export const featuresRu: { title: string; text: string }[] = [
   },
   {
     title: 'Управление состоянием',
-    text: 'Стор в стиле zustand с селекторами-сигналами, сохранением состояния и Redux DevTools.',
+    text: 'Стор из значений и типизированных действий, за которым следят реактивные функции, с сохранением и Redux DevTools в опциях.',
   },
   {
     title: 'HTTP-клиент',
@@ -138,7 +138,7 @@ export const featuresRu: { title: string; text: string }[] = [
   },
   {
     title: 'Изоляция по замыслу',
-    text: 'Shadow DOM не пускает ваши стили на страницу, а страницу - в ваши стили. Темы проходят сквозь него как CSS-переменные.',
+    text: 'Компонент или виджет держит свои стили в Shadow DOM: они не попадают на страницу, а страница - в них. Темы проходят сквозь него как CSS-переменные.',
   },
   {
     title: 'Типы по тегу',
@@ -146,11 +146,11 @@ export const featuresRu: { title: string; text: string }[] = [
   },
   {
     title: 'Формы, которые работают',
-    text: 'Живые значения для элементов и поля, которые входят в окружающую форму через Shadow DOM.',
+    text: 'Двусторонняя привязка элементов управления к сигналам и поля, которые входят в окружающую форму через Shadow DOM.',
   },
   {
     title: 'Жизненный цикл и ошибки',
-    text: 'Хуки монтирования, обновления и очистки и одно место для обработки каждой ошибки приложения.',
+    text: 'Хуки монтирования и размонтирования с автоматической очисткой и обработчики ошибок для части дерева или всего приложения.',
   },
   {
     title: 'Встраиваемые виджеты',

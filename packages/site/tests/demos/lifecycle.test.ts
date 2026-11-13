@@ -3,6 +3,7 @@ import { create } from '@site/demos/lifecycle';
 
 beforeEach(() => {
   vi.useFakeTimers();
+  vi.setSystemTime(new Date(2027, 0, 1, 10, 20, 30));
 });
 
 afterEach(() => {
@@ -10,50 +11,60 @@ afterEach(() => {
   document.body.replaceChildren();
 });
 
-const open = async () => {
+const open = () => {
   const demo = create() as HTMLElement;
   document.body.append(demo);
-  await vi.advanceTimersByTimeAsync(0);
   const root = demo.shadowRoot!;
   return {
+    demo,
     root,
-    text: () => root.querySelector('small')!.textContent!,
-    toggle: root.querySelector<HTMLButtonElement>('button')!,
-    freeze: root.querySelector<HTMLInputElement>('input[type="checkbox"]')!,
+    clock: () => root.querySelector('em-clock')?.shadowRoot?.textContent,
+    stage: () => root.querySelector('.stage')!.textContent,
+    text: () => root.querySelector('small')!.textContent,
+    toggle: root.querySelector('button')!,
   };
 };
 
 describe('lifecycle demo', () => {
-  it('shows the time of day as hours, minutes and seconds', async () => {
-    const { root } = await open();
-    expect(root.querySelector('output')?.textContent).toMatch(/^\d\d:\d\d:\d\d$/);
+  it('shows the time of day as hours, minutes and seconds', () => {
+    const { clock, text } = open();
+    expect(clock()).toBe('10:20:30');
+    expect(text()).toBe('mounted 1, unmounted 0, the effect in mounted ran 1 times');
   });
 
-  it('mounts the clock once and repaints every second', async () => {
-    const { text } = await open();
-    expect(text()).toContain('mounted 1, unmounted 0');
-    await vi.advanceTimersByTimeAsync(1000);
-    expect(text()).toContain('repainted');
+  it('starts a timer when it is mounted, and the effect of the clock follows the time', async () => {
+    const { clock, text } = open();
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(clock()).toBe('10:20:32');
+    expect(text()).toBe('mounted 1, unmounted 0, the effect in mounted ran 3 times');
   });
 
-  it('removes the clock, runs its cleanup and mounts it again', async () => {
-    const { text, toggle } = await open();
+  it('removes the clock: unmounted runs and the effect stops by itself, while the time goes on', async () => {
+    const { clock, stage, text, toggle } = open();
     toggle.click();
-    await vi.advanceTimersByTimeAsync(0);
-    expect(text()).toContain('unmounted 1');
     expect(toggle.textContent).toBe('Add the clock');
-    toggle.click();
-    await vi.advanceTimersByTimeAsync(0);
-    expect(text()).toContain('mounted 2');
+    expect(clock()).toBeUndefined();
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(stage()).toBe('No clock, but it is 10:20:33');
+    expect(text()).toBe('mounted 1, unmounted 1, the effect in mounted ran 1 times');
   });
 
-  it('stops repainting while frozen', async () => {
-    const { text, freeze, root } = await open();
-    freeze.checked = true;
-    freeze.dispatchEvent(new Event('change'));
-    const before = text();
-    await vi.advanceTimersByTimeAsync(3000);
-    expect(text()).toBe(before);
-    expect(root.querySelector('output')).not.toBeNull();
+  it('mounts the clock again when it is put back, with a new effect', async () => {
+    const { clock, text, toggle } = open();
+    toggle.click();
+    await vi.advanceTimersByTimeAsync(1000);
+    toggle.click();
+    expect(toggle.textContent).toBe('Remove the clock');
+    expect(clock()).toBe('10:20:31');
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(clock()).toBe('10:20:32');
+    expect(text()).toBe('mounted 2, unmounted 1, the effect in mounted ran 3 times');
+  });
+
+  it('stops its timer with the cleanup of mounted when the demo leaves the page', async () => {
+    const { demo } = open();
+    expect(vi.getTimerCount()).toBe(1);
+    demo.remove();
+    expect(vi.getTimerCount()).toBe(0);
   });
 });

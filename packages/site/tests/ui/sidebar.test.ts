@@ -13,7 +13,8 @@ describe('Sidebar', () => {
     const sidebar = Sidebar(makeRouter('/docs/routing'));
     document.body.append(sidebar);
     expect([...sidebar.querySelectorAll('h2')].map((h) => h.textContent)).toEqual(groups);
-    expect(sidebar.querySelectorAll('a')).toHaveLength(docs.length);
+    expect(sidebar.querySelectorAll('.sidebar-group > a')).toHaveLength(docs.length);
+    expect(sidebar.localName).toBe('nav');
   });
 
   it('marks the page that is open', () => {

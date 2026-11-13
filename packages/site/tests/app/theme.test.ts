@@ -12,17 +12,17 @@ afterEach(() => {
 
 describe('themeStore', () => {
   it('starts by following the system and cycles system, light, dark', () => {
-    expect(themeStore.getState().mode).toBe('system');
-    themeStore.getState().cycle();
-    expect(themeStore.getState().mode).toBe('light');
-    themeStore.getState().cycle();
-    expect(themeStore.getState().mode).toBe('dark');
-    themeStore.getState().cycle();
-    expect(themeStore.getState().mode).toBe('system');
+    expect(themeStore.mode).toBe('system');
+    themeStore.cycle();
+    expect(themeStore.mode).toBe('light');
+    themeStore.cycle();
+    expect(themeStore.mode).toBe('dark');
+    themeStore.cycle();
+    expect(themeStore.mode).toBe('system');
   });
 
   it('remembers the choice in localStorage', () => {
-    themeStore.getState().cycle();
+    themeStore.cycle();
     expect(JSON.parse(localStorage.getItem('ecmact-site-theme')!).state).toEqual({ mode: 'light' });
   });
 });

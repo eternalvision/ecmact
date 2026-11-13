@@ -1,7 +1,9 @@
-import { combine, createStore, em, persist, tags } from 'ecmact';
+import { createStore, each, em, signal, tags } from 'ecmact';
+
+const { button, form, input, li, small, ul } = tags;
 
 const css = `
-  :host, div { display: block; }
+  :host { display: block; }
   form { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
   input {
     flex: 1;
@@ -28,67 +30,45 @@ const css = `
 `;
 
 /**
- * Notes that survive a reload: `persist` writes the state to `localStorage` after every change and reads it back
- * when the store is created. Add a note, then reload the page.
+ * Notes that survive a reload: with the `persist` option the store writes its state to `localStorage` after every
+ * change and reads it back when it is created. Add a note, then reload the page.
  *
  * @returns The demo.
  */
 export const create = () => {
   const store = createStore(
-    persist(
-      combine({ notes: ['Reload the page: I will still be here'] as string[] }, (set) => ({
-        add: (note: string) => set((state) => ({ notes: [...state.notes, note] })),
-        clear: () => set({ notes: [] }),
-      })),
-      { name: 'ecmact-site-notes', partialize: (state) => ({ notes: state.notes }) },
-    ),
+    { notes: ['Reload the page: I will still be here'] },
+    (set) => ({
+      add: (note: string) => set(({ notes }) => ({ notes: [...notes, note] })),
+      clear: () => set({ notes: [] }),
+    }),
+    { persist: { name: 'ecmact-site-notes' } },
   );
+  const draft = signal('');
 
-  const list = tags.ul({ shadow: false });
-  const input = tags.input({
-    shadow: false,
-    placeholder: 'Write a note',
-    'aria-label': 'New note',
-  });
-
-  return em.Notes({
-    shadow: true,
-    css,
-    mounted: () =>
-      store.watch(
-        (state) => state.notes,
-        (notes) =>
-          list.setState({
-            children: notes.map((note) => tags.li({ shadow: false, content: note })),
-          }),
-        { fireImmediately: true },
-      ),
-    children: [
-      tags.form({
-        shadow: false,
+  return em.Notes(
+    { css },
+    form(
+      {
         onsubmit: (event) => {
           event.preventDefault();
-          const field = input.element as HTMLInputElement;
-          if (field.value.trim() === '') return;
-          store.getState().add(field.value.trim());
-          field.value = '';
+          const note = draft.value.trim();
+          if (note === '') return;
+          store.add(note);
+          draft.value = '';
         },
-        children: [
-          input,
-          tags.button({ shadow: false, type: 'submit', content: 'Save' }),
-          tags.button({
-            shadow: false,
-            type: 'button',
-            content: 'Clear',
-            onclick: () => store.getState().clear(),
-          }),
-        ],
-      }),
-      list,
-      tags.small({
-        shadow: false,
-        content: store.select((state) => `${state.notes.length} saved in localStorage`),
-      }),
-    ],
-  });
+      },
+      input({ bind: draft, placeholder: 'Write a note', 'aria-label': 'New note' }),
+      button({ type: 'submit' }, 'Save'),
+      button({ type: 'button', onclick: store.clear }, 'Clear'),
+    ),
+    ul(
+      each(
+        () => store.notes,
+        (note) => li(note),
+        { by: (_note, index) => index },
+      ),
+    ),
+    small(() => `${store.notes.length} saved in localStorage`),
+  );
 };

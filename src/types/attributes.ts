@@ -1,3 +1,5 @@
+import type { ClassValue } from '@em/types/props';
+
 /** A value that can be an attribute or be left out: text, a number, a boolean (`true` sets an empty attribute), or `null` and `undefined` for none. */
 export type Primitive = string | number | boolean | null | undefined;
 
@@ -24,8 +26,8 @@ type Preload = 'none' | 'metadata' | 'auto' | '';
 export interface GlobalAttributes {
   /** A unique identifier of the element. */
   id?: string;
-  /** The CSS classes, separated by spaces. */
-  class?: string;
+  /** The CSS classes: text, a list, or an object whose keys are the names and whose values switch them on. */
+  class?: ClassValue;
   /** Advisory text, usually shown as a tooltip. */
   title?: string;
   /** The language of the content, for example `en`. */

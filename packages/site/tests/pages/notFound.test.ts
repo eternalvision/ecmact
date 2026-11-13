@@ -1,3 +1,4 @@
+import { mount } from 'ecmact';
 import { afterEach, describe, expect, it } from 'vitest';
 import { disposeRouters, makeRouter, resetLocale, useLocale } from '@tests/helpers';
 import { notFound } from '@site/pages/notFound';
@@ -10,7 +11,7 @@ afterEach(() => {
 describe('notFound', () => {
   it('says so and offers two ways out', () => {
     const page = notFound(makeRouter('/nope'));
-    document.body.append(page);
+    mount(document.body, page);
     expect(page.querySelector('h1')?.textContent).toBe('Page not found');
     expect([...page.querySelectorAll('a')].map((a) => a.textContent)).toEqual([
       'Back to the home page',

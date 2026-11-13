@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
-import { createStore } from '@em/store/store';
+import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
+import { createJSONStorage, type StateStorage } from '@em/store/persist';
+import { createBase, createStore } from '@em/store/store';
 import { effect } from '@em/signals/signals';
 import { shallow } from '@em/store/shallow';
 
@@ -10,13 +11,13 @@ interface Counter {
 }
 
 const counter = () =>
-  createStore<Counter>((set) => ({
+  createBase<Counter>((set) => ({
     count: 0,
     label: 'a',
     inc: () => set((state) => ({ count: state.count + 1 })),
   }));
 
-describe('createStore', () => {
+describe('createBase', () => {
   it('builds the state from the creator', () => {
     const store = counter();
     expect(store.getState().count).toBe(0);
@@ -25,7 +26,7 @@ describe('createStore', () => {
 
   it('gives the creator set, get and the store', () => {
     let seen: unknown[] = [];
-    const store = createStore((set, get, api) => {
+    const store = createBase((set, get, api) => {
       seen = [typeof set, typeof get, api];
       return { a: 1 };
     });
@@ -47,17 +48,17 @@ describe('createStore', () => {
   });
 
   it('replaces the state when asked', () => {
-    const store = createStore<Record<string, number>>(() => ({ a: 1, b: 2 }));
+    const store = createBase<Record<string, number>>(() => ({ a: 1, b: 2 }));
     store.setState({ c: 3 }, true);
     expect(store.getState()).toEqual({ c: 3 });
   });
 
   it('replaces a state that is not an object', () => {
-    const store = createStore(() => 1);
+    const store = createBase(() => 1);
     store.setState(5);
     store.setState((value) => value + 1);
     expect(store.getState()).toBe(6);
-    const nothing = createStore<{ a: number } | null>(() => null);
+    const nothing = createBase<{ a: number } | null>(() => null);
     nothing.setState({ a: 1 });
     expect(nothing.getState()).toEqual({ a: 1 });
     nothing.setState(null);
@@ -112,7 +113,7 @@ describe('createStore', () => {
 
   it('runs onReady callbacks after creation, and at once afterwards', () => {
     const order: string[] = [];
-    const store = createStore((_set, _get, api) => {
+    const store = createBase((_set, _get, api) => {
       api.onReady(() => order.push('ready'));
       order.push('creator');
       return {};
@@ -189,5 +190,160 @@ describe('select', () => {
     store.setState({ count: 9 });
     expect(pair.value).not.toBe(first);
     expect(pair.value).toEqual({ count: 9 });
+  });
+});
+
+describe('createStore', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  const cart = () =>
+    createStore({ items: [] as string[], note: '' }, (set, get) => ({
+      add: (item: string) => set((state) => ({ items: [...state.items, item] })),
+      count: () => get().items.length,
+    }));
+
+  it('has the values and the actions as properties', () => {
+    const store = cart();
+    store.add('book');
+    expect(store.items).toEqual(['book']);
+    expect(store.count()).toBe(1);
+    expect(store.getState().items).toEqual(['book']);
+    expect(Object.keys(store)).toEqual(expect.arrayContaining(['items', 'note', 'add', 'count']));
+  });
+
+  it('works without actions', () => {
+    const store = createStore({ count: 1 });
+    store.setState({ count: 2 });
+    expect(store.count).toBe(2);
+  });
+
+  it('follows a value inside an effect, and only that value', () => {
+    const store = cart();
+    const seen = vi.fn(() => void store.note);
+    effect(seen);
+    store.add('book');
+    expect(seen).toHaveBeenCalledTimes(1);
+    store.setState({ note: 'x' });
+    expect(seen).toHaveBeenCalledTimes(2);
+  });
+
+  it('gives the actions the store', () => {
+    const store = createStore({ count: 0 }, (_set, _get, api) => ({
+      reset: () => api.setState({ count: 0 }),
+    }));
+    store.setState({ count: 5 });
+    store.reset();
+    expect(store.count).toBe(0);
+  });
+
+  it('keeps things in the actions that are not functions', () => {
+    const store = createStore({ count: 0 }, () => ({ limit: 3 }));
+    expect(store.limit).toBe(3);
+  });
+
+  it('refuses a name that the store uses itself', () => {
+    expect(() => createStore({ select: 1 } as never)).toThrow('a store uses "select" itself');
+    expect(() => createStore({ count: 0 }, () => ({ subscribe: () => {} }) as never)).toThrow(
+      TypeError,
+    );
+  });
+
+  it('infers the types of the values and the actions', () => {
+    const store = cart();
+    expectTypeOf(store.items).toEqualTypeOf<string[]>();
+    expectTypeOf(store.add).toEqualTypeOf<(item: string) => void>();
+    expectTypeOf(store.getState().count).toEqualTypeOf<() => number>();
+    const wrong = () => {
+      // @ts-expect-error a reserved name
+      createStore({ state: 1 });
+      // @ts-expect-error values are read only, change them with an action
+      store.note = 'x';
+    };
+    expect(wrong).toThrow(TypeError);
+  });
+
+  it('persists the state with the persist option', () => {
+    const data = new Map<string, string>();
+    const strings: StateStorage = {
+      getItem: (name) => data.get(name) ?? null,
+      setItem: (name, value) => void data.set(name, value),
+      removeItem: (name) => void data.delete(name),
+    };
+    const make = () =>
+      createStore(
+        { count: 0 },
+        (set) => ({ inc: () => set((state) => ({ count: state.count + 1 })) }),
+        { persist: { name: 'counter', storage: createJSONStorage(() => strings) } },
+      );
+    const first = make();
+    first.inc();
+    expect(JSON.parse(data.get('counter')!).state.count).toBe(1);
+    const second = make();
+    expect(second.count).toBe(1);
+    expect(second.persist?.hasHydrated()).toBe(true);
+    second.inc();
+    expect(second.count).toBe(2);
+  });
+
+  it('names the changes after the actions for the devtools', () => {
+    const send = vi.fn();
+    const connect = vi.fn(() => ({ init: vi.fn(), send, subscribe: vi.fn() }));
+    vi.stubGlobal('__REDUX_DEVTOOLS_EXTENSION__', { connect });
+    const make = (devtools: boolean | { name: string }) =>
+      createStore(
+        { count: 0 },
+        (set) => ({
+          inc: () => set((state) => ({ count: state.count + 1 })),
+          set: (count: number) => set({ count }, false, 'custom'),
+        }),
+        { devtools },
+      );
+    const plain = make(true);
+    plain.inc();
+    expect(send).toHaveBeenLastCalledWith({ type: 'inc' }, expect.objectContaining({ count: 1 }));
+    plain.setState({ count: 5 });
+    expect(send).toHaveBeenLastCalledWith({ type: 'anonymous' }, expect.anything());
+    const named = make({ name: 'counter' });
+    named.inc();
+    expect(send).toHaveBeenLastCalledWith({ type: 'counter/inc' }, expect.anything());
+    named.set(3);
+    expect(send).toHaveBeenLastCalledWith({ type: 'custom' }, expect.anything());
+    expect(connect).toHaveBeenLastCalledWith({ name: 'counter' });
+  });
+
+  it('does not connect to the devtools unless asked', () => {
+    const connect = vi.fn();
+    vi.stubGlobal('__REDUX_DEVTOOLS_EXTENSION__', { connect });
+    createStore({ count: 0 });
+    createStore({ count: 0 }, undefined, { devtools: false });
+    expect(connect).not.toHaveBeenCalled();
+  });
+
+  it('restores the action name when an action calls another one or throws', () => {
+    const send = vi.fn();
+    vi.stubGlobal('__REDUX_DEVTOOLS_EXTENSION__', {
+      connect: () => ({ init: vi.fn(), send, subscribe: vi.fn() }),
+    });
+    const store = createStore(
+      { count: 0 },
+      (set) => ({
+        fail: () => {
+          throw new Error('x');
+        },
+        inner: () => set({ count: 1 }),
+        outer: () => {
+          store.inner();
+          set({ count: 2 });
+        },
+      }),
+      { devtools: true },
+    );
+    expect(() => store.fail()).toThrow('x');
+    store.outer();
+    expect(send.mock.calls.map(([action]) => action.type)).toEqual(['inner', 'outer']);
+    store.setState({ count: 3 });
+    expect(send).toHaveBeenLastCalledWith({ type: 'anonymous' }, expect.anything());
   });
 });

@@ -1,9 +1,12 @@
 import { getConfig, type StyleSource } from '@em/core/config';
-import type { RenderState } from '@em/types';
+import type { SheetState } from '@em/types';
 
 const sharedCache = new WeakMap<StyleSource[], CSSStyleSheet[]>();
 const hoisted = new WeakSet<StyleSource[]>();
 const propertyKeyword = '@property';
+
+/** The stylesheets that something else put into a root, such as the ones of styled elements. They are kept when a component changes its own. */
+export const extraSheets = new WeakSet<CSSStyleSheet>();
 
 /**
  * Finds the `@property` rules in a stylesheet text. A linear scan instead of a regular expression, so that a
@@ -33,10 +36,10 @@ const findPropertyRules = (text: string) => {
 /**
  * Tells whether the browser supports constructable stylesheets on a shadow root.
  *
- * @param root - The shadow root.
+ * @param root - The shadow root or the document.
  * @returns `true` if `adoptedStyleSheets` and `replaceSync` are available.
  */
-const supportsAdoption = (root: ShadowRoot) =>
+export const supportsAdoption = (root: Document | ShadowRoot) =>
   typeof CSSStyleSheet === 'function' &&
   'replaceSync' in CSSStyleSheet.prototype &&
   'adoptedStyleSheets' in root;
@@ -88,7 +91,7 @@ const sharedSheets = (sources: StyleSource[]) => {
  * @param state - The render state that keeps the own stylesheet.
  * @returns Always `false`, because no nodes need to be placed.
  */
-const adopt = (root: ShadowRoot, css: string | undefined, state: RenderState) => {
+const adopt = (root: ShadowRoot, css: string | undefined, state: SheetState) => {
   if (css === undefined) {
     state.ownSheet = null;
   } else {
@@ -96,7 +99,11 @@ const adopt = (root: ShadowRoot, css: string | undefined, state: RenderState) =>
     if (state.sheetText !== css) state.ownSheet.replaceSync(css);
   }
   const shared = sharedSheets(getConfig().styles);
-  root.adoptedStyleSheets = state.ownSheet ? [...shared, state.ownSheet] : shared;
+  root.adoptedStyleSheets = [
+    ...shared,
+    ...(state.ownSheet ? [state.ownSheet] : []),
+    ...root.adoptedStyleSheets.filter((sheet) => extraSheets.has(sheet)),
+  ];
   return false;
 };
 
@@ -107,7 +114,7 @@ const adopt = (root: ShadowRoot, css: string | undefined, state: RenderState) =>
  * @param state - The render state that keeps the nodes.
  * @returns `true` if the nodes changed and have to be placed again.
  */
-const inject = (css: string | undefined, state: RenderState) => {
+const inject = (css: string | undefined, state: SheetState) => {
   const texts = getConfig().styles.map(toText);
   if (css !== undefined) texts.push(css);
   const key = JSON.stringify(texts);
@@ -146,7 +153,7 @@ const hoistProperties = (sources: StyleSource[]) => {
  * @param state - The render state.
  * @returns `true` if style nodes changed and the children of the root have to be placed again.
  */
-export const applyStyleSheets = (root: ShadowRoot, css: string | undefined, state: RenderState) => {
+export const applyStyleSheets = (root: ShadowRoot, css: string | undefined, state: SheetState) => {
   hoistProperties(getConfig().styles);
   const changed = supportsAdoption(root) ? adopt(root, css, state) : inject(css, state);
   state.sheetText = css;

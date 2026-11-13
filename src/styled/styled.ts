@@ -1,46 +1,50 @@
-import type { Component } from '@em/core/component';
-import { createFactory, isIgnoredKey } from '@em/core/em';
-import { resolveProps } from '@em/props/resolveProps';
-import { computed, effect, signal, type ReadonlySignal } from '@em/signals/signals';
-import { join, type Interpolation } from '@em/styled/template';
+import { trackAttached } from '@em/core/context';
+import { createElement, isIgnoredKey, splitArgs, type AnyProps } from '@em/core/element';
+import { bind } from '@em/render/bindings';
+import { computed, isSignal, type ReadonlySignal } from '@em/signals/signals';
+import { inject, isStyleRoot } from '@em/styled/inject';
+import { hash, join, type Interpolation } from '@em/styled/template';
 import { themeContext, type Theme } from '@em/styled/theme';
-import { consume } from '@em/core/context';
-import type { ComponentProps, ResolvedProps } from '@em/types';
-
-/** The attribute that the styles of a styled component select the inner element by. */
-const marker = 'data-styled';
+import type { ElementOf, Factory, Props } from '@em/types';
 
 /**
- * The props of a styled component: the props of its tag plus the transient ones, whose names start with `$`.
- * Transient props reach the style functions but never the element. Two more props are consumed too: `theme`
- * overrides the theme from the context, and `as` renders another tag with the same styles.
+ * The props of a styled element: the props of its tag plus the transient ones, whose names start with `$`.
+ * Transient props reach the style functions but never the element. A few more props are consumed too: `theme`
+ * overrides the theme from the context, `as` renders another tag with the same styles, and `css` adds
+ * declarations and nested rules after the ones of the template.
  *
  * @template K - The tag.
  * @template X - The transient props.
  */
-export type StyledProps<
-  K extends string,
-  X extends object = Record<never, never>,
-> = ComponentProps<K> & {
+export type StyledProps<K extends string, X extends object = Record<never, never>> = Props<K> & {
   [P in keyof X]: X[P] | ReadonlySignal<Exclude<X[P], undefined>>;
 } & {
   /** Renders this tag instead, keeping the styles. */
   as?: string;
-  /** The theme for this component, instead of the one from the `ThemeProvider` above it. */
+  /** The theme for this element, instead of the one from the `ThemeProvider` above it. */
   theme?: Theme | ReadonlySignal<Theme>;
+  /** More CSS for this element: declarations and nested rules, put after the ones of the template. */
+  css?: string | ReadonlySignal<string>;
 };
 
 /**
- * Creates a styled component.
+ * Creates a styled element from optional props followed by children. The result is the element itself, with a
+ * generated class that carries the styles.
  *
  * @template K - The tag.
  * @template X - The transient props.
- * @param props - The props of the tag and the transient props.
- * @returns The component.
  */
-export type StyledComponent<K extends string, X extends object = Record<never, never>> = (
-  props?: StyledProps<K, X>,
-) => Component<K>;
+export type StyledComponent<K extends string, X extends object = Record<never, never>> = Factory<
+  StyledProps<K, X>,
+  ElementOf<K>
+>;
+
+/**
+ * The props of a tag as style functions see them: signals are replaced by their values.
+ *
+ * @template T - The props.
+ */
+type Plain<T> = { [P in keyof T]: Exclude<T[P], ReadonlySignal<unknown>> };
 
 /**
  * The props that functions in a template or in `attrs` receive: the resolved props, the transient ones and the theme.
@@ -48,7 +52,7 @@ export type StyledComponent<K extends string, X extends object = Record<never, n
  * @template K - The tag.
  * @template X - The transient props.
  */
-export type StyleProps<K extends string, X extends object> = ResolvedProps<K> &
+export type StyleProps<K extends string, X extends object> = Plain<Props<K>> &
   X & {
     /** The theme from the context, or the `theme` prop. An empty object without either. */
     theme: Theme;
@@ -131,11 +135,23 @@ const definitions = new WeakMap<object, Definition>();
  * @param props - The props as passed.
  * @returns The props for the element.
  */
-const forElement = (props: Record<string, unknown>) =>
+const forElement = (props: AnyProps) =>
   Object.fromEntries(
     Object.entries(props).filter(
-      ([key]) => !key.startsWith('$') && key !== 'theme' && key !== 'as',
+      ([key]) => !key.startsWith('$') && !['theme', 'as', 'css'].includes(key),
     ),
+  );
+
+/**
+ * Reads the current value of every signal in the props.
+ * Calling it inside a computed value subscribes it to those signals.
+ *
+ * @param props - The props as passed.
+ * @returns The props with plain values in place of signals.
+ */
+const resolve = (props: AnyProps): AnyProps =>
+  Object.fromEntries(
+    Object.entries(props).map(([key, value]) => [key, isSignal(value) ? value.value : value]),
   );
 
 /**
@@ -145,9 +161,9 @@ const forElement = (props: Record<string, unknown>) =>
  * @param props - The props that were passed.
  * @returns The props with the defaults filled in.
  */
-const withAttrs = (attrs: Attrs<string, object>[], props: Record<string, unknown>) => {
-  const resolved = resolveProps(props as ComponentProps);
-  const defaults = attrs.reduce<Record<string, unknown>>(
+const withAttrs = (attrs: Attrs<string, object>[], props: AnyProps) => {
+  const resolved = resolve(props);
+  const defaults = attrs.reduce<AnyProps>(
     (merged, entry) => ({
       ...merged,
       ...(typeof entry === 'function'
@@ -179,57 +195,53 @@ const terminate = (text: string) => {
  */
 const build = (definition: Definition): StyledComponent<string> => {
   /**
-   * Creates one component: applies the `attrs`, picks the tag and attaches the styles.
+   * Creates one element: applies the `attrs`, picks the tag and attaches the styles.
    *
-   * @param given - The props that were passed.
-   * @returns The component.
+   * @param args - Optional props, then children.
+   * @returns The styled element.
    */
-  const component: StyledComponent<string> = (given = {} as never) => {
-    const props = withAttrs(definition.attrs, given as Record<string, unknown>);
+  const component = ((...args: unknown[]) => {
+    const [given, children] = splitArgs(args);
+    const props = withAttrs(definition.attrs, given);
     const tag = typeof props.as === 'string' ? props.as : definition.tag;
-    const theme = signal<Theme>({});
-    const own = props.mounted as
-      ((element: HTMLElement, host: Component) => void | (() => void)) | undefined;
-    const sheet = computed(() => {
-      const resolved = resolveProps(props as ComponentProps);
-      const view = { ...resolved, theme: resolved.theme ?? theme.value };
-      const rules = new Set<string>();
+    const styles = computed(() => {
+      const resolved = resolve(props);
+      const view = { ...resolved, theme: resolved.theme ?? themeContext.use()?.value ?? {} };
+      const frames = new Set<string>();
       const body = definition.layers
         .map((layer) =>
           terminate(
-            join(layer.strings, layer.values as Interpolation<never>[], view as never, rules),
+            join(layer.strings, layer.values as Interpolation<never>[], view as never, frames),
           ),
         )
         .join('\n');
-      const extra = typeof resolved.css === 'string' ? resolved.css : '';
-      return `${[...rules].join('\n')}\n[${marker}] {\n${body}\n}\n${extra}`;
+      const extra = typeof resolved.css === 'string' ? `\n${resolved.css}` : '';
+      const name = `em-${hash(body + extra)}`;
+      return { name, rules: [...frames, `.${name} {\n${body}${extra}\n}`] };
     });
-    return createFactory(`styled-${tag}`)({
-      shadow: true,
-      ...forElement(props),
-      tag,
-      [marker]: '',
-      css: sheet,
-      /**
-       * Follows the theme of the context while the component is in the document, then runs the user's hook.
-       *
-       * @param element - The inner element.
-       * @param host - The component.
-       * @returns A cleanup that stops following the theme and runs the user's cleanup.
-       */
-      mounted: (element: HTMLElement, host: Component) => {
-        const provided = consume(themeContext, host);
-        const stop = effect(() => {
-          theme.value = provided?.value ?? {};
-        });
-        const cleanup = own?.(element, host);
-        return () => {
-          stop();
-          cleanup?.();
-        };
+    const element = createElement(tag, [
+      {
+        ...forElement(props),
+        class: [
+          props.class,
+          /**
+           * Reads the generated class that carries the styles.
+           *
+           * @returns The class name.
+           */
+          () => styles.value.name,
+        ],
       },
-    } as never) as never;
-  };
+      ...children,
+    ]);
+    bind(element, () => {
+      const { rules } = styles.value;
+      const root = element.getRootNode();
+      if (isStyleRoot(root)) inject(root, rules);
+      else trackAttached();
+    });
+    return element;
+  }) as StyledComponent<string>;
   definitions.set(component, definition);
   return component;
 };
@@ -286,9 +298,10 @@ const lookup = (target: object, tag: string | symbol, receiver: unknown) =>
     : forDefinition(tag, undefined, []);
 
 /**
- * Styled components: CSS written in a tagged template becomes a component with the styles attached, and the
- * template can read the props. The styles go to the component's shadow root, so they never leak out, and
- * nested rules and `&` use native CSS nesting.
+ * Styled elements: CSS written in a tagged template becomes a function that creates an element with the styles
+ * attached, and the template can read the props. The styles are tied to a generated class and put into the
+ * document, or into the shadow root of the component that the element is in. Nested rules and `&` use native
+ * CSS nesting.
  *
  * @example
  * const Button = styled.button<{ $primary?: boolean }>`
@@ -296,6 +309,6 @@ const lookup = (target: object, tag: string | symbol, receiver: unknown) =>
  *   background: ${(props) => (props.$primary ? '#1665e0' : '#e8eefc')};
  *   &:hover { filter: brightness(1.1); }
  * `;
- * mount('#app', Button({ content: 'Save', $primary: true }));
+ * mount('#app', Button({ $primary: true }, 'Save'));
  */
 export const styled = new Proxy<Styled>(call as unknown as Styled, { get: lookup });

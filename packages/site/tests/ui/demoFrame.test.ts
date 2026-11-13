@@ -1,3 +1,4 @@
+import { mount } from 'ecmact';
 import { afterEach, describe, expect, it } from 'vitest';
 import { demos } from '@site/demos/index';
 import { DemoFrame } from '@site/ui/demoFrame';
@@ -10,16 +11,18 @@ afterEach(() => {
 describe('DemoFrame', () => {
   it('shows the title, the description, the running demo and its source', () => {
     const frame = DemoFrame(demos[0]!);
-    document.body.append(frame);
+    mount(document.body, frame);
     expect(frame.querySelector('h3')?.textContent).toBe(demos[0]!.title);
     expect(frame.querySelector('.demo-note')?.textContent).toBe(demos[0]!.description);
-    expect(frame.querySelector('.demo-run em-counter')).not.toBeNull();
+    expect(frame.localName).toBe('section');
+    expect(frame.getAttribute('aria-label')).toBe(demos[0]!.title);
+    expect(frame.querySelector('.demo-run')?.childElementCount).toBe(1);
     expect(frame.querySelector('.demo-source pre')?.textContent).toContain('signal');
   });
 
   it('switches between running and reading', () => {
     const frame = DemoFrame(demos[0]!);
-    document.body.append(frame);
+    mount(document.body, frame);
     const [run, code] = [...frame.querySelectorAll<HTMLButtonElement>('.tab')];
     const panels = [...frame.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
     expect(panels.map((panel) => panel.hidden)).toEqual([false, true]);

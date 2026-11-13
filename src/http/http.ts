@@ -5,19 +5,41 @@ import { InterceptorManager } from '@em/http/interceptors';
 import { withRetry } from '@em/http/retry';
 import type { HttpMethod, HttpRequestConfig, HttpResponse } from '@em/http/types';
 import { buildUrl } from '@em/http/url';
+import { resource, type Resource } from '@em/data/resource';
+
+/**
+ * The promise of a response, which also gives the body alone: `await api.get(url).data`.
+ *
+ * @template T - The type of the response data.
+ * @template D - The type of the request data.
+ */
+export type HttpPromise<T = unknown, D = unknown> = Promise<HttpResponse<T, D>> & {
+  /** A promise of the body of the response, after `transformResponse`. */
+  readonly data: Promise<T>;
+};
+
+/**
+ * Options of `api.resource`: the config of the request, plus the data to show before the first answer.
+ *
+ * @template T - The type of the response data.
+ */
+export type HttpResourceConfig<T> = Omit<HttpRequestConfig, 'url' | 'signal'> & {
+  /** The data before the first answer. */
+  initial?: T;
+};
 
 /** The method shortcuts that take no body. */
 type BodylessShortcut = <T = unknown, D = unknown>(
   url: string,
   config?: HttpRequestConfig<D>,
-) => Promise<HttpResponse<T, D>>;
+) => HttpPromise<T, D>;
 
 /** The method shortcuts that take a body. */
 type BodyShortcut = <T = unknown, D = unknown>(
   url: string,
   data?: D,
   config?: HttpRequestConfig<D>,
-) => Promise<HttpResponse<T, D>>;
+) => HttpPromise<T, D>;
 
 /** A client: a function that sends requests, with shortcuts for the methods, defaults and interceptors. */
 export interface HttpInstance {
@@ -29,7 +51,7 @@ export interface HttpInstance {
    * @param config - The request config, with `url`.
    * @returns The response.
    */
-  <T = unknown, D = unknown>(config: HttpRequestConfig<D>): Promise<HttpResponse<T, D>>;
+  <T = unknown, D = unknown>(config: HttpRequestConfig<D>): HttpPromise<T, D>;
   /**
    * Sends a GET request, or the request that the config describes.
    *
@@ -39,10 +61,7 @@ export interface HttpInstance {
    * @param config - The request config.
    * @returns The response.
    */
-  <T = unknown, D = unknown>(
-    url: string,
-    config?: HttpRequestConfig<D>,
-  ): Promise<HttpResponse<T, D>>;
+  <T = unknown, D = unknown>(url: string, config?: HttpRequestConfig<D>): HttpPromise<T, D>;
   /** The defaults for every request of this instance. Change them in place. */
   defaults: HttpRequestConfig;
   /** Runs before a request is sent. They run in reverse order of adding, the last one added first. */
@@ -52,7 +71,7 @@ export interface HttpInstance {
     response: InterceptorManager<HttpResponse>;
   };
   /** Sends a request. */
-  request: <T = unknown, D = unknown>(config: HttpRequestConfig<D>) => Promise<HttpResponse<T, D>>;
+  request: <T = unknown, D = unknown>(config: HttpRequestConfig<D>) => HttpPromise<T, D>;
   /** Sends a GET request. */
   get: BodylessShortcut;
   /** Sends a DELETE request. */
@@ -80,6 +99,16 @@ export interface HttpInstance {
    * @returns The URL with the base and the query string.
    */
   getUri(config?: HttpRequestConfig): string;
+  /**
+   * Requests a URL and exposes the answer as a resource: `data`, `error` and `loading`. The URL may be a
+   * function that reads signals; when one of them changes, the request in flight is cancelled and a new one starts.
+   *
+   * @template T - The type of the response data.
+   * @param url - The URL, or a function that returns it.
+   * @param config - The config of the request, and the initial data.
+   * @returns The resource.
+   */
+  resource<T = unknown>(url: string | (() => string), config?: HttpResourceConfig<T>): Resource<T>;
 }
 
 /**
@@ -106,7 +135,7 @@ export const createHttp = (config: HttpRequestConfig = {}): HttpInstance => {
    * @param request - The config of the request.
    * @returns The response.
    */
-  const send = (request: HttpRequestConfig): Promise<never> => {
+  const send = (request: HttpRequestConfig): HttpPromise<never, never> => {
     let chain: Promise<unknown> = Promise.resolve(mergeConfig(instance.defaults, request));
     [...interceptors.request.list()].reverse().forEach(({ fulfilled, rejected, runWhen }) => {
       chain = chain.then(
@@ -124,7 +153,14 @@ export const createHttp = (config: HttpRequestConfig = {}): HttpInstance => {
     interceptors.response.list().forEach(({ fulfilled, rejected }) => {
       chain = chain.then(fulfilled as never, rejected);
     });
-    return chain as Promise<never>;
+    return Object.defineProperty(chain, 'data', {
+      /**
+       * Makes the promise of the body when it is asked for.
+       *
+       * @returns A promise of the response data.
+       */
+      get: () => chain.then((response) => (response as HttpResponse).data),
+    }) as HttpPromise<never, never>;
   };
 
   /**
@@ -202,6 +238,22 @@ export const createHttp = (config: HttpRequestConfig = {}): HttpInstance => {
     putForm: withBody('put', true),
     patchForm: withBody('patch', true),
     getUri,
+    /**
+     * Requests a URL and exposes the answer as a resource.
+     *
+     * @param url - The URL, or a function that returns it.
+     * @param config - The config of the request, and the initial data.
+     * @returns The resource.
+     */
+    resource: (
+      url: string | (() => string),
+      { initial, ...request }: HttpResourceConfig<unknown> = {},
+    ) =>
+      resource(
+        ({ signal }) =>
+          send({ ...request, url: typeof url === 'function' ? url() : url, signal }).data,
+        { initial },
+      ),
   });
   return instance;
 };

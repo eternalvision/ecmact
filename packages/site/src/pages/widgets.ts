@@ -1,11 +1,12 @@
-import { hosts, propertyNames, widgets } from '@site/content/widgets';
+import { tags } from 'ecmact';
 import { text } from '@site/content/messages';
-import { el } from '@site/lib/dom';
+import { hosts, propertyNames, widgets } from '@site/content/widgets';
 import { fitFrame } from '@site/lib/frame';
 import { withBase } from '@site/lib/paths';
 import { renderTable } from '@site/ui/blocks';
 import { CodeBlock } from '@site/ui/codeBlock';
-import { outside } from '@site/ui/header';
+
+const { a, div, h1, h2, header, iframe, main, p, section } = tags;
 
 const embed = `
 <script src="https://example.com/ecmact-widgets.js"></script>
@@ -25,14 +26,8 @@ const embed = `
  * @param title - The title of the frame.
  * @returns The iframe.
  */
-const fitted = (address: string, title: string) => {
-  const frame = el('iframe', {
-    class: 'host-frame',
-    attrs: { src: address, title, loading: 'lazy' },
-  });
-  fitFrame(frame);
-  return frame;
-};
+const fitted = (address: string, title: string) =>
+  iframe({ class: 'host-frame', src: address, title, loading: 'lazy', ref: fitFrame });
 
 /**
  * The gallery of widgets: four unrelated pages that embed the same widgets, each in an iframe, and the reference of
@@ -42,33 +37,37 @@ const fitted = (address: string, title: string) => {
  */
 export const widgetsPage = () => {
   const m = text().widgets;
-  return el(
-    'main',
+  return main(
     { class: 'wrap page-simple' },
-    el('h1', {}, m.title),
-    el('p', { class: 'lead' }, m.lead),
-    ...hosts.map((host) => {
+    h1(m.title),
+    p({ class: 'lead' }, m.lead),
+    hosts.map((host) => {
       const copy = m.hosts[host.id];
       const address = withBase(`/hosts/${host.id}.html`);
-      const open = outside(address, m.openFull, 'button ghost');
-      open.setAttribute('aria-label', `${m.openFull}: ${copy.title}`);
-      return el(
-        'section',
+      return section(
         { class: 'host' },
-        el(
-          'header',
+        header(
           { class: 'host-head' },
-          el('div', {}, el('h2', {}, copy.title), el('p', { class: 'muted' }, copy.text)),
-          open,
+          div(h2(copy.title), p({ class: 'muted' }, copy.text)),
+          a(
+            {
+              class: 'button ghost',
+              href: address,
+              target: '_blank',
+              rel: 'noreferrer',
+              'aria-label': `${m.openFull}: ${copy.title}`,
+            },
+            m.openFull,
+          ),
         ),
         fitted(address, copy.title),
       );
     }),
-    el('h2', {}, m.embedTitle),
-    el('p', { class: 'muted' }, m.embedLead),
+    h2(m.embedTitle),
+    p({ class: 'muted' }, m.embedLead),
     CodeBlock({ code: embed.trim(), language: 'html', title: m.embedCaption }),
-    el('h2', {}, m.referenceTitle),
-    el('p', { class: 'muted' }, m.referenceLead),
+    h2(m.referenceTitle),
+    p({ class: 'muted' }, m.referenceLead),
     renderTable({
       type: 'table',
       head: [m.columns.widget, m.columns.attributes, m.columns.events, m.columns.description],
@@ -79,8 +78,8 @@ export const widgetsPage = () => {
         m.descriptions[widget.tag],
       ]),
     }),
-    el('h2', {}, m.themeTitle),
-    el('p', { class: 'muted' }, m.themeLead),
+    h2(m.themeTitle),
+    p({ class: 'muted' }, m.themeLead),
     renderTable({
       type: 'table',
       head: [m.columns.property, m.columns.description],

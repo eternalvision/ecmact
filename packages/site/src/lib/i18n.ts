@@ -1,4 +1,4 @@
-import { combine, createStore, persist } from 'ecmact';
+import { createStore } from 'ecmact';
 
 /** The languages of the site. */
 export type Locale = 'en' | 'ru';
@@ -19,28 +19,18 @@ export const readLocaleParam = (search: string): Locale | undefined => {
 
 /** The language of the site, kept in `localStorage`. It is English until the visitor chooses another language. */
 export const localeStore = createStore(
-  persist(
-    combine({ locale: 'en' as Locale }, (set) => ({
-      /**
-       * Moves to the next language.
-       */
-      cycle: () => {
-        set((state) => ({
-          locale: locales[(locales.indexOf(state.locale) + 1) % locales.length] as Locale,
-        }));
-      },
-    })),
-    {
-      name: 'ecmact-site-locale',
-      /**
-       * Picks what to persist: the language only.
-       *
-       * @param state - The state.
-       * @returns The part to store.
-       */
-      partialize: (state) => ({ locale: state.locale }),
+  { locale: 'en' as Locale },
+  (set) => ({
+    /**
+     * Moves to the next language.
+     */
+    cycle: () => {
+      set((state) => ({
+        locale: locales[(locales.indexOf(state.locale) + 1) % locales.length] as Locale,
+      }));
     },
-  ),
+  }),
+  { persist: { name: 'ecmact-site-locale' } },
 );
 
 /**
@@ -48,7 +38,7 @@ export const localeStore = createStore(
  *
  * @returns The locale.
  */
-export const currentLocale = () => localeStore.getState().locale;
+export const currentLocale = () => localeStore.locale;
 
 /**
  * Puts the language on the document, for screen readers and search engines.

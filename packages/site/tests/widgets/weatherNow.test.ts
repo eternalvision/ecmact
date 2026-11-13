@@ -48,7 +48,8 @@ const card = (root: ShadowRoot) => ({
   place: root.querySelector('.place')?.textContent,
   temp: root.querySelector('.temp')?.textContent,
   meta: root.querySelector('.meta')?.textContent,
-  failed: root.querySelector('.error')?.hasAttribute('hidden') === false,
+  failed: root.querySelector('.error') !== null,
+  loading: root.querySelector('.pulse') !== null,
   sky: root.querySelector('.sky')?.getAttribute('data-sky'),
   busy: root.querySelector('.sky')?.hasAttribute('data-busy'),
 });
@@ -130,16 +131,19 @@ describe('weather-now', () => {
     await vi.advanceTimersByTimeAsync(10);
     await mountWidget('weather-now', { city: ' ostrava ' });
     await vi.advanceTimersByTimeAsync(10);
-    first.root.querySelector<HTMLButtonElement>('.error button')?.click();
+    first.element.setAttribute('city', 'OSTRAVA');
+    await vi.advanceTimersByTimeAsync(10);
     expect(requests(mock, 'geocoding')).toBe(1);
-    expect(requests(mock, 'forecast')).toBe(2);
+    expect(requests(mock, 'forecast')).toBe(3);
   });
 
   it('forgets a failed lookup so that it can be tried again', async () => {
     let fail = true;
     const mock = stubFetch((url) => (fail ? 500 : answer()(url)));
     const { root } = await mountWidget('weather-now', { city: 'Plzen' });
+    expect(card(root)).toMatchObject({ loading: true, failed: false });
     await vi.advanceTimersByTimeAsync(2000);
+    expect(card(root).loading).toBe(false);
     expect(card(root).failed).toBe(true);
     fail = false;
     root.querySelector<HTMLButtonElement>('.error button')!.click();

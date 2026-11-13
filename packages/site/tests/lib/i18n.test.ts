@@ -1,3 +1,4 @@
+import { effect } from 'ecmact';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { applyLocale, currentLocale, localeStore, locales, readLocaleParam } from '@site/lib/i18n';
 import { resetLocale } from '@tests/helpers';
@@ -29,15 +30,28 @@ describe('localeStore', () => {
   });
 
   it('cycles through the languages and wraps around', () => {
-    localeStore.getState().cycle();
+    localeStore.cycle();
     expect(currentLocale()).toBe('ru');
-    localeStore.getState().cycle();
+    localeStore.cycle();
     expect(currentLocale()).toBe('en');
     expect(locales).toEqual(['en', 'ru']);
   });
 
+  it('is read as a plain property that reactive functions follow', () => {
+    const seen: string[] = [];
+    const stop = effect(() => {
+      seen.push(localeStore.locale);
+    });
+    localeStore.cycle();
+    localeStore.cycle();
+    stop();
+    localeStore.cycle();
+    localeStore.cycle();
+    expect(seen).toEqual(['en', 'ru', 'en']);
+  });
+
   it('remembers the choice', () => {
-    localeStore.getState().cycle();
+    localeStore.cycle();
     expect(JSON.parse(localStorage.getItem('ecmact-site-locale')!).state).toEqual({ locale: 'ru' });
   });
 });

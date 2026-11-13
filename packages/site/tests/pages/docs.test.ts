@@ -1,3 +1,4 @@
+import { mount } from 'ecmact';
 import { afterEach, describe, expect, it } from 'vitest';
 import { docs, findDoc } from '@site/content/docs/index';
 import { docsPage } from '@site/pages/docs';
@@ -11,7 +12,7 @@ afterEach(() => {
 const open = (slug: string) => {
   const router = makeRouter(`/docs/${slug}`);
   const page = docsPage(router, findDoc(slug)!);
-  document.body.append(page);
+  mount(document.body, page);
   return { page, router };
 };
 
@@ -56,7 +57,7 @@ describe('docsPage', () => {
       group: 'Start',
       blocks: [],
     });
-    document.body.append(page);
+    mount(document.body, page);
     expect(page.querySelector('.toc')).toBeNull();
   });
 });
@@ -66,7 +67,7 @@ describe('docsPage in Russian', () => {
     await useLocale('ru');
     const router = makeRouter('/docs/routing');
     const page = docsPage(router, findDoc('routing', 'ru')!);
-    document.body.append(page);
+    mount(document.body, page);
     expect(page.querySelector('article h1')?.textContent).toBe('Роутинг');
     expect(page.querySelector('.eyebrow')?.textContent).toBe('Приложение');
     expect([...page.querySelectorAll('.pager a')].map((a) => a.textContent)).toEqual([

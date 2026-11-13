@@ -21,7 +21,12 @@ describe('start', () => {
     document.body.append(target);
     const { stop } = start(target);
     expect(target.querySelector('header.site-header')).not.toBeNull();
-    expect(target.querySelector('.outlet .hero')).not.toBeNull();
+    expect(target.querySelector('router-outlet.outlet > main.home .hero')).not.toBeNull();
+    expect([...target.children].map((child) => child.localName)).toEqual([
+      'header',
+      'router-outlet',
+      'footer',
+    ]);
     expect(target.querySelector('footer.site-footer')).not.toBeNull();
     expect(document.title).toContain('ECMact');
     stop();
@@ -62,7 +67,7 @@ describe('start and the language', () => {
     const { target, stop } = open();
     expect(target.querySelector('.nav a')?.textContent).toBe('Docs');
     expect(document.documentElement.lang).toBe('en');
-    localeStore.getState().cycle();
+    localeStore.cycle();
     expect(target.querySelector('.nav a')?.textContent).toBe('Документация');
     expect(document.documentElement.lang).toBe('ru');
     expect(document.title).toContain('Реактивные интерфейсы');
@@ -74,7 +79,7 @@ describe('start and the language', () => {
   it('keeps the page open while the language changes', async () => {
     const { target, router, stop } = open();
     await router.navigate('/docs/routing');
-    localeStore.getState().cycle();
+    localeStore.cycle();
     expect(target.querySelector('article h1')?.textContent).toBe('Роутинг');
     stop();
   });
@@ -92,7 +97,7 @@ describe('start and the language', () => {
   it('stops following the language', () => {
     const { target, stop } = open();
     stop();
-    localeStore.getState().cycle();
+    localeStore.cycle();
     expect(target.querySelector('.nav a')?.textContent).toBe('Docs');
   });
 });

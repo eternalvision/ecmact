@@ -1,9 +1,17 @@
-import { describe, expect, it } from 'vitest';
-import { css, keyframes, styled, type ReadonlySignal } from '@em';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { css, keyframes, styled } from '@em';
 import { join } from '@em/styled/template';
+import { sheet } from '@tests/helpers';
 
-const sheet = (component: { props: { css?: unknown } }) =>
-  (component.props.css as ReadonlySignal<string>).value;
+beforeEach(() => {
+  vi.stubGlobal('CSSStyleSheet', undefined);
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  document.body.replaceChildren();
+  document.head.replaceChildren();
+});
 
 describe('css', () => {
   it('keeps the text and the interpolations of a template', () => {

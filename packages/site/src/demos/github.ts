@@ -1,9 +1,11 @@
-import { computed, createHttp, em, resource, signal, tags, type HttpError } from 'ecmact';
+import { createHttp, em, signal, tags, type HttpError } from 'ecmact';
+
+const { a, div, input, p, small } = tags;
 
 const css = `
-  :host, div { display: block; }
-  [hidden] { display: none !important; }
+  :host { display: block; }
   input {
+    box-sizing: border-box;
     width: 100%;
     padding: 0.55rem 0.8rem;
     border: 1px solid var(--border);
@@ -70,82 +72,38 @@ export const create = () => {
     },
   );
 
-  const info = resource(({ signal: aborted }) =>
-    api
-      .get<Repository>(`/repos/${repo.value}`, { signal: aborted })
-      .then((response) => response.data),
-  );
-  const failure = computed(() => {
-    const error = info.error.value;
-    if (!error) return '';
-    const { status, code } = error as HttpError;
-    return messages[status ?? 0] ?? `Request failed (${code}).`;
-  });
-  const data = info.data;
+  const info = api.resource<Repository>(() => `/repos/${repo.value}`);
 
-  return em.GitHub({
-    shadow: true,
-    css,
-    children: [
-      tags.input({
-        shadow: false,
-        value: 'eternalvision/ecmact',
-        'aria-label': 'Repository, owner/name',
-        placeholder: 'owner/name',
-        oninput: (event) => {
-          clearTimeout(pause);
-          const value = (event.target as HTMLInputElement).value.trim();
-          pause = setTimeout(() => (repo.value = value), 400);
-        },
-      }),
-      tags.div({
-        shadow: false,
-        class: 'card',
-        children: [
-          tags.p({
-            shadow: false,
-            content: 'Loading...',
-            hidden: computed(() => !info.loading.value || !!data.value),
-          }),
-          tags.div({
-            shadow: false,
-            hidden: computed(() => !data.value || !!info.error.value),
-            children: [
-              tags.a({
-                shadow: false,
-                target: '_blank',
-                rel: 'noreferrer',
-                href: computed(() => data.value?.html_url ?? '#'),
-                content: computed(() => data.value?.full_name ?? ''),
-              }),
-              tags.p({
-                shadow: false,
-                content: computed(() => data.value?.description ?? 'No description.'),
-              }),
-              tags.p({
-                shadow: false,
-                class: 'stats',
-                content: computed(() => {
-                  const value = data.value;
-                  return value
-                    ? `★ ${value.stargazers_count}   ⑂ ${value.forks_count}   ${value.open_issues_count} open issues`
-                    : '';
-                }),
-              }),
-            ],
-          }),
-          tags.p({
-            shadow: false,
-            class: 'error',
-            content: failure,
-            hidden: computed(() => !failure.value),
-          }),
-          tags.small({
-            shadow: false,
-            content: computed(() => (left.value ? `API calls left this hour: ${left.value}` : '')),
-          }),
-        ],
-      }),
-    ],
-  });
+  const failure = () => {
+    const { status, code } = info.error as HttpError;
+    return messages[status ?? 0] ?? `Request failed (${code}).`;
+  };
+
+  return em.GitHub(
+    { css },
+    input({
+      value: repo.value,
+      'aria-label': 'Repository, owner/name',
+      placeholder: 'owner/name',
+      oninput: (event) => {
+        clearTimeout(pause);
+        const { value } = event.target as HTMLInputElement;
+        pause = setTimeout(() => (repo.value = value.trim()), 400);
+      },
+    }),
+    div({ class: 'card' }, () => {
+      const found = info.data;
+      if (info.error) return p({ class: 'error' }, failure());
+      if (!found) return p('Loading...');
+      return [
+        a({ href: found.html_url, target: '_blank', rel: 'noreferrer' }, found.full_name),
+        p(found.description ?? 'No description.'),
+        p(
+          { class: 'stats' },
+          `★ ${found.stargazers_count}   ⑂ ${found.forks_count}   ${found.open_issues_count} open issues`,
+        ),
+      ];
+    }),
+    small(() => left.value && `API calls left this hour: ${left.value}`),
+  );
 };

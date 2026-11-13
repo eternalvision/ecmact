@@ -1,4 +1,4 @@
-import { batch, effect, signal, untracked, type ReadonlySignal } from '@em/signals/signals';
+import { batch, onCleanup, signal, untracked, watch } from '@em/signals/signals';
 
 /** What the fetcher of a resource receives. */
 export interface ResourceContext {
@@ -17,17 +17,17 @@ export interface ResourceOptions<T> {
 }
 
 /**
- * An async value exposed as signals.
+ * An async value: its data, error and loading state, which reactive functions follow.
  *
  * @template T - The type of the data.
  */
 export interface Resource<T> {
-  /** The latest result, or `undefined` (or the initial value) before the first one. */
-  readonly data: ReadonlySignal<T | undefined>;
-  /** The reason of the latest failure, or `undefined`. */
-  readonly error: ReadonlySignal<unknown>;
-  /** `true` while a request is in flight. */
-  readonly loading: ReadonlySignal<boolean>;
+  /** The latest result, or `undefined` (or `options.initial`) before the first one. Reading it in a reactive function follows it. */
+  readonly data: T | undefined;
+  /** The reason of the latest failure, or `undefined`. Reading it in a reactive function follows it. */
+  readonly error: unknown;
+  /** Whether a request is in flight. Reading it in a reactive function follows it. */
+  readonly loading: boolean;
   /** Runs the fetcher again. */
   refetch(): void;
   /**
@@ -41,7 +41,7 @@ export interface Resource<T> {
 }
 
 /**
- * Runs an async function and exposes its result as signals.
+ * Runs an async function and exposes its result as `data`, `error` and `loading`, which reactive functions follow.
  * The function runs immediately and again whenever a signal it reads (before its first `await`) changes.
  * Only the latest request counts: older ones are aborted and their results ignored.
  *
@@ -51,7 +51,7 @@ export interface Resource<T> {
  * @template T - The type of the result.
  * @param fetcher - Starts a request. It receives an `AbortSignal` for that request.
  * @param options - Options such as the initial value.
- * @returns The resource with `data`, `error` and `loading` signals and methods to control it.
+ * @returns The resource with `data`, `error` and `loading` and methods to control it.
  */
 export const resource = <T>(
   fetcher: (context: ResourceContext) => T | Promise<T>,
@@ -93,12 +93,43 @@ export const resource = <T>(
     );
   };
 
-  const stop = effect(load);
+  const stop = watch(load);
+  /**
+   * Stops reacting to signals, aborts the request in flight and ignores late results.
+   */
+  const dispose = () => {
+    stop();
+    controller?.abort();
+    current++;
+    loading.value = false;
+  };
+  onCleanup(dispose);
 
   return {
-    data,
-    error,
-    loading,
+    /**
+     * Reads the latest result.
+     *
+     * @returns The data, or `undefined`.
+     */
+    get data() {
+      return data.value;
+    },
+    /**
+     * Reads the reason of the latest failure.
+     *
+     * @returns The error, or `undefined`.
+     */
+    get error() {
+      return error.value;
+    },
+    /**
+     * Tells whether a request is in flight.
+     *
+     * @returns `true` while loading.
+     */
+    get loading() {
+      return loading.value;
+    },
     /**
      * Runs the fetcher again without subscribing the caller to anything.
      */
@@ -116,14 +147,6 @@ export const resource = <T>(
         error.value = undefined;
       });
     },
-    /**
-     * Stops reacting to signals, aborts the request in flight and ignores late results.
-     */
-    dispose: () => {
-      stop();
-      controller?.abort();
-      current++;
-      loading.value = false;
-    },
+    dispose,
   };
 };

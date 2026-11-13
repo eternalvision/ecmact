@@ -1,5 +1,6 @@
 import { batch, computed, signal, type ReadonlySignal } from '@em/signals/signals';
-import type { PersistApi } from '@em/store/persist';
+import { devtools, type DevtoolsOptions } from '@em/store/devtools';
+import { persist, type PersistApi, type PersistOptions } from '@em/store/persist';
 
 /**
  * Changes the state. A function receives the current state and returns the change. An object is shallow-merged
@@ -57,7 +58,7 @@ export interface WatchOptions<U> {
  *
  * @template T - The state.
  */
-export interface Store<T> {
+export interface StoreApi<T> {
   /** The state as a signal, so that components and effects can follow it. */
   readonly state: ReadonlySignal<T>;
   /** Added by `persist`: reads and writes the stored state. */
@@ -125,7 +126,7 @@ export interface Store<T> {
  * @param api - The store, for middleware.
  * @returns The initial state.
  */
-export type StateCreator<T> = (set: SetState<T>, get: () => T, api: Store<T>) => T;
+export type StateCreator<T> = (set: SetState<T>, get: () => T, api: StoreApi<T>) => T;
 
 /**
  * Creates a store. The state can be anything: usually an object with values and the actions that change them.
@@ -141,7 +142,7 @@ export type StateCreator<T> = (set: SetState<T>, get: () => T, api: Store<T>) =>
  * @param creator - Builds the initial state.
  * @returns The store.
  */
-export const createStore = <T>(creator: StateCreator<T>): Store<T> => {
+export const createBase = <T>(creator: StateCreator<T>): StoreApi<T> => {
   let state!: T;
   let created = false;
   const listeners = new Set<Listener<T>>();
@@ -184,7 +185,7 @@ export const createStore = <T>(creator: StateCreator<T>): Store<T> => {
    */
   const getInitialState = () => initial;
 
-  const store: Store<T> = {
+  const store: StoreApi<T> = {
     state: mirror,
     getState,
     getInitialState,
@@ -238,7 +239,7 @@ export const createStore = <T>(creator: StateCreator<T>): Store<T> => {
       if (created) callback();
       else pending.push(callback);
     },
-  } as Store<T>;
+  } as StoreApi<T>;
 
   state = creator(setState, getState, store);
   const initial = state;
@@ -246,4 +247,137 @@ export const createStore = <T>(creator: StateCreator<T>): Store<T> => {
   created = true;
   pending.splice(0).forEach((callback) => callback());
   return store;
+};
+
+/**
+ * A store: its state and actions as plain properties, plus the ways to read, change and follow the state.
+ * Reading a field inside a reactive function follows that field only.
+ *
+ * @template S - The values of the state.
+ * @template A - The actions.
+ */
+export type Store<S extends object, A extends object = Record<never, never>> = Omit<
+  StoreApi<S & A>,
+  'onReady'
+> &
+  Readonly<S> &
+  A;
+
+/** The names a store uses itself, which a field or an action cannot have. */
+type Reserved = { [K in keyof StoreApi<unknown>]?: never };
+
+/**
+ * Options of `createStore`.
+ *
+ * @template T - The state.
+ */
+export interface StoreOptions<T> {
+  /** Keeps the state in a storage and reads it back when the store is created. The store gets a `persist` property. */
+  persist?: PersistOptions<T, unknown>;
+  /** Shows the store in the Redux DevTools browser extension. Changes are named after the action that made them. */
+  devtools?: boolean | DevtoolsOptions;
+}
+
+/**
+ * Creates a store from its initial values and the actions that change them. The values and the actions are
+ * properties of the store: `cart.items` reads a value, and inside a reactive function it follows that value;
+ * `cart.add(item)` calls an action.
+ *
+ * @example
+ * const counter = createStore({ count: 0 }, (set) => ({
+ *   inc: () => set((state) => ({ count: state.count + 1 })),
+ * }));
+ * tags.button({ onclick: counter.inc }, () => `count is ${counter.count}`);
+ *
+ * @template S - The values of the state.
+ * @template A - The actions.
+ * @param initial - The initial values.
+ * @param actions - Builds the actions. It gets `set`, which merges a change into the values, `get`, which reads
+ * the values, and the store without the actions.
+ * @param options - `persist` to keep the state in a storage, `devtools` to show it in Redux DevTools.
+ * @returns The store.
+ * @throws {TypeError} If a value or an action has a name that the store uses itself.
+ */
+export const createStore = <S extends object, A extends object = Record<never, never>>(
+  initial: S & Reserved,
+  actions?: (set: SetState<S>, get: () => S, store: Store<S>) => A & Reserved,
+  options: StoreOptions<S & A> = {},
+): Store<S, A> => {
+  const settings = options.devtools === true ? {} : options.devtools || { enabled: false };
+  let action: string | undefined;
+
+  /**
+   * Makes an action name its changes, for Redux DevTools.
+   *
+   * @param key - The name of the action.
+   * @param run - The action.
+   * @returns The action.
+   */
+  const named =
+    (key: string, run: (...args: unknown[]) => unknown) =>
+    (...args: unknown[]) => {
+      const previous = action;
+      action = settings.name ? `${settings.name}/${key}` : key;
+      try {
+        return run(...args);
+      } finally {
+        action = previous;
+      }
+    };
+
+  /**
+   * Builds the state: the initial values and the actions.
+   *
+   * @param set - Changes the state.
+   * @param get - Reads the state.
+   * @param api - The store.
+   * @returns The state.
+   */
+  let creator: StateCreator<S & A> = (set, get, api) => {
+    const change = set as (...args: unknown[]) => void;
+    const made = actions?.(
+      ((partial: unknown, replace?: boolean, name?: string) =>
+        change(partial, replace, name ?? action)) as SetState<S>,
+      get,
+      api as unknown as Store<S>,
+    );
+    const wrapped = Object.entries(made ?? {}).map(([key, value]) => [
+      key,
+      typeof value === 'function' ? named(key, value as (...args: unknown[]) => unknown) : value,
+    ]);
+    return { ...initial, ...Object.fromEntries(wrapped) } as S & A;
+  };
+  if (options.persist) creator = persist(creator, options.persist);
+  creator = devtools(creator, settings);
+
+  const store = createBase(creator);
+  const fields = new Map<string, ReadonlySignal<unknown>>();
+  Object.entries(store.getState()).forEach(([key, value]) => {
+    if (key in store) {
+      throw new TypeError(
+        `ecmact: a store uses "${key}" itself, give the value or action another name`,
+      );
+    }
+    if (typeof value === 'function') {
+      Object.defineProperty(store, key, { value, enumerable: true });
+      return;
+    }
+    Object.defineProperty(store, key, {
+      enumerable: true,
+      /**
+       * Reads the value, following it inside a reactive function.
+       *
+       * @returns The current value.
+       */
+      get: () => {
+        let field = fields.get(key);
+        if (!field) {
+          field = store.select((state) => (state as Record<string, unknown>)[key]);
+          fields.set(key, field);
+        }
+        return field.value;
+      },
+    });
+  });
+  return store as unknown as Store<S, A>;
 };

@@ -1,4 +1,6 @@
-import { computed, defineWidget, em, signal, tags } from 'ecmact';
+import { computed, defineWidget, signal, tags } from 'ecmact';
+
+const { button, div, h3, p, section, span } = tags;
 
 const css = `
   :host {
@@ -82,50 +84,38 @@ defineWidget(
   'price-widget',
   ({ props, emit }) => {
     const quantity = signal(1);
-    const total = computed(() =>
-      formatPrice(Number(props.price.value ?? 0) * quantity.value, props.currency.value ?? 'USD'),
-    );
+    const total = computed(() => formatPrice(props.price * quantity.value, props.currency));
     const stepper = (label: string, change: number) =>
-      tags.button({
-        class: 'step',
-        type: 'button',
-        content: change > 0 ? '+' : '-',
-        'aria-label': label,
-        shadow: false,
-        onclick: () => {
-          quantity.value = Math.max(1, quantity.value + change);
+      button(
+        {
+          class: 'step',
+          type: 'button',
+          'aria-label': label,
+          onclick: () => {
+            quantity.value = Math.max(1, quantity.value + change);
+          },
         },
-      });
-    const style = document.createElement('style');
-    style.textContent = css;
-    const card = em.Card({
-      tag: 'section',
-      class: 'card',
-      shadow: false,
-      children: [
-        tags.h3({ content: computed(() => props.label.value ?? 'Product'), shadow: false }),
-        tags.div({
-          class: 'row',
-          shadow: false,
-          children: [
-            stepper('Decrease quantity', -1),
-            tags.span({ content: computed(() => String(quantity.value)), shadow: false }),
-            stepper('Increase quantity', 1),
-          ],
-        }),
-        tags.p({ class: 'total', content: total, shadow: false }),
-        tags.button({
+        change > 0 ? '+' : '-',
+      );
+    return section(
+      { class: 'card' },
+      h3(() => props.label),
+      div(
+        { class: 'row' },
+        stepper('Decrease quantity', -1),
+        span(quantity),
+        stepper('Increase quantity', 1),
+      ),
+      p({ class: 'total' }, total),
+      button(
+        {
           class: 'add',
           type: 'button',
-          content: 'Add to cart',
-          shadow: false,
           onclick: () => emit('add', { quantity: quantity.value, total: total.value }),
-        }),
-      ],
-    });
-    const fragment = document.createDocumentFragment();
-    fragment.append(style, card);
-    return fragment;
+        },
+        'Add to cart',
+      ),
+    );
   },
-  { attributes: ['price', 'currency', 'label'] },
+  { attributes: { price: 0, currency: 'USD', label: 'Product' }, css },
 );

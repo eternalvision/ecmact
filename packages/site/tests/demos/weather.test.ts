@@ -31,6 +31,14 @@ describe('weather demo', () => {
     expect(text()).toContain('Clear sky, wind 5 km/h');
   });
 
+  it('shows dots until the first answer', async () => {
+    vi.stubGlobal('fetch', () => new Promise(() => {}));
+    const demo = create() as HTMLElement;
+    document.body.append(demo);
+    await vi.advanceTimersByTimeAsync(10);
+    expect(demo.shadowRoot!.querySelector('.now')?.textContent).toBe('...');
+  });
+
   it('switches the unit without a new request', async () => {
     const { fetchMock, root, text } = await open();
     root.querySelector<HTMLButtonElement>('button')!.click();
@@ -68,6 +76,9 @@ describe('weather demo', () => {
     const demo = create() as HTMLElement;
     document.body.append(demo);
     await vi.advanceTimersByTimeAsync(2000);
-    expect(demo.shadowRoot!.querySelector('.error')?.hasAttribute('hidden')).toBe(false);
+    expect(demo.shadowRoot!.querySelector('.error')?.textContent).toBe(
+      'Could not load the weather.',
+    );
+    expect(demo.shadowRoot!.querySelector('strong')).toBeNull();
   });
 });

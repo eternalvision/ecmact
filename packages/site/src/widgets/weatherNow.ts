@@ -1,6 +1,8 @@
-import { computed, defineWidget, effect, untracked } from 'ecmact';
+import { defineWidget, effect, resource, tags, untracked } from 'ecmact';
 import { api, describeError } from '@site/widgets/api';
-import { attachedResource, part, sheet, tag } from '@site/widgets/kit';
+import { widgetCss } from '@site/widgets/kit';
+
+const { button, div, p, small, span } = tags;
 
 /** The current weather of a place. */
 interface Weather {
@@ -131,8 +133,8 @@ const locate = (name: string) => {
       .get<Geocoding>('https://geocoding-api.open-meteo.com/v1/search', {
         params: { name, count: 1 },
       })
-      .then((response) => {
-        const place = response.data.results?.[0];
+      .data.then(({ results }) => {
+        const place = results?.[0];
         if (!place) throw new Error(`No place called "${name}".`);
         return place;
       });
@@ -154,17 +156,16 @@ const locate = (name: string) => {
 export const defineWeatherNow = () =>
   defineWidget(
     'weather-now',
-    ({ host, props, emit }) => {
+    ({ props, emit }) => {
       /**
-       * Reads the city to show: the attribute, or Prague.
+       * Reads the city to show: the attribute, or Prague when it is empty.
        *
        * @returns The name.
        */
-      const city = () => props.city.value || 'Prague';
-      const weather = attachedResource<Weather>(async ({ signal }) => {
-        const name = city();
-        const place = await locate(name);
-        const forecast = await api.get<Forecast>('https://api.open-meteo.com/v1/forecast', {
+      const city = () => props.city || 'Prague';
+      const weather = resource<Weather>(async ({ signal }) => {
+        const place = await locate(city());
+        const { current } = await api.get<Forecast>('https://api.open-meteo.com/v1/forecast', {
           params: {
             latitude: place.latitude,
             longitude: place.longitude,
@@ -172,8 +173,7 @@ export const defineWeatherNow = () =>
             timezone: 'auto',
           },
           signal,
-        });
-        const { current } = forecast.data;
+        }).data;
         return {
           place: place.name,
           temperature: current.temperature_2m,
@@ -182,108 +182,88 @@ export const defineWeatherNow = () =>
           day: current.is_day === 1,
         };
       });
+      /**
+       * Tells which unit the attribute asks for.
+       *
+       * @returns `true` for Fahrenheit.
+       */
+      const fahrenheit = () => props.unit.toLowerCase() === 'f';
+      /**
+       * Reads the weather to show: not the old one beside the message that a newer request failed.
+       *
+       * @returns The weather, or `undefined`.
+       */
+      const shown = () => (weather.error === undefined ? weather.data : undefined);
+      /**
+       * Describes the weather that is shown.
+       *
+       * @returns The text, the glyph and the sky, or `undefined` while there is no weather.
+       */
+      const look = () => {
+        const data = shown();
+        return data && describeWeather(data.code, data.day);
+      };
+      /**
+       * Writes a temperature in the unit of the widget.
+       *
+       * @param celsius - The temperature in degrees Celsius.
+       * @returns The whole degrees.
+       */
+      const degrees = (celsius: number) =>
+        Math.round(fahrenheit() ? (celsius * 9) / 5 + 32 : celsius);
 
-      const fahrenheit = computed(() => (props.unit.value ?? 'c').toLowerCase() === 'f');
-      /** The weather to show: not the old one beside the message that a newer request failed. */
-      const shown = computed(() =>
-        weather.error.value === undefined ? weather.data.value : undefined,
-      );
-      const view = computed(() => {
-        const data = shown.value;
-        return data ? describeWeather(data.code, data.day) : undefined;
-      });
-      const temperature = computed(() => {
-        const data = shown.value;
-        if (!data) return '';
-        return String(
-          Math.round(fahrenheit.value ? (data.temperature * 9) / 5 + 32 : data.temperature),
+      effect(() => {
+        const data = weather.data;
+        if (!data) return;
+        untracked(() =>
+          emit('loaded', {
+            place: data.place,
+            temperature: degrees(data.temperature),
+            unit: fahrenheit() ? 'f' : 'c',
+          }),
         );
       });
-      let announced: Weather | undefined;
 
-      const root = tag('div', {
-        class: 'sky',
-        'data-sky': computed(() => view.value?.sky ?? 'clear'),
-        'data-busy': computed(() => weather.loading.value && !!shown.value),
-        'aria-live': 'polite',
-        /**
-         * Starts the request and announces each weather once it has loaded.
-         *
-         * @returns The cleanup that stops both.
-         */
-        mounted: () => {
-          const stopLoading = weather.attach();
-          const stopAnnouncing = effect(() => {
-            const data = weather.data.value;
-            if (!data || data === announced) return;
-            announced = data;
-            untracked(() =>
-              emit('loaded', {
-                place: data.place,
-                temperature: Number(temperature.value),
-                unit: fahrenheit.value ? 'f' : 'c',
-              }),
-            );
-          });
-          return () => {
-            stopAnnouncing();
-            stopLoading();
-          };
+      return div(
+        {
+          class: 'sky',
+          'aria-live': 'polite',
+          /**
+           * Picks the sky to paint.
+           *
+           * @returns The name of the sky.
+           */
+          'data-sky': () => look()?.sky ?? 'clear',
+          /**
+           * Marks the weather that a newer request is about to replace.
+           *
+           * @returns `true` while such a request runs.
+           */
+          'data-busy': () => weather.loading && !!shown(),
         },
-        children: [
-          tag('p', {
-            class: 'place',
-            content: computed(() => shown.value?.place ?? city()),
+        p({ class: 'place' }, () => shown()?.place ?? city()),
+        span({ class: 'glyph', 'aria-hidden': 'true' }, () => look()?.glyph),
+        p({ class: 'temp' }, () => {
+          const data = shown();
+          return data && [degrees(data.temperature), small(fahrenheit() ? '°F' : '°C')];
+        }),
+        div(
+          { class: 'meta' },
+          span(() => look()?.text),
+          span(() => {
+            const data = shown();
+            return data && `Wind ${Math.round(data.wind)} km/h`;
           }),
-          tag('span', {
-            class: 'glyph',
-            content: computed(() => view.value?.glyph ?? ''),
-            'aria-hidden': 'true',
-          }),
-          part(
-            'p',
-            'temp',
-            tag('span', { content: temperature }),
-            tag('small', {
-              content: computed(() => (shown.value ? (fahrenheit.value ? '°F' : '°C') : '')),
-            }),
+        ),
+        () => weather.loading && !shown() && p({ class: 'state pulse' }, 'Loading the weather...'),
+        () =>
+          weather.error !== undefined &&
+          div(
+            { class: 'error' },
+            p({ class: 'state' }, describeError(weather.error)),
+            button({ type: 'button', onclick: weather.refetch }, 'Try again'),
           ),
-          part(
-            'div',
-            'meta',
-            tag('span', { content: computed(() => view.value?.text ?? '') }),
-            tag('span', {
-              content: computed(() =>
-                shown.value ? `Wind ${Math.round(shown.value.wind)} km/h` : '',
-              ),
-            }),
-          ),
-          tag('p', {
-            class: 'state pulse',
-            content: 'Loading the weather...',
-            hidden: computed(() => !weather.loading.value || !!shown.value),
-          }),
-          tag('div', {
-            class: 'error',
-            hidden: computed(() => weather.error.value === undefined),
-            children: [
-              tag('p', {
-                class: 'state',
-                content: computed(() => describeError(weather.error.value)),
-              }),
-              tag('button', {
-                type: 'button',
-                content: 'Try again',
-                /** Loads the weather again. */
-                onclick: () => {
-                  weather.refetch();
-                },
-              }),
-            ],
-          }),
-        ],
-      });
-      return sheet(host, css, root);
+      );
     },
-    { attributes: ['city', 'unit'] },
+    { attributes: { city: 'Prague', unit: 'c' }, css: widgetCss(css) },
   );

@@ -1,7 +1,9 @@
-import { computed, createHttp, effect, em, resource, signal, tags } from 'ecmact';
+import { createHttp, each, em, signal, tags } from 'ecmact';
+
+const { button, div, input, label, li, p, ul } = tags;
 
 const css = `
-  :host, div { display: block; }
+  :host { display: block; }
   .bar { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; margin-bottom: 0.75rem; }
   button {
     padding: 0.45rem 0.8rem;
@@ -16,14 +18,14 @@ const css = `
   label { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--muted); }
   ul { margin: 0; padding-left: 1.2rem; min-height: 4.5rem; }
   p { margin: 0.6rem 0 0; color: var(--muted); }
-  .bad { color: var(--danger); }
 `;
 
 const people = ['Ada', 'Grace', 'Linus', 'Margaret', 'Dennis', 'Barbara', 'Ken', 'Radia'];
 
 /**
- * An HTTP client against a fake server that answers after half a second. Break the server and the request is
- * retried twice before it fails; page forward quickly and the request that a newer one replaced is aborted.
+ * An HTTP client against a fake server that answers after half a second. `api.resource` reads the page in its
+ * address, so paging starts a new request and aborts the one it replaces. Break the server and the request is
+ * retried twice before it fails.
  *
  * @returns The demo.
  */
@@ -35,12 +37,7 @@ export const create = () => {
     new Promise<Response>((resolve, reject) => {
       const timer = setTimeout(() => {
         const rows = people.slice(page.peek() * 3, page.peek() * 3 + 3);
-        resolve(
-          new Response(JSON.stringify(rows), {
-            status: broken.peek() ? 503 : 200,
-            headers: { 'content-type': 'application/json' },
-          }),
-        );
+        resolve(Response.json(rows, { status: broken.peek() ? 503 : 200 }));
       }, 500);
       init?.signal?.addEventListener('abort', () => {
         clearTimeout(timer);
@@ -53,66 +50,26 @@ export const create = () => {
     fetch: server as typeof fetch,
     retry: { retries: 2, delay: 300 },
   });
+  const users = api.resource<string[]>(() => `/people?page=${page.value}`);
 
-  const users = resource(({ signal: aborted }) => {
-    const current = page.value;
-    return api
-      .get<string[]>('/people', { params: { page: current }, signal: aborted })
-      .then((response) => response.data);
-  });
-
-  const list = tags.ul({ shadow: false });
-
-  return em.People({
-    shadow: true,
-    css,
-    mounted: () =>
-      effect(() =>
-        list.setState({
-          children: (users.data.value ?? []).map((name) =>
-            tags.li({ shadow: false, content: name }),
-          ),
-        }),
+  return em.People(
+    { css },
+    div(
+      { class: 'bar' },
+      button({ onclick: () => (page.value = Math.max(0, page.value - 1)) }, 'Previous'),
+      button({ onclick: () => (page.value = Math.min(2, page.value + 1)) }, 'Next'),
+      label(input({ type: 'checkbox', bind: broken }), 'Break the server'),
+    ),
+    ul(
+      each(
+        () => users.data ?? [],
+        (name) => li(name),
       ),
-    children: [
-      tags.div({
-        shadow: false,
-        class: 'bar',
-        children: [
-          tags.button({
-            shadow: false,
-            content: 'Previous',
-            onclick: () => (page.value = Math.max(0, page.value - 1)),
-          }),
-          tags.button({
-            shadow: false,
-            content: 'Next',
-            onclick: () => (page.value = Math.min(2, page.value + 1)),
-          }),
-          tags.label({
-            shadow: false,
-            children: [
-              tags.input({
-                shadow: false,
-                type: 'checkbox',
-                onchange: (event) => (broken.value = (event.target as HTMLInputElement).checked),
-              }),
-              'Break the server',
-            ],
-          }),
-        ],
-      }),
-      list,
-      tags.p({
-        shadow: false,
-        content: computed(() =>
-          users.loading.value
-            ? 'Loading...'
-            : users.error.value
-              ? `Failed: ${(users.error.value as Error).message}`
-              : `Page ${page.value + 1} loaded`,
-        ),
-      }),
-    ],
-  });
+    ),
+    p(() => {
+      if (users.loading) return 'Loading...';
+      if (users.error) return `Failed: ${(users.error as Error).message}`;
+      return `Page ${page.value + 1} loaded`;
+    }),
+  );
 };

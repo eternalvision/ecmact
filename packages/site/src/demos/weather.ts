@@ -1,7 +1,9 @@
-import { computed, createHttp, em, resource, signal, tags } from 'ecmact';
+import { createHttp, em, signal, tags } from 'ecmact';
+
+const { button, div, option, p, select, strong } = tags;
 
 const css = `
-  :host, div { display: block; }
+  :host { display: block; }
   .bar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
   select, button {
     padding: 0.45rem 0.8rem;
@@ -32,6 +34,9 @@ const cities = {
   Nairobi: [-1.29, 36.82],
 } as const;
 
+/** A city the demo knows. */
+type City = keyof typeof cities;
+
 const describe = (code: number) =>
   code === 0
     ? 'Clear sky'
@@ -46,79 +51,42 @@ const describe = (code: number) =>
             : 'Showers or storm';
 
 /**
- * The weather from the open-meteo.com API. The city is a signal the request reads, so changing it starts a new
- * request and aborts the old one; the unit only changes how the same number is shown.
+ * The weather from the open-meteo.com API. The city is a signal that the address of the request reads, so changing
+ * it starts a new request and aborts the old one; the unit only changes how the same number is shown.
  *
  * @returns The demo.
  */
 export const create = () => {
-  const city = signal<keyof typeof cities>('Prague');
+  const city = signal<City>('Prague');
   const fahrenheit = signal(false);
   const api = createHttp({ baseURL: 'https://api.open-meteo.com', timeout: 8000, retry: 1 });
 
-  const weather = resource(({ signal: aborted }) => {
+  const weather = api.resource<Forecast>(() => {
     const [latitude, longitude] = cities[city.value];
-    return api
-      .get<Forecast>('/v1/forecast', {
-        params: { latitude, longitude, current: 'temperature_2m,wind_speed_10m,weather_code' },
-        signal: aborted,
-      })
-      .then((response) => response.data.current);
+    return `/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,wind_speed_10m,weather_code`;
   });
 
-  const temperature = computed(() => {
-    const value = weather.data.value?.temperature_2m;
-    if (value === undefined) return '...';
-    return `${Math.round(fahrenheit.value ? (value * 9) / 5 + 32 : value)}°${fahrenheit.value ? 'F' : 'C'}`;
-  });
-
-  return em.Weather({
-    shadow: true,
-    css,
-    children: [
-      tags.div({
-        shadow: false,
-        class: 'bar',
-        children: [
-          tags.select({
-            shadow: false,
-            'aria-label': 'City',
-            html: Object.keys(cities)
-              .map((name) => `<option>${name}</option>`)
-              .join(''),
-            onchange: (event) =>
-              (city.value = (event.target as HTMLSelectElement).value as keyof typeof cities),
-          }),
-          tags.button({
-            shadow: false,
-            type: 'button',
-            content: computed(() => (fahrenheit.value ? 'Show °C' : 'Show °F')),
-            onclick: () => (fahrenheit.value = !fahrenheit.value),
-          }),
-        ],
-      }),
-      tags.div({
-        shadow: false,
-        class: 'now',
-        children: [
-          tags.strong({ shadow: false, content: temperature }),
-          tags.p({
-            shadow: false,
-            content: computed(() => {
-              const now = weather.data.value;
-              return now
-                ? `${describe(now.weather_code)}, wind ${Math.round(now.wind_speed_10m)} km/h`
-                : '';
-            }),
-          }),
-          tags.p({
-            shadow: false,
-            class: 'error',
-            content: 'Could not load the weather.',
-            hidden: computed(() => weather.error.value === undefined),
-          }),
-        ],
-      }),
-    ],
-  });
+  return em.Weather(
+    { css },
+    div(
+      { class: 'bar' },
+      select(
+        { 'aria-label': 'City', bind: city },
+        Object.keys(cities).map((name) => option(name)),
+      ),
+      button({ type: 'button', onclick: () => (fahrenheit.value = !fahrenheit.value) }, () =>
+        fahrenheit.value ? 'Show °C' : 'Show °F',
+      ),
+    ),
+    div({ class: 'now' }, () => {
+      const now = weather.data?.current;
+      if (weather.error) return p({ class: 'error' }, 'Could not load the weather.');
+      if (!now) return strong('...');
+      const degrees = fahrenheit.value ? (now.temperature_2m * 9) / 5 + 32 : now.temperature_2m;
+      return [
+        strong(`${Math.round(degrees)}°${fahrenheit.value ? 'F' : 'C'}`),
+        p(`${describe(now.weather_code)}, wind ${Math.round(now.wind_speed_10m)} km/h`),
+      ];
+    }),
+  );
 };

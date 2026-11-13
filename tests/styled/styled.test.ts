@@ -1,17 +1,22 @@
-import { afterEach, describe, expect, it } from 'vitest';
-import { configure, css, keyframes, signal, styled, ThemeProvider, type ReadonlySignal } from '@em';
-import { resetConfig } from '@em/core/config';
-import { inner } from '@tests/helpers';
-
-const sheet = (component: { props: { css?: unknown } }) =>
-  (component.props.css as ReadonlySignal<string>).value;
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { css, em, keyframes, mount, signal, styled, tags, ThemeProvider } from '@em';
+import { resetWarnings } from '@em/utils/warn';
+import { sheet } from '@tests/helpers';
 
 const text = (css: string) =>
   Object.assign([css], { raw: [css] }) as unknown as TemplateStringsArray;
 
+beforeEach(() => {
+  vi.stubGlobal('CSSStyleSheet', undefined);
+  vi.spyOn(console, 'warn').mockImplementation(() => {});
+});
+
 afterEach(() => {
-  resetConfig();
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+  resetWarnings();
   document.body.replaceChildren();
+  document.head.replaceChildren();
 });
 
 describe('styled', () => {
@@ -19,14 +24,13 @@ describe('styled', () => {
     const Button = styled.button`
       padding: 1px;
     `;
-    const button = Button({ content: 'Save' });
-    document.body.append(button);
-    expect(inner(button).localName).toBe('button');
-    expect(inner(button).textContent).toBe('Save');
-    expect(inner(button).hasAttribute('data-styled')).toBe(true);
-    expect(sheet(button)).toContain('[data-styled] {');
+    const button = Button('Save');
+    mount(document.body, button);
+    expect(button.localName).toBe('button');
+    expect(button.textContent).toBe('Save');
+    expect(button.className).toMatch(/^em-\w+$/);
+    expect(sheet(button)).toContain(`.${button.className} {`);
     expect(sheet(button)).toContain('padding: 1px;');
-    expect(button.shadowRoot!.adoptedStyleSheets).toHaveLength(1);
   });
 
   it('works as a function call too', () => {
@@ -34,15 +38,15 @@ describe('styled', () => {
       margin: 0;
     `;
     const box = Box();
-    document.body.append(box);
-    expect(inner(box).localName).toBe('section');
+    mount(document.body, box);
+    expect(box.localName).toBe('section');
   });
 
   it('passes the props of the tag on to the element', () => {
     const Field = styled.input``;
     const field = Field({ type: 'email', placeholder: 'a@b.c' });
-    document.body.append(field);
-    expect(inner(field).getAttribute('type')).toBe('email');
+    mount(document.body, field);
+    expect(field.getAttribute('type')).toBe('email');
   });
 
   it('inserts values, and nothing for false, null and undefined', () => {
@@ -70,8 +74,8 @@ describe('styled', () => {
   it('does not put transient props on the element', () => {
     const Button = styled.button<{ $primary?: boolean }>``;
     const button = Button({ $primary: true });
-    document.body.append(button);
-    expect(inner(button).getAttributeNames()).toEqual(['data-styled']);
+    mount(document.body, button);
+    expect(button.getAttributeNames()).toEqual(['class']);
   });
 
   it('follows signals in props and in the template', () => {
@@ -82,7 +86,7 @@ describe('styled', () => {
       width: ${size}px;
     `;
     const box = Box({ $color: color });
-    document.body.append(box);
+    mount(document.body, box);
     expect(sheet(box)).toContain('color: red;');
     color.value = 'green';
     size.value = 2;
@@ -112,11 +116,11 @@ describe('styled', () => {
     expect(text).toContain('p { color: red; }');
   });
 
-  it('defines one element per tag', () => {
-    const A = styled.span``;
-    const B = styled.span``;
-    expect(A().localName).toBe(B().localName);
-    expect(A().localName).toBe('em-styled-span');
+  it('takes children after the props, or alone', () => {
+    const Box = styled.div``;
+    const child = tags.b('x');
+    expect(Box({ id: 'a' }, 'text', child).lastChild).toBe(child);
+    expect(Box('only').textContent).toBe('only');
   });
 
   it('is not confused by symbols and then', () => {
@@ -125,33 +129,13 @@ describe('styled', () => {
   });
 });
 
-describe('shadow root', () => {
-  it('is used by default, even when the app renders into the light DOM', () => {
-    configure({ shadow: false });
-    const box = styled.div`
-      margin: 0;
-    `();
-    document.body.append(box);
-    expect(box.shadowRoot).not.toBeNull();
-    expect(box.shadowRoot!.adoptedStyleSheets).toHaveLength(1);
-  });
-
-  it('can be switched off per component', () => {
-    const box = styled.div`
-      margin: 0;
-    `({ shadow: false });
-    document.body.append(box);
-    expect(box.shadowRoot).toBeNull();
-  });
-});
-
 describe('attrs', () => {
   it('sets default props that the passed props override', () => {
     const Field = styled.input.attrs({ type: 'text', placeholder: 'name' })``;
     const field = Field({ placeholder: 'email' });
-    document.body.append(field);
-    expect(inner(field).getAttribute('type')).toBe('text');
-    expect(inner(field).getAttribute('placeholder')).toBe('email');
+    mount(document.body, field);
+    expect(field.getAttribute('type')).toBe('text');
+    expect(field.getAttribute('placeholder')).toBe('email');
   });
 
   it('calls a function with the props it was given', () => {
@@ -168,9 +152,9 @@ describe('attrs', () => {
   it('chains, with the later attrs winning', () => {
     const Field = styled.input.attrs({ type: 'text', title: 'a' }).attrs({ title: 'b' })``;
     const field = Field();
-    document.body.append(field);
-    expect(inner(field).getAttribute('type')).toBe('text');
-    expect(inner(field).getAttribute('title')).toBe('b');
+    mount(document.body, field);
+    expect(field.getAttribute('type')).toBe('text');
+    expect(field.getAttribute('title')).toBe('b');
   });
 
   it('gives a function the theme prop, or an empty theme', () => {
@@ -194,10 +178,10 @@ describe('extending', () => {
     const Danger = styled(Button)`
       color: darkred;
     `;
-    const danger = Danger({ content: 'Delete' });
-    document.body.append(danger);
-    expect(inner(danger).localName).toBe('button');
-    expect(inner(danger).getAttribute('type')).toBe('button');
+    const danger = Danger('Delete');
+    mount(document.body, danger);
+    expect(danger.localName).toBe('button');
+    expect(danger.getAttribute('type')).toBe('button');
     const text = sheet(danger);
     expect(text.indexOf('padding: 1px;')).toBeLessThan(text.indexOf('color: darkred;'));
     expect(sheet(Button())).not.toContain('darkred');
@@ -211,7 +195,7 @@ describe('extending', () => {
 
   it('leaves a template that ends in a rule or is empty as it is', () => {
     expect(sheet(styled.div(text('a: b; c { d: e }'))())).toContain('a: b; c { d: e }\n}');
-    expect(sheet(styled.div(text(''))())).toContain('[data-styled] {\n\n}');
+    expect(sheet(styled.div(text(''))())).toMatch(/^\.em-\w+ \{\n\n\}$/);
   });
 
   it('keeps the transient props of both', () => {
@@ -236,11 +220,11 @@ describe('as', () => {
     const Button = styled.button`
       padding: 1px;
     `;
-    const link = Button({ as: 'a', href: '#', content: 'Go' } as never);
-    document.body.append(link);
-    expect(inner(link).localName).toBe('a');
-    expect(inner(link).getAttribute('href')).toBe('#');
-    expect(inner(link).hasAttribute('as')).toBe(false);
+    const link = Button({ as: 'a', href: '#' } as never, 'Go');
+    mount(document.body, link);
+    expect(link.localName).toBe('a');
+    expect(link.getAttribute('href')).toBe('#');
+    expect(link.hasAttribute('as')).toBe(false);
     expect(sheet(link)).toContain('padding: 1px;');
   });
 });
@@ -273,54 +257,86 @@ describe('theme', () => {
 
   it('is empty without a provider', () => {
     const box = Box();
-    document.body.append(box);
+    mount(document.body, box);
     expect(sheet(box)).toContain('color: none;');
   });
 
   it('comes from the provider above', () => {
     const box = Box();
-    document.body.append(ThemeProvider({ theme: { accent: 'teal' }, children: [box] }));
+    mount(document.body, ThemeProvider({ theme: { accent: 'teal' } }, box));
     expect(sheet(box)).toContain('color: teal;');
   });
 
   it('follows a theme signal', () => {
     const theme = signal({ accent: 'teal' });
     const box = Box();
-    document.body.append(ThemeProvider({ theme, children: [box] }));
+    mount(document.body, ThemeProvider({ theme }, box));
     theme.value = { accent: 'crimson' };
     expect(sheet(box)).toContain('color: crimson;');
   });
 
   it('uses the nearest provider', () => {
     const box = Box();
-    const inside = ThemeProvider({ theme: { accent: 'inner' }, children: [box] });
-    document.body.append(ThemeProvider({ theme: { accent: 'outer' }, children: [inside] }));
+    const inside = ThemeProvider({ theme: { accent: 'inner' } }, box);
+    mount(document.body, ThemeProvider({ theme: { accent: 'outer' } }, inside));
     expect(sheet(box)).toContain('color: inner;');
   });
 
   it('is overridden by the theme prop, which is not put on the element', () => {
     const box = Box({ theme: { accent: 'prop' } });
-    document.body.append(ThemeProvider({ theme: { accent: 'teal' }, children: [box] }));
+    mount(document.body, ThemeProvider({ theme: { accent: 'teal' } }, box));
     expect(sheet(box)).toContain('color: prop;');
-    expect(inner(box).hasAttribute('theme')).toBe(false);
+    expect(box.hasAttribute('theme')).toBe(false);
+  });
+});
+
+describe('class', () => {
+  const Box = styled.div<{ $color?: string }>`
+    color: ${(props) => props.$color ?? 'black'};
+  `;
+
+  it('keeps the classes of the user next to the generated one', () => {
+    const on = signal(true);
+    const box = Box({ class: ['card', () => on.value && 'on'] });
+    expect(box.className).toMatch(/^card on em-\w+$/);
+    on.value = false;
+    expect(box.className).toMatch(/^card em-\w+$/);
   });
 
-  it('keeps the mounted hook of the user, and its cleanup', () => {
-    const calls: string[] = [];
-    const box = Box({
-      mounted: () => {
-        calls.push('mounted');
-        return () => calls.push('cleanup');
-      },
-    });
-    document.body.append(box);
-    box.remove();
-    expect(calls).toEqual(['mounted', 'cleanup']);
+  it('gives equal styles the same class and changed styles another one', () => {
+    const color = signal('red');
+    const box = Box({ $color: color });
+    const before = box.className;
+    expect(Box({ $color: 'red' }).className).toBe(before);
+    color.value = 'blue';
+    expect(box.className).not.toBe(before);
+    expect(sheet(box)).toContain('color: blue;');
+  });
+});
+
+describe('where the styles go', () => {
+  const Box = styled.div`
+    margin: 0;
+  `;
+  const styles = (root: ParentNode) =>
+    Array.from(root.querySelectorAll('style[data-ecmact="styled"]'), (node) => node.textContent);
+
+  it('waits until the element is in a document', () => {
+    const box = Box();
+    expect(styles(document.head)).toEqual([]);
+    mount(document.body, tags.section(box));
+    expect(styles(document.head)).toHaveLength(1);
   });
 
-  it('works for a mounted hook without cleanup', () => {
-    const box = Box({ mounted: () => {} });
-    document.body.append(box);
-    expect(() => box.remove()).not.toThrow();
+  it('adds a rule once however many elements use it', () => {
+    mount(document.body, Box(), Box());
+    expect(styles(document.head)).toHaveLength(1);
+  });
+
+  it('goes to the shadow root of the component that the element is in', () => {
+    const card = em.Card(Box());
+    document.body.append(card);
+    expect(styles(card.shadowRoot!)).toHaveLength(1);
+    expect(styles(document.head)).toEqual([]);
   });
 });

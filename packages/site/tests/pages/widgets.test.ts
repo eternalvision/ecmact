@@ -1,3 +1,4 @@
+import { mount } from 'ecmact';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -20,7 +21,7 @@ const directory = join(import.meta.dirname, '../../public/hosts');
 describe('widgets page', () => {
   it('shows a frame for every host page, with a link to open it alone', () => {
     const page = widgetsPage();
-    document.body.append(page);
+    mount(document.body, page);
     expect(page.querySelector('h1')?.textContent).toBe('Widgets');
     const frames = [...page.querySelectorAll('iframe')];
     expect(frames.map((frame) => frame.getAttribute('src'))).toEqual(

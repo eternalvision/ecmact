@@ -7,7 +7,7 @@ afterEach(() => {
 
 describe('config', () => {
   it('has defaults', () => {
-    expect(getConfig()).toEqual({ shadow: true, styles: [], warnings: true });
+    expect(getConfig()).toEqual({ shadow: true, prefix: 'em', styles: [], warnings: true });
   });
 
   it('configure overrides the given options', () => {
@@ -18,7 +18,12 @@ describe('config', () => {
   it('merges options between calls', () => {
     configure({ shadow: false });
     configure({ styles: ['div {}'] });
-    expect(getConfig()).toEqual({ shadow: false, styles: ['div {}'], warnings: true });
+    expect(getConfig()).toEqual({
+      shadow: false,
+      prefix: 'em',
+      styles: ['div {}'],
+      warnings: true,
+    });
   });
 
   it('replaces style lists instead of appending', () => {
@@ -30,7 +35,7 @@ describe('config', () => {
   it('resetConfig restores the defaults', () => {
     configure({ shadow: false, styles: ['a {}'] });
     resetConfig();
-    expect(getConfig()).toEqual({ shadow: true, styles: [], warnings: true });
+    expect(getConfig()).toEqual({ shadow: true, prefix: 'em', styles: [], warnings: true });
   });
 
   it('stores an error handler and the warnings switch', () => {

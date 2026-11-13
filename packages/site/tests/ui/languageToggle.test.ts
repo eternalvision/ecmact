@@ -10,9 +10,9 @@ afterEach(async () => {
 
 describe('LanguageToggle', () => {
   it('names the language it will switch to and switches on click', () => {
-    const toggle = LanguageToggle();
-    document.body.append(toggle);
-    const button = toggle.querySelector('button')!;
+    const button = LanguageToggle();
+    document.body.append(button);
+    expect(button.localName).toBe('button');
     expect(button.textContent).toBe('RU');
     expect(button.lang).toBe('ru');
     expect(button.getAttribute('aria-label')).toBe('Switch the language');
@@ -23,7 +23,7 @@ describe('LanguageToggle', () => {
   it('is in the language it offers to leave', async () => {
     await useLocale('ru');
     const toggle = LanguageToggle();
-    expect(toggle.querySelector('button')?.textContent).toBe('EN');
-    expect(toggle.querySelector('button')?.getAttribute('aria-label')).toBe('Сменить язык');
+    expect(toggle.textContent).toBe('EN');
+    expect(toggle.getAttribute('aria-label')).toBe('Сменить язык');
   });
 });

@@ -1,15 +1,15 @@
 import { callout, code, h2, p, table, ul } from '@site/content/builders';
 import type { DocPage } from '@site/content/types';
 
-/** Install, scaffold and write the first component. */
+/** Install, scaffold and write the first elements. */
 export const page: DocPage = {
   slug: 'getting-started',
   title: 'Getting started',
-  summary: 'Install ECMact, scaffold a project and write your first component in a few minutes.',
+  summary: 'Install ECMact, scaffold a project and put your first reactive elements on a page.',
   group: 'Start',
   blocks: [
     p(
-      'ECMact is a small library for reactive interfaces on native Web Components. A component is a function call that returns a real DOM element: there is no virtual DOM, no template language and no build step that the library depends on.',
+      'ECMact is a small library for reactive interfaces on the DOM. You build the page from function calls that return real DOM elements, and signals keep those elements up to date. There is no virtual DOM, no template language and no build step that the library depends on.',
     ),
     h2('Create a project'),
     p(
@@ -33,47 +33,56 @@ npm run dev
     p(
       'The package ships ES and CommonJS builds and its own type declarations. It has no runtime dependencies and is marked `sideEffects: false`, so what you do not import is not bundled.',
     ),
-    h2('Your first component'),
+    h2('Your first elements'),
     code(
       'ts',
       `
-import { em, mount } from 'ecmact';
+import { mount, signal, tags } from 'ecmact';
 
-const hello = em.Hello({
-  tag: 'h1',
-  content: 'Hello, ECMact',
-  style: { color: '#1665e0' },
-});
+const { button, h1 } = tags;
 
-mount('#app', hello);
+const count = signal(0);
+
+mount(
+  '#app',
+  h1('Hello, ECMact'),
+  button({ onclick: () => count.value++ }, () => \`Clicked \${count.value} times\`),
+);
 `,
       'src/main.ts',
     ),
-    p(
-      '`em.Hello(props)` creates a custom element `<em-hello>`. It renders one inner element, here an `h1`, into an open Shadow DOM. Every prop that the library does not use itself becomes an attribute of the inner element.',
+    ul(
+      '`tags.button(...)` returns a real `<button>`. The first argument is the props when it is a plain object. Everything after it is children.',
+      'A child that is a function is rendered again when a signal it reads changes. Here only the text of the button is rewritten on a click.',
+      '`mount` puts the elements into the page, into the element that the selector finds.',
     ),
     h2('What you get'),
     table(
       ['Capability', 'Where to read'],
-      ['Components, props, children, events and refs', '[Components](/docs/components)'],
+      [
+        'Elements, props, children, events, lists and components',
+        '[Elements and components](/docs/components)',
+      ],
       ['Signals, computed values and effects', '[Signals](/docs/signals)'],
-      ['Scoped styles, shared stylesheets and Tailwind CSS', '[Styling](/docs/styling)'],
+      ['Inline styles, classes, scoped stylesheets and Tailwind CSS', '[Styling](/docs/styling)'],
       ['CSS in tagged templates with themes and animations', '[Styled components](/docs/styled)'],
       ['Lifecycle hooks and error handling', '[Lifecycle](/docs/lifecycle)'],
-      ['Forms that work across the Shadow DOM boundary', '[Forms](/docs/forms)'],
+      ['Values handed down the tree', '[Context](/docs/context)'],
+      ['Two-way binding and fields inside a Shadow DOM', '[Forms](/docs/forms)'],
       ['A router with nested routes and guards', '[Routing](/docs/routing)'],
       ['A store with persistence and DevTools', '[State management](/docs/state)'],
       ['An HTTP client with interceptors and retries', '[HTTP client](/docs/http)'],
+      ['Async data with loading and error states', '[Data fetching](/docs/data)'],
       ['Custom elements for embedding in other sites', '[Widgets](/docs/widgets)'],
     ),
     callout(
       'tip',
-      'Every example in these docs that has a **Run** panel is a live ECMact component. Open the [examples](/examples) to try them all.',
+      'Every example in these docs that has a **Run** panel is live ECMact code. Open the [examples](/examples) to try them all.',
     ),
     h2('Requirements'),
     ul(
-      'Any evergreen browser with Custom Elements v1 and Shadow DOM. No polyfills are included.',
-      'Node.js 20.19 or newer for the scaffolder; 22 or newer if you contribute to the library.',
+      'Any evergreen browser. Components and widgets use Custom Elements v1 and Shadow DOM, and styled components use native CSS nesting. No polyfills are included.',
+      'Node.js 20.19 or newer for the scaffolder.',
       'TypeScript is optional, but the types are the best documentation: props, attributes and events are typed per tag.',
     ),
   ],

@@ -1,6 +1,8 @@
-import { computed, defineWidget, effect, signal } from 'ecmact';
+import { computed, defineWidget, effect, signal, tags, untracked } from 'ecmact';
 import { createFlipCard, flipCss, type FlipCard } from '@site/widgets/flip';
-import { part, sheet, tag } from '@site/widgets/kit';
+import { widgetCss } from '@site/widgets/kit';
+
+const { div, p, span } = tags;
 
 const css = `
   :host {
@@ -79,6 +81,9 @@ export const parseTarget = (value: string | null | undefined, fallback: number) 
   return Number.isNaN(parsed) ? fallback : parsed;
 };
 
+/** The timers that have announced the end of their countdown, so that one that is put back does not say it again. */
+const announced = new WeakSet<HTMLElement>();
+
 /**
  * Registers `<countdown-timer>`: a flip-clock style countdown to a moment. The clock ticks only while it is on
  * screen, in a visible tab and before the time has run out.
@@ -96,17 +101,8 @@ export const defineCountdownTimer = () =>
     ({ host, props, emit }) => {
       const now = signal(Date.now());
       const fallback = Date.now() + 3 * 86400000;
-      const target = computed(() => parseTarget(props.to.value, fallback));
-      const left = computed(() => remaining(target.value, now.value));
-      /**
-       * Writes a unit as at least two digits.
-       *
-       * @param value - The number.
-       * @returns The text, such as `07`.
-       */
-      const two = (value: number) => String(value).padStart(2, '0');
+      const left = computed(() => remaining(parseTarget(props.to, fallback), now.value));
       const cards: FlipCard[] = [];
-      let announced = false;
       /**
        * Builds one tile: a flip card and the name of its unit under it.
        *
@@ -115,87 +111,75 @@ export const defineCountdownTimer = () =>
        * @param className - An extra class for the tile.
        * @returns The tile.
        */
-      const unit = (name: string, read: (value: Remaining) => number, className = '') => {
-        const card = createFlipCard(computed(() => two(read(left.value))));
+      const unit = (name: string, read: (value: Remaining) => number, className?: string) => {
+        const card = createFlipCard(computed(() => String(read(left.value)).padStart(2, '0')));
         cards.push(card);
-        return part(
-          'div',
-          `tile ${className}`.trim(),
-          card.element,
-          tag('span', { class: 'name', content: name }),
-        );
+        return div({ class: ['tile', className] }, card.element, span({ class: 'name' }, name));
       };
+      const clock = div(
+        { class: 'clock' },
+        p({ class: 'label' }, () => props.label),
+        div(
+          { class: 'tiles' },
+          unit('days', (value) => value.days),
+          unit('hours', (value) => value.hours),
+          unit('min', (value) => value.minutes),
+          unit('sec', (value) => value.seconds, 'sec'),
+        ),
+      );
 
-      const root = tag('div', {
-        class: 'clock',
-        /**
-         * Starts the clock when the widget is in the document: the timer, the watchers of visibility, the cards and the
-         * `done` event.
-         *
-         * @param element - The element of the clock, which is watched for being on screen.
-         * @returns The cleanup that stops all of it.
-         */
-        mounted: (element) => {
-          let timer: ReturnType<typeof setInterval> | undefined;
-          let visible = true;
-          /** Moves the clock to the current moment. */
-          const tick = () => {
-            now.value = Date.now();
-          };
-          /** Runs the timer only while the clock is on screen, the tab is visible and the time has not run out. */
-          const sync = () => {
-            const run = visible && !document.hidden && !left.peek().done;
-            if (run && timer === undefined) {
-              tick();
-              timer = setInterval(tick, 1000);
-            } else if (!run && timer !== undefined) {
-              clearInterval(timer);
-              timer = undefined;
-            }
-          };
-          const observer =
-            typeof IntersectionObserver === 'function'
-              ? new IntersectionObserver((entries) => {
-                  visible = entries[entries.length - 1]?.isIntersecting ?? true;
-                  sync();
-                })
-              : undefined;
-          observer?.observe(element);
-          document.addEventListener('visibilitychange', sync);
-          const stopCards = cards.map((card) => card.start());
-          const stop = effect(() => {
-            if (!left.value.done) {
-              announced = false;
-              sync();
-              return;
-            }
-            if (announced) return;
-            announced = true;
-            emit('done');
-            sync();
-          });
-          sync();
-          return () => {
-            clearInterval(timer);
-            observer?.disconnect();
-            document.removeEventListener('visibilitychange', sync);
-            stopCards.forEach((stopCard) => stopCard());
-            stop();
-          };
-        },
-        children: [
-          tag('p', { class: 'label', content: computed(() => props.label.value ?? 'Countdown') }),
-          part(
-            'div',
-            'tiles',
-            unit('days', (value) => value.days),
-            unit('hours', (value) => value.hours),
-            unit('min', (value) => value.minutes),
-            unit('sec', (value) => value.seconds, 'sec'),
-          ),
-        ],
+      let timer: ReturnType<typeof setInterval> | undefined;
+      let visible = true;
+      /** Moves the clock to the current moment. */
+      const tick = () => {
+        now.value = Date.now();
+      };
+      /** Runs the timer only while the clock is on screen, the tab is visible and the time has not run out. */
+      const sync = () => {
+        const run = visible && !document.hidden && !left.peek().done;
+        if (run && timer === undefined) {
+          tick();
+          timer = setInterval(tick, 1000);
+        } else if (!run && timer !== undefined) {
+          clearInterval(timer);
+          timer = undefined;
+        }
+      };
+      /**
+       * Starts what a signal does not drive: the watchers of visibility and the flip cards.
+       *
+       * @returns The cleanup that stops them and the timer; the widget runs it when it leaves the page.
+       */
+      const watch = () => {
+        const observer =
+          typeof IntersectionObserver === 'function'
+            ? new IntersectionObserver((entries) => {
+                visible = entries[entries.length - 1]?.isIntersecting ?? true;
+                sync();
+              })
+            : undefined;
+        observer?.observe(clock);
+        document.addEventListener('visibilitychange', sync);
+        const stopCards = cards.map((card) => card.start());
+        return () => {
+          clearInterval(timer);
+          observer?.disconnect();
+          document.removeEventListener('visibilitychange', sync);
+          stopCards.forEach((stop) => stop());
+        };
+      };
+      effect(() => untracked(watch));
+      effect(() => {
+        const { done } = left.value;
+        sync();
+        if (!done) {
+          announced.delete(host);
+        } else if (!announced.has(host)) {
+          announced.add(host);
+          emit('done');
+        }
       });
-      return sheet(host, css, root);
+      return clock;
     },
-    { attributes: ['to', 'label'] },
+    { attributes: { to: '', label: 'Countdown' }, css: widgetCss(css) },
   );

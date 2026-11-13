@@ -1,4 +1,4 @@
-import { em, keyframes, signal, styled, ThemeProvider } from 'ecmact';
+import { keyframes, signal, styled, tags, ThemeProvider, type Theme } from 'ecmact';
 
 const spin = keyframes`
   from { rotate: 0deg; }
@@ -43,31 +43,28 @@ const Swatch = styled.button<{ $color: string }>`
 const colors = ['#1665e0', '#d6336c', '#2f9e44', '#e67700'];
 
 /**
- * Styled components with props, a theme from a signal, and an animation. Change the swatch: every styled
- * component below the provider restyles.
+ * Styled elements with props, a theme from a signal, and an animation. Change the swatch: every styled element
+ * below the provider restyles.
  *
  * @returns The demo.
  */
 export const create = () => {
-  const theme = signal<Record<string, unknown>>({ accent: colors[0] });
+  const theme = signal<Theme>({ accent: colors[0] });
 
-  return ThemeProvider({
-    theme,
-    style: { display: 'flex', gap: '0.9rem', alignItems: 'center', flexWrap: 'wrap' },
-    children: [
-      Button({ content: 'Primary', $primary: true }),
-      Button({ content: 'Outline' }),
-      Spinner(),
-      em.Swatches({
-        style: { display: 'flex', gap: '0.5rem' },
-        children: colors.map((color) =>
-          Swatch({
-            $color: color,
-            'aria-label': `Use ${color}`,
-            onclick: () => (theme.value = { accent: color }),
-          }),
-        ),
-      }),
-    ],
-  });
+  return ThemeProvider(
+    { theme, style: { display: 'flex', gap: '0.9rem', alignItems: 'center', flexWrap: 'wrap' } },
+    Button({ $primary: true }, 'Primary'),
+    Button('Outline'),
+    Spinner(),
+    tags.div(
+      { style: { display: 'flex', gap: '0.5rem' } },
+      colors.map((color) =>
+        Swatch({
+          $color: color,
+          'aria-label': `Use ${color}`,
+          onclick: () => (theme.value = { accent: color }),
+        }),
+      ),
+    ),
+  );
 };

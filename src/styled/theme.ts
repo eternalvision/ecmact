@@ -1,8 +1,7 @@
-import { em } from '@em/core/em';
-import { consume, createContext, provide } from '@em/core/context';
+import { createContext } from '@em/core/context';
+import { tags } from '@em/core/tags';
 import { isSignal, signal, type ReadonlySignal } from '@em/signals/signals';
-import type { Component } from '@em/core/component';
-import type { ComponentProps } from '@em/types';
+import type { Child, Props } from '@em/types';
 
 /**
  * The theme that styled components read as `props.theme`: any object, usually design tokens such as colors and spacing.
@@ -13,7 +12,7 @@ export type Theme = Record<string, unknown>;
 export const themeContext = createContext<ReadonlySignal<Theme>>('ecmact:theme');
 
 /** Props of `ThemeProvider`: the props of a div, plus the theme. */
-export type ThemeProviderProps = Omit<ComponentProps<'div'>, 'tag' | 'provide'> & {
+export type ThemeProviderProps = Omit<Props<'div'>, 'provide'> & {
   /** The theme, or a signal of it to change the theme at runtime. */
   theme: Theme | ReadonlySignal<Theme>;
 };
@@ -23,20 +22,24 @@ export type ThemeProviderProps = Omit<ComponentProps<'div'>, 'tag' | 'provide'> 
  * own subtree. The provider is a `div` with `display: contents`, so it does not affect the layout.
  *
  * @example
- * mount('#app', ThemeProvider({ theme: { accent: '#1665e0' }, children: [Button({ content: 'Save' })] }));
+ * mount('#app', ThemeProvider({ theme: { accent: '#1665e0' } }, Button('Save')));
  *
- * @param props - The theme and the usual component props.
- * @returns The provider component.
+ * @param props - The theme and the usual props of a div.
+ * @param children - The children.
+ * @returns The provider element.
  */
-export const ThemeProvider = ({ theme, style, ...props }: ThemeProviderProps) => {
-  const source = isSignal(theme) ? theme : signal(theme);
-  return em.ThemeProvider({
-    ...props,
-    tag: 'div',
-    style: { display: 'contents', ...(style as object) },
-    provide: [provide(themeContext, source)],
-  } as never) as Component<'div'>;
-};
+export const ThemeProvider = (
+  { theme, style, ...props }: ThemeProviderProps,
+  ...children: Child[]
+) =>
+  tags.div(
+    {
+      ...props,
+      style: { display: 'contents', ...(style as object) },
+      provide: themeContext.provide(isSignal(theme) ? theme : signal(theme)),
+    },
+    ...children,
+  );
 
 /**
  * Reads the theme that applies to an element, as a signal.
@@ -44,4 +47,4 @@ export const ThemeProvider = ({ theme, style, ...props }: ThemeProviderProps) =>
  * @param host - An element that is inside the document, below the provider.
  * @returns The theme signal, or `undefined` when no `ThemeProvider` is above the element.
  */
-export const useTheme = (host: Element) => consume(themeContext, host);
+export const useTheme = (host: Element) => themeContext.use(host);

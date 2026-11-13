@@ -253,12 +253,13 @@ const en: Messages = {
   demos: {
     counter: {
       title: 'Signals',
-      description: 'A signal, a computed value and props bound to them: only two texts update.',
+      description:
+        'A signal, a value computed from it and two texts that follow them: nothing else updates.',
     },
     todo: {
       title: 'Keyed list and store',
       description:
-        'A store holds the to-dos, a keyed list shows them, a selected signal counts them.',
+        'A store holds the to-dos, a keyed list shows them, a function child counts them.',
     },
     styled: {
       title: 'Styled components and themes',
@@ -267,7 +268,8 @@ const en: Messages = {
     },
     store: {
       title: 'Persistent store',
-      description: 'persist() keeps the notes in localStorage: add one and reload the page.',
+      description:
+        'The persist option keeps the notes in localStorage: add one and reload the page.',
     },
     http: {
       title: 'HTTP client and resource',
@@ -295,7 +297,7 @@ const en: Messages = {
     lifecycle: {
       title: 'Lifecycle hooks',
       description:
-        'mounted, unmounted, beforeUpdate and updated on a clock you can remove and freeze.',
+        'mounted with a cleanup, an effect that stops by itself and unmounted, on a clock you can remove.',
     },
     context: {
       title: 'Context',
@@ -317,7 +319,7 @@ const en: Messages = {
     facts: [
       ['0', 'runtime dependencies'],
       ['100%', 'test coverage, every line'],
-      ['Shadow DOM', 'isolation by default'],
+      ['Shadow DOM', 'isolation for components and widgets'],
       ['Typed', 'props, events and attributes per tag'],
     ],
     featuresTitle: 'Everything an interface needs, nothing it does not',
@@ -489,11 +491,12 @@ const ru: Messages = {
     counter: {
       title: 'Сигналы',
       description:
-        'Сигнал, вычисляемое значение и пропсы, привязанные к ним: обновляются только два текста.',
+        'Сигнал, вычисленное из него значение и два текста, которые за ними следят: больше ничего не обновляется.',
     },
     todo: {
       title: 'Список с ключами и стор',
-      description: 'Стор хранит дела, список с ключами их показывает, выбранный сигнал их считает.',
+      description:
+        'Стор хранит дела, список с ключами их показывает, реактивная функция их считает.',
     },
     styled: {
       title: 'Styled-компоненты и темы',
@@ -502,7 +505,7 @@ const ru: Messages = {
     store: {
       title: 'Стор с сохранением',
       description:
-        'persist() хранит заметки в localStorage: добавьте одну и перезагрузите страницу.',
+        'Опция persist хранит заметки в localStorage: добавьте одну и перезагрузите страницу.',
     },
     http: {
       title: 'HTTP-клиент и resource',
@@ -530,7 +533,7 @@ const ru: Messages = {
     lifecycle: {
       title: 'Хуки жизненного цикла',
       description:
-        'mounted, unmounted, beforeUpdate и updated на часах, которые можно убрать и заморозить.',
+        'mounted с очисткой, эффект, который останавливается сам, и unmounted на часах, которые можно убрать.',
     },
     context: {
       title: 'Контекст',
@@ -553,7 +556,7 @@ const ru: Messages = {
     facts: [
       ['0', 'runtime-зависимостей'],
       ['100%', 'покрытие тестами, каждая строка'],
-      ['Shadow DOM', 'изоляция по умолчанию'],
+      ['Shadow DOM', 'изоляция компонентов и виджетов'],
       ['Типы', 'пропсы, события и атрибуты по тегу'],
     ],
     featuresTitle: 'Всё, что нужно интерфейсу, и ничего лишнего',

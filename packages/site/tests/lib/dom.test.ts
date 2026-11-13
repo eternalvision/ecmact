@@ -1,34 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { el, icon, slugify } from '@site/lib/dom';
-
-describe('el', () => {
-  it('creates an element with a class, attributes and children', () => {
-    const element = el(
-      'a',
-      { class: 'link', attrs: { href: '/x', hidden: true, title: undefined, id: false } },
-      'text',
-      el('b'),
-    );
-    expect(element.localName).toBe('a');
-    expect(element.className).toBe('link');
-    expect(element.getAttribute('href')).toBe('/x');
-    expect(element.hasAttribute('hidden')).toBe(true);
-    expect(element.hasAttribute('title')).toBe(false);
-    expect(element.hasAttribute('id')).toBe(false);
-    expect(element.textContent).toBe('text');
-    expect(element.children).toHaveLength(1);
-  });
-
-  it('skips null, undefined and false children but keeps an empty string', () => {
-    const element = el('p', {}, null, undefined, false, '', 'x');
-    expect(element.childNodes).toHaveLength(2);
-    expect(element.textContent).toBe('x');
-  });
-
-  it('works without options', () => {
-    expect(el('div').outerHTML).toBe('<div></div>');
-  });
-});
+import { icon, slugify } from '@site/lib/dom';
 
 describe('slugify', () => {
   it('lowers the case, joins words with dashes and drops everything else', () => {

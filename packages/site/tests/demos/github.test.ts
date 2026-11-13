@@ -31,7 +31,7 @@ const open = async () => {
     root,
     text: () => root.textContent!,
     footer: () => root.querySelector('small')?.textContent,
-    result: () => root.querySelector<HTMLElement>('.card > em-div > div'),
+    result: () => root.querySelector('.card a'),
     type: async (name: string) => {
       const input = root.querySelector('input')!;
       input.value = name;
@@ -103,15 +103,26 @@ describe('github demo', () => {
     expect(footer()).toBe('API calls left this hour: 0');
   });
 
-  it('does not show the result of an older lookup beside a failure, or while loading', async () => {
+  it('says that it is loading until the first answer', async () => {
+    vi.stubGlobal('fetch', () => new Promise(() => {}));
+    const { text, result } = await open();
+    expect(text()).toContain('Loading...');
+    expect(result()).toBeNull();
+  });
+
+  it('does not show the result of an older lookup beside a failure', async () => {
     let answer: unknown = repository('a/b');
     stubFetch(() => answer);
-    const { result, type } = await open();
-    expect(getComputedStyle(result()!).display).not.toBe('none');
+    const { result, type, text } = await open();
+    expect(result()?.textContent).toBe('a/b');
     answer = 404;
     await type('x/y');
-    expect(result()!.hasAttribute('hidden')).toBe(true);
-    expect(getComputedStyle(result()!).display).toBe('none');
+    expect(result()).toBeNull();
+    expect(text()).not.toContain('★');
+    answer = repository('x/z');
+    await type('x/z');
+    expect(result()?.textContent).toBe('x/z');
+    expect(text()).not.toContain('No such repository.');
   });
 
   it('names the code of a failure that has no status', async () => {

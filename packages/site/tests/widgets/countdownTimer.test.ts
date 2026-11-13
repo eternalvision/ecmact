@@ -138,6 +138,34 @@ describe('countdown-timer', () => {
     expect(done).toHaveBeenCalledTimes(1);
   });
 
+  it('does not fire done again when it is taken out of the page and put back later', async () => {
+    const done = vi.fn();
+    const { element } = await mountWidget(
+      'countdown-timer',
+      { to: '2027-01-01T00:00:01' },
+      { done },
+    );
+    await vi.advanceTimersByTimeAsync(2000);
+    element.remove();
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(element.shadowRoot?.querySelector('.clock')).toBeNull();
+    document.body.append(element);
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(shown(element.shadowRoot!)).toEqual(['00', '00', '00', '00']);
+    expect(done).toHaveBeenCalledTimes(1);
+  });
+
+  it('stops the clock and a flip in progress when it is taken out of the page', async () => {
+    const { element, root } = await mountWidget('countdown-timer', { to: '2027-01-02T00:00:00' });
+    await vi.advanceTimersByTimeAsync(1000);
+    const digit = root.querySelector('.tile.sec .digit')!;
+    expect(digit.classList.contains('flip')).toBe(true);
+    element.remove();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(digit.classList.contains('flip')).toBe(false);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   it('fires done again for a new, later moment', async () => {
     const done = vi.fn();
     const { element, root } = await mountWidget(
@@ -198,6 +226,7 @@ describe('countdown-timer', () => {
     document.dispatchEvent(new Event('visibilitychange'));
     expect(vi.getTimerCount()).toBe(1);
     element.remove();
+    await vi.advanceTimersByTimeAsync(0);
     expect(disconnected).toBe(1);
     document.dispatchEvent(new Event('visibilitychange'));
     expect(vi.getTimerCount()).toBe(0);

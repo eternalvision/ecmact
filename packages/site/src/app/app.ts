@@ -1,7 +1,7 @@
 import { effect, mount } from 'ecmact';
 import { createSiteRouter } from '@site/app/router';
 import { watchTheme } from '@site/app/theme';
-import { applyLocale, localeStore, readLocaleParam } from '@site/lib/i18n';
+import { applyLocale, localeStore, readLocaleParam, type Locale } from '@site/lib/i18n';
 import { applyMeta, metaFor } from '@site/lib/title';
 import { Footer } from '@site/ui/footer';
 import { Header } from '@site/ui/header';
@@ -20,19 +20,19 @@ export const start = (target: string | Element) => {
   const router = createSiteRouter();
 
   /**
-   * Builds the interface in the language in use, replacing what was there.
+   * Builds the interface in a language, replacing what was there.
+   *
+   * @param locale - The language.
    */
-  const render = () => {
-    applyLocale(localeStore.getState().locale);
+  const render = (locale: Locale) => {
+    applyLocale(locale);
     root.replaceChildren();
-    mount(root, Header(router), router.outlet({ class: 'outlet', shadow: false }), Footer(router));
+    mount(root, Header(router), router.outlet({ class: 'outlet' }), Footer(router));
   };
 
   const stopTheme = watchTheme();
   const stopLocale = localeStore.watch((state) => state.locale, render, { fireImmediately: true });
-  const stopMeta = effect(() =>
-    applyMeta(metaFor(router.location.value.path, localeStore.state.value.locale)),
-  );
+  const stopMeta = effect(() => applyMeta(metaFor(router.location.value.path, localeStore.locale)));
   return {
     router,
     /**

@@ -4,8 +4,11 @@ import {
   computed,
   effect,
   isSignal,
+  onCleanup,
+  owned,
   signal,
   untracked,
+  watch,
   type ReadonlySignal,
   type Signal,
 } from '@em/signals/signals';
@@ -429,5 +432,67 @@ describe('computed with equals', () => {
     );
     source.value = 2;
     expect(parity.value).toBe(0);
+  });
+});
+
+describe('owned', () => {
+  it('returns the result and stops the effects that were created inside', () => {
+    const count = signal(0);
+    const run = vi.fn(() => void count.value);
+    const [result, dispose] = owned(() => {
+      effect(run);
+      return 'done';
+    });
+    expect(result).toBe('done');
+    count.value = 1;
+    expect(run).toHaveBeenCalledTimes(2);
+    dispose();
+    count.value = 2;
+    expect(run).toHaveBeenCalledTimes(2);
+  });
+
+  it('runs the registered cleanups once', () => {
+    const cleanup = vi.fn();
+    const [, dispose] = owned(() => onCleanup(cleanup));
+    dispose();
+    dispose();
+    expect(cleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not collect watch, nor effects created outside', () => {
+    const count = signal(0);
+    const inside = vi.fn(() => void count.value);
+    const outside = vi.fn(() => void count.value);
+    const [stop, dispose] = owned(() => watch(inside));
+    const stopOutside = effect(outside);
+    dispose();
+    count.value = 1;
+    expect(inside).toHaveBeenCalledTimes(2);
+    expect(outside).toHaveBeenCalledTimes(2);
+    stop();
+    stopOutside();
+  });
+
+  it('nests, and restores the owner when the function throws', () => {
+    const outer = vi.fn();
+    const inner = vi.fn();
+    const [, dispose] = owned(() => {
+      const [, disposeInner] = owned(() => onCleanup(inner));
+      expect(() =>
+        owned(() => {
+          throw new Error('x');
+        }),
+      ).toThrow('x');
+      onCleanup(outer);
+      disposeInner();
+    });
+    expect(inner).toHaveBeenCalledTimes(1);
+    expect(outer).not.toHaveBeenCalled();
+    dispose();
+    expect(outer).toHaveBeenCalledTimes(1);
+  });
+
+  it('onCleanup does nothing without an owner', () => {
+    expect(() => onCleanup(() => {})).not.toThrow();
   });
 });

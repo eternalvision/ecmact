@@ -3,11 +3,12 @@ export { tags } from '@em/core/tags';
 export { configure } from '@em/core/config';
 export { each } from '@em/core/each';
 export type { EachOptions } from '@em/core/each';
+export type { Tags } from '@em/core/tags';
 export { toFormData } from '@em/http/body';
 export { CanceledError, HttpError, isCancel, isHttpError } from '@em/http/error';
 export type { HttpErrorCode } from '@em/http/error';
 export { createHttp, http } from '@em/http/http';
-export type { HttpInstance } from '@em/http/http';
+export type { HttpInstance, HttpPromise, HttpResourceConfig } from '@em/http/http';
 export type {
   HeaderMap,
   HeaderValue,
@@ -23,10 +24,8 @@ export type {
   ResponseType,
   RetryOptions,
 } from '@em/http/types';
-export { combine } from '@em/store/combine';
-export { devtools } from '@em/store/devtools';
 export type { DevtoolsOptions } from '@em/store/devtools';
-export { createJSONStorage, persist } from '@em/store/persist';
+export { createJSONStorage } from '@em/store/persist';
 export type {
   JsonStorageOptions,
   PersistApi,
@@ -37,7 +36,7 @@ export type {
 } from '@em/store/persist';
 export { shallow } from '@em/store/shallow';
 export { createStore } from '@em/store/store';
-export type { Listener, SetState, StateCreator, Store, WatchOptions } from '@em/store/store';
+export type { Listener, SetState, Store, StoreOptions, WatchOptions } from '@em/store/store';
 export { styled } from '@em/styled/styled';
 export type {
   Attrs,
@@ -53,7 +52,7 @@ export { ThemeProvider, themeContext, useTheme } from '@em/styled/theme';
 export type { Theme, ThemeProviderProps } from '@em/styled/theme';
 export { defineWidget } from '@em/widget/widget';
 export type { WidgetContext, WidgetOptions } from '@em/widget/widget';
-export { consume, createContext, provide } from '@em/core/context';
+export { createContext } from '@em/core/context';
 export { createRouter } from '@em/router';
 export type {
   Guard,
@@ -79,9 +78,14 @@ export type { Component } from '@em/core/component';
 export type {
   AttributeMap,
   Child,
+  ClassValue,
   ComponentProps,
   EventHandlerOptions,
+  Factory,
+  Getter,
   GlobalAttributes,
-  ResolvedProps,
+  Props,
+  Reactive,
+  Styles,
   TagName,
 } from '@em/types';

@@ -1,184 +1,188 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { each, signal, tags, type Component } from '@em';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { each, signal, tags } from '@em';
 import { resetWarnings } from '@em/utils/warn';
-import { inner } from '@tests/helpers';
+
+let spy: ReturnType<typeof vi.spyOn>;
+
+beforeEach(() => {
+  spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+});
 
 afterEach(() => {
+  spy.mockRestore();
   resetWarnings();
   document.body.replaceChildren();
 });
 
-/**
- * Makes the component of an item for the tests.
- *
- * @param text - The text of the item.
- * @returns A list item.
- */
-const item = (text: string) => tags.li({ content: text });
+/** An item with an id, for the tests of keys. */
+interface Todo {
+  /** The key. */
+  id: number;
+  /** The text. */
+  text: string;
+}
 
-/**
- * Reads the rows of a list.
- *
- * @param list - The list component.
- * @returns The inner elements of its children.
- */
-const rows = <K extends string>(list: Component<K>) => [...inner(list).children] as HTMLElement[];
-
-/**
- * Reads the text of the rows of a list.
- *
- * @param list - The list component.
- * @returns The texts.
- */
-const texts = <K extends string>(list: Component<K>) =>
-  rows(list).map((row) => row.shadowRoot?.textContent);
+const texts = (list: Element) => Array.from(list.children, (child) => child.textContent);
 
 describe('each', () => {
-  it('renders one component for each item of an array, into a div by default', () => {
-    const list = each(['a', 'b', 'c'], item);
-    document.body.append(list);
-    expect(inner(list).localName).toBe('div');
-    expect(texts(list)).toEqual(['a', 'b', 'c']);
+  it('renders one node for each item of an array, with no wrapper', () => {
+    const list = tags.ul(each(['a', 'b', 'c'], (text) => tags.li(text)));
+    expect(list.outerHTML.replaceAll('<!---->', '')).toBe(
+      '<ul><li>a</li><li>b</li><li>c</li></ul>',
+    );
   });
 
-  it('is an ordinary component: it takes the tag and the other props of the list element', () => {
-    const list = each(['a'], item, { tag: 'ul', class: 'todos', 'aria-label': 'Todos' });
-    document.body.append(list);
-    expect(inner(list).localName).toBe('ul');
-    expect(inner(list).className).toBe('todos');
-    expect(inner(list).getAttribute('aria-label')).toBe('Todos');
+  it('passes the position to render', () => {
+    const list = tags.ul(each(['a', 'b'], (text, index) => tags.li(`${index}:${text}`)));
+    expect(texts(list)).toEqual(['0:a', '1:b']);
   });
 
-  it('gives render the item and its position', () => {
-    const calls: [string, number][] = [];
-    each(['x', 'y'], (value, index) => {
-      calls.push([value, index]);
-      return item(value);
-    });
-    expect(calls).toEqual([
-      ['x', 0],
-      ['y', 1],
-    ]);
-  });
-
-  it('follows a signal while the list is in the document', () => {
+  it('follows a signal and keeps the nodes of the items that stay', () => {
     const items = signal(['a', 'b']);
-    const list = each(items, item);
-    document.body.append(list);
-    items.value = ['a', 'b', 'c'];
-    expect(texts(list)).toEqual(['a', 'b', 'c']);
-    items.value = ['b'];
-    expect(texts(list)).toEqual(['b']);
+    const list = tags.ul(each(items, (text) => tags.li(text)));
+    const [first, second] = Array.from(list.children);
+    items.value = ['b', 'c', 'a'];
+    expect(texts(list)).toEqual(['b', 'c', 'a']);
+    expect(list.children[0]).toBe(second);
+    expect(list.children[2]).toBe(first);
   });
 
-  it('does not render twice when it is put into the document', () => {
-    const render = vi.fn(item);
-    const list = each(signal(['a', 'b']), render);
-    document.body.append(list);
+  it('follows a function', () => {
+    const count = signal(1);
+    const list = tags.ul(
+      each(
+        () => Array.from({ length: count.value }, (_, index) => index),
+        (index) => tags.li(String(index)),
+      ),
+    );
+    count.value = 3;
+    expect(texts(list)).toEqual(['0', '1', '2']);
+  });
+
+  it('keys objects with by and keeps the node of an item that did not change', () => {
+    const a: Todo = { id: 1, text: 'a' };
+    const b: Todo = { id: 2, text: 'b' };
+    const items = signal([a, b]);
+    const render = vi.fn((todo: Todo) => tags.li(todo.text));
+    const list = tags.ul(each(items, render, { by: (todo) => todo.id }));
+    const row = list.children[1];
+    items.value = [b, a];
+    expect(list.children[0]).toBe(row);
     expect(render).toHaveBeenCalledTimes(2);
   });
 
-  it('keeps the component of an item that is still there, and moves it when the order changes', () => {
-    const items = signal(['a', 'b', 'c']);
-    const list = each(items, item);
-    document.body.append(list);
-    const [a, b, c] = rows(list).map((row) => row.getRootNode());
-    items.value = ['c', 'a', 'b'];
-    expect(texts(list)).toEqual(['c', 'a', 'b']);
-    expect(rows(list).map((row) => row.getRootNode())).toEqual([c, a, b]);
-  });
-
-  it('keeps objects by the key that `by` returns and updates the kept component in place', () => {
-    const items = signal([
-      { id: 1, text: 'one' },
-      { id: 2, text: 'two' },
+  it('renders an item again in place when it changed under the same key', () => {
+    const items = signal<Todo[]>([
+      { id: 1, text: 'a' },
+      { id: 2, text: 'b' },
     ]);
-    const list = each(items, (todo) => item(todo.text), { by: (todo) => todo.id });
-    document.body.append(list);
-    const [first, second] = rows(list).map((row) => row.getRootNode());
-    items.value = [
-      { id: 2, text: 'two!' },
-      { id: 1, text: 'one!' },
-    ];
-    expect(texts(list)).toEqual(['two!', 'one!']);
-    expect(rows(list).map((row) => row.getRootNode())).toEqual([second, first]);
+    const list = tags.ul(each(items, (todo) => tags.li(todo.text), { by: (todo) => todo.id }));
+    const [first, second] = Array.from(list.children);
+    items.value = [items.value[0], { id: 2, text: 'B' }];
+    expect(texts(list)).toEqual(['a', 'B']);
+    expect(list.children[0]).toBe(first);
+    expect(list.children[1]).not.toBe(second);
   });
 
-  it('keys an object by its position when `by` is not given', () => {
-    const items = signal([{ text: 'one' }, { text: 'two' }]);
-    const list = each(items, (todo) => item(todo.text));
-    document.body.append(list);
-    const [first] = rows(list).map((row) => row.getRootNode());
-    items.value = [{ text: 'uno' }, { text: 'dos' }];
-    expect(texts(list)).toEqual(['uno', 'dos']);
-    expect(rows(list)[0]?.getRootNode()).toBe(first);
+  it('keys objects by their position without by', () => {
+    const items = signal([{ text: 'a' }]);
+    const list = tags.ul(each(items, (item) => tags.li(item.text)));
+    items.value = [{ text: 'b' }, { text: 'c' }];
+    expect(texts(list)).toEqual(['b', 'c']);
   });
 
-  it('keeps the key that render gave a component itself', () => {
-    const list = each(['a', 'b'], (value) => tags.li({ content: value, key: `own-${value}` }));
-    expect(list.props.children).toHaveLength(2);
-    const keys = (list.props.children as Component[]).map((node) => node.props.key);
-    expect(keys).toEqual(['own-a', 'own-b']);
+  it('warns about a duplicate key and still renders both items', () => {
+    const list = tags.ul(each(['a', 'a'], (text) => tags.li(text)));
+    expect(texts(list)).toEqual(['a', 'a']);
+    expect(spy).toHaveBeenCalledWith('ecmact: duplicate key "a" in each');
   });
 
-  it('shows what `empty` says while there are no items, and the items when they come', () => {
+  it('shows the empty content while there are no items', () => {
     const items = signal<string[]>([]);
-    const list = each(items, item, { empty: 'Nothing here' });
-    document.body.append(list);
-    expect(inner(list).textContent).toBe('Nothing here');
+    const list = tags.ul(each(items, (text) => tags.li(text), { empty: tags.li('Nothing') }));
+    expect(texts(list)).toEqual(['Nothing']);
     items.value = ['a'];
     expect(texts(list)).toEqual(['a']);
-    expect(inner(list).textContent).not.toContain('Nothing here');
     items.value = [];
-    expect(inner(list).textContent).toBe('Nothing here');
+    expect(texts(list)).toEqual(['Nothing']);
   });
 
-  it('renders nothing for an empty list without `empty`', () => {
-    const list = each([] as string[], item);
-    document.body.append(list);
-    expect(rows(list)).toHaveLength(0);
+  it('renders nothing for an empty list without empty content', () => {
+    const list = tags.ul(each([], () => tags.li()));
+    expect(list.children).toHaveLength(0);
   });
 
-  it('stops following the signal when it leaves the document, and catches up when it comes back', () => {
+  it('does not follow the signals that render reads', () => {
     const items = signal(['a']);
-    const render = vi.fn(item);
-    const list = each(items, render);
-    document.body.append(list);
-    list.remove();
-    items.value = ['a', 'b'];
+    const other = signal(0);
+    const render = vi.fn((text: string) => tags.li(`${text}${other.value}`));
+    tags.ul(each(items, render));
+    other.value = 1;
     expect(render).toHaveBeenCalledTimes(1);
-    document.body.append(list);
-    expect(texts(list)).toEqual(['a', 'b']);
   });
 
-  it('runs the `mounted` of the options, and its cleanup when the list leaves', () => {
-    const order: string[] = [];
-    const list = each(['a'], item, {
-      mounted: () => {
-        order.push('mounted');
-        return () => order.push('cleanup');
-      },
-    });
-    document.body.append(list);
-    list.remove();
-    expect(order).toEqual(['mounted', 'cleanup']);
-  });
-
-  it('works with a `mounted` that returns no cleanup', () => {
-    const mounted = vi.fn();
-    const list = each(['a'], item, { mounted });
-    document.body.append(list);
-    expect(() => list.remove()).not.toThrow();
-    expect(mounted).toHaveBeenCalledTimes(1);
-  });
-
-  it('warns about two items with the same key, as any list of keyed children does', () => {
-    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  it('leaves the siblings around the list alone', () => {
     const items = signal(['a']);
-    const list = each(items, item);
+    const list = tags.ul(
+      tags.li('first'),
+      each(items, (text) => tags.li(text)),
+      tags.li('last'),
+    );
+    items.value = ['a', 'b'];
+    expect(texts(list)).toEqual(['first', 'a', 'b', 'last']);
+  });
+});
+
+describe('each: focus', () => {
+  const setup = (render: (todo: Todo) => Node) => {
+    const items = signal<Todo[]>([{ id: 1, text: 'a' }]);
+    const list = tags.ul(each(items, render, { by: (todo) => todo.id }));
     document.body.append(list);
-    items.value = ['a', 'a'];
-    expect(spy).toHaveBeenCalledWith(expect.stringContaining('duplicate key "a"'));
-    spy.mockRestore();
+    const update = () => {
+      items.value = [{ id: 1, text: 'b' }];
+    };
+    return { list, update };
+  };
+
+  it('keeps the focus on the same place of an item that is rendered again', () => {
+    const { list, update } = setup((todo) => tags.li(tags.span(todo.text), tags.input()));
+    list.querySelector('input')!.focus();
+    update();
+    expect(document.activeElement).toBe(list.querySelector('input'));
+    expect(list.textContent).toBe('b');
+  });
+
+  it('keeps the focus on the node itself', () => {
+    const { list, update } = setup((todo) => tags.button(todo.text));
+    list.querySelector('button')!.focus();
+    update();
+    expect(document.activeElement).toBe(list.querySelector('button'));
+  });
+
+  it('leaves the focus alone when it is somewhere else', () => {
+    const outside = tags.input();
+    const { update } = setup((todo) => tags.li(todo.text));
+    document.body.append(outside);
+    outside.focus();
+    update();
+    expect(document.activeElement).toBe(outside);
+  });
+
+  it('gives up when the new node has no such place', () => {
+    let version = 0;
+    const { list, update } = setup(() =>
+      version++ === 0 ? tags.li(tags.input()) : document.createTextNode('text'),
+    );
+    list.querySelector('input')!.focus();
+    expect(update).not.toThrow();
+  });
+
+  it('gives up when the new node cannot take the focus', () => {
+    let version = 0;
+    const { list, update } = setup(() =>
+      version++ === 0 ? tags.button('x') : document.createTextNode('text'),
+    );
+    list.querySelector('button')!.focus();
+    expect(update).not.toThrow();
   });
 });

@@ -1,5 +1,7 @@
-import { computed, defineWidget, signal } from 'ecmact';
-import { money, part, readNumber, sheet, tag } from '@site/widgets/kit';
+import { defineWidget, signal, tags } from 'ecmact';
+import { money, readNumber, widgetCss } from '@site/widgets/kit';
+
+const { b, button, div, h3, input, label, p, span, strong } = tags;
 
 const css = `
   :host {
@@ -54,88 +56,60 @@ const css = `
 export const definePriceCalculator = () =>
   defineWidget(
     'price-calculator',
-    ({ host, props, emit }) => {
+    ({ props, emit }) => {
       const seats = signal(5);
       const yearly = signal(false);
-      const currency = computed(() => props.currency.value || 'USD');
-      const perSeat = computed(() => readNumber(props.base.value, 12));
-      const total = computed(() => {
-        const amount = yearly.value
-          ? perSeat.value * seats.value * 12 * 0.8
-          : perSeat.value * seats.value;
+      /**
+       * Reads the currency: the attribute, or dollars when it is empty.
+       *
+       * @returns The ISO 4217 code.
+       */
+      const currency = () => props.currency || 'USD';
+      /**
+       * Counts the price of the seats for the chosen period; a year costs a fifth less.
+       *
+       * @returns The amount, rounded to cents.
+       */
+      const total = () => {
+        const perSeat = readNumber(props.base, 12);
+        const amount = yearly.value ? perSeat * seats.value * 12 * 0.8 : perSeat * seats.value;
         return Math.round(amount * 100) / 100;
-      });
-      const root = part(
-        'div',
-        'card',
-        tag('h3', { content: computed(() => props.heading.value ?? 'Team plan') }),
-        tag('p', { class: 'sub', content: 'Pay for the seats you use.' }),
-        part(
-          'div',
-          'seats',
-          tag('span', { content: 'Seats' }),
-          tag('b', { content: computed(() => String(seats.value)) }),
+      };
+
+      return div(
+        { class: 'card' },
+        h3(() => props.heading),
+        p({ class: 'sub' }, 'Pay for the seats you use.'),
+        div({ class: 'seats' }, span('Seats'), b(seats)),
+        input({ type: 'range', min: 1, max: 100, bind: seats, 'aria-label': 'Seats' }),
+        label(
+          { class: 'switch' },
+          input({ type: 'checkbox', bind: yearly }),
+          span({ class: ['track', { on: yearly }] }),
+          span('Billed yearly'),
+          () => yearly.value && span({ class: 'badge' }, 'Save 20%'),
         ),
-        tag('input', {
-          type: 'range',
-          min: 1,
-          max: 100,
-          value: seats,
-          'aria-label': 'Seats',
-          /**
-           * Takes the number of seats from the slider.
-           *
-           * @param event - The input event.
-           */
-          oninput: (event) => {
-            seats.value = Number((event.target as HTMLInputElement).value);
-          },
-        }),
-        tag('label', {
-          class: 'switch',
-          children: [
-            tag('input', {
-              type: 'checkbox',
-              checked: yearly,
-              /**
-               * Takes the billing period from the switch.
-               *
-               * @param event - The change event.
-               */
-              onchange: (event) => {
-                yearly.value = (event.target as HTMLInputElement).checked;
-              },
-            }),
-            tag('span', { class: computed(() => (yearly.value ? 'track on' : 'track')) }),
-            tag('span', { content: 'Billed yearly' }),
-            tag('span', {
-              class: 'badge',
-              content: computed(() => (yearly.value ? 'Save 20%' : '')),
-              hidden: computed(() => !yearly.value),
-            }),
-          ],
-        } as never),
-        part(
-          'div',
-          'total',
-          tag('strong', { content: computed(() => money(total.value, currency.value)) }),
-          tag('span', { content: computed(() => (yearly.value ? 'per year' : 'per month')) }),
+        div(
+          { class: 'total' },
+          strong(() => money(total(), currency())),
+          span(() => (yearly.value ? 'per year' : 'per month')),
         ),
-        tag('button', {
-          type: 'button',
-          content: 'Request quote',
-          /** Announces the quote. */
-          onclick: () => {
-            emit('quote', {
-              seats: seats.value,
-              yearly: yearly.value,
-              total: total.value,
-              currency: currency.value,
-            });
+        button(
+          {
+            type: 'button',
+            /** Announces the quote. */
+            onclick: () => {
+              emit('quote', {
+                seats: seats.value,
+                yearly: yearly.value,
+                total: total(),
+                currency: currency(),
+              });
+            },
           },
-        }),
+          'Request quote',
+        ),
       );
-      return sheet(host, css, root);
     },
-    { attributes: ['currency', 'base', 'heading'] },
+    { attributes: { currency: 'USD', base: '12', heading: 'Team plan' }, css: widgetCss(css) },
   );

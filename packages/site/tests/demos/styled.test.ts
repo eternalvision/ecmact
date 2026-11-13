@@ -1,36 +1,57 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { mount } from 'ecmact';
 import { create } from '@site/demos/styled';
 
+beforeEach(() => {
+  vi.stubGlobal('CSSStyleSheet', undefined);
+});
+
 afterEach(() => {
+  vi.unstubAllGlobals();
   document.body.replaceChildren();
 });
 
-const sheet = (component: Element) =>
-  (component as unknown as { props: { css: { value: string } } }).props.css.value;
+const open = () => {
+  const demo = create() as HTMLElement;
+  mount(document.body, demo);
+  const [primary, outline, ...swatches] = [...demo.querySelectorAll('button')];
+  const rule = (element: Element) =>
+    [...document.querySelectorAll('style[data-ecmact="styled"]')]
+      .map((style) => style.textContent)
+      .filter((text) => text.includes(`.${element.className}`))
+      .join('\n');
+  return { demo, primary: primary!, outline: outline!, swatches, rule };
+};
 
 describe('styled demo', () => {
-  it('has two buttons, a spinner and four swatches', () => {
-    const demo = create() as HTMLElement;
-    document.body.append(demo);
-    const root = demo.shadowRoot!;
-    expect(root.querySelectorAll('em-styled-button')).toHaveLength(2);
-    expect(root.querySelector('em-styled-div')).not.toBeNull();
-    expect(
-      root.querySelector('em-swatches')!.shadowRoot!.querySelectorAll('em-styled-button'),
-    ).toHaveLength(4);
+  it('has two buttons, a spinner and four swatches, which are plain elements with a generated class', () => {
+    const { demo, primary, outline, swatches } = open();
+    expect(primary.textContent).toBe('Primary');
+    expect(outline.textContent).toBe('Outline');
+    expect(primary.className).toMatch(/^em-/);
+    expect(primary.className).not.toBe(outline.className);
+    expect(demo.querySelectorAll(':scope > div:not(:has(button))')).toHaveLength(1);
+    expect(swatches.map((swatch) => swatch.getAttribute('aria-label'))).toEqual([
+      'Use #1665e0',
+      'Use #d6336c',
+      'Use #2f9e44',
+      'Use #e67700',
+    ]);
   });
 
-  it('restyles the components below the provider when a swatch is picked', () => {
-    const demo = create() as HTMLElement;
-    document.body.append(demo);
-    const root = demo.shadowRoot!;
-    const primary = root.querySelector('em-styled-button')!;
-    expect(sheet(primary)).toContain('#1665e0');
-    const swatches = root
-      .querySelector('em-swatches')!
-      .shadowRoot!.querySelectorAll('em-styled-button');
-    swatches[1]!.shadowRoot!.querySelector('button')!.click();
-    expect(sheet(primary)).toContain('#d6336c');
-    expect(sheet(root.querySelector('em-styled-div')!)).toContain('#d6336c');
+  it('styles the buttons from their props and the theme', () => {
+    const { primary, outline, swatches, rule } = open();
+    expect(rule(primary)).toContain('background: #1665e0');
+    expect(rule(outline)).toContain('background: transparent');
+    expect(rule(swatches[2]!)).toContain('background: #2f9e44');
+  });
+
+  it('restyles the elements below the provider when a swatch is picked', () => {
+    const { demo, primary, swatches, rule } = open();
+    const spinner = demo.querySelector(':scope > div:not(:has(button))')!;
+    swatches[1]!.click();
+    expect(rule(primary)).toContain('background: #d6336c');
+    expect(rule(spinner)).toContain('border-top-color: #d6336c');
+    expect(rule(spinner)).toMatch(/animation: em-\S+ 0\.9s linear infinite/);
   });
 });

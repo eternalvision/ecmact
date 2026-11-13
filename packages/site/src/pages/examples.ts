@@ -1,7 +1,9 @@
+import { tags } from 'ecmact';
 import { text } from '@site/content/messages';
 import { demos } from '@site/demos/index';
-import { el } from '@site/lib/dom';
 import { DemoFrame } from '@site/ui/demoFrame';
+
+const { div, h1, main, p } = tags;
 
 /**
  * The gallery: every demo, running, with its source one tab away.
@@ -10,11 +12,10 @@ import { DemoFrame } from '@site/ui/demoFrame';
  */
 export const examples = () => {
   const m = text().examples;
-  return el(
-    'main',
+  return main(
     { class: 'wrap page-simple' },
-    el('h1', {}, m.title),
-    el('p', { class: 'lead' }, m.lead),
-    el('div', { class: 'demo-grid' }, ...demos.map((demo) => DemoFrame(demo))),
+    h1(m.title),
+    p({ class: 'lead' }, m.lead),
+    div({ class: 'demo-grid' }, demos.map(DemoFrame)),
   );
 };

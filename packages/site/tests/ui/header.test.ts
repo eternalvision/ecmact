@@ -34,7 +34,9 @@ describe('Header', () => {
   it('has the logo, the navigation and the theme toggle', () => {
     const header = Header(makeRouter('/'));
     document.body.append(header);
-    expect(header.querySelector('.logo')).not.toBeNull();
+    expect(header.localName).toBe('header');
+    expect(header.querySelector('.bar > a.logo')).not.toBeNull();
+    expect(header.querySelector('.bar > nav.nav > a')?.getAttribute('href')).toBe('/docs');
     const labels = [...header.querySelectorAll('.nav a')].map((a) => a.textContent);
     expect(labels).toEqual(['Docs', 'Examples', 'Widgets', 'Starter', 'GitHub', 'npm']);
     expect(header.querySelector('.nav .chip')).not.toBeNull();
@@ -47,6 +49,7 @@ describe('Header', () => {
     const nav = header.querySelector<HTMLElement>('#site-nav')!;
     expect(nav.dataset.open).toBe('false');
     expect(menu.textContent).toBe('Menu');
+    expect(menu.getAttribute('aria-expanded')).toBe('false');
     menu.click();
     expect(nav.dataset.open).toBe('true');
     expect(menu.textContent).toBe('Close');

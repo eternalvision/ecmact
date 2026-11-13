@@ -1,5 +1,5 @@
+import { tags } from 'ecmact';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { el } from '@site/lib/dom';
 import { parseInline } from '@site/lib/inline';
 
 beforeEach(() => {
@@ -10,7 +10,7 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-const render = (text: string) => el('p', {}, ...parseInline(text));
+const render = (text: string) => tags.p(parseInline(text));
 
 describe('parseInline', () => {
   it('leaves plain text alone', () => {

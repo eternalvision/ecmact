@@ -9,11 +9,11 @@ describe('Counter', () => {
   it('starts at zero and counts clicks', () => {
     const counter = Counter();
     document.body.append(counter);
-    const button = counter.shadowRoot?.firstElementChild as HTMLButtonElement;
+    const button = counter.shadowRoot?.querySelector('button');
 
-    expect(button.textContent).toBe('count is 0');
-    button.click();
-    button.click();
-    expect(button.textContent).toBe('count is 2');
+    expect(button?.textContent).toBe('count is 0');
+    button?.click();
+    button?.click();
+    expect(button?.textContent).toBe('count is 2');
   });
 });

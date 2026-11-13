@@ -18,11 +18,22 @@ export const page: DocPage = {
       `
 import { createHttp } from 'ecmact';
 
+interface User {
+  id: number;
+  name: string;
+}
+
 const api = createHttp({ baseURL: 'https://api.example.com', timeout: 5000 });
 
-const { data } = await api.get<User[]>('/users', { params: { page: 1 } });
+const response = await api.get<User[]>('/users', { params: { page: 1 } });
+console.log(response.status, response.data);
+
+const users = await api.get<User[]>('/users').data;
 await api.post('/users', { name: 'Ada' });
 `,
+    ),
+    p(
+      'A call returns a promise of the response: `data`, `status`, `statusText`, `headers`, `config` and `duration`. The promise also has a `data` property, a promise of the body alone, so `await api.get(url).data` skips the response object.',
     ),
     h2('Calls'),
     table(
@@ -32,6 +43,13 @@ await api.post('/users', { name: 'Ada' });
       ['`post`, `put`, `patch`', '`(url, data?, config?)`. Objects are sent as JSON.'],
       ['`postForm`, `putForm`, `patchForm`', 'An object is sent as `multipart/form-data`.'],
       ['`getUri(config?)`', 'The URL a config would request. Sends nothing.'],
+      [
+        '`resource(url, config?)`',
+        'A GET as a resource with `data`, `error` and `loading`. See [Data fetching](/docs/data).',
+      ],
+    ),
+    p(
+      '`http` is a ready-made client with the library defaults, for scripts and tests. Create your own with `createHttp` for an app.',
     ),
     h2('Config'),
     table(
@@ -79,17 +97,22 @@ await api.post('/users', { name: 'Ada' });
     code(
       'ts',
       `
-import { isCancel, isHttpError } from 'ecmact';
+import { createHttp, isCancel, isHttpError } from 'ecmact';
 
-try {
-  await api.get('/users/1');
-} catch (error) {
-  if (isCancel(error)) return;
-  if (isHttpError(error)) {
-    if (error.response) console.log(error.status, error.response.data);
-    else console.log(error.code);
+const api = createHttp({ baseURL: 'https://api.example.com' });
+
+const loadUser = async (id: number) => {
+  try {
+    return await api.get<{ name: string }>(\`/users/\${id}\`).data;
+  } catch (error) {
+    if (isCancel(error)) return undefined;
+    if (isHttpError(error)) {
+      if (error.response) console.log(error.status, error.response.data);
+      else console.log(error.code);
+    }
+    throw error;
   }
-}
+};
 `,
     ),
     h2('Interceptors'),
@@ -99,6 +122,17 @@ try {
     code(
       'ts',
       `
+import { createHttp, isHttpError } from 'ecmact';
+
+const api = createHttp({ baseURL: 'https://api.example.com' });
+
+const session = {
+  token: 'secret',
+  refresh: async () => {
+    session.token = await api.post<string>('/session/refresh').data;
+  },
+};
+
 api.interceptors.request.use((config) => ({
   ...config,
   headers: { ...config.headers, Authorization: \`Bearer \${session.token}\` },
@@ -119,12 +153,17 @@ api.interceptors.response.eject(id);
     code(
       'ts',
       `
+import { createHttp, isCancel } from 'ecmact';
+
+const api = createHttp({ baseURL: 'https://api.example.com' });
+
 const controller = new AbortController();
 const pending = api.get('/slow', { signal: controller.signal });
 controller.abort();
+await pending.catch((error: unknown) => console.log(isCancel(error)));
 
 await api.get('/flaky', { retry: 3 });
-await api.post('/orders', order, {
+await api.post('/orders', { product: 'book' }, {
   retry: { retries: 2, delay: 500, retryOn: (error) => error.status === 503 },
 });
 `,

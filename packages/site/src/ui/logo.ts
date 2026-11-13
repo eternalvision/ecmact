@@ -1,24 +1,15 @@
-import type { Router } from 'ecmact';
+import { tags, type Router } from 'ecmact';
 import { text } from '@site/content/messages';
-import { el } from '@site/lib/dom';
-import { link } from '@site/lib/component';
 import { withBase } from '@site/lib/paths';
 
 /**
  * The logo as a link to the home page.
  *
  * @param router - The router.
- * @returns The component.
+ * @returns The anchor.
  */
-export const Logo = (router: Router) => {
-  const anchor = link(router, '/', '', 'logo');
-  anchor.setState({
-    'aria-label': text().chrome.home,
-    children: [
-      el('img', {
-        attrs: { src: withBase('/ecmact-logo.png'), alt: '', width: '856', height: '283' },
-      }),
-    ],
-  } as never);
-  return anchor;
-};
+export const Logo = (router: Router) =>
+  router.link(
+    { to: '/', class: 'logo', 'aria-label': text().chrome.home },
+    tags.img({ src: withBase('/ecmact-logo.png'), alt: '', width: 856, height: 283 }),
+  );

@@ -51,14 +51,10 @@ interface Extension {
  * Shows the store in the Redux DevTools browser extension: every change is sent as an action, and jumping in
  * time in the extension sets the state. Without the extension the store works as usual.
  *
- * @example
- * const store = createStore(devtools(creator, { name: 'cart' }));
- * store.setState({ items: [] }, false, 'cart/clear');
- *
  * @template T - The state.
  * @param creator - Builds the initial state.
  * @param options - The connection options.
- * @returns A creator for `createStore`.
+ * @returns A creator for the store.
  */
 export const devtools =
   <T>(creator: StateCreator<T>, options: DevtoolsOptions = {}): StateCreator<T> =>

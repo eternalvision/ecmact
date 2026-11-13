@@ -1,15 +1,16 @@
 import { callout, code, demo, h2, p, table, ul } from '@site/content/builders';
 import type { DocPage } from '@site/content/types';
 
-/** The store: createStore, selectors, persist, devtools, combine, shallow. */
+/** The store: createStore, fields and actions, selectors, persistence and DevTools. */
 export const page: DocPage = {
   slug: 'state',
   title: 'State management',
-  summary: 'A zustand-style store with selectors as signals, persistence and Redux DevTools.',
+  summary:
+    'A store with its fields and actions as plain properties, persistence and Redux DevTools.',
   group: 'Application',
   blocks: [
     p(
-      "`createStore` makes a store: a state, the functions that change it, and ways to follow it. It is modeled on zustand and works with ECMact's signals, so components follow a store without any glue. The store is plain JavaScript and works anywhere.",
+      '`createStore(initial, actions, options)` makes a store from its initial values and the actions that change them. Both become properties of the store: `counter.count` reads a value and `counter.inc()` calls an action. Types are inferred from the two arguments.',
     ),
     demo('store'),
     code(
@@ -17,31 +18,37 @@ export const page: DocPage = {
       `
 import { createStore, mount, tags } from 'ecmact';
 
-interface CounterState {
-  count: number;
-  inc: () => void;
-}
+const { button, p } = tags;
 
-const counter = createStore<CounterState>((set) => ({
-  count: 0,
-  inc: () => set((state) => ({ count: state.count + 1 })),
+const counter = createStore({ count: 0, step: 1 }, (set, get) => ({
+  inc: () => set((state) => ({ count: state.count + state.step })),
+  reset: () => set({ count: 0 }),
+  double: () => set({ count: get().count * 2 }),
 }));
 
 mount(
   '#app',
-  tags.button({
-    content: counter.select((state) => \`count is \${state.count}\`),
-    onclick: () => counter.getState().inc(),
-  }),
+  button({ onclick: () => counter.inc() }, () => \`count is \${counter.count}\`),
+  button({ onclick: () => counter.reset() }, 'Reset'),
+  button({ onclick: () => counter.double() }, 'Double'),
+  p(() => (counter.count % 2 === 0 ? 'even' : 'odd')),
 );
 `,
+    ),
+    ul(
+      'Reading a field inside a reactive function, an effect or a computed value follows that field only. A change of `step` does not rerun a function that read `count`.',
+      '`set` shallow-merges an object, or what a function of the state returns, into the values. `get` reads the values.',
+      '`set`, `get` and the third argument, the store, are typed with the values only. To call another action from an action, go through the store variable: `counter.reset()`.',
+      'The state must be an object. Declare every field in the initial values: only they become properties of the store.',
+      'A field or an action cannot have a name that the store uses itself, such as `state`, `select` or `subscribe`. `createStore` throws for such a name.',
     ),
     h2('The store'),
     table(
       ['Member', 'Description'],
+      ['fields and actions', 'Plain properties. Fields are read-only: change them in an action.'],
       [
         '`getState()`, `getInitialState()`',
-        'The current state, and the one the store was created with.',
+        'The current state with the actions, and the one the store was created with.',
       ],
       [
         '`setState(partial, replace?)`',
@@ -57,35 +64,65 @@ mount(
       ],
       [
         '`select(selector, equalityFn?)`',
-        'A **signal** of a part of the state, for props and effects.',
+        'A **signal** of a derived part of the state, for values that are not one field.',
       ],
       ['`state`', 'The whole state as a signal.'],
-    ),
-    ul(
-      '`setState` does nothing, and notifies nobody, when the new state is the same value as the old one.',
-      'A selector that builds a new object each time would change on every update: pass `shallow` as the second argument so that only a change of content counts.',
-      '`set` and `get` must not be called while the creator is still running, only afterwards, for example in an action.',
-    ),
-    h2('Middleware'),
-    p(
-      'A middleware wraps the creator. `combine` takes the initial values separately so that their types are inferred. `persist` keeps the state in a storage. `devtools` connects the store to the Redux DevTools browser extension.',
+      ['`persist`', 'Present when the store is persisted, see below.'],
     ),
     code(
       'ts',
       `
-import { combine, createStore, devtools, persist } from 'ecmact';
+import { createStore, shallow } from 'ecmact';
+
+const cart = createStore({ items: [] as { title: string; price: number }[], coupon: '' }, (set) => ({
+  add: (title: string, price: number) =>
+    set((state) => ({ items: [...state.items, { title, price }] })),
+}));
+
+const total = cart.select((state) => state.items.reduce((sum, item) => sum + item.price, 0));
+const titles = cart.select((state) => state.items.map((item) => item.title), shallow);
+
+const stop = cart.watch(
+  (state) => state.items.length,
+  (length, previous) => console.log(\`\${previous} -> \${length}\`),
+);
+
+cart.add('Book', 12);
+console.log(total.value, titles.value);
+stop();
+`,
+    ),
+    ul(
+      '`setState` does nothing, and notifies nobody, when the new state is the same value as the old one.',
+      'A selector that builds a new object or array each time would change on every update: pass `shallow` as the second argument so that only a change of content counts.',
+      'Call `set` and `get` inside the actions, not while the actions are being built.',
+    ),
+    h2('Persistence and DevTools'),
+    p(
+      'The third argument holds the options. `persist` keeps the state in a storage and reads it back when the store is created. `devtools` shows the store in the Redux DevTools browser extension, with every change named after the action that made it.',
+    ),
+    code(
+      'ts',
+      `
+import { createJSONStorage, createStore } from 'ecmact';
 
 const cart = createStore(
-  devtools(
-    persist(
-      combine({ items: [] as string[] }, (set) => ({
-        add: (item: string) => set((state) => ({ items: [...state.items, item] }), false, 'cart/add'),
-      })),
-      { name: 'cart', partialize: (state) => ({ items: state.items }) },
-    ),
-    { name: 'cart' },
-  ),
+  { items: [] as string[], open: false },
+  (set) => ({
+    add: (item: string) => set((state) => ({ items: [...state.items, item] })),
+    toggle: () => set((state) => ({ open: !state.open })),
+  }),
+  {
+    persist: {
+      name: 'cart',
+      storage: createJSONStorage(() => sessionStorage),
+      partialize: (state) => ({ items: state.items }),
+    },
+    devtools: { name: 'cart' },
+  },
 );
+
+cart.add('book');
 `,
     ),
     table(
@@ -95,7 +132,7 @@ const cart = createStore(
         '`storage`',
         '`createJSONStorage(() => sessionStorage)`, or any `{ getItem, setItem, removeItem }`, asynchronous ones included. Defaults to `localStorage`.',
       ],
-      ['`partialize`', 'Picks what to persist.'],
+      ['`partialize`', 'Picks what to persist. Defaults to the whole state.'],
       [
         '`version`, `migrate`',
         'A stored state with another version is ignored unless `migrate` converts it.',
@@ -105,11 +142,28 @@ const cart = createStore(
         '`skipHydration`',
         'Do not read the storage on creation; call `store.persist.rehydrate()` yourself.',
       ],
-      ['`onRehydrateStorage`', 'Called before and after the storage is read.'],
+      [
+        '`onRehydrateStorage`',
+        'Called before the storage is read; may return a function to call after.',
+      ],
     ),
+    p(
+      'A persisted store has a `persist` property with `rehydrate()`, `hasHydrated()`, `clearStorage()`, `onHydrate(listener)`, `onFinishHydration(listener)`, `getOptions()` and `setOptions(options)`.',
+    ),
+    table(
+      ['`devtools` value', 'Description'],
+      ['`true`', 'Connects with the defaults.'],
+      ['`name`', 'The name of the connection. Changes are then named `name/action`.'],
+      ['`enabled`', '`false` turns the connection off, for production builds.'],
+      [
+        '`anonymousActionType`',
+        'The name for changes made outside an action, with `setState`. Defaults to `anonymous`.',
+      ],
+    ),
+    p('Without the extension in the browser the store works as usual.'),
     callout(
       'note',
-      'Differences from zustand: there is no React hook, `select` returns a signal instead. `subscribeWithSelector` is built in as `watch`. There is no `immer` middleware, because ECMact has no dependencies.',
+      'Differences from zustand: there is no React hook, fields are properties and `select` returns a signal. Actions are passed apart from the values. `persist` and `devtools` are options, not middleware, and `subscribeWithSelector` is built in as `watch`. There is no `immer`, because ECMact has no dependencies.',
     ),
   ],
 };

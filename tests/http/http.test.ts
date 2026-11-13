@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createHttp, http } from '@em/http/http';
+import { signal } from '@em/signals/signals';
 import { fake, json } from '@tests/http/helpers';
 
 describe('createHttp', () => {
@@ -206,5 +207,71 @@ describe('interceptors', () => {
     api.interceptors.request.clear();
     await api.get('/b');
     expect(calls.map((call) => call.url)).toEqual(['/a', '/b']);
+  });
+});
+
+describe('data', () => {
+  it('gives the body alone', async () => {
+    const { fetch } = fake(() => json({ name: 'Ada' }));
+    const api = createHttp({ fetch });
+    await expect(api.get<{ name: string }>('/user').data).resolves.toEqual({ name: 'Ada' });
+    await expect(api.post('/user', {}).data).resolves.toEqual({ name: 'Ada' });
+    await expect(api({ url: '/user' }).data).resolves.toEqual({ name: 'Ada' });
+  });
+
+  it('still resolves with the whole response', async () => {
+    const { fetch } = fake(() => json({ ok: 1 }));
+    const response = await createHttp({ fetch }).get('/x');
+    expect(response.status).toBe(200);
+    expect(response.data).toEqual({ ok: 1 });
+  });
+
+  it('rejects with the error of the request', async () => {
+    const { fetch } = fake(() => json({}, { status: 500 }));
+    const api = createHttp({ fetch });
+    await expect(api.get('/x').data).rejects.toMatchObject({ status: 500 });
+    await expect(api.get('/x')).rejects.toMatchObject({ status: 500 });
+  });
+});
+
+describe('resource', () => {
+  const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  it('exposes the body of a request as data, with loading', async () => {
+    const { calls, fetch } = fake(() => json([{ id: 1 }]));
+    const users = createHttp({ fetch, baseURL: 'https://api.test' }).resource<{ id: number }[]>(
+      '/users',
+      { params: { page: 2 } },
+    );
+    expect(users.loading).toBe(true);
+    expect(users.data).toBeUndefined();
+    await flush();
+    expect(users.loading).toBe(false);
+    expect(users.data).toEqual([{ id: 1 }]);
+    expect(calls[0].url).toBe('https://api.test/users?page=2');
+    expect(calls[0].init.signal).toBeInstanceOf(AbortSignal);
+    users.dispose();
+  });
+
+  it('shows the initial data first and keeps the error of a failed request', async () => {
+    const { fetch } = fake(() => json({}, { status: 404 }));
+    const user = createHttp({ fetch }).resource('/user', { initial: 'none' });
+    expect(user.data).toBe('none');
+    await flush();
+    expect(user.error).toMatchObject({ status: 404 });
+    user.dispose();
+  });
+
+  it('follows the signals in a url function and cancels the request it replaces', async () => {
+    const id = signal(1);
+    const { calls, fetch } = fake((call) => json({ url: call.url }));
+    const user = createHttp({ fetch }).resource<{ url: string }>(() => `/users/${id.value}`);
+    await Promise.resolve();
+    await Promise.resolve();
+    id.value = 2;
+    expect(calls[0].init.signal?.aborted).toBe(true);
+    await flush();
+    expect(user.data).toEqual({ url: '/users/2' });
+    user.dispose();
   });
 });

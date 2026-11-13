@@ -10,9 +10,8 @@ afterEach(() => {
 
 describe('ThemeToggle', () => {
   it('shows the mode and cycles it on click', () => {
-    const toggle = ThemeToggle();
-    document.body.append(toggle);
-    const button = toggle.querySelector('button')!;
+    const button = ThemeToggle();
+    document.body.append(button);
     expect(button.textContent).toBe('◐ Auto');
     button.click();
     expect(button.textContent).toBe('☀ Light');
@@ -26,9 +25,8 @@ describe('ThemeToggle', () => {
 describe('ThemeToggle in Russian', () => {
   it('shows the modes in Russian', async () => {
     await useLocale('ru');
-    const toggle = ThemeToggle();
-    document.body.append(toggle);
-    const button = toggle.querySelector('button')!;
+    const button = ThemeToggle();
+    document.body.append(button);
     expect(button.textContent).toBe('◐ Авто');
     button.click();
     expect(button.textContent).toBe('☀ Светлая');

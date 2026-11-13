@@ -1,5 +1,7 @@
-import { combine, computed, createStore, defineWidget, effect, persist, type Store } from 'ecmact';
-import { part, readNumber, sheet, tag } from '@site/widgets/kit';
+import { createStore, defineWidget, each, tags } from 'ecmact';
+import { readNumber, widgetCss } from '@site/widgets/kit';
+
+const { button, div, h3, li, span, ul } = tags;
 
 const css = `
   :host {
@@ -30,20 +32,12 @@ const css = `
   .foot button { border: 0; padding: 0; background: none; color: var(--w-accent, #ff4f81); font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline; }
 `;
 
-/** The state of a poll: the votes of every option and the option that this visitor chose. */
-interface PollState {
+/** The values of a poll. */
+interface PollValues {
   /** The votes of every option, by the text of the option. */
   votes: Record<string, number>;
   /** The option this visitor voted for, or `null`. */
   chosen: string | null;
-  /**
-   * Adds this visitor's vote. A second vote replaces the first.
-   *
-   * @param option - The option.
-   */
-  vote: (option: string) => void;
-  /** Takes this visitor's vote back. */
-  reset: () => void;
 }
 
 /**
@@ -89,11 +83,12 @@ export const changeVotes = (votes: Record<string, number>, option: string, chang
  * the text of a choice. Anything else leaves the starting state, so a corrupted or hand-edited value cannot break
  * the widget.
  *
+ * @template T - The state of the store: the values of the poll and its actions.
  * @param persisted - The stored state, of unknown shape.
  * @param current - The starting state.
  * @returns The state to use.
  */
-const readStored = (persisted: unknown, current: PollState): PollState => {
+const readStored = <T extends PollValues>(persisted: unknown, current: T): T => {
   const stored = typeof persisted === 'object' && persisted !== null ? persisted : {};
   const { votes, chosen } = stored as { votes?: unknown; chosen?: unknown };
   const record = typeof votes === 'object' && votes !== null && !Array.isArray(votes);
@@ -111,39 +106,39 @@ const readStored = (persisted: unknown, current: PollState): PollState => {
 };
 
 /**
- * Creates the store of a poll. The votes are kept in `localStorage` under the id of the poll, so that they survive
- * a reload. This makes a store of its own; widgets get the one shared by their poll id from `pollStore`.
+ * Creates the store of a poll: the votes of every option, the option this visitor chose, and the actions `vote`
+ * and `reset`. The votes are kept in `localStorage` under the id of the poll, so that they survive a reload. This
+ * makes a store of its own; widgets get the one shared by their poll id from `pollStore`.
  *
  * @param poll - The id of the poll.
  * @param seed - The votes that the poll starts with, by option.
  * @returns The store.
  */
-export const createPollStore = (poll: string, seed: Record<string, number>): Store<PollState> =>
-  createStore<PollState>(
-    persist(
-      combine({ votes: { ...seed }, chosen: null as string | null }, (set) => ({
-        /**
-         * Adds this visitor's vote; an earlier vote is withdrawn.
-         *
-         * @param option - The option.
-         */
-        vote: (option: string) => {
-          set((state) => {
-            const withdrawn = state.chosen
-              ? changeVotes(state.votes, state.chosen, -1)
-              : state.votes;
-            return { votes: changeVotes(withdrawn, option, 1), chosen: option };
-          });
-        },
-        /** Takes this visitor's vote back. */
-        reset: () => {
-          set((state) => ({
-            votes: state.chosen ? changeVotes(state.votes, state.chosen, -1) : state.votes,
-            chosen: null,
-          }));
-        },
-      })),
-      {
+export const createPollStore = (poll: string, seed: Record<string, number>) =>
+  createStore(
+    { votes: { ...seed }, chosen: null } as PollValues,
+    (set) => ({
+      /**
+       * Adds this visitor's vote; an earlier vote is withdrawn.
+       *
+       * @param option - The option.
+       */
+      vote: (option: string) => {
+        set(({ votes, chosen }) => ({
+          votes: changeVotes(chosen ? changeVotes(votes, chosen, -1) : votes, option, 1),
+          chosen: option,
+        }));
+      },
+      /** Takes this visitor's vote back. */
+      reset: () => {
+        set(({ votes, chosen }) => ({
+          votes: chosen ? changeVotes(votes, chosen, -1) : votes,
+          chosen: null,
+        }));
+      },
+    }),
+    {
+      persist: {
         name: `ecmact-poll:${poll}`,
         /**
          * Picks what to persist: the votes and the choice.
@@ -151,13 +146,16 @@ export const createPollStore = (poll: string, seed: Record<string, number>): Sto
          * @param state - The state.
          * @returns The part to store.
          */
-        partialize: (state) => ({ votes: state.votes, chosen: state.chosen }),
-        merge: readStored as (persisted: unknown, current: PollState) => PollState,
+        partialize: ({ votes, chosen }) => ({ votes, chosen }),
+        merge: readStored,
       },
-    ),
-  ) as Store<PollState>;
+    },
+  );
 
-const stores = new Map<string, Store<PollState>>();
+/** The store of a poll. */
+export type PollStore = ReturnType<typeof createPollStore>;
+
+const stores = new Map<string, PollStore>();
 
 /**
  * Finds the store of a poll, creating it the first time. Every copy of the same poll on the page gets the same
@@ -190,108 +188,120 @@ export const definePollWidget = () =>
   defineWidget(
     'poll-widget',
     ({ host, props, emit }) => {
-      const options = computed(() => [...new Set(parseList(props.options.value ?? 'Yes, No'))]);
-      const seeds = parseList(props.seed.value).map((item) => readNumber(item, 0));
-      const written = parseList(props.options.value ?? 'Yes, No');
+      const written = parseList(props.options);
+      const seeds = parseList(props.seed).map((item) => readNumber(item, 0));
       const store = pollStore(
-        props.poll.value ?? `${props.question.value ?? ''}|${props.options.value ?? ''}`,
+        host.getAttribute('poll') ??
+          `${host.getAttribute('question') ?? ''}|${host.getAttribute('options') ?? ''}`,
         Object.fromEntries(
           written
             .filter((option, index) => written.indexOf(option) === index)
             .map((option) => [option, seeds[written.indexOf(option)] ?? 0]),
         ),
       );
-      const votes = store.select((state) => state.votes);
-      const chosen = store.select((state) => state.chosen);
       /**
-       * Reads the votes of an option; an option added after the poll started has none.
+       * Reads the options to show, each once.
        *
-       * @param option - The option.
-       * @returns The votes.
+       * @returns The options.
        */
-      const count = (option: string) => votesFor(votes.value, option);
-      const total = computed(() => options.value.reduce((sum, option) => sum + count(option), 0));
-
-      const rows = new Map<string, Node>();
+      const options = () => [...new Set(parseList(props.options))];
       /**
-       * Finds the row of an option, building it the first time, so that changing the options reuses the rows of the
-       * options that stay.
+       * Counts the votes of the options that are shown.
+       *
+       * @returns The number of votes.
+       */
+      const total = () => options().reduce((sum, option) => sum + votesFor(store.votes, option), 0);
+      /**
+       * Builds the row of an option: a button that votes for it and, once the visitor has voted, shows its share.
        *
        * @param option - The option.
        * @returns The row.
        */
       const row = (option: string) => {
-        const known = rows.get(option);
-        if (known) return known;
-        const share = computed(() => Math.round((count(option) / Math.max(1, total.value)) * 100));
-        const built = tag('li', {
-          children: [
-            tag('button', {
+        /**
+         * Writes the share of the option, once the visitor has voted; an option added after the poll started has
+         * no votes.
+         *
+         * @returns The percentage, or `undefined` before the vote.
+         */
+        const share = () =>
+          store.chosen
+            ? `${Math.round((votesFor(store.votes, option) / Math.max(1, total())) * 100)}%`
+            : undefined;
+        return li(
+          button(
+            {
               class: 'option',
               type: 'button',
-              'aria-pressed': computed(() => String(chosen.value === option)),
+              /**
+               * Tells assistive technology whether this is the visitor's choice.
+               *
+               * @returns `true` or `false`, as text.
+               */
+              'aria-pressed': () => String(store.chosen === option),
               /** Votes for the option and announces it. */
               onclick: () => {
-                store.getState().vote(option);
+                store.vote(option);
                 emit('vote', { option });
               },
-              children: [
-                tag('span', {
-                  class: 'bar',
-                  style: { width: computed(() => (chosen.value ? `${share.value}%` : '0%')) },
-                }),
-                part(
-                  'span',
-                  'row',
-                  tag('span', {
-                    class: computed(() => (chosen.value === option ? 'mine' : '')),
-                    content: option,
-                  }),
-                  tag('span', {
-                    class: 'share',
-                    content: computed(() => (chosen.value ? `${share.value}%` : '')),
-                  }),
-                ),
-              ],
-            }),
-          ],
-        });
-        rows.set(option, built);
-        return built;
-      };
-
-      const list = tag('ul');
-      const root = tag('div', {
-        class: 'poll',
-        /**
-         * Builds the rows of the list, and builds them again when the options change.
-         *
-         * @returns The cleanup that stops following the options.
-         */
-        mounted: () => effect(() => list.setState({ children: options.value.map(row) })),
-        children: [
-          tag('h3', { content: computed(() => props.question.value ?? 'What do you think?') }),
-          list,
-          part(
-            'div',
-            'foot',
-            tag('span', {
-              class: 'total',
-              content: computed(() => `${total.value} ${total.value === 1 ? 'vote' : 'votes'}`),
-            }),
-            tag('button', {
-              type: 'button',
-              content: 'Take my vote back',
-              hidden: computed(() => !chosen.value),
-              /** Takes this visitor's vote back. */
-              onclick: () => {
-                store.getState().reset();
+            },
+            span({
+              class: 'bar',
+              style: {
+                /**
+                 * Makes the bar as wide as the share.
+                 *
+                 * @returns The width.
+                 */
+                width: () => share() ?? '0%',
               },
             }),
+            span(
+              { class: 'row' },
+              span(
+                {
+                  class: {
+                    /**
+                     * Marks the visitor's choice.
+                     *
+                     * @returns Whether this option is the choice.
+                     */
+                    mine: () => store.chosen === option,
+                  },
+                },
+                option,
+              ),
+              span({ class: 'share' }, share),
+            ),
           ),
-        ],
-      });
-      return sheet(host, css, root);
+        );
+      };
+
+      return div(
+        { class: 'poll' },
+        h3(() => props.question),
+        ul(each(options, row)),
+        div(
+          { class: 'foot' },
+          span({ class: 'total' }, () => `${total()} ${total() === 1 ? 'vote' : 'votes'}`),
+          button(
+            {
+              type: 'button',
+              /**
+               * Hides the link until there is a vote to take back.
+               *
+               * @returns `true` before the visitor has voted.
+               */
+              hidden: () => !store.chosen,
+              onclick: store.reset,
+            },
+            'Take my vote back',
+          ),
+        ),
+      );
     },
-    { attributes: ['question', 'options', 'poll', 'seed'] },
+    {
+      attributes: { question: 'What do you think?', options: 'Yes, No', poll: '', seed: '' },
+      css: widgetCss(css),
+    },
   );

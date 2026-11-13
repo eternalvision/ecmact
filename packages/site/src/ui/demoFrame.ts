@@ -1,15 +1,15 @@
-import { computed, signal } from 'ecmact';
-import { view, tag } from '@site/lib/component';
-import { el } from '@site/lib/dom';
-import type { Demo } from '@site/demos/index';
+import { signal, tags } from 'ecmact';
 import { text } from '@site/content/messages';
+import type { Demo } from '@site/demos/index';
 import { CodeBlock } from '@site/ui/codeBlock';
+
+const { button, div, h3, header, p, section } = tags;
 
 /**
  * A live demo with its source. The tabs switch between running it and reading the code that makes it.
  *
  * @param demo - The demo.
- * @returns The component.
+ * @returns The `section` element.
  */
 export const DemoFrame = (demo: Demo) => {
   const m = text();
@@ -24,48 +24,67 @@ export const DemoFrame = (demo: Demo) => {
    * @returns The button.
    */
   const tabButton = (name: 'run' | 'code', label: string) =>
-    tag('button', {
-      type: 'button',
-      class: 'tab',
-      role: 'tab',
-      content: label,
-      'aria-selected': computed(() => String(tab.value === name)),
-      /**
-       * Shows the panel of this tab.
-       */
-      onclick: () => {
-        tab.value = name;
+    button(
+      {
+        type: 'button',
+        class: 'tab',
+        role: 'tab',
+        /**
+         * Tells whether the panel of this tab is the one shown.
+         *
+         * @returns `true` or `false`, as text.
+         */
+        'aria-selected': () => String(tab.value === name),
+        /**
+         * Shows the panel of this tab.
+         */
+        onclick: () => {
+          tab.value = name;
+        },
       },
-    });
+      label,
+    );
 
-  return view('DemoFrame', {
-    tag: 'section',
-    class: 'demo',
-    'aria-label': copy.title,
-    children: [
-      el(
-        'header',
-        { class: 'demo-head' },
-        el('h3', {}, copy.title),
-        view('Tabs', {
-          class: 'tabs',
-          role: 'tablist',
-          children: [tabButton('run', m.code.run), tabButton('code', m.code.source)],
-        }),
+  /**
+   * Makes a panel that is shown while its tab is selected.
+   *
+   * @param name - The tab it belongs to.
+   * @param className - The class of the panel.
+   * @param content - What the panel holds.
+   * @returns The panel.
+   */
+  const panel = (name: 'run' | 'code', className: string, content: Node) =>
+    div(
+      {
+        class: className,
+        role: 'tabpanel',
+        /**
+         * Hides the panel while the other tab is selected.
+         *
+         * @returns `true` to hide it.
+         */
+        hidden: () => tab.value !== name,
+      },
+      content,
+    );
+
+  return section(
+    { class: 'demo', 'aria-label': copy.title },
+    header(
+      { class: 'demo-head' },
+      h3(copy.title),
+      div(
+        { class: 'tabs', role: 'tablist' },
+        tabButton('run', m.code.run),
+        tabButton('code', m.code.source),
       ),
-      el('p', { class: 'demo-note' }, copy.description),
-      view('Run', {
-        class: 'demo-run',
-        role: 'tabpanel',
-        hidden: computed(() => tab.value !== 'run'),
-        children: [demo.create()],
-      }),
-      view('Source', {
-        class: 'demo-source',
-        role: 'tabpanel',
-        hidden: computed(() => tab.value !== 'code'),
-        children: [CodeBlock({ code: demo.source, language: 'ts', title: `${demo.id}.ts` })],
-      }),
-    ],
-  });
+    ),
+    p({ class: 'demo-note' }, copy.description),
+    panel('run', 'demo-run', demo.create()),
+    panel(
+      'code',
+      'demo-source',
+      CodeBlock({ code: demo.source, language: 'ts', title: `${demo.id}.ts` }),
+    ),
+  );
 };

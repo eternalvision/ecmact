@@ -2,8 +2,10 @@ import { em, tags } from 'ecmact';
 import { Counter } from './components/counter';
 import { Logo } from './components/logo';
 
+const { a, code, nav, p } = tags;
+
 const appCss = `
-  div {
+  :host {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -13,18 +15,17 @@ const appCss = `
     padding: 2rem 1.25rem;
     text-align: center;
   }
-`;
-
-const linksCss = `
+  p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 1.1rem;
+  }
   nav {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 0.4rem 1.6rem;
   }
-`;
-
-const linkCss = `
   a {
     color: var(--muted);
     font-weight: 500;
@@ -53,22 +54,10 @@ const links = [
  * @returns The app component.
  */
 export const App = () =>
-  em.App({
-    tag: 'div',
-    css: appCss,
-    children: [
-      Logo(),
-      tags.p({
-        html: 'Edit <code>src/app.ts</code> and save to see your changes.',
-        style: { color: 'var(--muted)', fontSize: '1.1rem' },
-      }),
-      Counter(),
-      em.Links({
-        tag: 'nav',
-        css: linksCss,
-        children: links.map(({ label, href }) =>
-          tags.a({ href, target: '_blank', rel: 'noreferrer', content: label, css: linkCss }),
-        ),
-      }),
-    ],
-  });
+  em.App(
+    { css: appCss },
+    Logo(),
+    p('Edit ', code('src/app.ts'), ' and save to see your changes.'),
+    Counter(),
+    nav(links.map(({ label, href }) => a({ href, target: '_blank', rel: 'noreferrer' }, label))),
+  );

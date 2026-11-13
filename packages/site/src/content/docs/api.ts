@@ -20,6 +20,45 @@ const blocks = (): Block[] =>
     ),
   ]);
 
+/** The exported types, by area. */
+const types: [string, string, string][] = [
+  [
+    'Elements',
+    '`Props`, `Child`, `ClassValue`, `Styles`, `Reactive`, `Getter`, `Factory`, `Tags`, `TagName`, `AttributeMap`, `GlobalAttributes`, `EventHandlerOptions`, `EachOptions`',
+    'components',
+  ],
+  ['Components', '`Component`, `ComponentProps`', 'components'],
+  [
+    'Configuration and errors',
+    '`Config`, `StyleSource`, `ErrorHandler`, `ErrorInfo`, `ErrorPhase`',
+    'lifecycle',
+  ],
+  ['Context', '`Context`, `Provision`', 'context'],
+  ['Signals', '`Signal`, `ReadonlySignal`', 'signals'],
+  [
+    'Styled components',
+    '`Styled`, `StyledTag`, `StyledComponent`, `StyledProps`, `StyleProps`, `Attrs`, `CssFragment`, `Keyframes`, `Interpolation`, `Theme`, `ThemeProviderProps`',
+    'styled',
+  ],
+  [
+    'Routing',
+    '`Router`, `RouterOptions`, `Route`, `RouteContext`, `RouteMatch`, `RouterLocation`, `Guard`, `GuardResult`, `NavigateOptions`, `LinkProps`, `OutletProps`',
+    'routing',
+  ],
+  [
+    'State',
+    '`Store`, `StoreOptions`, `SetState`, `Listener`, `WatchOptions`, `PersistOptions`, `PersistApi`, `PersistStorage`, `StateStorage`, `StorageValue`, `JsonStorageOptions`, `DevtoolsOptions`',
+    'state',
+  ],
+  ['Data', '`Resource`, `ResourceContext`, `ResourceOptions`', 'data'],
+  [
+    'HTTP',
+    '`HttpInstance`, `HttpPromise`, `HttpResourceConfig`, `HttpRequestConfig`, `HttpResponse`, `HttpMethod`, `HttpHeaders`, `HeaderMap`, `HeaderValue`, `HttpErrorCode`, `HttpErrorLike`, `ResponseType`, `RetryOptions`, `ProgressEvent`, `ParamsSerializerOptions`, `RequestTransform`, `ResponseTransform`',
+    'http',
+  ],
+  ['Widgets', '`WidgetContext`, `WidgetOptions`', 'widgets'],
+];
+
 /** The list of everything the package exports. */
 export const page: DocPage = {
   slug: 'api',
@@ -31,5 +70,11 @@ export const page: DocPage = {
       'Everything is imported from `ecmact`. The package is ES and CommonJS, has no runtime dependencies and is tree-shakeable, so you pay only for what you import.',
     ),
     ...blocks(),
+    h2('Exported types'),
+    p('Import them with `import type { ... } from "ecmact"`.'),
+    table(
+      ['Area', 'Types', 'Read'],
+      ...types.map(([area, names, slug]) => [area, names, `[docs](/docs/${slug})`]),
+    ),
   ],
 };

@@ -1,12 +1,12 @@
 import type { Component } from '@em/core/component';
-import { em } from '@em/core/em';
-import { createContext, consume, provide } from '@em/core/context';
+import { createFactory } from '@em/core/em';
+import { createContext } from '@em/core/context';
 import { flattenRoutes } from '@em/router/flatten';
 import { runGuards } from '@em/router/guards';
 import { compilePattern, matchPath } from '@em/router/match';
 import { computed, effect, signal, untracked, type ReadonlySignal } from '@em/signals/signals';
 import { tags } from '@em/core/tags';
-import type { ComponentProps } from '@em/types';
+import type { Child, ComponentProps, Props } from '@em/types';
 import { trimTrailingSlashes } from '@em/utils/trimTrailingSlashes';
 
 /** The part of the URL a router works with. */
@@ -92,15 +92,15 @@ export interface NavigateOptions {
 }
 
 /** Props of `router.link`: the props of an anchor, with the target in `to` instead of `href`. */
-export type LinkProps = Omit<ComponentProps<'a'>, 'tag' | 'href'> & {
+export type LinkProps = Omit<Props<'a'>, 'href'> & {
   /** The target: an app path starting with `/` (the base is added) or a URL. */
   to: string;
   /** Replaces the current history entry instead of adding one. */
   replace?: boolean;
 };
 
-/** Props for the outlet element: any component props except the ones the router controls. */
-export type OutletProps = Omit<ComponentProps<'div'>, 'tag' | 'children' | 'mounted'>;
+/** Props for the outlet: any component props except the ones the router controls. */
+export type OutletProps = Omit<ComponentProps, 'mounted' | 'provide'>;
 
 /** A router: the current location as a signal, plus navigation and the components that show it. */
 export interface Router {
@@ -125,16 +125,17 @@ export interface Router {
    * Creates an anchor that navigates without a page load on plain left clicks.
    *
    * @param props - The anchor props plus `to` and `replace`.
-   * @returns The anchor component.
+   * @param children - The content of the link.
+   * @returns The anchor.
    */
-  link(props: LinkProps): Component<'a'>;
+  link(props: LinkProps, ...children: Child[]): HTMLAnchorElement;
   /**
    * Creates a component that renders the view of the current route.
    *
-   * @param props - Props for the outlet element.
+   * @param props - Props for the outlet.
    * @returns The outlet component.
    */
-  outlet(props?: OutletProps): Component<'div'>;
+  outlet(props?: OutletProps): Component;
   /** Stops listening to `popstate`. */
   dispose(): void;
 }
@@ -201,7 +202,7 @@ const isInternal = (to: string, base: string) =>
  * The location is a signal, so components, effects and computed values can follow it.
  *
  * @example
- * const router = createRouter({ routes: [{ path: '/', view: () => tags.h1({ content: 'Home' }) }] });
+ * const router = createRouter({ routes: [{ path: '/', view: () => tags.h1('Home') }] });
  * mount('#app', router.outlet());
  *
  * @param options - The routes, the optional base path and the view for unknown paths.
@@ -380,101 +381,113 @@ export const createRouter = ({
      * Creates an anchor that navigates without a page load on plain left clicks.
      *
      * @param props - The anchor props plus `to` and `replace`.
-     * @returns The anchor component.
+     * @param children - The content of the link.
+     * @returns The anchor.
      */
-    link: ({ to, replace, ...props }) =>
-      tags.a({
-        ...props,
-        href: to.startsWith('/') ? base + to : to,
-        'aria-current': computed(() =>
-          location.value.path === (to.split(/[?#]/)[0] || '/') ? 'page' : null,
-        ),
-        /**
-         * Runs the custom handler, then navigates unless the browser should handle the click
-         * (modifier keys, other buttons, another target, a download or another origin).
-         *
-         * @param event - The click event.
-         */
-        onclick: (event: HTMLElementEventMap['click']) => {
-          const custom = props.onclick;
-          if (typeof custom === 'function') custom(event);
-          else custom?.handler(event);
-          const plain = event.button === 0 && !(event.metaKey || event.ctrlKey || event.shiftKey);
-          const own = !props.target || props.target === '_self';
-          if (event.defaultPrevented || event.altKey || !plain || !own || props.download) return;
-          if (!isInternal(to, base)) return;
-          event.preventDefault();
-          navigate(to, { replace });
-        },
-      } as never) as Component<'a'>,
+    link: ({ to, replace, ...props }, ...children) =>
+      tags.a(
+        {
+          ...props,
+          href: to.startsWith('/') ? base + to : to,
+          /**
+           * Marks the link while its path is the current one.
+           *
+           * @returns `page` for the current path, nothing otherwise.
+           */
+          'aria-current': () =>
+            location.value.path === (to.split(/[?#]/)[0] || '/') ? 'page' : null,
+          /**
+           * Runs the custom handler, then navigates unless the browser should handle the click
+           * (modifier keys, other buttons, another target, a download or another origin).
+           *
+           * @param event - The click event.
+           */
+          onclick: (event: HTMLElementEventMap['click']) => {
+            const custom = props.onclick;
+            if (typeof custom === 'function') custom(event);
+            else if (custom) custom.handler(event);
+            const plain = event.button === 0 && !(event.metaKey || event.ctrlKey || event.shiftKey);
+            const own = !props.target || props.target === '_self';
+            if (event.defaultPrevented || event.altKey || !plain || !own || props.download) return;
+            if (!isInternal(to, base)) return;
+            event.preventDefault();
+            navigate(to, { replace });
+          },
+        } as Props<'a'>,
+        ...children,
+      ),
     /**
      * Creates a component that renders the view of the current route and swaps it on navigation.
      *
-     * @param props - Props for the outlet element.
+     * @param props - Props for the outlet.
      * @returns The outlet component.
      */
     outlet: (props = {}) => {
       let token = 0;
       const level = { depth: 0 };
-      return em.Outlet({
-        ...props,
-        provide: [provide(depthContext, level)],
-        /**
-         * Follows the route while the outlet is in the document and renders its view.
-         * An outlet inside a layout renders the next route of the chain.
-         *
-         * @param _ - The inner element, not used.
-         * @param component - The outlet.
-         * @returns A function that stops following the route and drops pending views.
-         */
-        mounted: (_: unknown, component: Component<'div'>) => {
-          const parent = consume(depthContext, component);
-          level.depth = parent ? parent.depth + 1 : 0;
-          let rendered: string | undefined;
-          const stop = effect(() => {
-            const entry = current.value;
-            const { depth } = level;
-            const route = entry?.entry.chain[depth];
-            let key = `${viewKey.value}`;
-            if (entry && route) {
-              if (!ids.has(route)) ids.set(route, ids.size);
-              const names = compilePattern(entry.entry.paths[depth]).names;
-              const own = names.map((name) => entry.params[name]).join('\0');
-              const last = depth === entry.entry.chain.length - 1;
-              key = `${ids.get(route)}|${own}|${last ? viewKey.value : ''}`;
-            } else if (entry) {
-              key = 'none';
-            }
-            if (key === rendered) return;
-            rendered = key;
-            const view = entry ? route?.view : notFound;
-            const context = untracked(() => ({
-              ...location.value,
-              params: entry?.params ?? {},
-              router,
-            }));
-            const own = ++token;
-            const result = view ? untracked(() => view(context)) : undefined;
-            /**
-             * Renders a view, or nothing, into the outlet.
-             *
-             * @param node - The view.
-             */
-            const show = (node: Node | undefined) => {
-              component.setState({ children: node ? [node] : [] });
+      const shown = signal<Node | undefined>(undefined);
+      return createFactory('RouterOutlet')(
+        {
+          shadow: false,
+          ...props,
+          provide: depthContext.provide(level),
+          /**
+           * Follows the route while the outlet is in the document and renders its view.
+           * An outlet inside a layout renders the next route of the chain.
+           *
+           * @param component - The outlet.
+           * @returns A function that drops pending views; the outlet stops following the route by itself.
+           */
+          mounted: (component: Component) => {
+            const parent = depthContext.use(component);
+            level.depth = parent ? parent.depth + 1 : 0;
+            let rendered: string | undefined;
+            const stop = effect(() => {
+              const entry = current.value;
+              const { depth } = level;
+              const route = entry?.entry.chain[depth];
+              let key = `${viewKey.value}`;
+              if (entry && route) {
+                if (!ids.has(route)) ids.set(route, ids.size);
+                const names = compilePattern(entry.entry.paths[depth]).names;
+                const own = names.map((name) => entry.params[name]).join('\0');
+                const last = depth === entry.entry.chain.length - 1;
+                key = `${ids.get(route)}|${own}|${last ? viewKey.value : ''}`;
+              } else if (entry) {
+                key = 'none';
+              }
+              if (key === rendered) return;
+              rendered = key;
+              const view = entry ? route?.view : notFound;
+              const context = untracked(() => ({
+                ...location.value,
+                params: entry?.params ?? {},
+                router,
+              }));
+              const own = ++token;
+              const result = view ? untracked(() => view(context)) : undefined;
+              /**
+               * Renders a view, or nothing, into the outlet.
+               *
+               * @param node - The view.
+               */
+              const show = (node: Node | undefined) => {
+                shown.value = node;
+              };
+              if (isPromise(result)) {
+                void result.then((node) => own === token && show(node));
+              } else {
+                show(result);
+              }
+            });
+            return () => {
+              stop();
+              token++;
             };
-            if (isPromise(result)) {
-              void result.then((node) => own === token && show(node));
-            } else {
-              show(result);
-            }
-          });
-          return () => {
-            stop();
-            token++;
-          };
+          },
         },
-      } as never) as Component<'div'>;
+        shown,
+      );
     },
   };
 

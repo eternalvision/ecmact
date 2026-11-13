@@ -11,6 +11,8 @@ describe('Footer', () => {
   it('links to the guide, the building blocks and the project', () => {
     const footer = Footer(makeRouter('/'));
     document.body.append(footer);
+    expect(footer.localName).toBe('footer');
+    expect(footer.querySelectorAll('.footer-grid > div')).toHaveLength(4);
     const titles = [...footer.querySelectorAll('strong')].map((s) => s.textContent);
     expect(titles).toEqual(['ECMact', 'Learn', 'Build', 'Project']);
     const hrefs = [...footer.querySelectorAll('a')].map((a) => a.getAttribute('href'));

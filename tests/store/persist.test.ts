@@ -6,7 +6,7 @@ import {
   type PersistStorage,
   type StateStorage,
 } from '@em/store/persist';
-import { createStore } from '@em/store/store';
+import { createBase } from '@em/store/store';
 
 interface State {
   count: number;
@@ -24,7 +24,7 @@ const memory = (initial: Record<string, string> = {}) => {
 };
 
 const make = (storage: StateStorage, options: Partial<PersistOptions<State, unknown>> = {}) =>
-  createStore(
+  createBase(
     persist<State, unknown>(() => ({ count: 0, note: '' }), {
       name: 'k',
       storage: createJSONStorage(() => storage),
@@ -111,7 +111,7 @@ describe('persist', () => {
 
   it('writes the changes that the creator makes through set', () => {
     const { data, storage } = memory();
-    const store = createStore(
+    const store = createBase(
       persist<{ count: number; inc: () => void }>(
         (set) => ({ count: 0, inc: () => set((state) => ({ count: state.count + 1 })) }),
         { name: 'k', storage: createJSONStorage(() => storage) },
@@ -186,7 +186,7 @@ describe('persist', () => {
       setItem: () => {},
       removeItem: () => {},
     };
-    const store = createStore(
+    const store = createBase(
       persist<State>(() => ({ count: 0, note: '' }), { name: 'k', storage }),
     );
     expect(store.persist?.hasHydrated()).toBe(false);
@@ -221,7 +221,7 @@ describe('persist', () => {
       setItem: () => {},
       removeItem: () => {},
     };
-    const store = createStore(
+    const store = createBase(
       persist<State>(() => ({ count: 0, note: '' }), {
         name: 'k',
         storage,
@@ -240,7 +240,7 @@ describe('persist', () => {
       setItem: () => {},
       removeItem: () => {},
     };
-    createStore(
+    createBase(
       persist<State>(() => ({ count: 0, note: '' }), {
         name: 'k',
         storage,
@@ -252,7 +252,7 @@ describe('persist', () => {
   });
 
   it('does nothing without a storage', () => {
-    const store = createStore(
+    const store = createBase(
       persist<State>(() => ({ count: 0, note: '' }), {
         name: 'k',
         storage: createJSONStorage(() => {
@@ -267,7 +267,7 @@ describe('persist', () => {
 
   it('uses localStorage by default', () => {
     localStorage.clear();
-    const store = createStore(persist<State>(() => ({ count: 0, note: '' }), { name: 'default' }));
+    const store = createBase(persist<State>(() => ({ count: 0, note: '' }), { name: 'default' }));
     store.setState({ count: 1 });
     expect(JSON.parse(localStorage.getItem('default')!).state.count).toBe(1);
     localStorage.clear();

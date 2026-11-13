@@ -1,10 +1,13 @@
+import { tags } from 'ecmact';
 import { text } from '@site/content/messages';
 import type { Block, TableBlock } from '@site/content/types';
 import { findDemo } from '@site/demos/index';
-import { el, slugify, type Content } from '@site/lib/dom';
+import { slugify } from '@site/lib/dom';
 import { parseInline } from '@site/lib/inline';
 import { CodeBlock } from '@site/ui/codeBlock';
 import { DemoFrame } from '@site/ui/demoFrame';
+
+const { aside, div, li, p, strong, table, tbody, td, th, thead, tr } = tags;
 
 /** An entry of the table of contents of a page. */
 export interface Heading {
@@ -31,30 +34,16 @@ export interface Rendered {
  * @returns A scrollable wrapper with the table.
  */
 export const renderTable = (block: TableBlock) =>
-  el(
-    'div',
+  div(
     { class: 'table-wrap' },
-    el(
-      'table',
-      {},
-      el(
-        'thead',
-        {},
-        el('tr', {}, ...block.head.map((cell) => el('th', {}, ...parseInline(cell)))),
-      ),
-      el(
-        'tbody',
-        {},
-        ...block.rows.map((row) =>
-          el('tr', {}, ...row.map((cell) => el('td', {}, ...parseInline(cell)))),
-        ),
-      ),
+    table(
+      thead(tr(block.head.map((cell) => th(parseInline(cell))))),
+      tbody(block.rows.map((row) => tr(row.map((cell) => td(parseInline(cell)))))),
     ),
   );
 
 /**
- * Renders the blocks of a page into DOM nodes and collects the headings. Text blocks are plain DOM; code and demos
- * are ECMact components.
+ * Renders the blocks of a page into DOM nodes and collects the headings. Demos that do not exist are left out.
  *
  * @param blocks - The blocks.
  * @returns The nodes and the headings.
@@ -83,7 +72,7 @@ export const renderBlocks = (blocks: Block[]): Rendered => {
    * @param block - The block.
    * @returns The node, or `undefined` for a demo that does not exist.
    */
-  const render = (block: Block): Content => {
+  const render = (block: Block): Node | undefined => {
     switch (block.type) {
       case 'h2':
       case 'h3': {
@@ -93,31 +82,30 @@ export const renderBlocks = (blocks: Block[]): Rendered => {
           text: block.text.replace(/`/g, ''),
           level: block.type === 'h2' ? 2 : 3,
         });
-        return el(block.type, { attrs: { id } }, ...parseInline(block.text));
+        return tags[block.type]({ id }, parseInline(block.text));
       }
       case 'p':
-        return el('p', {}, ...parseInline(block.text));
+        return p(parseInline(block.text));
       case 'ul':
       case 'ol':
-        return el(block.type, {}, ...block.items.map((item) => el('li', {}, ...parseInline(item))));
+        return tags[block.type](block.items.map((item) => li(parseInline(item))));
       case 'code':
         return CodeBlock({ code: block.code, language: block.language, title: block.title });
       case 'demo': {
         const demo = findDemo(block.id);
-        return demo ? DemoFrame(demo) : undefined;
+        return demo && DemoFrame(demo);
       }
       case 'callout':
-        return el(
-          'aside',
+        return aside(
           { class: `callout callout-${block.tone}` },
-          el('strong', {}, text().docs.callouts[block.tone]),
-          el('p', {}, ...parseInline(block.text)),
+          strong(text().docs.callouts[block.tone]),
+          p(parseInline(block.text)),
         );
       case 'table':
         return renderTable(block);
     }
   };
 
-  const nodes = blocks.map(render).filter((node): node is Node => node instanceof Node);
+  const nodes = blocks.map(render).filter((node) => node !== undefined);
   return { nodes, headings };
 };

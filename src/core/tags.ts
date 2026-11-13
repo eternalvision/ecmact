@@ -1,31 +1,31 @@
-import type { Component } from '@em/core/component';
-import { createFactory, isIgnoredKey } from '@em/core/em';
-import type { ComponentProps } from '@em/types';
+import { createElement, isIgnoredKey } from '@em/core/element';
+import type { ElementOf, Factory, Props } from '@em/types';
 
-/** One factory per HTML tag, with the props typed for that tag and the tag fixed. */
-type TagFactories = {
-  [K in keyof HTMLElementTagNameMap]: (props?: Omit<ComponentProps<K>, 'tag'>) => Component<K>;
-};
+/** One factory per HTML tag, with the props typed for that tag, and one for any custom element name. */
+export type Tags = {
+  [K in keyof HTMLElementTagNameMap]: Factory<Props<K>, ElementOf<K>>;
+} & Record<`${string}-${string}`, Factory<Props, HTMLElement>>;
 
 /**
- * Creates components for HTML tags: `tags.button({ ... })` renders a `<button>` with props typed for it.
+ * Creates plain DOM elements: `tags.button({ onclick }, 'Save')` returns a `<button>`. The first argument may be
+ * the props, everything else is children: nodes, text, lists, and signals or functions that are rendered again
+ * when they change.
  *
  * @example
- * const link = tags.a({ href: '/docs', content: 'Docs' });
+ * const { a, button } = tags;
+ * const link = a({ href: '/docs' }, 'Docs');
+ * const counter = button({ onclick: () => count.value++ }, () => `count is ${count.value}`);
  */
-const tags: TagFactories = new Proxy({} as TagFactories, {
+const tags: Tags = new Proxy({} as Tags, {
   /**
-   * Creates the factory for the tag that was accessed. The tag is fixed in the props.
+   * Creates the factory for the tag that was accessed.
    *
    * @param _ - The proxy target, not used.
-   * @param prop - The tag name.
+   * @param tag - The tag name.
    * @returns The factory, or `undefined` for ignored keys.
    */
-  get: (_, prop) => {
-    if (isIgnoredKey(prop)) return undefined;
-    const factory = createFactory(prop);
-    return (props = {}) => factory({ ...props, tag: prop });
-  },
+  get: (_, tag) =>
+    isIgnoredKey(tag) ? undefined : (...args: unknown[]) => createElement(tag, args),
 });
 
 export { tags };

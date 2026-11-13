@@ -1,4 +1,4 @@
-import { combine, createStore, persist } from 'ecmact';
+import { createStore } from 'ecmact';
 
 /** How the colors are chosen: by the system, or fixed. */
 export type ThemeMode = 'system' | 'light' | 'dark';
@@ -7,28 +7,18 @@ const order: ThemeMode[] = ['system', 'light', 'dark'];
 
 /** The theme of the site, kept in `localStorage` so that the choice survives a reload. */
 export const themeStore = createStore(
-  persist(
-    combine({ mode: 'system' as ThemeMode }, (set) => ({
-      /**
-       * Moves to the next mode.
-       */
-      cycle: () => {
-        set((state) => ({
-          mode: order[(order.indexOf(state.mode) + 1) % order.length] as ThemeMode,
-        }));
-      },
-    })),
-    {
-      name: 'ecmact-site-theme',
-      /**
-       * Picks what to persist: the mode only.
-       *
-       * @param state - The state.
-       * @returns The part to store.
-       */
-      partialize: (state) => ({ mode: state.mode }),
+  { mode: 'system' as ThemeMode },
+  (set) => ({
+    /**
+     * Moves to the next mode.
+     */
+    cycle: () => {
+      set((state) => ({
+        mode: order[(order.indexOf(state.mode) + 1) % order.length] as ThemeMode,
+      }));
     },
-  ),
+  }),
+  { persist: { name: 'ecmact-site-theme' } },
 );
 
 /**

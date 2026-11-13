@@ -38,10 +38,8 @@ const card = (root: ShadowRoot) => {
     href: link?.getAttribute('href') ?? null,
     target: link?.getAttribute('target') ?? null,
     about: root.querySelector('.about')?.textContent,
-    stats: [...root.querySelectorAll('.stats span')]
-      .filter((item) => !item.hasAttribute('hidden') && item.textContent !== '')
-      .map((item) => item.textContent),
-    failed: root.querySelector('.error')?.hasAttribute('hidden') === false,
+    stats: [...root.querySelectorAll('.stats span')].map((item) => item.textContent),
+    failed: root.querySelector('.error') !== null,
     message: root.querySelector('.error .state')?.textContent,
   };
 };
@@ -157,6 +155,7 @@ describe('repo-card', () => {
     const { element } = await mountWidget('repo-card', {}, { loaded: (e) => loaded(e.detail) });
     await vi.advanceTimersByTimeAsync(10);
     element.remove();
+    await vi.advanceTimersByTimeAsync(0);
     element.setAttribute('repo', 'a/b');
     await vi.advanceTimersByTimeAsync(10);
     expect(fetchMock).toHaveBeenCalledTimes(1);

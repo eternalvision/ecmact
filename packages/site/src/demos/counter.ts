@@ -1,7 +1,9 @@
 import { computed, em, signal, tags } from 'ecmact';
 
+const { button, output, small } = tags;
+
 const css = `
-  div {
+  :host {
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -33,7 +35,7 @@ const css = `
 `;
 
 /**
- * A counter: a signal, a value computed from it, and props bound to both. Nothing re-renders but the two texts.
+ * A counter: a signal, a value computed from it, and two texts that follow them. Nothing else is rendered again.
  *
  * @returns The demo.
  */
@@ -41,24 +43,11 @@ export const create = () => {
   const count = signal(0);
   const double = computed(() => count.value * 2);
 
-  return em.Counter({
-    shadow: true,
-    css,
-    children: [
-      tags.button({
-        shadow: false,
-        content: '-',
-        'aria-label': 'Decrease',
-        onclick: () => count.value--,
-      }),
-      tags.output({ shadow: false, content: computed(() => String(count.value)) }),
-      tags.button({
-        shadow: false,
-        content: '+',
-        'aria-label': 'Increase',
-        onclick: () => count.value++,
-      }),
-      tags.small({ shadow: false, content: computed(() => `double is ${double.value}`) }),
-    ],
-  });
+  return em.Counter(
+    { css },
+    button({ 'aria-label': 'Decrease', onclick: () => count.value-- }, '-'),
+    output(count),
+    button({ 'aria-label': 'Increase', onclick: () => count.value++ }, '+'),
+    small(() => `double is ${double.value}`),
+  );
 };

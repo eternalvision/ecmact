@@ -17,8 +17,14 @@ describe('form demo', () => {
     document.body.append(form);
     const fields = [...form.querySelectorAll('em-email, em-name')];
     expect(fields.map((field) => field.getAttribute('name'))).toEqual(['email', 'name']);
-    expect(calls).toHaveLength(2);
-    expect(form.querySelector('em-button')).not.toBeNull();
+    expect(calls).toEqual(['', '', '', '']);
+    expect(fields.map((field) => field.shadowRoot?.querySelector('input')?.type)).toEqual([
+      'email',
+      'text',
+    ]);
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    expect(button.textContent).toBe('Send');
+    expect(button.style.borderRadius).toBe('10px');
   });
 
   it('shows the data on submit', () => {
