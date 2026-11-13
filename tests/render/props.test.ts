@@ -153,12 +153,16 @@ describe('applyProps: events', () => {
   });
 
   it('rethrows an error of a handler when nothing handles it', () => {
-    const element = make({
+    // A browser reports an error thrown by a listener instead of passing it to `click()`, so the listener is called directly.
+    const element = document.createElement('div');
+    const add = vi.spyOn(element, 'addEventListener');
+    applyProps(element, {
       onclick: () => {
         throw new Error('boom');
       },
     });
-    expect(() => element.click()).toThrow('boom');
+    const listener = add.mock.calls[0][1] as EventListener;
+    expect(() => listener(new MouseEvent('click'))).toThrow('boom');
   });
 
   it('reports an error of a handler to the error prop', () => {

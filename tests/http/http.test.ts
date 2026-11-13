@@ -235,8 +235,6 @@ describe('data', () => {
 });
 
 describe('resource', () => {
-  const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
-
   it('exposes the body of a request as data, with loading', async () => {
     const { calls, fetch } = fake(() => json([{ id: 1 }]));
     const users = createHttp({ fetch, baseURL: 'https://api.test' }).resource<{ id: number }[]>(
@@ -245,8 +243,7 @@ describe('resource', () => {
     );
     expect(users.loading).toBe(true);
     expect(users.data).toBeUndefined();
-    await flush();
-    expect(users.loading).toBe(false);
+    await vi.waitFor(() => expect(users.loading).toBe(false));
     expect(users.data).toEqual([{ id: 1 }]);
     expect(calls[0].url).toBe('https://api.test/users?page=2');
     expect(calls[0].init.signal).toBeInstanceOf(AbortSignal);
@@ -257,8 +254,7 @@ describe('resource', () => {
     const { fetch } = fake(() => json({}, { status: 404 }));
     const user = createHttp({ fetch }).resource('/user', { initial: 'none' });
     expect(user.data).toBe('none');
-    await flush();
-    expect(user.error).toMatchObject({ status: 404 });
+    await vi.waitFor(() => expect(user.error).toMatchObject({ status: 404 }));
     user.dispose();
   });
 
@@ -270,8 +266,7 @@ describe('resource', () => {
     await Promise.resolve();
     id.value = 2;
     expect(calls[0].init.signal?.aborted).toBe(true);
-    await flush();
-    expect(user.data).toEqual({ url: '/users/2' });
+    await vi.waitFor(() => expect(user.data).toEqual({ url: '/users/2' }));
     user.dispose();
   });
 });
