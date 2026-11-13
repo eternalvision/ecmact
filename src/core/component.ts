@@ -8,10 +8,10 @@ import { owned } from '@em/signals/signals';
 import { applyStyleSheets } from '@em/render/applyStyleSheets';
 import { bind, isReactive, pause, read, resume } from '@em/render/bindings';
 import type { Child, ComponentProps, SheetState } from '@em/types';
+import { pageHTMLElement } from '@em/utils/env';
 import { warn } from '@em/utils/warn';
 
-const Base =
-  typeof HTMLElement === 'undefined' ? (Object as unknown as typeof HTMLElement) : HTMLElement;
+const Base = pageHTMLElement() ?? (Object as unknown as typeof HTMLElement);
 
 /** The name of the method that fills a component, kept off its public surface. */
 export const init = Symbol('ecmact.init');

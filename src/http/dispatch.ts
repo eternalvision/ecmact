@@ -4,6 +4,7 @@ import { CanceledError, HttpError } from '@em/http/error';
 import { buildHeaders, toRecord } from '@em/http/headers';
 import type { HttpRequestConfig, HttpResponse } from '@em/http/types';
 import { buildUrl } from '@em/http/url';
+import { pageDocument, pageLocation } from '@em/utils/env';
 
 /**
  * Encodes text as Base64, including characters outside Latin-1.
@@ -20,8 +21,9 @@ const base64 = (text: string) => btoa(String.fromCharCode(...new TextEncoder().e
  * @returns The value, or `undefined`.
  */
 const readCookie = (name: string) => {
-  if (typeof document === 'undefined') return undefined;
-  const match = document.cookie
+  const page = pageDocument();
+  if (page === undefined) return undefined;
+  const match = page.cookie
     .split('; ')
     .map((entry) => entry.split('='))
     .find(([key]) => key === name);
@@ -35,8 +37,9 @@ const readCookie = (name: string) => {
  * @returns `true` for the same origin, and when there is no page.
  */
 const sameOrigin = (url: string) => {
-  if (typeof location === 'undefined') return true;
-  return new URL(url, location.href).origin === location.origin;
+  const page = pageLocation();
+  if (page === undefined) return true;
+  return new URL(url, page.href).origin === page.origin;
 };
 
 /**

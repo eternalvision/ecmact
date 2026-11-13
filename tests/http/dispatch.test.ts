@@ -3,7 +3,10 @@ import { libraryDefaults, mergeConfig } from '@em/http/config';
 import { dispatch } from '@em/http/dispatch';
 import { CanceledError, HttpError } from '@em/http/error';
 import type { HttpRequestConfig } from '@em/http/types';
+import { pageDocument, pageLocation } from '@em/utils/env';
 import { fake, json, reply } from '@tests/http/helpers';
+
+vi.mock('@em/utils/env', { spy: true });
 
 const send = (config: HttpRequestConfig) => dispatch(mergeConfig(libraryDefaults(), config));
 
@@ -129,8 +132,9 @@ describe('dispatch xsrf', () => {
   });
 
   it('works without a document and a location', async () => {
-    vi.stubGlobal('document', undefined);
-    vi.stubGlobal('location', undefined);
+    document.cookie = 'XSRF-TOKEN=t';
+    vi.mocked(pageDocument).mockReturnValueOnce(undefined);
+    vi.mocked(pageLocation).mockReturnValueOnce(undefined);
     const { calls, fetch } = fake();
     await send({ url: '/a', fetch });
     expect(calls[0].init.headers.has('x-xsrf-token')).toBe(false);
