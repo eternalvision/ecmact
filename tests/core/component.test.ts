@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
 import { configure, effect, em, signal, tags } from '@em';
 import { Component, init } from '@em/core/component';
 import { resetConfig } from '@em/core/config';
@@ -281,28 +281,36 @@ describe('Component: signals', () => {
 });
 
 describe('Component: form fields', () => {
-  /** A stand-in for `ElementInternals`. */
-  interface Fake {
-    /** Records the values handed to the form. */
-    setFormValue: ReturnType<typeof vi.fn>;
-    /** Records the validity handed to the form. */
-    setValidity: ReturnType<typeof vi.fn>;
+  /** Stands in for `ElementInternals` in happy-dom, which has none; a real engine uses its own. */
+  class FakeInternals {
+    /** Takes the value handed to the form. */
+    setFormValue() {}
+    /** Takes the validity handed to the form. */
+    setValidity() {}
   }
-  let fakes: Fake[];
-  const proto = HTMLElement.prototype as unknown as { attachInternals?: () => Fake };
-  const last = (mock: ReturnType<typeof vi.fn>) => mock.mock.calls[mock.mock.calls.length - 1];
+  const proto = HTMLElement.prototype as unknown as { attachInternals?: () => unknown };
+  /** Whether the environment lacks `attachInternals`: true in happy-dom only. */
+  const missing = typeof proto.attachInternals !== 'function';
+  const Internals = (missing ? FakeInternals : ElementInternals) as typeof FakeInternals;
+  let attach: MockInstance<() => unknown>;
+  let setFormValue: MockInstance<(value: unknown) => void>;
+  let setValidity: MockInstance<
+    (flags: ValidityStateFlags, message?: string, anchor?: HTMLElement) => void
+  >;
+  const last = (mock: MockInstance) => mock.mock.calls[mock.mock.calls.length - 1];
 
   beforeEach(() => {
-    fakes = [];
-    proto.attachInternals = () => {
-      const fake = { setFormValue: vi.fn(), setValidity: vi.fn() };
-      fakes.push(fake);
-      return fake;
-    };
+    if (missing) proto.attachInternals = () => new FakeInternals();
+    attach = vi.spyOn(proto as { attachInternals: () => unknown }, 'attachInternals');
+    setFormValue = vi.spyOn(Internals.prototype, 'setFormValue') as never;
+    setValidity = vi.spyOn(Internals.prototype, 'setValidity') as never;
   });
 
   afterEach(() => {
-    delete proto.attachInternals;
+    attach.mockRestore();
+    setFormValue.mockRestore();
+    setValidity.mockRestore();
+    if (missing) delete proto.attachInternals;
   });
 
   it('is form associated', () => {
@@ -314,14 +322,14 @@ describe('Component: form fields', () => {
     const field = em.Field({ field: true, name: 'email', disabled: true }, input);
     expect(field.getAttribute('name')).toBe('email');
     expect(field.hasAttribute('disabled')).toBe(true);
-    expect(fakes[0].setFormValue).toHaveBeenCalledWith('a@b.c');
-    expect(fakes[0].setValidity).toHaveBeenCalledWith({}, '', undefined);
+    expect(setFormValue).toHaveBeenCalledWith('a@b.c');
+    expect(setValidity).toHaveBeenCalledWith({}, '', undefined);
   });
 
   it('reports an invalid control with the control as the anchor', () => {
     const input = tags.input({ required: true });
     em.Field({ field: true, name: 'n' }, input);
-    const [flags, message, anchor] = last(fakes[0].setValidity);
+    const [flags, message, anchor] = last(setValidity);
     expect(flags.valueMissing).toBe(true);
     expect(message).not.toBe('');
     expect(anchor).toBe(input);
@@ -332,28 +340,30 @@ describe('Component: form fields', () => {
     const field = em.Field({ field: true, name: 'n' }, input);
     input.value = 'typed';
     input.dispatchEvent(new Event('input', { bubbles: true }));
-    expect(last(fakes[0].setFormValue)).toEqual(['typed']);
+    expect(last(setFormValue)).toEqual(['typed']);
     input.value = 'changed';
     input.dispatchEvent(new Event('change', { bubbles: true }));
-    expect(last(fakes[0].setFormValue)).toEqual(['changed']);
+    expect(last(setFormValue)).toEqual(['changed']);
     input.value = 'later';
     document.body.append(field);
-    expect(last(fakes[0].setFormValue)).toEqual(['later']);
+    expect(last(setFormValue)).toEqual(['later']);
   });
 
   it('hands the value again when a signal changed a bound control', () => {
     const text = signal('a');
     em.Field({ field: true, name: 'n' }, tags.input({ bind: text }));
     text.value = 'b';
-    expect(last(fakes[0].setFormValue)).toEqual(['b']);
+    expect(last(setFormValue)).toEqual(['b']);
   });
 
   it('works in the light DOM and without a name or a control', () => {
     const field = em.Field({ field: true, shadow: false }, tags.select(tags.option('a')));
-    expect(last(fakes[0].setFormValue)).toEqual(['a']);
+    expect(last(setFormValue)).toEqual(['a']);
+    expect(setFormValue.mock.contexts.at(-1)).toBe(attach.mock.results[0].value);
     expect(field.shadowRoot).toBeNull();
     em.Field({ field: true });
-    expect(last(fakes[1].setFormValue)).toEqual([null]);
+    expect(last(setFormValue)).toEqual([null]);
+    expect(setFormValue.mock.contexts.at(-1)).toBe(attach.mock.results[1].value);
   });
 
   it('does nothing without the field prop', () => {
@@ -363,14 +373,21 @@ describe('Component: form fields', () => {
     input.value = 'typed';
     card.formResetCallback();
     card.formDisabledCallback(true);
-    expect(fakes).toHaveLength(0);
+    expect(attach).not.toHaveBeenCalled();
     expect(input.value).toBe('typed');
     expect(input.disabled).toBe(false);
   });
 
   it('does nothing where ElementInternals is missing', () => {
-    delete proto.attachInternals;
-    expect(() => em.Field({ field: true, name: 'n' }, tags.input())).not.toThrow();
+    const hidden = vi
+      .spyOn(proto as { attachInternals: unknown }, 'attachInternals', 'get')
+      .mockReturnValue(undefined);
+    try {
+      expect(() => em.Field({ field: true, name: 'n' }, tags.input())).not.toThrow();
+      expect(setFormValue).not.toHaveBeenCalled();
+    } finally {
+      hidden.mockRestore();
+    }
   });
 
   it('puts the control back to its default when the form is reset', () => {
@@ -379,7 +396,7 @@ describe('Component: form fields', () => {
     input.value = 'typed';
     field.formResetCallback();
     expect(input.value).toBe('start');
-    expect(last(fakes[0].setFormValue)).toEqual(['start']);
+    expect(last(setFormValue)).toEqual(['start']);
   });
 
   it('disables the control when the form or a fieldset does', () => {

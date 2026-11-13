@@ -1,21 +1,22 @@
-# Handoff: browser tests, US2.1 done (2026-11-13)
+# Handoff: browser tests, US2.2 done (2026-11-13)
 
-State: F4. Stacked PRs, none merged: #19 US1.1, #20 US1.2, then US2.1 (#7, `feature/7-env-module`). Next: US2.2-US2.4 (#8-#10). Plan: `docs/plans/2026-11-13-browser-tests-plan.md`.
+State: F4. Stacked PRs, none merged: #19 US1.1, #20 US1.2, US2.1 (#7) #21, then US2.2 (#8, `feature/8-element-internals`). Next: US2.3, US2.4 (#9, #10). Plan: `docs/plans/2026-11-13-browser-tests-plan.md`.
 
 ## Done
 
 - F0-F3: spec v1.1, plan v1.0 approved; issues #5-#18, milestone "Browser tests".
 - US1.1 (#5): projects `dom`, `chromium`, `firefox`, `webkit`, the `test:*` scripts, `scripts/check-browsers.ts`.
 - US1.2 (#6): `scripts/check-tests.ts`, `tests/knownFailures.ts` with `knownFailure(issue)`.
-- US2.1 (#7): `src/utils/env.ts`; `dispatch.ts` and `component.ts` read it. Engine failures now: Chromium 6, Firefox 6, WebKit 14. AC verification is a comment on each PR.
+- US2.1 (#7): `src/utils/env.ts`; `dispatch.ts` and `component.ts` read it. Engine failures now: Chromium 6, Firefox 6, WebKit 14.
+- US2.2 (#8): the form field tests spy on the real `ElementInternals` in engines and on a fake in happy-dom; `attachInternals` is hidden with a getter spy, never deleted. AC verification is a comment on each PR.
 
 ## Next step
 
-US2.2-US2.4, one branch and PR each, stacked on the previous story while #19 is open.
+US2.3, US2.4, one branch and PR each, stacked on the previous story while #19 is open.
 
 ## Open questions
 
-- No F5 review yet of the spec, US1.1, US1.2, US2.1.
+- No F5 review yet of the spec, US1.1, US1.2, US2.1, US2.2.
 - Not verified: Node 26.
 
 ## Risks
@@ -31,4 +32,4 @@ US2.2-US2.4, one branch and PR each, stacked on the previous story while #19 is 
 
 ## Prompt for the new session
 
-We continue ECMact. Read `docs/handoff.md`, `AGENTS.md`, `~/.claude/rules/spec-driven-development.md` and the plan (sections 4, 5, US2.2-US2.4). F4 for issues #8-#10, by plan section 5; `knownFailure` for library defects in Firefox or WebKit, the owner is told, no issue without their yes. Gate and `npm run test:browsers` on Node 22.
+We continue ECMact. Read `docs/handoff.md`, `AGENTS.md`, `~/.claude/rules/spec-driven-development.md` and the plan (sections 4, 5, US2.3, US2.4). F4 for issues #9, #10, by plan section 5; `knownFailure` for library defects in Firefox or WebKit, the owner is told, no issue without their yes. Gate and `npm run test:browsers` on Node 22.
