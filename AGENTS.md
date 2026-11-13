@@ -4,6 +4,14 @@ Handoff and state: `docs/handoff.md` · plans: `docs/plans/` · conventions: `CO
 
 Tracker: GitHub Issues of `eternalvision/ecmact`. Branches: `feature/<issue number>-<slug>` from `main`.
 
+## Autonomy (owner decision 2026-11-13)
+
+This project is an explicit exception to the global rules "commit and push only when the owner asks" and "stop at the end of every phase":
+
+- When a phase ends, write the handoff, commit, push, and start the next phase in a new session without asking.
+- Decide every question yourself except the critical ones: a breaking change of the 3.x API, a tag or npm publish, a new runtime dependency, deleting data.
+- Commits stay one-line Conventional Commits with no attribution. Tags still need the owner's explicit request (see Boundaries).
+
 ## Gate before a commit
 
 ```bash
