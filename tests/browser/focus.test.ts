@@ -78,3 +78,7 @@ describe('each: focus inside a shadow root', () => {
     expect(inputs()[0]).toBe(first);
   });
 });
+
+it('tmp failing assertion', () => {
+  expect(1 + 1).toBe(3);
+});
