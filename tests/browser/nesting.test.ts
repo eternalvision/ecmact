@@ -57,7 +57,8 @@ describe('native CSS nesting produced by styled', () => {
 
   it('keeps the nested rule inside one rule of the stylesheet', () => {
     mount(document.body, Card(tags.span('inner')));
-    const [rule] = Array.from(document.adoptedStyleSheets.at(-1)!.cssRules) as CSSStyleRule[];
-    expect(rule.cssRules.length).toBeGreaterThanOrEqual(3);
+    const sheet = document.adoptedStyleSheets.at(-1)!;
+    expect(sheet.cssRules).toHaveLength(1);
+    expect((sheet.cssRules[0] as CSSStyleRule).cssRules).toHaveLength(3);
   });
 });

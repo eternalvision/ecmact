@@ -58,6 +58,17 @@ describe('@property rules of the shared styles', () => {
     expect(computed(paragraph, '--em-b04-sum')).toBe('3px');
   });
 
+  it('are copied from a CSSStyleSheet source too', () => {
+    const sheet = new CSSStyleSheet();
+    sheet.replaceSync(properties);
+    configure({ styles: [sheet] });
+    const paragraph = tags.p('text');
+    mount(document.body, em.Note(paragraph));
+    expect(document.head.querySelector('style[data-ecmact="properties"]')).not.toBeNull();
+    expect(computed(paragraph, '--em-b04-size')).toBe('7px');
+    expect(computed(paragraph, '--em-b04-sum')).toBe('3px');
+  });
+
   it('stay unregistered when the styles hold none', () => {
     configure({ styles: ['p { margin-left: var(--em-b04-size); }'] });
     const paragraph = tags.p('text');
