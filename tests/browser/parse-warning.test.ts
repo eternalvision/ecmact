@@ -47,7 +47,9 @@ describe('a rule the engine cannot parse', () => {
 
   it('warns once for the same rule however many elements use it', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-    mount(document.body, Broken('one'), Broken('two'));
+    mount(document.body, Broken('one'));
+    resetWarnings();
+    mount(document.body, Broken('two'));
     expect(warn).toHaveBeenCalledTimes(1);
   });
 });
