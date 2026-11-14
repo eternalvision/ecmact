@@ -161,6 +161,8 @@ describe('applyProps: events', () => {
         throw new Error('boom');
       },
     });
+    expect(add).toHaveBeenCalledOnce();
+    expect(add.mock.calls[0][0]).toBe('click');
     const listener = add.mock.calls[0][1] as EventListener;
     expect(() => listener(new MouseEvent('click'))).toThrow('boom');
   });
