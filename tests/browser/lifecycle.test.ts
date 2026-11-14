@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import { effect, em, signal, tags } from '@em';
 import { defineWidget } from '@em/widget/widget';
 import { tick } from '@tests/helpers';
@@ -19,38 +19,46 @@ const makeTargets = () => {
 };
 
 describe('component: moved and removed in a real engine', () => {
-  /** A component whose `mounted` starts an effect and returns a cleanup. */
+  /** A component whose `mounted` starts an effect and returns a cleanup; `order` records the hooks that ran. */
   const setup = () => {
     const outside = signal(0);
+    const order: string[] = [];
     const run = vi.fn(() => void outside.value);
-    const cleanup = vi.fn();
+    const cleanup = vi.fn(() => void order.push('cleanup'));
+    const unmounted = vi.fn(() => void order.push('unmounted'));
     const mounted = vi.fn(() => {
       effect(run);
       return cleanup;
     });
     const card = em.Card(
-      { mounted },
+      { mounted, unmounted },
       tags.p(() => String(outside.value)),
     );
-    return { outside, run, cleanup, mounted, card };
+    return { outside, order, run, cleanup, mounted, unmounted, card };
   };
 
-  it('stays alive when it is moved: it is reconnected at once and keeps following signals', async () => {
-    const { outside, run, cleanup, mounted, card } = setup();
+  it('stays alive when it is moved: the cleanup, `unmounted` and `mounted` run, and it follows signals in between', async () => {
+    const { outside, order, run, cleanup, mounted, unmounted, card } = setup();
     const { from, to } = makeTargets();
     from.append(card);
     const paragraph = card.shadowRoot!.querySelector('p');
     expect(mounted).toHaveBeenCalledTimes(1);
+    // the two halves of a move: it is disconnected, and a signal changes before it is connected again
+    card.remove();
+    outside.value = 1;
+    expect(card.shadowRoot!.textContent).toBe('1');
     to.append(card);
     await tick();
     expect(card.parentElement).toBe(to);
     expect(card.shadowRoot!.querySelector('p')).toBe(paragraph);
-    // documented: a move is a disconnect and a connect, so the cleanup and `mounted` run once each
+    // documented: a move is a disconnect and a connect, so the cleanup, `unmounted` and `mounted` run
+    expect(order).toEqual(['cleanup', 'unmounted']);
     expect(cleanup).toHaveBeenCalledTimes(1);
+    expect(unmounted).toHaveBeenCalledTimes(1);
     expect(mounted).toHaveBeenCalledTimes(2);
     run.mockClear();
-    outside.value = 1;
-    expect(card.shadowRoot!.textContent).toBe('1');
+    outside.value = 2;
+    expect(card.shadowRoot!.textContent).toBe('2');
     expect(run).toHaveBeenCalledTimes(1);
   });
 
@@ -123,14 +131,27 @@ describe('widget: events across the shadow boundary', () => {
     document.body.append(element);
     const heard = vi.fn((event: Event) => ({
       target: event.target,
-      composed: event.composed,
       detail: (event as CustomEvent).detail,
     }));
     document.body.addEventListener('pay', heard);
+    onTestFinished(() => document.body.removeEventListener('pay', heard));
     element.shadowRoot!.querySelector('button')!.click();
     expect(heard).toHaveBeenCalledTimes(1);
-    expect(heard).toHaveReturnedWith({ target: element, composed: true, detail: { amount: 5 } });
-    document.body.removeEventListener('pay', heard);
+    expect(heard).toHaveReturnedWith({ target: element, detail: { amount: 5 } });
+  });
+
+  it('leaves the shadow root of a component that holds the widget, with the component as the target', () => {
+    const name = nextName();
+    defineWidget(name, ({ emit }) => tags.button({ onclick: () => emit('pay', 5) }, 'Pay'));
+    const element = document.createElement(name);
+    const card = em.Card(element);
+    document.body.append(card);
+    const heard = vi.fn((event: Event) => event.target);
+    document.addEventListener('pay', heard);
+    onTestFinished(() => document.removeEventListener('pay', heard));
+    element.shadowRoot!.querySelector('button')!.click();
+    expect(heard).toHaveBeenCalledTimes(1);
+    expect(heard).toHaveReturnedWith(card);
   });
 
   it('reaches a listener on the document and can be cancelled by it', () => {
@@ -143,8 +164,8 @@ describe('widget: events across the shadow boundary', () => {
     document.body.append(element);
     const cancel = (event: Event) => event.preventDefault();
     document.addEventListener('pay', cancel);
+    onTestFinished(() => document.removeEventListener('pay', cancel));
     element.shadowRoot!.querySelector('button')!.click();
-    document.removeEventListener('pay', cancel);
     expect(result).toBe(false);
   });
 });

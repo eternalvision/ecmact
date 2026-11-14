@@ -31,25 +31,27 @@ const makeList = (rows: Row[]) => {
 };
 
 describe('each: focus inside a shadow root', () => {
-  it('restores the focus to the same place of a row that is rendered again in a new order', () => {
+  it('restores the focus to the row that was focused, wherever the reorder puts it', () => {
     const { items, host, root, inputs } = makeList([
       { id: 1, text: 'a' },
       { id: 2, text: 'b' },
       { id: 3, text: 'c' },
     ]);
-    inputs()[1].focus();
-    expect(root.activeElement).toBe(inputs()[1]);
+    inputs()[0].focus();
+    expect(root.activeElement).toBe(inputs()[0]);
     items.value = [
       { id: 3, text: 'c2' },
       { id: 2, text: 'b2' },
       { id: 1, text: 'a2' },
     ];
     expect(inputs().map((input) => input.value)).toEqual(['c2', 'b2', 'a2']);
-    expect(root.activeElement).toBe(inputs()[1]);
+    // the row moved from the first to the last place, and the focus went with it, not with the index
+    expect(root.activeElement).toBe(inputs()[2]);
+    expect(inputs()[2].value).toBe('a2');
     expect(document.activeElement).toBe(host);
   });
 
-  it('keeps the focus on a row that only changes its place', () => {
+  it('a focused row that the reorder does not move keeps the focus', () => {
     const rows = [
       { id: 1, text: 'a' },
       { id: 2, text: 'b' },
@@ -59,6 +61,7 @@ describe('each: focus inside a shadow root', () => {
     first.focus();
     items.value = [rows[1], rows[0]];
     expect(inputs()).toEqual([second, first]);
+    // the reorder moves the other row and leaves the focused one where it is, so its focus is not touched
     expect(root.activeElement).toBe(first);
   });
 
