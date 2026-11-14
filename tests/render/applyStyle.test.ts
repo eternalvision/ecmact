@@ -59,9 +59,10 @@ describe('applyStyle', () => {
 
   it('does not let a value break out of the element', () => {
     const element = document.createElement('div');
+    const scripts = document.scripts.length;
     applyStyle(element, { color: 'red;} </style><script>alert(1)</script>' }, new Set());
     expect(element.querySelector('script')).toBeNull();
-    expect(element.ownerDocument.querySelector('script')).toBeNull();
+    expect(document.scripts.length).toBe(scripts);
   });
 
   it('warns about values that cannot be applied', () => {
