@@ -239,7 +239,7 @@ As a widget author I want lists, moves and events to behave the same in every en
 - Affected: `tests/browser/focus.test.ts`, `tests/browser/lifecycle.test.ts`.
 - Acceptance criteria:
   - AC-01 `each` restores focus to an element inside a shadow root after a reorder (B05).
-  - AC-02 Moving a component or a widget in the DOM does not run its cleanup; removing it does (B06).
+  - AC-02 Moving a widget in the DOM does not run its cleanup; removing it does. A moved component runs the cleanup, `unmounted` and `mounted` and keeps following signals in between, as the README documents; removing it stops it (B06, D32).
   - AC-03 (edge) An event emitted by a widget is received by a listener outside its shadow root (`composed`).
 - Tests: the files themselves.
 - Estimate: S. Depends on: US1.2, US2.5.
