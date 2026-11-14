@@ -420,8 +420,11 @@ describe('Component: form fields', () => {
 
   it('leaves a click that started inside, and a field without a control, alone', () => {
     const input = tags.input({ type: 'checkbox' });
-    const field = em.Field({ field: true, name: 'n' }, input);
+    const label = tags.span('label');
+    const field = em.Field({ field: true, name: 'n' }, label, input);
     document.body.append(field);
+    label.click();
+    expect(input.checked).toBe(false);
     input.click();
     expect(input.checked).toBe(true);
     expect(() => em.Field({ field: true }).click()).not.toThrow();
