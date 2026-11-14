@@ -69,6 +69,22 @@ describe('form-associated field in a real form', () => {
     expect(new FormData(form).get('email')).toBe('start');
   });
 
+  it('checks a checkbox that starts checked again on form.reset()', () => {
+    const field = em.Field(
+      { field: true, name: 'agree' },
+      tags.input({ type: 'checkbox', value: 'yes', checked: true }),
+    );
+    const form = makeForm(field);
+    const control = controlOf<HTMLInputElement>(field);
+    expect(new FormData(form).get('agree')).toBe('yes');
+    control.click();
+    expect(control.checked).toBe(false);
+    expect(new FormData(form).has('agree')).toBe(false);
+    form.reset();
+    expect(control.checked).toBe(true);
+    expect(new FormData(form).get('agree')).toBe('yes');
+  });
+
   it('is disabled by a disabled fieldset and enabled again with it', () => {
     const field = em.Field({ field: true, name: 'email' }, tags.input({ value: 'a@b.c' }));
     const fieldset = tags.fieldset(field);
