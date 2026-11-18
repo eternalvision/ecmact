@@ -32,7 +32,7 @@ jobs:
         id: playwright
         run: |
           version=$(node -p "require('playwright/package.json').version")
-          test -n "$version"
+          test -n "$version" && test "$version" != undefined
           echo "version=$version" >> "$GITHUB_OUTPUT"
       - name: Cache the engine
         id: cache
