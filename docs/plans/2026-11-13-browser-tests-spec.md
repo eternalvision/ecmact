@@ -79,7 +79,7 @@ Browser-only tests (B), each in every engine:
 - **B03** A rule that the engine cannot parse takes the warning path of `src/styled/inject.ts` without a mocked `insertRule`.
 - **B04** `adoptedStyleSheets` on a shadow root applies styles (computed style), including `@property` rules copied to the document.
 - **B05** `each` restores focus when the focused element is inside a shadow root.
-- **B06** Moving a component or a widget in the DOM does not run its cleanup; removing it does. Events emitted by a widget cross the shadow boundary (`composed`).
+- **B06** Moving a widget in the DOM does not run its cleanup; removing it does. A moved component behaves as the README documents (Lifecycle): the cleanup, `unmounted` and `mounted` run and it keeps following signals in between; removing it stops it (D32). Events emitted by a widget cross the shadow boundary (`composed`).
 - **B07** The set of browser-only tests is closed: a new browser-only area needs a decision of the owner.
 
 Known failures (K):
