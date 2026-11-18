@@ -40,5 +40,5 @@ export const translation: string[] = [
   '[Styled-компоненты](/docs/styled)',
   'Поля стора фиксируются при создании',
   '[Управление состоянием](/docs/state)',
-  'ECMact молод. Поддерживается любой современный браузер с Custom Elements v1 и Shadow DOM; constructable stylesheets используются, когда доступны. Полифилы не входят.',
+  'ECMact молод. Поддерживается любой современный браузер с Custom Elements v1 и Shadow DOM; constructable stylesheets используются, когда доступны. Полифилы не входят. В CI тесты запускаются в Chromium, Firefox и WebKit через Playwright, с версиями движков закреплённой версии Playwright. Более старые версии, включая минимумы вложенности CSS из раздела про styled-компоненты, этими тестами не проверяются.',
 ];
