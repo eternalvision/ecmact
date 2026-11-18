@@ -55,7 +55,7 @@ export const page: DocPage = {
     ),
     callout(
       'note',
-      'ECMact is young. Browser support is any evergreen browser with Custom Elements v1 and Shadow DOM; constructable stylesheets are used when available. No polyfills are included.',
+      'ECMact is young. Browser support is any evergreen browser with Custom Elements v1 and Shadow DOM; constructable stylesheets are used when available. No polyfills are included. The tests run in Chromium, Firefox and WebKit through Playwright; no browser version range is declared.',
     ),
   ],
 };

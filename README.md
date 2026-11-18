@@ -1723,6 +1723,8 @@ Importing `ecmact` is safe without a DOM (Node, SSR bundlers, tooling): no brows
 
 Any evergreen browser. Components and widgets use Custom Elements v1 and Shadow DOM, and styled components use native CSS nesting. The published code is not transpiled below Vite's default build target (Baseline widely available, fixed to 2026-01-01 for Vite 8), so it uses modern syntax such as class fields and private `#fields`. Constructable stylesheets are used for `css`, shared styles and styled components when the browser has them, with a `<style>` element fallback. No polyfills are included.
 
+Tested engines: the library tests run in Chromium, Firefox and WebKit through Playwright, headless, in CI on every pull request and before a release. Chromium and Firefox run on `ubuntu-latest`, WebKit on `macos-latest`. The engine versions are those that the Playwright version pinned in `package.json` downloads (1.65.0 at the time of writing); no browser version range is declared. Playwright's WebKit is the engine of Safari, but not the Safari application, and the tests do not run on other browsers or on mobile devices.
+
 ## Limitations
 
 - **Props are applied once.** There is no re-render and no way to pass new props to an element. What has to change reads a signal, or you change the DOM element yourself.
