@@ -1,31 +1,33 @@
-# Handoff: browser tests, P1-P3 done (2026-11-14)
+# Handoff: browser tests, P1-P4 done (2026-11-18)
 
-State: F4. Merged into `main`: #19-#24 (US1.1-US2.4). Open, stacked, none merged: PR #25 US2.5 (`feature/11-triage`), #29 US3.1 (`feature/12-form-fields`), #32 US3.2 (`feature/13-browser-styles`), #33 US3.3 (`feature/14-focus-lifecycle`). AC verification and review results are comments on each PR. Next: US4.1 (#15). Plan: `docs/plans/2026-11-13-browser-tests-plan.md`.
+State: F4. Merged into `main`: #19-#25 (US1.1-US2.5). Open, stacked, none merged: #29 US3.1 (`feature/12-form-fields`), #32 US3.2, #33 US3.3, #35 US4.1 (`feature/15-ci-engines`), #37 US4.2 (`feature/16-release-engines`). AC verification and review results are comments on each PR. Next: US5.1 (#17). Plan: `docs/plans/2026-11-13-browser-tests-plan.md`.
 
 ## Done
 
 - F0-F3: spec v1.1, plan v1.0 approved; issues #5-#18, milestone "Browser tests".
-- P1, P2 (US1.1-US2.5): engine projects and scripts, structure check, `src/utils/env.ts`, shared tests green in every engine; `tests/knownFailures.ts` has no entry.
-- P3 (US3.1-US3.3): the six files of `tests/browser/` (forms, nesting, parse-warning, adopted-sheets, focus, lifecycle), each proven by mutations of `src` in the three engines.
-- Node 22 on `7ddeb4e` (the top of the stack with the lower branches and `main` merged in): gate green, `npm run test:browsers` 743 of 743 in Chromium, Firefox and WebKit, Chromium coverage 100%.
-- F5 review (Opus) of #25, #29, #32, #33; every accepted finding is fixed. The fixes themselves were not reviewed again.
+- P1-P3 (US1.1-US3.3): engine projects, scripts, structure check, shared tests and the six files of `tests/browser/` green in Chromium, Firefox and WebKit (743 of 743), Chromium coverage 100%.
+- P4: US4.1 `npm test` runs the engines, CI runs `test:ci` plus reusable `browsers.yml` (three engines, cache per OS, engine and Playwright version). US4.2 `release.yml` publishes only after `browsers.yml`; `release-create.yml` runs `test:ci` without engines (D33); write permissions only on the publish job.
+- F5 review (Opus) of every PR; accepted findings fixed, the fixes not reviewed again.
+- R8 closed with data: public repository, engine jobs 30-64 s, whole CI about 2-2.5 min, bounded by `check (24)`.
 
 ## Next step
 
-US4.1 (#15): `npm test` and `ci.yml`, branch stacked on `feature/14-focus-lifecycle` while the stack is open. Then US4.2 (#16), US5.1 (#17), US5.2 (#18).
+US5.1 (#17) contributor docs; its scope also covers the README Development section (`npm test` now needs engines, `npm run browsers:install`). Then US5.2 (#18), site in English and Russian.
 
 ## Open questions
 
-- Library defects found by the review, issues opened, no code changed, the fix is the owner's decision (behaviour of 3.x): #30 a field loses the control's own `disabled`; #31 a disabled control is still submitted; #34 a keyed row of `each` loses focus when the reorder moves its node.
-- Not reported as an issue, not verified: the `<style>` fallback of `src/styled/inject.ts` appends rule text as it is, so text that `insertRule` refuses would apply there.
-- No F5 review of the spec and of US1.1-US2.4. Issues #5-#10, #27 are open although their PRs are merged.
-- Not verified: Node 26.
+- Merge the stack in order; #35 only together with #37, no tag between them (otherwise a release fails on missing engines).
+- PR #37: the WebKit job was not run twice, GitHub had no macOS arm64 runner ("not acquired"); re-run before merging.
+- Required status checks on `main` are not set (only the ruleset "Protect main history"): owner action.
+- US4.1 AC-05 (cache key follows a Playwright bump) verified by construction only; attach the run of the first Dependabot `playwright` bump. Push-to-`main` run of `ci.yml` not seen yet.
+- Library defects, issues open, no code changed (3.x behaviour, owner's call): #30, #31, #34.
+- Not verified: the `<style>` fallback of `src/styled/inject.ts`; Node 26; `release.yml` never parsed by GitHub (no tag); `actionlint` not run.
+- No F5 review of the spec and US1.1-US2.4. Issues #5-#11, #27 open although merged.
 
 ## Decisions (do not reopen)
 
-- D1-D21: the specification. D22-D26: plan section 1. D27-D32 and the owner's answers of 2026-11-14: `docs/decisions.md`.
-- D32 in short: a moved component runs the cleanup, `unmounted` and `mounted`, as the README documents; B06 and AC-02 reworded.
+- D1-D21 spec, D22-D26 plan section 1, D27-D33 and the owner's answers: `docs/decisions.md`.
 
 ## Prompt for the new session
 
-We continue ECMact. Read `docs/handoff.md`, `AGENTS.md` on `main`, `~/.claude/rules/spec-driven-development.md` and the plan (sections 4, 5, US4.1). F4 for issue #15. Gate and `npm run test:browsers` on Node 22; AC verification with a mutation table as a comment on the PR.
+We continue ECMact. Read `docs/handoff.md`, `AGENTS.md`, `~/.claude/rules/spec-driven-development.md` and the plan (section 5, US5.1). F4 for issue #17 on a branch stacked on `feature/16-release-engines`.

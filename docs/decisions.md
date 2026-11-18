@@ -14,3 +14,7 @@ The dated log of decisions made after the specification and the plan. D1-D21 are
 
 - D32 (US3.3): B06 and AC-02 were wrong for components. The README (Lifecycle) documents that a moved component runs the cleanup, `unmounted` and `mounted` and keeps following signals in between; 3.x does not change, so the tests prove that, and the literal "no cleanup on a move" only for widgets. Spec and plan reworded.
 - Owner, 2026-11-14: issues for #30, #31, #34 yes; the weak click test of `component.test.ts` fixed in US3.3.
+
+## 2026-11-18
+
+- D33 (US4.2): `release-create.yml` runs `npm run test:ci` and does not require the engines. The template pulls `ecmact` from npm, and the library is checked in the engines in its own release (`release.yml`). After US4.1 plain `npm test` needs installed engines, so the old call would break the create-ecmact release.

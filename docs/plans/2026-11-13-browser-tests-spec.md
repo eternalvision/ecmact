@@ -123,7 +123,7 @@ None. The feature has no screen.
 - npm scripts: `npm test` changes its meaning (L01). New scripts for the engines, a single engine and the install of the engines; names are set in the plan.
 - New dev dependencies (the library keeps zero runtime dependencies): the Vitest browser package, its Playwright provider and Playwright. Exact packages and versions: plan. Vitest today is 5.1.0.
 - A selection of engines from the environment or the command line is needed, because CI runs different engines on different systems (C01) while `npm test` runs all three locally.
-- `ci.yml` and `release.yml` get jobs for the engines. `pages.yml` and `release-create.yml` do not change.
+- `ci.yml` and `release.yml` get jobs for the engines. `pages.yml` does not change; `release-create.yml` switches to `npm run test:ci` with no engines (D33).
 - Marking of browser-only tests and of known failures: the mechanism (file name, tag, helper) is set in the plan.
 - No change to `src` public API, to the published package or to its size.
 
