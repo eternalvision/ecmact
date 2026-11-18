@@ -26,7 +26,7 @@ jobs:
       - run: npm run format:check
       - run: npm run lint
       - run: npm run typecheck
-      - run: npm test
+      - run: npm run test:ci
       - name: Publish to npm
         run: |
           version=$(node -p "require('./packages/create-ecmact/package.json').version")

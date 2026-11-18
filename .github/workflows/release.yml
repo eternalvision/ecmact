@@ -10,7 +10,11 @@ permissions:
   packages: write
 
 jobs:
+  browsers:
+    uses: ./.github/workflows/browsers.yml
+
   publish:
+    needs: browsers
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -26,7 +30,7 @@ jobs:
       - run: npm run format:check
       - run: npm run lint
       - run: npm run typecheck
-      - run: npm test
+      - run: npm run test:ci
       - name: Publish to npm
         run: |
           version=$(node -p "require('./package.json').version")
