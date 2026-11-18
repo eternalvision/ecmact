@@ -10,6 +10,7 @@ jobs:
   engine:
     name: ${{ matrix.engine }} (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
@@ -29,7 +30,10 @@ jobs:
       - run: npm ci
       - name: Read the Playwright version
         id: playwright
-        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+        run: |
+          version=$(node -p "require('playwright/package.json').version")
+          test -n "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
       - name: Cache the engine
         id: cache
         uses: actions/cache@v6
