@@ -1805,7 +1805,7 @@ npm run build
 
 Contributing needs Node 22.22.2 or newer (the JSDoc lint plugin, Vite 8 and Vitest 5). The published package itself has no Node requirement.
 
-`npm test` also runs the library tests in Chromium, Firefox and WebKit through Playwright, so it needs the engines that `npm run browsers:install` downloads. A missing engine stops the run with a message that names that command. Without engines use `npm run test:ci`, which is the same run minus the three engines. To run one place alone, use `npm run test:dom` (happy-dom), `test:chromium`, `test:firefox` or `test:webkit`. See [CONTRIBUTING.md](CONTRIBUTING.md) for the rules of browser tests and known failures.
+`npm test` also runs the library tests in Chromium, Firefox and WebKit through Playwright, so it needs the engines that `npm run browsers:install` downloads. A missing engine stops its engine script with a message that names that command (`test:browsers` still runs the other engines and fails at the end). Without engines use `npm run test:ci`, which is the same run minus the three engines. To run one place alone, use `npm run test:dom` (happy-dom), `test:chromium`, `test:firefox` or `test:webkit`. See [CONTRIBUTING.md](CONTRIBUTING.md) for the rules of browser tests and known failures.
 
 ### Repository layout
 
@@ -1834,27 +1834,27 @@ Inside `src/` and `tests/` (of every package), import through aliases instead of
 - ESLint (`no-restricted-imports`) rejects `./` and `../` imports in `src/` and `tests/`, so new files follow the rule automatically.
 - The build does not leak aliases: the JavaScript is bundled, and the declaration plugin rewrites `@em/...` to relative paths in the published `.d.ts` files.
 
-| Script                     | Description                                                                            |
-| -------------------------- | -------------------------------------------------------------------------------------- |
-| `npm run build`            | Vite library build: ES, CJS and `.d.ts` into `dist/`                                   |
-| `npm run build:all`        | The library and every package in `packages/`                                           |
-| `npm test`                 | Structure check, happy-dom, the three engines, then every package (needs the engines)  |
-| `npm run test:ci`          | `npm test` without the engines                                                         |
-| `npm run test:dom`         | The library tests in happy-dom, with V8 coverage                                       |
-| `npm run test:chromium`    | The library tests in headless Chromium, coverage in `coverage/chromium`                |
-| `npm run test:firefox`     | The library tests in headless Firefox                                                  |
-| `npm run test:webkit`      | The library tests in headless WebKit                                                   |
-| `npm run test:browsers`    | The three engines one after another, fails if any fails                                |
-| `npm run browsers:install` | Downloads Chromium, Firefox and WebKit for Playwright                                  |
-| `npm run test:structure`   | Checks that `tests/` mirrors `src/`                                                    |
-| `npm run test:template`    | Generates every variant of the starter and checks it                                   |
-| `npm run size`             | Measures the size of widget scripts with the library inside                            |
-| `npm run bench`            | Measures keyed lists in Chromium (needs `playwright`, or `BENCH_HTML` for any browser) |
-| `npm run typecheck`        | `tsc --noEmit` for the library and every package                                       |
-| `npm run lint`             | ESLint (flat config, typescript-eslint, prettier)                                      |
-| `npm run lint:fix`         | ESLint with autofix                                                                    |
-| `npm run format`           | Prettier write                                                                         |
-| `npm run format:check`     | Prettier check                                                                         |
+| Script                     | Description                                                                                                                                        |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run build`            | Vite library build: ES, CJS and `.d.ts` into `dist/`                                                                                               |
+| `npm run build:all`        | The library and every package in `packages/`                                                                                                       |
+| `npm test`                 | Structure check, happy-dom, the three engines, then every package (needs the engines)                                                              |
+| `npm run test:ci`          | `npm test` without the engines                                                                                                                     |
+| `npm run test:dom`         | The library tests in happy-dom, with V8 coverage                                                                                                   |
+| `npm run test:chromium`    | The library tests in headless Chromium, coverage in `coverage/chromium`                                                                            |
+| `npm run test:firefox`     | The library tests in headless Firefox                                                                                                              |
+| `npm run test:webkit`      | The library tests in headless WebKit                                                                                                               |
+| `npm run test:browsers`    | The three engines one after another, fails if any fails                                                                                            |
+| `npm run browsers:install` | Downloads Chromium, Firefox and WebKit for Playwright                                                                                              |
+| `npm run test:structure`   | Checks that `tests/` mirrors `src/`                                                                                                                |
+| `npm run test:template`    | Generates every variant of the starter and checks it                                                                                               |
+| `npm run size`             | Measures the size of widget scripts with the library inside                                                                                        |
+| `npm run bench`            | Measures keyed lists in Chromium (needs the Chromium engine from `npm run browsers:install`, or `BENCH_HTML=<file>` writes a page for any browser) |
+| `npm run typecheck`        | `tsc --noEmit` for the library and every package                                                                                                   |
+| `npm run lint`             | ESLint (flat config, typescript-eslint, prettier)                                                                                                  |
+| `npm run lint:fix`         | ESLint with autofix                                                                                                                                |
+| `npm run format`           | Prettier write                                                                                                                                     |
+| `npm run format:check`     | Prettier check                                                                                                                                     |
 
 ### Documentation comments
 
@@ -1877,9 +1877,9 @@ export const mergeJson = (base: Json, overlay: Json): Json => {
 
 ### Test rules
 
-- **`tests/` mirrors `src/`, one test file per source file.** `src/render/props.ts` is tested by `tests/render/props.test.ts`, `src/signals/signals.ts` by `tests/signals/signals.test.ts`, and so on, including `index.ts` files and files that contain only types (their tests are type-level, checked by `npm run typecheck`).
+- **`tests/` mirrors `src/`, one test file per source file.** The one exception is `tests/browser/`: browser-only tests with no source file, a closed list checked by `test:structure` (see [CONTRIBUTING.md](CONTRIBUTING.md)). `src/render/props.ts` is tested by `tests/render/props.test.ts`, `src/signals/signals.ts` by `tests/signals/signals.test.ts`, and so on, including `index.ts` files and files that contain only types (their tests are type-level, checked by `npm run typecheck`).
 - **100% coverage** of statements, branches, functions and lines. The run fails if coverage drops.
-- Both are enforced: `npm test` first runs `npm run test:structure`, which fails on a source file without a test and on a test without a source file. Adding a file to `src/` means adding its test in the same change.
+- Both are enforced: `npm test` first runs `npm run test:structure`, which fails on a source file without a test and on a test without a source file, except the closed list of `tests/browser/`. Adding a file to `src/` means adding its test in the same change.
 - Shared test helpers live in `tests/helpers.ts`; it is not a test file and is not mirrored.
 
 Source layout of the library:

@@ -11,7 +11,7 @@ ECMact focuses on reactive interfaces and embeddable widgets built with native W
 
 ## Local development
 
-Use Node.js 22.22.2 or newer; CI checks Node.js 22 and 24. Install from the repository root with `npm ci`, then install the browser engines once with `npm run browsers:install`. This is an npm workspace: the root package is `ecmact`, and `packages/create-ecmact` contains the scaffolder and templates.
+Use a POSIX shell (macOS, Linux or WSL; the scripts do not run in cmd.exe) and Node.js 22.22.2 or newer; CI checks Node.js 22 and 24. Install from the repository root with `npm ci`, then install the browser engines once with `npm run browsers:install`. On Linux, if an engine cannot start because of missing system libraries, run `npx playwright install-deps`. This is an npm workspace: the root package is `ecmact`, and `packages/create-ecmact` contains the scaffolder and templates.
 
 Before submitting a change, run the applicable checks:
 
@@ -39,7 +39,7 @@ Tests must pass in every engine. A test must not depend on an API that only happ
 
 ### A test that fails in one engine
 
-When a test fails in Firefox or WebKit because of a defect of the library, do not fix the library in the same change and do not skip the test:
+When a test fails in one engine because of a defect of the library, do not fix the library in the same change and do not skip the test:
 
 1. Open a GitHub issue with the engine, the test and the observed behaviour.
 2. Add an entry `{ issue, engine, file, test }` to `knownFailures` in `tests/knownFailures.ts`, the only list of known failures.
