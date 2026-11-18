@@ -1796,6 +1796,7 @@ Changes of behavior to check after the rewrite:
 
 ```bash
 npm ci
+npm run browsers:install
 npm run lint
 npm run typecheck
 npm test
@@ -1803,6 +1804,8 @@ npm run build
 ```
 
 Contributing needs Node 22.22.2 or newer (the JSDoc lint plugin, Vite 8 and Vitest 5). The published package itself has no Node requirement.
+
+`npm test` also runs the library tests in Chromium, Firefox and WebKit through Playwright, so it needs the engines that `npm run browsers:install` downloads. A missing engine stops the run with a message that names that command. Without engines use `npm run test:ci`, which is the same run minus the three engines. To run one place alone, use `npm run test:dom` (happy-dom), `test:chromium`, `test:firefox` or `test:webkit`. See [CONTRIBUTING.md](CONTRIBUTING.md) for the rules of browser tests and known failures.
 
 ### Repository layout
 
@@ -1831,20 +1834,27 @@ Inside `src/` and `tests/` (of every package), import through aliases instead of
 - ESLint (`no-restricted-imports`) rejects `./` and `../` imports in `src/` and `tests/`, so new files follow the rule automatically.
 - The build does not leak aliases: the JavaScript is bundled, and the declaration plugin rewrites `@em/...` to relative paths in the published `.d.ts` files.
 
-| Script                   | Description                                                                            |
-| ------------------------ | -------------------------------------------------------------------------------------- |
-| `npm run build`          | Vite library build: ES, CJS and `.d.ts` into `dist/`                                   |
-| `npm run build:all`      | The library and every package in `packages/`                                           |
-| `npm test`               | Structure check, then Vitest with V8 coverage, for the library and every package       |
-| `npm run test:structure` | Checks that `tests/` mirrors `src/`                                                    |
-| `npm run test:template`  | Generates every variant of the starter and checks it                                   |
-| `npm run size`           | Measures the size of widget scripts with the library inside                            |
-| `npm run bench`          | Measures keyed lists in Chromium (needs `playwright`, or `BENCH_HTML` for any browser) |
-| `npm run typecheck`      | `tsc --noEmit` for the library and every package                                       |
-| `npm run lint`           | ESLint (flat config, typescript-eslint, prettier)                                      |
-| `npm run lint:fix`       | ESLint with autofix                                                                    |
-| `npm run format`         | Prettier write                                                                         |
-| `npm run format:check`   | Prettier check                                                                         |
+| Script                     | Description                                                                            |
+| -------------------------- | -------------------------------------------------------------------------------------- |
+| `npm run build`            | Vite library build: ES, CJS and `.d.ts` into `dist/`                                   |
+| `npm run build:all`        | The library and every package in `packages/`                                           |
+| `npm test`                 | Structure check, happy-dom, the three engines, then every package (needs the engines)  |
+| `npm run test:ci`          | `npm test` without the engines                                                         |
+| `npm run test:dom`         | The library tests in happy-dom, with V8 coverage                                       |
+| `npm run test:chromium`    | The library tests in headless Chromium, coverage in `coverage/chromium`                |
+| `npm run test:firefox`     | The library tests in headless Firefox                                                  |
+| `npm run test:webkit`      | The library tests in headless WebKit                                                   |
+| `npm run test:browsers`    | The three engines one after another, fails if any fails                                |
+| `npm run browsers:install` | Downloads Chromium, Firefox and WebKit for Playwright                                  |
+| `npm run test:structure`   | Checks that `tests/` mirrors `src/`                                                    |
+| `npm run test:template`    | Generates every variant of the starter and checks it                                   |
+| `npm run size`             | Measures the size of widget scripts with the library inside                            |
+| `npm run bench`            | Measures keyed lists in Chromium (needs `playwright`, or `BENCH_HTML` for any browser) |
+| `npm run typecheck`        | `tsc --noEmit` for the library and every package                                       |
+| `npm run lint`             | ESLint (flat config, typescript-eslint, prettier)                                      |
+| `npm run lint:fix`         | ESLint with autofix                                                                    |
+| `npm run format`           | Prettier write                                                                         |
+| `npm run format:check`     | Prettier check                                                                         |
 
 ### Documentation comments
 
@@ -1964,7 +1974,7 @@ git push origin v<version>
 
 For `create-ecmact`, bump `packages/create-ecmact/package.json` and push the tag `create-ecmact-v<version>`. The scaffolder pins the `ecmact` dependency of generated projects to the version of the root package at the time it is built, so release `ecmact` first.
 
-Each package needs a trusted publisher on npmjs.com (repository `eternalvision/ecmact`, and the workflow name from the table) before its first release. The CI workflow runs the full check (format, lint, typecheck, tests with coverage, build, production audit) on every push to `main` and on pull requests.
+Each package needs a trusted publisher on npmjs.com (repository `eternalvision/ecmact`, and the workflow name from the table) before its first release. The CI workflow runs the full check (format, lint, typecheck, tests with coverage, build, production audit) on every push to `main` and on pull requests, and the library tests in Chromium, Firefox and WebKit in jobs of their own.
 
 ## License
 
