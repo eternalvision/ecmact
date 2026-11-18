@@ -1,0 +1,41 @@
+name: Browsers
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  engine:
+    name: ${{ matrix.engine }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - engine: chromium
+            os: ubuntu-latest
+          - engine: firefox
+            os: ubuntu-latest
+          - engine: webkit
+            os: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Read the Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Cache the engine
+        id: cache
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.os == 'macOS' && '~/Library/Caches/ms-playwright' || '~/.cache/ms-playwright' }}
+          key: playwright-${{ runner.os }}-${{ matrix.engine }}-${{ steps.playwright.outputs.version }}
+      - name: Install the engine and its system dependencies
+        run: npx playwright install --with-deps ${{ matrix.engine }}
+      - run: npm run test:${{ matrix.engine }}

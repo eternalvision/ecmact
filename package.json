@@ -20,7 +20,8 @@
   "scripts": {
     "build": "vite build",
     "typecheck": "tsc && npm run typecheck --workspaces --if-present",
-    "test": "npm run test:structure && npm run test:dom && npm run test --workspaces --if-present",
+    "test": "npm run test:structure && npm run test:dom && npm run test:browsers && npm run test --workspaces --if-present",
+    "test:ci": "npm run test:structure && npm run test:dom && npm run test --workspaces --if-present",
     "test:dom": "vitest run --project dom --coverage",
     "test:chromium": "node scripts/check-browsers.ts chromium && vitest run --project chromium --coverage --coverage.reportsDirectory=coverage/chromium --coverage.reportOnFailure",
     "test:firefox": "node scripts/check-browsers.ts firefox && vitest run --project firefox",
