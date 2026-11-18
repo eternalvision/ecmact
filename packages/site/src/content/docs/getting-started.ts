@@ -82,7 +82,7 @@ mount(
     h2('Requirements'),
     ul(
       'Any evergreen browser. Components and widgets use Custom Elements v1 and Shadow DOM, and styled components use native CSS nesting. No polyfills are included.',
-      'The library tests run in Chromium, Firefox and WebKit through Playwright, headless, in CI. The engine versions are those of the pinned Playwright version; no browser version range is declared.',
+      'In CI the library tests run in Chromium, Firefox and WebKit through Playwright, headless. The engine versions are those that come with the pinned Playwright version. Only those versions are tested: older versions, including the CSS nesting minimums of the Styled components section, are not checked by these tests.',
       'Node.js 20.19 or newer for the scaffolder.',
       'TypeScript is optional, but the types are the best documentation: props, attributes and events are typed per tag.',
     ),

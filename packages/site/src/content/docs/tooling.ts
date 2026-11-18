@@ -83,7 +83,7 @@ it('counts clicks', () => {
     ),
     callout(
       'note',
-      'DOM emulators do not cover every browser behavior: focus, forms across the Shadow DOM and `ElementInternals` need a real browser. Reproduce such issues in Chromium, Firefox or Safari. The tests of ECMact itself run in Chromium, Firefox and WebKit through Playwright, headless, on `ubuntu-latest` (Chromium, Firefox) and `macos-latest` (WebKit) in CI.',
+      'DOM emulators do not cover every browser behavior: focus, forms across the Shadow DOM and `ElementInternals` need a real browser. Reproduce such issues in Chromium, Firefox or Safari. The tests of ECMact itself run in Chromium, Firefox and WebKit through Playwright, headless, on `ubuntu-latest` (Chromium, Firefox) and `macos-latest` (WebKit) in CI. The engine versions are those of the pinned Playwright version.',
     ),
     h2('Build'),
     p(
