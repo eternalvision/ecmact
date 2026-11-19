@@ -1,4 +1,5 @@
-import type { Block, DocPage } from '@site/content/types';
+import type { Block, DocPage, HeadingBlock } from '@site/content/types';
+import { anchorIds } from '@site/lib/anchors';
 
 /**
  * Lists the strings of a page that a translator has to write, in a fixed order: the title, the summary, then the
@@ -28,6 +29,37 @@ export const texts = (page: DocPage): string[] => [
     }
   }),
 ];
+
+/**
+ * Lists the headings of a list of blocks.
+ *
+ * @param blocks - The blocks.
+ * @returns The heading blocks, in order.
+ */
+const headingsOf = (blocks: Block[]) =>
+  blocks.filter((block): block is HeadingBlock => block.type === 'h2' || block.type === 'h3');
+
+/**
+ * Lets a translated heading answer to the id of the original one. The id comes from the text, so a translation
+ * changes it, and a link made from the original page (or from the baseline of the site) must still land on the
+ * section.
+ *
+ * @param original - The blocks in the original language.
+ * @param translated - The same blocks, translated.
+ * @returns The translated blocks, with an alias on each heading whose id changed.
+ */
+const keepAddresses = (original: Block[], translated: Block[]): Block[] => {
+  const before = anchorIds(headingsOf(original).map((heading) => heading.text));
+  const after = anchorIds(headingsOf(translated).map((heading) => heading.text));
+  let index = 0;
+  return translated.map((block) => {
+    if (block.type !== 'h2' && block.type !== 'h3') return block;
+    const at = index++;
+    return before[at] === after[at]
+      ? block
+      : { ...block, aliases: [...(block.aliases ?? []), before[at] as string] };
+  });
+};
 
 /**
  * Makes a translated copy of a page. `translated` holds one string for each string that `texts` lists, in the same
@@ -80,5 +112,5 @@ export const localize = (page: DocPage, translated: string[]): DocPage => {
         return block;
     }
   });
-  return { ...page, title, summary, blocks };
+  return { ...page, title, summary, blocks: keepAddresses(page.blocks, blocks) };
 };

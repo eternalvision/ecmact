@@ -47,6 +47,9 @@ export interface Messages {
     onThisPage: string;
     pagerLabel: string;
     edit: string;
+    skipArticle: string;
+    skipToc: string;
+    table: string;
     groups: Record<'Start' | 'Core' | 'Application' | 'Delivery' | 'Reference', string>;
     callouts: Record<'note' | 'tip' | 'warning', string>;
   };
@@ -179,6 +182,9 @@ const en: Messages = {
     onThisPage: 'On this page',
     pagerLabel: 'Previous and next page',
     edit: 'Edit this page on GitHub',
+    skipArticle: 'Skip to the article',
+    skipToc: 'Skip to the sections of this page',
+    table: 'Table',
     groups: {
       Start: 'Start',
       Core: 'Core',
@@ -430,6 +436,9 @@ const ru: Messages = {
     onThisPage: 'На этой странице',
     pagerLabel: 'Предыдущая и следующая страница',
     edit: 'Править эту страницу на GitHub',
+    skipArticle: 'Перейти к статье',
+    skipToc: 'Перейти к разделам страницы',
+    table: 'Таблица',
     groups: {
       Start: 'Начало',
       Core: 'Основы',

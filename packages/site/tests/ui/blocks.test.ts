@@ -34,6 +34,34 @@ describe('renderBlocks', () => {
     expect(headings[0]?.id).toBe('section');
   });
 
+  it('renders an empty anchor for each alias of a heading, in front of its text', () => {
+    const { host, headings } = render(
+      { type: 'h2', text: 'New name', aliases: ['old-name', 'older-name'] },
+      h3('Sub'),
+    );
+    const heading = host.querySelector('h2')!;
+    expect([...heading.querySelectorAll('span.anchor')].map((span) => span.id)).toEqual([
+      'old-name',
+      'older-name',
+    ]);
+    expect(heading.querySelector('span')?.textContent).toBe('');
+    expect(heading.lastChild?.textContent).toBe('New name');
+    expect(host.querySelector('#old-name')?.parentElement).toBe(heading);
+    expect(headings.map((entry) => entry.id)).toEqual(['new-name', 'sub']);
+  });
+
+  it('never lets an alias take the id of another heading or repeat', () => {
+    const { host, headings } = render(
+      { type: 'h2', text: 'One', aliases: ['two', 'shared'] },
+      { type: 'h2', text: 'Two', aliases: ['shared'] },
+    );
+    expect(headings.map((entry) => entry.id)).toEqual(['one', 'two']);
+    expect(host.querySelectorAll('#two')).toHaveLength(1);
+    expect(host.querySelector('#two')?.localName).toBe('h2');
+    expect(host.querySelectorAll('#shared')).toHaveLength(1);
+    expect(host.querySelector('#shared')?.parentElement?.id).toBe('one');
+  });
+
   it('renders paragraphs and lists with inline markup', () => {
     const { host } = render(p('use `x`'), ul('a', 'b **c**'), ol('one', 'two'));
     expect(host.querySelector('p code')?.textContent).toBe('x');
@@ -71,6 +99,14 @@ describe('renderBlocks', () => {
     expect(host.querySelector('td code')?.textContent).toBe('x');
     expect(host.querySelector('td a')?.getAttribute('data-internal')).toBe('/docs');
   });
+
+  it('lets a keyboard user focus and scroll a table', () => {
+    const { host } = render(table(['A'], ['x']));
+    const wrap = host.querySelector('.table-wrap')!;
+    expect(wrap.getAttribute('tabindex')).toBe('0');
+    expect(wrap.getAttribute('role')).toBe('region');
+    expect(wrap.getAttribute('aria-label')).toBe('Table');
+  });
 });
 
 describe('renderBlocks in Russian', () => {
@@ -82,6 +118,11 @@ describe('renderBlocks in Russian', () => {
       'Совет',
       'Внимание',
     ]);
+    expect(
+      render(table(['A'], ['x']))
+        .host.querySelector('.table-wrap')
+        ?.getAttribute('aria-label'),
+    ).toBe('Таблица');
     await resetLocale();
   });
 });

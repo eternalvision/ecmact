@@ -12,8 +12,11 @@ describe('Sidebar', () => {
   it('lists every page under its group', () => {
     const sidebar = Sidebar(makeRouter('/docs/routing'));
     document.body.append(sidebar);
-    expect([...sidebar.querySelectorAll('h2')].map((h) => h.textContent)).toEqual(groups);
-    expect(sidebar.querySelectorAll('.sidebar-group > a')).toHaveLength(docs.length);
+    expect([...sidebar.querySelectorAll('.sidebar-title')].map((h) => h.textContent)).toEqual(
+      groups,
+    );
+    expect(sidebar.querySelectorAll('.sidebar-group li > a')).toHaveLength(docs.length);
+    expect(sidebar.querySelectorAll('.sidebar-group > ul')).toHaveLength(groups.length);
     expect(sidebar.localName).toBe('nav');
   });
 
@@ -22,6 +25,14 @@ describe('Sidebar', () => {
     document.body.append(sidebar);
     const current = sidebar.querySelector('a[aria-current="page"]');
     expect(current?.textContent).toBe('Routing');
+    expect(sidebar.querySelectorAll('a[aria-current="page"]')).toHaveLength(1);
+  });
+
+  it('links every page by its address', () => {
+    const sidebar = Sidebar(makeRouter('/docs/routing'));
+    document.body.append(sidebar);
+    const hrefs = [...sidebar.querySelectorAll('a')].map((a) => a.getAttribute('href'));
+    expect(hrefs).toEqual(docs.map((page) => `/docs/${page.slug}`));
   });
 });
 
@@ -30,7 +41,7 @@ describe('Sidebar in Russian', () => {
     await useLocale('ru');
     const sidebar = Sidebar(makeRouter('/docs/routing'));
     document.body.append(sidebar);
-    expect([...sidebar.querySelectorAll('h2')].map((h) => h.textContent)).toEqual([
+    expect([...sidebar.querySelectorAll('.sidebar-title')].map((h) => h.textContent)).toEqual([
       'Начало',
       'Основы',
       'Приложение',

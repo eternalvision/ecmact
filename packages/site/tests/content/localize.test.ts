@@ -54,7 +54,7 @@ describe('localize', () => {
     expect(result.blocks.map((block) => block.type)).toEqual(
       page.blocks.map((block) => block.type),
     );
-    expect(result.blocks[0]).toEqual({ type: 'h2', text: 'ru:Heading' });
+    expect(result.blocks[0]).toEqual({ type: 'h2', text: 'ru:Heading', aliases: ['heading'] });
     expect(result.blocks[3]).toEqual({ type: 'ul', items: ['ru:a', 'ru:b'] });
     expect(result.blocks[5]).toBe(page.blocks[5]);
     expect(result.blocks[6]).toBe(page.blocks[6]);
@@ -84,5 +84,26 @@ describe('localize', () => {
 
   it('refuses a translation with the wrong number of strings', () => {
     expect(() => localize(page, ['only one'])).toThrow('expected 15 strings, got 1');
+  });
+
+  it('keeps the address of a translated heading as an alias, repeated headings included', () => {
+    const twice: DocPage = { ...page, blocks: [h2('Same'), h3('Same'), h2('Other')] };
+    const result = localize(twice, ['', '', 'Тот же', 'Тот же', 'other']);
+    expect(result.blocks).toEqual([
+      { type: 'h2', text: 'Тот же', aliases: ['same'] },
+      { type: 'h3', text: 'Тот же', aliases: ['same-2'] },
+      { type: 'h2', text: 'other' },
+    ]);
+  });
+
+  it('keeps the aliases a heading already has, and adds the old address after them', () => {
+    const named: DocPage = { ...page, blocks: [{ type: 'h2', text: 'Name', aliases: ['old'] }] };
+    const result = localize(named, ['', '', 'Имя']);
+    expect(result.blocks[0]).toEqual({ type: 'h2', text: 'Имя', aliases: ['old', 'name'] });
+  });
+
+  it('adds no alias to a heading whose address does not change', () => {
+    const result = localize(page, texts(page));
+    expect(result.blocks[0]).toEqual(page.blocks[0]);
   });
 });

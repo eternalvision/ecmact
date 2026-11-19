@@ -1,13 +1,13 @@
 import { tags } from 'ecmact';
 import { text } from '@site/content/messages';
-import type { Block, TableBlock } from '@site/content/types';
+import type { Block, HeadingBlock, TableBlock } from '@site/content/types';
 import { findDemo } from '@site/demos/index';
-import { slugify } from '@site/lib/dom';
+import { anchorIds, headingAliases } from '@site/lib/anchors';
 import { parseInline } from '@site/lib/inline';
 import { CodeBlock } from '@site/ui/codeBlock';
 import { DemoFrame } from '@site/ui/demoFrame';
 
-const { aside, div, li, p, strong, table, tbody, td, th, thead, tr } = tags;
+const { aside, div, li, p, span, strong, table, tbody, td, th, thead, tr } = tags;
 
 /** An entry of the table of contents of a page. */
 export interface Heading {
@@ -31,11 +31,11 @@ export interface Rendered {
  * Renders a table block.
  *
  * @param block - The block.
- * @returns A scrollable wrapper with the table.
+ * @returns A scrollable wrapper with the table. The wrapper can take the focus, so a keyboard user can scroll it.
  */
 export const renderTable = (block: TableBlock) =>
   div(
-    { class: 'table-wrap' },
+    { class: 'table-wrap', role: 'region', 'aria-label': text().docs.table, tabindex: 0 },
     table(
       thead(tr(block.head.map((cell) => th(parseInline(cell))))),
       tbody(block.rows.map((row) => tr(row.map((cell) => td(parseInline(cell)))))),
@@ -43,28 +43,23 @@ export const renderTable = (block: TableBlock) =>
   );
 
 /**
- * Renders the blocks of a page into DOM nodes and collects the headings. Demos that do not exist are left out.
+ * Renders the blocks of a page into DOM nodes and collects the headings. A heading has the id of its text and an
+ * empty `span` for each of its aliases, so that an old link still lands on it. Demos that do not exist are left out.
  *
  * @param blocks - The blocks.
  * @returns The nodes and the headings.
  */
 export const renderBlocks = (blocks: Block[]): Rendered => {
   const headings: Heading[] = [];
-  const used = new Set<string>();
-
-  /**
-   * Gives a heading an id that is not used yet on the page.
-   *
-   * @param text - The heading text.
-   * @returns The id.
-   */
-  const uniqueId = (text: string) => {
-    const base = slugify(text) || 'section';
-    let id = base;
-    for (let n = 2; used.has(id); n++) id = `${base}-${n}`;
-    used.add(id);
-    return id;
-  };
+  const headingBlocks = blocks.filter(
+    (block): block is HeadingBlock => block.type === 'h2' || block.type === 'h3',
+  );
+  const ids = anchorIds(headingBlocks.map((block) => block.text));
+  const aliases = headingAliases(
+    ids,
+    headingBlocks.map((block) => block.aliases),
+  );
+  let position = 0;
 
   /**
    * Renders one block.
@@ -76,13 +71,18 @@ export const renderBlocks = (blocks: Block[]): Rendered => {
     switch (block.type) {
       case 'h2':
       case 'h3': {
-        const id = uniqueId(block.text);
+        const at = position++;
+        const id = ids[at] as string;
         headings.push({
           id,
           text: block.text.replace(/`/g, ''),
           level: block.type === 'h2' ? 2 : 3,
         });
-        return tags[block.type]({ id }, parseInline(block.text));
+        return tags[block.type](
+          { id },
+          (aliases[at] as string[]).map((alias) => span({ id: alias, class: 'anchor' })),
+          parseInline(block.text),
+        );
       }
       case 'p':
         return p(parseInline(block.text));

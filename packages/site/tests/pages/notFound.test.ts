@@ -20,6 +20,17 @@ describe('notFound', () => {
   });
 });
 
+describe('notFound, the way back', () => {
+  it('is the main region, and its links lead home and to the documentation', () => {
+    const page = notFound(makeRouter('/nope'));
+    expect(page.localName).toBe('main');
+    expect([...page.querySelectorAll('a')].map((a) => a.getAttribute('href'))).toEqual([
+      '/',
+      '/docs',
+    ]);
+  });
+});
+
 describe('notFound in Russian', () => {
   it('says so in Russian', async () => {
     await useLocale('ru');

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Toc } from '@site/ui/toc';
+import { Toc, tocId } from '@site/ui/toc';
 
 describe('Toc', () => {
   it('lists the headings as anchors and marks the subsections', () => {
@@ -14,5 +14,12 @@ describe('Toc', () => {
       '#b',
     ]);
     expect(items.map((item) => item.className)).toEqual(['', 'toc-sub']);
+  });
+
+  it('has a title that a skip link can focus', () => {
+    const title = Toc([{ id: 'a', text: 'A', level: 2 }]).querySelector('.toc-title')!;
+    expect(title.id).toBe(tocId);
+    expect(title.getAttribute('tabindex')).toBe('-1');
+    expect(title.textContent).toBe('On this page');
   });
 });
