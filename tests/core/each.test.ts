@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { each, signal, tags } from '@em';
+import { each, em, signal, tags } from '@em';
 import { resetWarnings } from '@em/utils/warn';
 
 let spy: ReturnType<typeof vi.spyOn>;
@@ -134,6 +134,116 @@ describe('each', () => {
 });
 
 describe('each: focus', () => {
+  it.each(['document', 'shadow'] as const)(
+    'keeps the focus and text selection on a retained row moved in the %s',
+    (scope) => {
+      const rows = [
+        { id: 1, text: 'first' },
+        { id: 2, text: 'second' },
+        { id: 3, text: 'third' },
+      ];
+      const items = signal(scope === 'document' ? rows.slice(0, 2) : rows);
+      const list = tags.ul(
+        each(items, (todo) => tags.li(tags.input({ value: todo.text })), {
+          by: (todo) => todo.id,
+        }),
+      );
+      document.body.append(scope === 'document' ? list : em.FocusList(list));
+      const root = list.getRootNode() as Document | ShadowRoot;
+      const row = list.children[scope === 'document' ? 1 : 0];
+      const input = row.querySelector('input')!;
+      input.focus();
+      input.setSelectionRange(1, 3, 'backward');
+      expect(root.activeElement).toBe(input);
+
+      items.value = scope === 'document' ? [rows[1], rows[0]] : [rows[1], rows[2], rows[0]];
+
+      expect(list.children[scope === 'document' ? 0 : 2]).toBe(row);
+      expect(row.querySelector('input')).toBe(input);
+      expect(root.activeElement).toBe(input);
+      expect([input.selectionStart, input.selectionEnd, input.selectionDirection]).toEqual([
+        1,
+        3,
+        'backward',
+      ]);
+    },
+  );
+
+  it('does not move focus to a retained row when the focused row is removed', () => {
+    const items = signal([1, 2, 3]);
+    const list = tags.div(each(items, () => tags.input(), { by: (id) => id }));
+    document.body.append(list);
+    list.querySelector('input')!.focus();
+
+    items.value = [3, 2];
+
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it('restores focus inside the shadow root of a retained row', () => {
+    const items = signal([1, 2]);
+    const list = tags.div(each(items, () => em.FocusRow(tags.input()), { by: (id) => id }));
+    document.body.append(list);
+    const row = list.children[1];
+    const input = row.shadowRoot!.querySelector('input')!;
+    input.focus();
+
+    items.value = [2, 1];
+
+    expect(list.firstElementChild).toBe(row);
+    expect(row.shadowRoot!.activeElement).toBe(input);
+  });
+
+  it('does not focus a retained row that did not move', () => {
+    const items = signal([1, 2]);
+    const list = tags.div(each(items, () => tags.input(), { by: (id) => id }));
+    document.body.append(list);
+    const input = list.querySelector('input')!;
+    input.focus();
+    const focus = vi.spyOn(input, 'focus');
+
+    items.value = [2, 1];
+
+    expect(document.activeElement).toBe(input);
+    expect(focus).not.toHaveBeenCalled();
+  });
+
+  it('keeps the new focus when rendering a row focuses something outside the list', () => {
+    const outside = tags.input();
+    const items = signal([1, 2]);
+    const list = tags.div(
+      each(items, (id) => {
+        if (id === 3) outside.focus();
+        return tags.input();
+      }),
+    );
+    document.body.append(outside, list);
+    list.querySelectorAll('input')[1].focus();
+
+    items.value = [2, 3, 1];
+
+    expect(document.activeElement).toBe(outside);
+  });
+
+  it('keeps focus on the retained row that a new row renderer focused', () => {
+    const second = tags.input();
+    const items = signal([1, 2]);
+    const list = tags.div(
+      each(items, (id) => {
+        if (id === 2) return second;
+        if (id === 3) second.focus();
+        return tags.input();
+      }),
+    );
+    document.body.append(list);
+    (list.firstElementChild as HTMLInputElement).focus();
+
+    items.value = [2, 3, 1];
+
+    expect(list.firstElementChild).toBe(second);
+    expect(document.activeElement).toBe(second);
+  });
+
   const setup = (render: (todo: Todo) => Node) => {
     const items = signal<Todo[]>([{ id: 1, text: 'a' }]);
     const list = tags.ul(each(items, render, { by: (todo) => todo.id }));
