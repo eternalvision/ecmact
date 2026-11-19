@@ -4,11 +4,11 @@ import { text } from '@site/content/messages';
 import { findDemo } from '@site/demos/index';
 import { icon } from '@site/lib/dom';
 import { currentLocale } from '@site/lib/i18n';
-import { withBase } from '@site/lib/paths';
 import { CodeBlock } from '@site/ui/codeBlock';
 import { copyButton } from '@site/ui/copyButton';
 import { DemoFrame } from '@site/ui/demoFrame';
 import { external, outside } from '@site/ui/header';
+import { lockup } from '@site/ui/logo';
 
 const { a, code, div, h1, h2, h3, img, li, main, p, section, span, strong, ul } = tags;
 
@@ -107,13 +107,7 @@ const installLine = () =>
 const hero = (router: Router) =>
   section(
     { class: 'hero wrap' },
-    img({
-      class: 'hero-logo',
-      src: withBase('/ecmact-logo.png'),
-      alt: 'ECMact',
-      width: 856,
-      height: 283,
-    }),
+    div({ class: 'hero-logo', role: 'img', 'aria-label': 'ECMact' }, lockup()),
     h1(m().heroTitle, span({ class: 'accent' }, m().heroAccent)),
     p({ class: 'lead' }, m().lead),
     installLine(),

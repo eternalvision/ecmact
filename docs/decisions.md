@@ -26,3 +26,5 @@ The dated log of decisions made after the specification and the plan. D1-D21 are
 - D35. Following the owner’s “продолжай”, F2 uses the recommended monochrome identity, interface and code, the light-first composition in the prototype, and system theme support. The documentation refresh comes before the package release and the component collection.
 
 - D36. The owner approved the documentation redesign plan and authorized issue creation. Issues #44–#48 are in the Documentation redesign milestone.
+
+- D37 (US1). The transparent README and site lockup is drawn in one gray, #767676: a single-color transparent PNG cannot be black and white at once, and this gray keeps 4.5:1 on white and on black. The header uses the text color through an inline SVG, the mark and the favicon are ink on paper, and `npm run brand:images` renders all the images from `packages/site/src/lib/brand.ts`.

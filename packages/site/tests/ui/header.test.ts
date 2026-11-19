@@ -40,6 +40,7 @@ describe('Header', () => {
     const labels = [...header.querySelectorAll('.nav a')].map((a) => a.textContent);
     expect(labels).toEqual(['Docs', 'Examples', 'Widgets', 'Starter', 'GitHub', 'npm']);
     expect(header.querySelector('.nav .chip')).not.toBeNull();
+    expect(header.querySelector('nav.nav')?.getAttribute('aria-label')).toBe('Main');
   });
 
   it('opens and closes the menu on a narrow screen', () => {
@@ -67,6 +68,7 @@ describe('Header in Russian', () => {
     const labels = [...header.querySelectorAll('.nav a')].map((a) => a.textContent);
     expect(labels.slice(0, 4)).toEqual(['Документация', 'Примеры', 'Виджеты', 'Стартер']);
     expect(header.querySelector('.menu')?.textContent).toBe('Меню');
+    expect(header.querySelector('nav.nav')?.getAttribute('aria-label')).toBe('Основная');
     expect([...header.querySelectorAll('.nav .chip')].map((chip) => chip.textContent)).toEqual([
       'EN',
       '◐ Авто',

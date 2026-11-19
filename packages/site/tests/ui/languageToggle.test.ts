@@ -14,8 +14,9 @@ describe('LanguageToggle', () => {
     document.body.append(button);
     expect(button.localName).toBe('button');
     expect(button.textContent).toBe('RU');
-    expect(button.lang).toBe('ru');
-    expect(button.getAttribute('aria-label')).toBe('Switch the language');
+    expect(button.lang).toBe('');
+    expect(button.querySelector('span')?.lang).toBe('ru');
+    expect(button.getAttribute('aria-label')).toBe('Switch the language: RU');
     button.click();
     expect(currentLocale()).toBe('ru');
   });
@@ -24,6 +25,8 @@ describe('LanguageToggle', () => {
     await useLocale('ru');
     const toggle = LanguageToggle();
     expect(toggle.textContent).toBe('EN');
-    expect(toggle.getAttribute('aria-label')).toBe('Сменить язык');
+    expect(toggle.getAttribute('aria-label')).toBe('Сменить язык: EN');
+    expect(toggle.lang).toBe('');
+    expect(toggle.querySelector('span')?.lang).toBe('en');
   });
 });

@@ -20,6 +20,11 @@ describe('home', () => {
   it('has the hero with the promise, the install command and the calls to action', () => {
     const { page } = build();
     expect(page.querySelector('.hero h1')?.textContent).toContain('plain TypeScript');
+    const logo = page.querySelector('.hero > .hero-logo');
+    expect(logo?.getAttribute('role')).toBe('img');
+    expect(logo?.getAttribute('aria-label')).toBe('ECMact');
+    expect(logo?.querySelector('svg.logo-art')).not.toBeNull();
+    expect(page.querySelector('.hero img.hero-logo')).toBeNull();
     expect(page.querySelector('.install code')?.textContent).toContain('npm create ecmact@latest');
     const actions = [...page.querySelectorAll('.hero .actions a')].map((a) => a.textContent);
     expect(actions).toEqual(['Get started', 'See live examples', 'GitHub', 'npm']);
