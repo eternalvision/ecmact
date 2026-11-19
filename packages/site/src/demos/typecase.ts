@@ -116,6 +116,7 @@ const Pull = styled.button`
 const Field = styled.label`
   display: flex;
   flex: 1 1 100%;
+  min-width: 0;
   align-items: center;
   gap: 10px;
   font-size: 14px;
@@ -130,7 +131,7 @@ const Field = styled.label`
     border-radius: 0;
     background: color-mix(
       in srgb,
-      ${(props) => String(props.theme.ink)} 9%,
+      ${(props) => String(props.theme.ink)} 5%,
       ${(props) => String(props.theme.stock)}
     );
     color: ${(props) => String(props.theme.ink)};

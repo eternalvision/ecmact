@@ -117,6 +117,10 @@ const css = `
     font-size: 15px;
     font-weight: 700;
   }
+  input::placeholder {
+    color: #595959;
+    opacity: 1;
+  }
   input[name='title'] {
     flex: 1 1 9rem;
   }

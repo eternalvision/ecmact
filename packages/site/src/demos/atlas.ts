@@ -182,6 +182,9 @@ const css = `
     margin-bottom: 0;
   }
   .sheet a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
     color: #0e6b85;
     font-weight: 600;
   }

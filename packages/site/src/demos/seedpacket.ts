@@ -37,7 +37,7 @@ const css = `
     box-sizing: border-box;
     width: 100%;
     min-width: 0;
-    min-height: 36px;
+    height: 36px;
     padding: 0 10px;
     border: 0;
     border-radius: 10px;
