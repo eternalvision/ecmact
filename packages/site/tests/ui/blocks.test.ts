@@ -1,12 +1,52 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { callout, code, demo, h2, h3, ol, p, table, ul } from '@site/content/builders';
 import type { Block } from '@site/content/types';
 import { renderBlocks } from '@site/ui/blocks';
 import { resetLocale, useLocale } from '@tests/helpers';
 
 afterEach(() => {
+  vi.unstubAllGlobals();
   document.body.replaceChildren();
 });
+
+/**
+ * Replaces ResizeObserver with one that records what it watches and runs its callbacks when told to.
+ *
+ * @returns The record and `fire`.
+ */
+const stubResizeObserver = () => {
+  const watch = {
+    observed: [] as Element[],
+    disconnected: 0,
+    callbacks: [] as (() => void)[],
+    fire: () => watch.callbacks.forEach((callback) => callback()),
+  };
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      constructor(callback: () => void) {
+        watch.callbacks.push(callback);
+      }
+      observe = (element: Element) => watch.observed.push(element);
+      disconnect = () => {
+        watch.disconnected += 1;
+      };
+    },
+  );
+  return watch;
+};
+
+/**
+ * Gives an element the sizes that layout would.
+ *
+ * @param element - The element.
+ * @param client - Its visible width.
+ * @param scroll - The width of its content.
+ */
+const resize = (element: HTMLElement, client: number, scroll: number) => {
+  Object.defineProperty(element, 'clientWidth', { configurable: true, value: client });
+  Object.defineProperty(element, 'scrollWidth', { configurable: true, value: scroll });
+};
 
 const render = (...blocks: Block[]) => {
   const rendered = renderBlocks(blocks);
@@ -32,6 +72,34 @@ describe('renderBlocks', () => {
   it('gives a heading without letters a fallback id', () => {
     const { headings } = render(h2('???'));
     expect(headings[0]?.id).toBe('section');
+  });
+
+  it('renders an empty anchor for each alias of a heading, in front of its text', () => {
+    const { host, headings } = render(
+      { type: 'h2', text: 'New name', aliases: ['old-name', 'older-name'] },
+      h3('Sub'),
+    );
+    const heading = host.querySelector('h2')!;
+    expect([...heading.querySelectorAll('span.anchor')].map((span) => span.id)).toEqual([
+      'old-name',
+      'older-name',
+    ]);
+    expect(heading.querySelector('span')?.textContent).toBe('');
+    expect(heading.lastChild?.textContent).toBe('New name');
+    expect(host.querySelector('#old-name')?.parentElement).toBe(heading);
+    expect(headings.map((entry) => entry.id)).toEqual(['new-name', 'sub']);
+  });
+
+  it('never lets an alias take the id of another heading or repeat', () => {
+    const { host, headings } = render(
+      { type: 'h2', text: 'One', aliases: ['two', 'shared'] },
+      { type: 'h2', text: 'Two', aliases: ['shared'] },
+    );
+    expect(headings.map((entry) => entry.id)).toEqual(['one', 'two']);
+    expect(host.querySelectorAll('#two')).toHaveLength(1);
+    expect(host.querySelector('#two')?.localName).toBe('h2');
+    expect(host.querySelectorAll('#shared')).toHaveLength(1);
+    expect(host.querySelector('#shared')?.parentElement?.id).toBe('one');
   });
 
   it('renders paragraphs and lists with inline markup', () => {
@@ -71,6 +139,53 @@ describe('renderBlocks', () => {
     expect(host.querySelector('td code')?.textContent).toBe('x');
     expect(host.querySelector('td a')?.getAttribute('data-internal')).toBe('/docs');
   });
+
+  it('makes a table reachable by keyboard only while it scrolls, named by the heading above it', () => {
+    const watch = stubResizeObserver();
+    const { host } = render(h2('Rules'), table(['A'], ['x']));
+    const wrap = host.querySelector<HTMLElement>('.table-wrap')!;
+    expect(wrap.hasAttribute('tabindex')).toBe(false);
+    resize(wrap, 100, 300);
+    watch.fire();
+    expect(wrap.getAttribute('tabindex')).toBe('0');
+    expect(wrap.getAttribute('role')).toBe('region');
+    expect(wrap.getAttribute('aria-labelledby')).toBe('rules');
+    expect(wrap.hasAttribute('aria-label')).toBe(false);
+    resize(wrap, 300, 300);
+    watch.fire();
+    ['tabindex', 'role', 'aria-labelledby', 'aria-label'].forEach((name) =>
+      expect(wrap.hasAttribute(name)).toBe(false),
+    );
+    expect(watch.observed).toContain(wrap);
+    expect(watch.observed).toContain(wrap.firstElementChild);
+  });
+
+  it('names a scrolling table with no heading above it by a generic label', () => {
+    const watch = stubResizeObserver();
+    const { host } = render(table(['A'], ['x']));
+    const wrap = host.querySelector<HTMLElement>('.table-wrap')!;
+    resize(wrap, 100, 300);
+    watch.fire();
+    expect(wrap.getAttribute('aria-label')).toBe('Table');
+    expect(wrap.hasAttribute('aria-labelledby')).toBe(false);
+  });
+
+  it('stops watching a table that left the page', () => {
+    const watch = stubResizeObserver();
+    const { host } = render(table(['A'], ['x']));
+    const wrap = host.querySelector<HTMLElement>('.table-wrap')!;
+    resize(wrap, 100, 300);
+    host.remove();
+    watch.fire();
+    expect(watch.disconnected).toBe(1);
+    expect(wrap.hasAttribute('tabindex')).toBe(false);
+  });
+
+  it('lets a heading and its aliases take the focus when a link names them', () => {
+    const { host } = render({ type: 'h2', text: 'New', aliases: ['old'] });
+    expect(host.querySelector('h2')?.getAttribute('tabindex')).toBe('-1');
+    expect(host.querySelector('#old')?.getAttribute('tabindex')).toBe('-1');
+  });
 });
 
 describe('renderBlocks in Russian', () => {
@@ -82,6 +197,11 @@ describe('renderBlocks in Russian', () => {
       'Совет',
       'Внимание',
     ]);
+    const watch = stubResizeObserver();
+    const wrap = render(table(['A'], ['x'])).host.querySelector<HTMLElement>('.table-wrap')!;
+    resize(wrap, 100, 300);
+    watch.fire();
+    expect(wrap.getAttribute('aria-label')).toBe('Таблица');
     await resetLocale();
   });
 });

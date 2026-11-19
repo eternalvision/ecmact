@@ -6,6 +6,11 @@ export interface HeadingBlock {
   type: 'h2' | 'h3';
   /** The heading text. Inline `code` is allowed. */
   text: string;
+  /**
+   * Other ids the heading answers to, next to the one made from its text: the address of an old link to a heading
+   * that was renamed or translated. An alias that another heading on the page already owns is ignored.
+   */
+  aliases?: string[];
 }
 
 /** A paragraph. */

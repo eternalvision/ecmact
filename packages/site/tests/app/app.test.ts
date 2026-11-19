@@ -105,6 +105,18 @@ describe('start and the language', () => {
     stop();
   });
 
+  it('opens a documentation link in Russian with ?lang=ru and keeps the hash', () => {
+    window.history.replaceState(null, '', '/ecmact/docs/signals?lang=ru#section-2');
+    const target = document.createElement('div');
+    document.body.append(target);
+    const { stop } = start(target);
+    expect(target.querySelector('article h1')?.textContent).toBe('Сигналы');
+    expect(target.querySelector('#section-2')?.localName).toBe('h2');
+    expect(target.querySelector('#rules')).not.toBeNull();
+    expect(window.location.hash).toBe('#section-2');
+    stop();
+  });
+
   it('stops following the language', () => {
     const { target, stop } = open();
     stop();

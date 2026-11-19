@@ -2,7 +2,10 @@ import { tags } from 'ecmact';
 import { text } from '@site/content/messages';
 import type { Heading } from '@site/ui/blocks';
 
-const { a, h2, li, nav, ul } = tags;
+const { a, li, nav, strong, ul } = tags;
+
+/** The id of the title of the table of contents, which the skip link of the page moves the focus to. */
+export const tocId = 'docs-toc';
 
 /**
  * The table of contents of a page: its headings as links to anchors. Anchors are plain `#id` links, so the browser
@@ -14,7 +17,7 @@ const { a, h2, li, nav, ul } = tags;
 export const Toc = (headings: Heading[]) =>
   nav(
     { class: 'toc', 'aria-label': text().docs.onThisPage },
-    h2(text().docs.onThisPage),
+    strong({ id: tocId, class: 'toc-title', tabindex: -1 }, text().docs.onThisPage),
     ul(
       headings.map((heading) =>
         li(

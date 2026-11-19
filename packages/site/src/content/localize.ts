@@ -1,4 +1,5 @@
-import type { Block, DocPage } from '@site/content/types';
+import type { Block, DocPage, HeadingBlock } from '@site/content/types';
+import { anchorIds } from '@site/lib/anchors';
 
 /**
  * Lists the strings of a page that a translator has to write, in a fixed order: the title, the summary, then the
@@ -28,6 +29,38 @@ export const texts = (page: DocPage): string[] => [
     }
   }),
 ];
+
+/**
+ * Lists the headings of a list of blocks.
+ *
+ * @param blocks - The blocks.
+ * @returns The heading blocks, in order.
+ */
+const headingsOf = (blocks: Block[]) =>
+  blocks.filter((block): block is HeadingBlock => block.type === 'h2' || block.type === 'h3');
+
+/**
+ * Lets the headings of a page answer to the ids of the same headings in another language. The id comes from the
+ * text, so a translation changes it, and a link made from the other language (or from the baseline of the site) must
+ * still land on the section.
+ *
+ * @param page - The page that gets the aliases.
+ * @param other - The same page in the other language, with its headings in the same order.
+ * @returns The page, with an alias on each heading whose id differs from the one in the other language.
+ */
+export const withAddressesOf = (page: DocPage, other: DocPage): DocPage => {
+  const mine = anchorIds(headingsOf(page.blocks).map((heading) => heading.text));
+  const theirs = anchorIds(headingsOf(other.blocks).map((heading) => heading.text));
+  let index = 0;
+  const blocks = page.blocks.map((block) => {
+    if (block.type !== 'h2' && block.type !== 'h3') return block;
+    const at = index++;
+    return mine[at] === theirs[at]
+      ? block
+      : { ...block, aliases: [...(block.aliases ?? []), theirs[at] as string] };
+  });
+  return { ...page, blocks };
+};
 
 /**
  * Makes a translated copy of a page. `translated` holds one string for each string that `texts` lists, in the same
@@ -80,5 +113,5 @@ export const localize = (page: DocPage, translated: string[]): DocPage => {
         return block;
     }
   });
-  return { ...page, title, summary, blocks };
+  return withAddressesOf({ ...page, title, summary, blocks }, page);
 };
