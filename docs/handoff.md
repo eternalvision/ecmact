@@ -1,20 +1,17 @@
-# Handoff for the 3.x maintenance release (2026-11-19)
+# Handoff for the documentation redesign (2026-11-19)
 
-## Current work
+State: F4, US8 (#65), branch `feature/65-example-restyle`, PR #66 against `main`. Phase F5 (review by `sdd-reviewer`) is next; the taste gate (AC-01) is the owner's, on the capture sheets in the PR comment.
 
-- The browser-test stack through #39 is on main. Its [CI run](https://github.com/eternalvision/ecmact/actions/runs/44387323923) passed. Historical acceptance criteria and follow-ups are in the [browser-test plan](plans/2026-11-13-browser-tests-plan.md) and [decision log](decisions.md).
-- [#40](https://github.com/eternalvision/ecmact/pull/40) updated six development dependencies, including Playwright 1.65.1. All five [PR jobs](https://github.com/eternalvision/ecmact/actions/runs/44387795291) and the [main CI run](https://github.com/eternalvision/ecmact/actions/runs/44517136577) passed.
-- CodeQL alerts #7 and #8 were dismissed as false positives. The renderer inserts DOM nodes and writes character data into a Text node. Alert #6 was dismissed as intended behavior under the trusted-markup contract for the html prop. The GitHub alert records contain the individual rationales.
-- [#34](https://github.com/eternalvision/ecmact/issues/34) restores focus after reordering retained keyed rows. The regression tests cover node identity, backward selection, document and shadow roots, removal and focus changes during render. Independent review covered the final diff on feature/34-keyed-focus.
+Done: the twelve examples are restyled in their own files (rows of the table of #65), the scheme map, the six axis values per example, the pairwise rule, the limits of AC-25, the source scan of AC-27 and the reduced-motion scan are tests in `packages/site/tests/demos/index.test.ts`. Browser evidence (contrast, focus, overflow, 24 px targets, reduced motion, cut font stacks, Chromium, Firefox, WebKit) is in the PR comment. D60-D64.
 
-## Forms and release
+Next step: review, then the owner's taste gate and merge. After the merge: #56 (five widgets and four hosts in the v2 looks), #57, #47, #48.
 
-- D34 records the owner's approval for both native disabled-control fixes in a 3.x patch.
-- [#30](https://github.com/eternalvision/ecmact/issues/30) preserves the control's own disabled state across host and fieldset toggles, including overlapping overrides of a control shared by nested fields. [PR #42](https://github.com/eternalvision/ecmact/pull/42).
-- [#31](https://github.com/eternalvision/ecmact/issues/31) omits disabled controls from FormData and validation. Reactive disabled props and fieldset changes sync immediately. After direct DOM changes, dispatch a bubbling change event to sync the field.
+Open: the mock tooling named by `style-matrix.md` (`build/*`, `restyle-plan.md`) was never committed; D64 says what replaced it.
 
-The published versions are ecmact 3.0.0 and create-ecmact 0.4.0. The published generator writes ^3.0.0, which includes the proposed library patch. Release tags trigger publication and require the owner's release decision.
+Risks: `backdrop-filter` in `customs` has a solid fallback (checked by removing the `@supports` block); a new font or a changed stack needs the 360 px run again.
 
-## Documentation redesign
+Decisions (do not reopen): D50, D56-D64 (full text in `docs/decisions.md`).
 
-F2 approved and F3 complete. The five issues are #44–#48 in the Documentation redesign milestone. Begin F4 with #44, the monochrome identity and shared site shell. See the [specification](plans/2026-11-19-docs-redesign-spec.md), [plan](plans/2026-11-19-docs-redesign-plan.md) and [design study](sessions/19112026-DocsRedesign/index.html). US7 (default English) is merged. US4b (#54) is merged. US4c (#55, the six examples of requests, lifecycle, a widget and routes, `atlas` at `/examples/atlas`) is in review on `feature/55-examples-requests-routes`; D56-D59. US4d is next. The patch release follows the redesign. The component collection follows as a separate specification.
+Materials: [plan](plans/2026-11-19-docs-redesign-plan.md) (update 1.3), [specification](plans/2026-11-19-docs-redesign-spec.md), [v2 mocks](sessions/19112026-DocsRedesign/concepts-v2.html), [style matrix](sessions/19112026-DocsRedesign/style-matrix.md), PR #66.
+
+Earlier state (the 3.x patch release, forms, #30, #31, #34, #40) is in the [decision log](decisions.md) and the [browser-test plan](plans/2026-11-13-browser-tests-plan.md); the patch release follows the redesign and needs the owner's release decision.

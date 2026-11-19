@@ -133,6 +133,8 @@ R02, R06, R07 and R08 of version 1.2 keep applying to all of the above: old addr
 
 The [concept sheet](../sessions/19112026-DocsRedesign/concepts.html) shows eight widget concepts, twelve example concepts, the coverage matrix, the map of old ids and a mock of the restyled starter in both themes.
 
+The v2 looks that replace the style part of that sheet are in [concepts-v2.html](../sessions/19112026-DocsRedesign/concepts-v2.html), with the table of the six axes in [style-matrix.md](../sessions/19112026-DocsRedesign/style-matrix.md) (requirement R13).
+
 Section 6 of version 1.2 says colour belongs to a demonstration when it explains behaviour. The addendum reads it this way, subject to question Q4: the chrome of the site stays grayscale (header, navigation, frame, tabs, code). A host page and a stage are demonstrations as a whole, so each may carry its own palette and type. The contrast between the quiet frame and the loud content is the point.
 
 Drawings inside widgets and examples are made with CSS, or with a fixed SVG string through the trusted `html` prop.
