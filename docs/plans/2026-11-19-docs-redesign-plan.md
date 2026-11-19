@@ -307,3 +307,253 @@ Changing the title and text of #47 is a change to an existing issue and is done 
 | R12         | US7                                    | Language tests with empty, stored and throwing storage; fresh-profile browser check |
 
 Not verified in this update: every item listed as not verified in section 8 of the addendum; the size estimates, which are judgements and not measurements; whether the homepage section that embeds `counter` and `styled` stays after US3 merges.
+
+## Style v2 for the examples and widgets: plan update 1.3 (approved by the owner on 19 November 2026)
+
+Version 0.1 · F2 update · **draft for comments, not approved** · 19 November 2026
+
+Proposed update of the delivery plan `docs/plans/2026-11-19-docs-redesign-plan.md` (version 1.2) and, in section 2, of the specification addendum 1.3 in `docs/plans/2026-11-19-docs-redesign-spec.md`. Tracker: milestone "Documentation redesign" of `eternalvision/ecmact`, issues #55, #56, #57, #47 and one new issue. Materials in this folder: `concepts-v2.html` (the twenty mocks), `concepts-v2-1280.png` and `concepts-v2-390.png` (captures), `style-matrix.md` (the table, the checks, the devices that must not return), `build/` (the scripts that produced and checked them).
+
+The owner approved the v2 looks as drawn on 19 November 2026 and the recommended answers to Q11-Q20 apply. Issue: #65 (US8); #56 and #57 updated; #47 depends on #65.
+
+### 1. Why, and what was checked
+
+The owner looked at the built examples on 19 November 2026 and wrote: "ты сделал 4 виджета в одинаковом стиле, с одинаковыми цветами, везде острые углы". The approved concept sheet (D50) names a different style on every card, but the cards are built from the same few devices. Counted in the twelve sources `packages/site/src/demos/*.ts` on `feature/55-examples-requests-routes` at 2465f22:
+
+| Device                                                                                                               | Sources that have it, of 12                         |
+| -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| `padding: 18px`                                                                                                      | 10                                                  |
+| a monospace font stack                                                                                               | 9                                                   |
+| `text-transform: uppercase`                                                                                          | 8                                                   |
+| `1px solid` rules                                                                                                    | 8                                                   |
+| `border-radius: 0` (10 times in all)                                                                                 | 6                                                   |
+| `letter-spacing`                                                                                                     | 11                                                  |
+| a cream or beige background (`#f7eed6`, `#f4ecd6`, `#f1efe6`, `#f6f1e4`, `#f6efdc`, `#f3e7c6`, `#eee3c9`, `#d2b48c`) | not counted per file; the values are in the sources |
+
+Stage schemes today (`packages/site/tests/demos/index.test.ts`, "the stages"): dark for `exposure`, `setlist`, `gels`, `departures`, `darkroom`; light for the other seven.
+
+State of the code: the six examples of US4b are on `main` (#54 merged, 6f3dfa1). The six of US4c are on `feature/55-examples-requests-routes`, in review, not merged. The eight widgets are not written: `packages/site/src/widgets/` still holds the five old ones.
+
+### 2. Specification change this plan needs (addendum 1.4, approved)
+
+Decided by the owner on 19 November 2026 (the feedback above and the assignment for this document), proposed for the decision log as D60 to D62:
+
+| Decision                                                                                                                                                                                                                                                                                           | Alternatives considered                                                                    |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| D60. The style directions of D50 are replaced. Each example and each widget is different from the others in shape, colour, type, surface and kind of control. The looks are current and playful, not a family of retro panels. The functions, names, interactions and ECMact coverage of D50 stay. | Keep the D50 styles and change colours only. Restyle only the pieces that look most alike. |
+| D61. The frame of the site stays monochrome, as the design study decided. Only stages and widgets carry a look of their own.                                                                                                                                                                       | Bring colour into the frame.                                                               |
+| D62. The twelve written examples are restyled inside their own files: no library change, no dependency, no font or image from the network. System font stacks, CSS gradients, shapes and shadows; a drawing that needs more is a fixed SVG string through the trusted `html` prop.                 | Rewrite the examples. Load web fonts. Add SVG to `tags`.                                   |
+
+Section 6 of the addendum (visual proposal): `concepts-v2.html` replaces the style part of `concepts.html`. The coverage matrix, the map of old ids and the starter mock of `concepts.html` stay as they are.
+
+New requirement:
+
+| Requirement                              | Acceptance                                                                                                                                                                                                                                                                                                                                                                                                        | How to verify                                                                                                                                                                                                                                                                   |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R13. No two pieces look like one family. | AC-24. Each of the twenty pieces has one value on each of six axes (shape, palette, type, surface, primary control, motion), as `style-matrix.md` lists them. Any two pieces share at most two values.                                                                                                                                                                                                            | A test computes the 190 pairs from the recorded values (question Q17). Today: 140 pairs share nothing, 48 share one value, 2 share two.                                                                                                                                         |
+|                                          | AC-25. Sharp corners in at most two pieces, a dark stage in at most five, monospace as the main type in at most two, small uppercase monospace labels in at most two.                                                                                                                                                                                                                                             | The same test. Today: 1, 4, 2 and 0.                                                                                                                                                                                                                                            |
+|                                          | AC-26, error and edge. In every piece text keeps 4.5:1 against what is behind it in every state (also error, waiting, disabled-but-readable and every ink and stock pair), each focus stop shows an outline, nothing overflows its stage at 360 px, and with `prefers-reduced-motion: reduce` no animation runs that carries no information. A device with none of the named fonts still gets a layout that fits. | Browser measurement in the pull request (the scripts in `build/` do it for the mocks: lowest ratio 4.69:1 over 286 text boxes at 1280 px and 287 at 390 px, 120 focus stops, no animation under reduced motion). A run with the stack cut down to its generic family at 360 px. |
+|                                          | AC-27. None of the devices listed in section 6 of `style-matrix.md` is in an example or widget source outside the piece that is allowed to have it.                                                                                                                                                                                                                                                               | A test scans the sources: `border-radius: 0` only in `typecase`; a monospace stack only in `feed-lamp` and `morse-key`; no `1px solid`; `text-transform: uppercase` only in `typecase`.                                                                                         |
+
+AC-09 of R09 changes in one word: the "style direction" a widget records is its row of the matrix, not the D50 name. AC-13 of R10 ("review against the concept sheet") means `concepts-v2.html` for the look and `concepts.html` for the function.
+
+### 3. Overview and order of delivery
+
+| Story               | What it delivers                                                                             | Estimate | Depends on                                       | Requirements            |
+| ------------------- | -------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------ | ----------------------- |
+| US4c (#55)          | Unchanged. It merges with the looks it has; the restyle does not reopen its review.          | L        | US4b                                             | R10                     |
+| US8 (new)           | The twelve examples in their v2 looks; the style rule as a test; the v2 materials in `docs/` | L        | US4c merged                                      | R13, R10, R06, R07      |
+| US4d (#56, updated) | The five successor widgets and the four hosts, built in the v2 looks from the start          | L        | US4c; after US8 by the recommended answer to Q20 | R09, R13, R02, R06, R07 |
+| US4e (#57, updated) | Three more widgets in the v2 looks, the reference, the measured bundle                       | M        | US4d                                             | R09, R13, R06, R08      |
+| US4a (#47)          | Unchanged in scope; gains a dependency on US8, because the guides describe what is rendered  | M        | US8, US4e, US6                                   | as before               |
+
+Order: #55, then US8, then #56, #57, then US6, #47, #48 as planned. One checkout, one story at a time, each in a new session from the current `main`.
+
+### 4. Common rules
+
+All rules of plan 1.2 keep applying (gate before a commit, alias imports, named arrow exports, JSDoc in `src`, 100% coverage, tests in happy-dom, no file added to `tests/browser/`, English and Russian string for string, taste gate). Added:
+
+- A look is the row of `style-matrix.md` and the card of `concepts-v2.html`. A piece that needs to leave its row says so in the pull request and the matrix is updated in the same change, with the pairwise check run again.
+- The taste gate compares each built piece at 360 px and 1280 px with its v2 card, in both themes of the frame, and shows the twelve (or the widgets of the story) on one sheet, so the owner judges the difference between them and not each piece alone.
+- Fonts are the stacks of section 5 of `style-matrix.md`, copied whole. No `@font-face`, no `url(` in any example or widget style. The existing test "name no address on another origin" stays.
+- Motion sits behind `@media (prefers-reduced-motion: no-preference)` unless it carries information; a state that motion shows is also shown without it (colour, text, position).
+- Focus: every focusable element of a piece has a `:focus-visible` outline of at least 3 px in a colour of the piece that keeps 3:1 against what is around it. A date input also takes it on `:focus-within`.
+- Features newer than "Baseline widely available" are used with a fallback that passes AC-26 alone. Known case: `backdrop-filter` in `customs` (question Q18). D38 speaks of the library; this plan applies the same care to example CSS. The Baseline dates of `color-mix()`, CSS masks and `backdrop-filter` were not checked against current documentation for this draft.
+
+### 5. Stories
+
+#### US8. See twelve examples that share nothing but the library
+
+A developer scrolls the examples and sees twelve different things. Each still works as before and still shows the file that runs. Estimate L. Depends on US4c merged. Requirements R13, R10, R06, R07. Mocks E1 to E12 of `concepts-v2.html`.
+
+The example mocks are drawn on the element structure and class names the sources have today, so each look is a change of the CSS in the example's own file. Where a mock uses a helper that the source does not have, the table names the selector that replaces it.
+
+Affected, per example (`packages/site/src/demos/<name>.ts` and `packages/site/tests/demos/<name>.test.ts`):
+
+| Example       | Scheme now, then | CSS change                                                                                                                                                                                                                                                                                                                                                     | Anything else in the file                                                                                                                                                                                      | Tests touched                                                                                                                              |
+| ------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `exposure`    | dark, light      | LCD and plastic keys go. Raised cards for the three readouts, an inset well for the exposure value, each `.pair` a capsule stepper, `.lock` a switch drawn with `::after` and `[aria-pressed]`. Labels lowercased with `::first-letter` raised; the third label keeps its capitals (`.glass > div:nth-child(3) small`).                                        | none                                                                                                                                                                                                           | scheme map                                                                                                                                 |
+| `setlist`     | dark, light      | Tape and marker go. Rows are white cards with a 3 px outline and a hard shadow on a pink field, row number from a CSS counter, round buttons, lime minutes and Add, the total in a black capsule. The lift is `li:focus-within` and `li:hover`.                                                                                                                | none                                                                                                                                                                                                           | scheme map; `setlist.test.ts` line 77 (`color-scheme: dark`)                                                                               |
+| `typecase`    | light, light     | The double rule and the stretched slab go. `Poster` is a solid ink block with stock-coloured condensed type and an offset tint (`color-mix`), square swatches, the field a tinted block. The `press` keyframes and their `0.5s ease-out` stay.                                                                                                                 | The values of `inks` and `stocks`: Black `#111111`, Red `#C4161C`, Blue `#2B2BFF`; stocks Mint `#C8F7DC`, White `#FFFFFF`, Lemon `#FFF27A`; the start becomes Blue on Mint. Stock names change (question Q15). | `typecase.test.ts` lines 35, 36, 43, 48 to 50: the colophon text, `border: 3px double #1a1a1a`, `#d2b48c`, `color: #b3261e`, "Kraft stock" |
+| `fieldbook`   | light, light     | Ruled paper and pencil go. A lemon sticky note with a tape strip and a folded corner (`:host::before`, `:host::after`), blue hand type, wobbly round `+`, a dashed underline field, a filled and a dashed button.                                                                                                                                              | none                                                                                                                                                                                                           | none expected                                                                                                                              |
+| `switchboard` | light, light     | The enamel panel goes. Four arch tiles; `.lamp` becomes a ring behind the round `.disc`; the state class of `.line` tints the tile and lights the ring; `.strip` is a speech bubble. The pulse of `.ringing` only without reduced motion.                                                                                                                      | none                                                                                                                                                                                                           | none expected                                                                                                                              |
+| `customs`     | light, light     | Carbon paper and typewriter go. A frosted card on a gradient mesh, pill fields, checkboxes drawn as switches with a background thumb (no pseudo-element on `input`), filled Submit, a stamp that lands. `label.sw` of the mock is `fieldset label` and `label.nothing` in the source.                                                                          | The switch rule is needed in `fieldCss` (the goods) and in `css` (the two plain checkboxes): one shared template constant, or the rule twice.                                                                  | none expected                                                                                                                              |
+| `catalog`     | light, light     | The drawer and index cards go. `:host` becomes a grid; cards are book shapes with a spine colour by `:nth-of-type`, Optima titles, filled buttons, a rotated "on loan" badge (lowercased by CSS), a large pill search field.                                                                                                                                   | none                                                                                                                                                                                                           | none expected                                                                                                                              |
+| `departures`  | dark, light      | Yellow on black goes. An orange field, the harbours in one black capsule, white capsule rows with the time in DIN, the pier in a black circle; the two switches are chips with a dot (`[aria-pressed]::before`), "Ask again" is `.controls button:not([aria-pressed])`. Shimmer on `.rows[aria-busy='true']`.                                                  | none                                                                                                                                                                                                           | scheme map                                                                                                                                 |
+| `darkroom`    | dark, dark       | Thin red lines go. Three inset wells with a red rim light, the print a small photo that develops with `--d`, one filled primary pill and two quiet ones (`.acts button:first-child`), the log as dots. Type at weight 300, 15.5 px or more.                                                                                                                    | none                                                                                                                                                                                                           | none expected                                                                                                                              |
+| `gels`        | dark, dark       | Outlined boxes go. Each zone is a rounded pool with a neon ring and bloom in `--c`, the gel button a filled chip, the actor a glowing dot and name. The chip of a zone without a gel is `button[aria-label$='no gel']`. Nested radius by `font-size` in `em` on `:host` (40, 30, 23 px); not tried in the component. The gel colours stay, the test pins them. | none                                                                                                                                                                                                           | none expected                                                                                                                              |
+| `seedpacket`  | light, light     | Ochre and double border go. A mint field with seed dots, the packet white with a pinked top edge (conic mask) and a drop shadow on the widget host, Clarendon name, filled "Tear open"; the side panel a white card with filled fields.                                                                                                                        | The values of `inks` and the default `--packet-ink`: `#0E7A46`, Rust `#C92A1E`, Indigo `#6D28D9`; names stay.                                                                                                  | `seedpacket.test.ts` line 81 (`#2f5d3a`)                                                                                                   |
+| `atlas`       | light, light     | Parchment and sepia go. An address pill, a sea with a green blob island on a sand ring, places as white labels with a coral pin, the current one dark (`[aria-current='page']`), a sheet with a handle, layers as leaf chips, Night as a sun or moon chip. Applies to the plate of the gallery and to the route.                                               | none                                                                                                                                                                                                           | none expected                                                                                                                              |
+
+Also affected: `packages/site/tests/demos/index.test.ts` (the scheme map; the new tests of AC-06 and AC-07), `packages/site/src/demos/index.ts` if question Q17 is answered a (the six values per example), `docs/sessions/19112026-DocsRedesign/` (`concepts-v2.html`, its captures and `style-matrix.md` move in), `docs/decisions.md` (D60 to D62 and what the story decides), `docs/plans/` (addendum 1.4 and this update, with the issue number written back), `docs/handoff.md`. The descriptions of the examples in `packages/site/src/content/messages.ts` are read in both languages for a sentence that names an old look; whether one exists was not checked for this draft.
+
+Not affected: `src/` of the library, `ui/demoFrame.ts`, `styles/site.css`, the routes, the behaviour of any example.
+
+- AC-01. Each of the twelve examples shows its row of the matrix and its v2 card: the pull request has one sheet with the twelve built stages at 1280 px and one at 360 px, and for each example a pair "v2 card, built" in both themes of the frame. Verified by the owner on the captures (taste gate).
+- AC-02. Behaviour does not change. Every existing example test passes with its interaction assertions untouched; only the style assertions named in the table change. The source shown is still the source that runs (the raw-import check of the registry). Verified by `npm test` and by `git diff --stat` of the test files.
+- AC-03. Each stage declares its scheme: light for `exposure`, `setlist` and `departures` from now on, dark only for `gels` and `darkroom`, light for the other seven. Native controls (date, select, checkbox, number) follow the stage in both themes of the frame. Verified by the registry test "declare a color scheme of their own" with the new map and by captures in the dark frame.
+- AC-04. At 360 px no element leaves its stage, long words wrap, every target is at least 24 by 24 px, and `atlas` works at `/examples/atlas` the same way. Verified in the browser with a script that compares every element's box with its stage, as `build/shot.mjs` does for the mocks.
+- AC-05. Text keeps 4.5:1 and every focus stop shows its outline, in every state the example has: the invalid field and both stamps of `customs`, the lost and the kept status of `fieldbook`, the wait and the notice of `catalog`, loading and the error with Retry of `departures`, the notice, the waiting sheet and the missing place of `atlas`, the over-curfew and the empty set of `setlist`, all nine ink and stock pairs of `typecase`, all three inks of `seedpacket`, every lamp of `switchboard`, every gel and "no gel" of `gels`. Verified by a browser measurement of text against the pixels behind it, per state, in the pull request.
+- AC-06, error and edge. With `prefers-reduced-motion: reduce` no animation runs in any stage (the press of `typecase` keeps its existing test; the pulse, shimmer, thud and ping do not start) and every state is still told apart without motion. With `backdrop-filter` unsupported the card of `customs` is a solid light surface that passes AC-05. With every named font missing (stack cut to the generic family) AC-04 still holds. A control with `aria-disabled='true'` in `darkroom` looks disabled and keeps a visible focus. Verified by a test that reads each source for its reduced-motion block, by an `@supports` rule in `customs`, and by browser runs with reduced motion and with the cut stacks.
+- AC-07. The rule is a test: the pairwise check over the twelve examples (and later the eight widgets) and the limits of AC-25 pass, and the source scan of AC-27 passes. Verified by the tests in `tests/demos/index.test.ts`; each fails when a thirteenth "same" look or a forbidden device is added (shown once in the pull request by a deliberate failing change, then removed).
+- AC-08. The v2 materials are in `docs/sessions/19112026-DocsRedesign/`, linked from the specification and the plan; D60 to D62 and the answers to Q11 to Q20 are in `docs/decisions.md`. Verified by reading the links.
+
+Tests: the twelve example tests (unchanged interactions), the registry tests (scheme map, pairwise rule, limits, source scan, reduced-motion blocks), and the gate `npm run lint && npm run format:check && npm run typecheck && npm test` on Node 22. Browser evidence in the pull request: captures, overflow, contrast and focus measurements at 360 px and 1280 px, both frame themes, Chromium, Firefox and WebKit.
+
+#### US4d (#56), update. Five widgets built in their v2 looks
+
+Scope, files, attributes, events and hosts stay as plan 1.2 says. Changed: mocks W1 to W5 of `concepts-v2.html` replace W1 to W5 of `concepts.html` for the look.
+
+- AC-01 gains: the `style` a widget records is its row of the matrix; the registry test of unique kinds and styles becomes the pairwise check of AC-24 over the registered widgets and the twelve examples.
+- AC-02 gains: the taste gate compares each widget with its v2 card and shows the five on one sheet beside the twelve examples.
+- New AC-06. `print-quote` offers the price breaks as a radio group of cards (arrow keys move, one is always chosen) and keeps `currency`, `base`, `heading` and the event `quote`. `moon-dial` has a ring with `role="slider"` (arrow keys step a day, Home is today) beside the buttons of D50. `proof-clock` has a native range input for the temperature. `feed-lamp` offers the four sample feeds as tabs and keeps `src` as the attribute that decides. `row-counter` is one round button. Verified by widget tests for keyboard and pointer. (Question Q16: these controls differ from the D50 cards.)
+- New AC-07, error and edge. Under each host's stylesheet and with each host's custom-property values the widget keeps AC-26: 4.5:1, visible focus, no overflow at 360 px, no animation under reduced motion. A custom property set to a value that would break contrast is the host's responsibility and is said so in the reference. The masks of `print-quote` and `moon-dial` have a fallback outline (a plain rounded card, a plain ring) where the mask is unsupported. Verified in the browser on the four hosts and by an `@supports` rule.
+
+The look of the four host pages is not part of this sheet (question Q19).
+
+#### US4e (#57), update. Three more widgets in their v2 looks
+
+Scope stays. Mocks W6 to W8 of `concepts-v2.html` replace W6 to W8 of `concepts.html` for the look.
+
+- AC-01 gains: the eight widgets and twelve examples pass the pairwise check and the limits; `feed-lamp` and `morse-key` are the two pieces with a monospace main type, and no third is added.
+- AC-03 gains, error and edge: the tape of `morse-key` and the pop of `fret-map` do not animate under reduced motion and the new mark or note is visible at once; a wrong letter of `clue-box` is marked by colour and by a text for assistive technology, not by the shake alone.
+- AC-02 keeps: the bundle number comes from `npm run size`. Eight styled widgets weigh more than five plain ones; nothing here states a size.
+
+### 6. Manual steps of the owner
+
+1. Open `concepts-v2.html` (or the two captures) and answer Q11.
+2. Answer Q12 to Q20, or accept the recommendations.
+3. Write "approved" for the specification change of section 2 and for this plan update.
+4. Say "create" for the new issue and the three issue changes of section 8.
+5. Look at the built sheet in the pull request of US8 (taste gate) before it merges.
+
+### 7. To decide
+
+Each question is the owner's. The recommended option is first.
+
+**Q11. The twenty looks.**
+
+- a. Take the twenty as drawn. Recommended: the matrix passes its own rule and the built captures are a second chance to object.
+- b. Take them with changes to named pieces. The matrix is re-run for each change.
+- c. Reject the direction; a new round of mocks.
+
+**Q12. Where the restyle of the examples lands.**
+
+- a. One new issue and one pull request for all twelve, after #55 merges. Recommended: the owner judges the twelve side by side once, the scheme map and the rule tests change once, and the review of #55 is not reopened.
+- b. Two pull requests: the six on `main` now, the six of #55 after it merges. Starts sooner, and the side-by-side judgement happens twice on half a set.
+- c. Fold the six of US4c into #55 before it merges. Changes a branch that is in review.
+
+**Q13. How far the examples may change.**
+
+- a. CSS in the example's file, plus the colour values and names listed for `typecase` and `seedpacket`. Recommended: the mocks are drawn on today's elements, behaviour tests stay untouched.
+- b. Also swap controls for native ones where a look suggests it (a range input in `exposure`, real radio inputs in `departures`). More honest control types, new markup, rewritten tests, new review of behaviour.
+
+**Q14. Three stages turn from dark to light.**
+
+- a. `exposure`, `setlist` and `departures` become light; dark stays for `gels` and `darkroom`. Recommended: the owner named dark panels as part of the sameness, and both remaining ones are dark because light is their subject.
+- b. Keep one of the three dark. The limit of five still holds (two examples and two widgets are dark in the matrix).
+
+**Q15. Names and colours in `typecase` and `seedpacket`.**
+
+- a. `typecase`: stocks become Mint, White, Lemon; inks keep the names Black, Red, Blue with new values. `seedpacket`: ink names stay, values change. Recommended: the visible names match what is seen.
+- b. Keep "Cream" and "Kraft" as names over the new colours. No test text changes, and the names are wrong.
+- c. Keep the old stock colours in `typecase`. The poster stays beige, which the feedback named.
+
+**Q16. Controls of the widgets that differ from the D50 cards.**
+
+- a. Accept them: price-break cards in `print-quote` instead of a stepper, a ring dial in `moon-dial` beside its buttons, tabs for the sample feeds in `feed-lamp`. Recommended: twenty different primary controls is the point of the axis, and attributes and events do not change.
+- b. Keep the D50 controls and give them the v2 look. Two widgets then share "stepper" with `exposure`; the pairwise rule still passes.
+
+**Q17. The rule as data and a test.**
+
+- a. Each registry entry (examples and widgets) records its six values, and a test checks the pairs, the limits and the source scan. Recommended: the sameness came back once without anyone deciding it; a failing test is cheaper than another round of captures. It adds a field to both registries.
+- b. Only the widget registry records a style, as AC-09 says today; the examples are guarded by the taste gate.
+- c. No test. The matrix is a document.
+
+**Q18. Glass in `customs`.**
+
+- a. `backdrop-filter` inside `@supports`, with a solid light card otherwise. Recommended: the look is the only glass among the twenty, and the fallback passes the contrast rule alone.
+- b. No blur: a translucent card without it. Works everywhere, reads as flat.
+- c. Another surface for `customs`; the matrix is re-run.
+
+**Q19. The four host pages (`cafe`, `terminal`, `zine`, `kids`).**
+
+- a. A small sheet of four host mocks at the start of #56, shown to the owner before the hosts are written. Recommended: two of the names point at the retro looks this update removes, and the hosts frame every widget.
+- b. The implementer of #56 decides and the taste gate of #56 judges.
+- c. Keep the addresses and make all four plain, differing only in custom-property values.
+
+**Q20. Order of US8 and #56.**
+
+- a. US8 first, then #56. Recommended: the owner sees the direction on real components after one story of CSS, before eight widgets are built on it.
+- b. #56 first. The widgets arrive sooner; a rejected direction costs more.
+
+### 8. Proposed issues
+
+To create or change only after the owner says "create". Milestone "Documentation redesign".
+
+| Action | Issue      | Title                                                                         | Labels          | Estimate | Depends on                  | Change                                                                                |
+| ------ | ---------- | ----------------------------------------------------------------------------- | --------------- | -------- | --------------------------- | ------------------------------------------------------------------------------------- |
+| create | new · US8  | Give each of the twelve examples its own look                                 | `documentation` | L        | #55                         | Story text of US8, AC-01 to AC-08, the table of files                                 |
+| change | #56 · US4d | Replace the five gallery widgets and rewrite the four hosts (title unchanged) | `documentation` | L        | #55; the new issue if Q20 a | Mocks W1 to W5 of `concepts-v2.html`; AC-01 and AC-02 as amended; new AC-06 and AC-07 |
+| change | #57 · US4e | Add three widgets and measure the gallery bundle (title unchanged)            | `documentation` | M        | #56                         | Mocks W6 to W8 of `concepts-v2.html`; AC-01 and AC-03 as amended                      |
+| change | #47 · US4a | Rewrite the bilingual guides around tasks (title unchanged)                   | `documentation` | M        | adds the new issue          | One line: depends on the restyle, because the guides describe what is rendered        |
+
+Branch of the new issue: `feature/<issue number>-examples-own-look` from `main`. #55 itself does not change.
+
+### 9. Risks
+
+- Taste, again. A mock can read differently once built, and "different" is the owner's judgement. The sheet of all built pieces side by side is the gate, and the rule is also a test (Q17).
+- Fonts. The looks lean on fonts that exist on macOS: Futura, Optima, Didot, DIN Alternate, Superclarendon, Rockwell, Bradley Hand, Iowan Old Style, Arial Rounded. On Windows, Android and Linux the next name of each stack is used, and several pieces fall back to a plain sans or serif. The difference between pieces then rests on shape, colour, surface and control. This was not captured on any other system.
+- Engines. The mocks were rendered in Chromium only. Not tried in Firefox and WebKit: `backdrop-filter`, conic and radial masks with `mask-composite`, `color-mix()`, range input pseudo-elements, checkboxes with `appearance: none`, `::first-letter` on a block `small`.
+- Source length. The examples show their CSS as part of the source (R06). The mocks have about 1000 declarations for the twelve examples where the sources have about 800, and the mocks do not draw every state. Expect the CSS of an example to grow by a third or more; `atlas` most. The existing answer stands: styles as a second named file where the logic drowns (D53 allows it).
+- Selectors that lean on text or order: `button[aria-label$='no gel']` in `gels`, `.glass > div:nth-child(3)` in `exposure`, `.acts button:first-child` in `darkroom`, `:nth-of-type` spines in `catalog`. They break when the markup or a label changes. Each gets a line in the example's test, or a class by Q13 b.
+- `gels` nesting by `em` and the shared switch rule of `customs` are ideas, not tried in the components.
+- Contrast in states the mocks do not show. AC-05 lists them; some palettes will need a darker variant of an accent for text, as `exposure` already has (`#FF5B14` for the switch, `#B83A00` for text).
+- Bundle. Eight widgets with these looks carry more CSS than the D50 sketches. Measure with `npm run size`; no number is stated here.
+- #55 is in review while this is planned. If its review changes markup of the six examples, the table of US8 is read again before the story starts.
+- Unreleased behaviour labels (D54) and the old-id map are not touched; a restyle that hides the "next 3.0.x patch" note would break AC-17. The note is in the frame, not in the stage.
+
+### 10. Not verified
+
+- Anything in Firefox, WebKit, Windows, Android or Linux.
+- The looks in the real components; the mocks are static HTML and CSS written against the element structure read from the sources.
+- That no example test other than those named asserts a style value. A search for `toContain`/`toMatch` on rules and sources found `index.test.ts`, `setlist.test.ts` line 77, `typecase.test.ts` and `seedpacket.test.ts` line 81; the test files were not read in full.
+- Whether a description in `content/messages.ts` or a guide sentence names an old look.
+- The tag names `em.*` creates for nested zones, and whether a style in a parent shadow root may address them (not needed by the plan as written).
+- Baseline status and dates of the CSS features named in section 4.
+- The owner's constraints D61 and D62 are taken from the assignment for this document, not from a message of the owner read by the author.
+
+### 11. Requirement coverage
+
+| Requirement                                                 | Stories                                                        | Evidence                                                                                |
+| ----------------------------------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| R13, AC-24 (pairs)                                          | US8, US4d, US4e                                                | The pairwise test over registry values; the matrix in `style-matrix.md`                 |
+| R13, AC-25 (limits)                                         | US8, US4d, US4e                                                | The same test; four dark, one sharp, two monospace, no small uppercase monospace labels |
+| R13, AC-26 (contrast, focus, 360 px, reduced motion, fonts) | US8 (AC-03 to AC-06), US4d (AC-05, AC-07), US4e (AC-03, AC-04) | Browser measurements and captures in each pull request                                  |
+| R13, AC-27 (devices that must not return)                   | US8 (AC-07), US4d, US4e                                        | The source scan                                                                         |
+| R09 (own job, own look)                                     | US4d, US4e                                                     | Registry test, host tests, taste gate against W1 to W8 of v2                            |
+| R10 (examples worth playing with)                           | US8 (AC-01, AC-02), US4c                                       | Behaviour tests unchanged; taste gate against E1 to E12 of v2                           |
+| R06 (source parity)                                         | US8 (AC-02), US4d, US4e                                        | Raw-import check; styles as a second file where needed                                  |
+| R07 (keyboard, mobile)                                      | US8 (AC-04, AC-05), US4d, US4e                                 | Browser at 360 px, focus measurement                                                    |
+| R02 (old addresses and ids)                                 | unchanged                                                      | The old-id map and host addresses are not touched                                       |
+| R08 (repository contracts)                                  | all                                                            | The gate; no library change, no dependency, no network font or image                    |
