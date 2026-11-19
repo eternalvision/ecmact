@@ -55,10 +55,9 @@ describe('docsPage', () => {
     expect(router.location.value.path).toBe('/docs/state');
   });
 
-  it('leaves the focus alone for other links, and for a click the router did not handle', async () => {
+  it('leaves the focus alone for a click the router did not handle', async () => {
     vi.useFakeTimers();
     const { page } = open('getting-started');
-    page.querySelector<HTMLAnchorElement>('article a[data-internal="/docs/components"]')!.click();
     page
       .querySelector<HTMLAnchorElement>('.sidebar a[href="/docs/forms"]')!
       .dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: true }));
@@ -67,6 +66,15 @@ describe('docsPage', () => {
     vi.runAllTimers();
     expect(document.activeElement).toBe(document.body);
     vi.useRealTimers();
+  });
+
+  it('focuses the title after an in-article link opens another page, and goes to the top at once', async () => {
+    const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
+    const { page } = open('getting-started');
+    page.querySelector<HTMLAnchorElement>('article a[data-internal="/docs/components"]')!.click();
+    await vi.waitFor(() => expect(document.activeElement).toBe(page.querySelector('article h1')));
+    expect(scroll).toHaveBeenCalledWith({ top: 0, behavior: 'instant' });
+    scroll.mockRestore();
   });
 
   it('links to the page before and after, and to the source', () => {
@@ -158,7 +166,11 @@ describe.each(locales)('the addresses of the pages in %s', (locale) => {
       [...page.querySelectorAll('.toc a')].map((link) => link.getAttribute('href')?.slice(1)),
     ).toEqual(ids.length > 1 ? ids : []);
     ids.forEach((id) => expect(page.querySelector(`#${id}`)?.localName).toMatch(/^h[23]$/));
-    expect(page.querySelectorAll('article .demo')).toHaveLength(expected.demos.length);
+    expect(
+      [...page.querySelectorAll('article .demo .code-title')].map((title) =>
+        title.textContent?.replace(/\.ts$/, ''),
+      ),
+    ).toEqual(expected.demos);
     expect(page.querySelector('.sidebar a[aria-current="page"]')?.getAttribute('href')).toBe(
       `/docs/${slug}`,
     );
@@ -188,5 +200,22 @@ describe('the addresses of the English headings in Russian', () => {
     baseline.en.components!.ids.forEach((id, index) => {
       expect(page.querySelector(`#${id}`)?.closest('h2, h3')).toBe(russian[index]);
     });
+  });
+});
+
+describe('the addresses of the Russian headings in English', () => {
+  it.each(Object.keys(baseline.ru))('%s answers to every Russian id', (slug) => {
+    const page = docsPage(makeRouter(`/docs/${slug}`), findDoc(slug)!);
+    mount(document.body, page);
+    baseline.ru[slug]!.ids.forEach((id) => {
+      expect(page.querySelector(`#${id}`), `${slug}#${id}`).not.toBeNull();
+    });
+  });
+
+  it('lands #section-2 on the second section of the English page', () => {
+    const page = docsPage(makeRouter('/docs/getting-started'), findDoc('getting-started')!);
+    mount(document.body, page);
+    const english = [...page.querySelectorAll('article > h2')];
+    expect(page.querySelector('#section-2')?.closest('h2')).toBe(english[1]);
   });
 });

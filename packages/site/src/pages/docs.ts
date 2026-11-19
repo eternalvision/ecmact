@@ -17,10 +17,12 @@ const articleId = 'docs-article';
 
 /**
  * Moves the focus to the title of the article. After a keyboard user opens a topic or the next page the link they
- * used is gone with the old page, and the focus would fall back to the top of the document.
+ * used is gone with the old page, and the focus would fall back to the top of the document. Focusing without
+ * scrolling would also cancel the router's own scroll to the top in WebKit, so the page goes to the top at once.
  */
 const focusArticle = () => {
   document.getElementById(articleId)?.focus({ preventScroll: true });
+  window.scrollTo({ top: 0, behavior: 'instant' });
 };
 
 /**
@@ -66,7 +68,7 @@ export const docsPage = (router: Router, page: DocPage) => {
          * @param element - The article.
          */
         ref: (element) => {
-          followInternalLinks(element, router);
+          followInternalLinks(element, router, focusArticle);
         },
       },
       p({ class: 'eyebrow' }, m.groups[page.group]),

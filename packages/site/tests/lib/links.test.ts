@@ -73,10 +73,12 @@ describe('scrollToHash', () => {
   it('scrolls to the element that the hash names', () => {
     const target = document.createElement('h2');
     target.id = 'rules';
+    target.tabIndex = -1;
     document.body.append(target);
     const scroll = vi.spyOn(target, 'scrollIntoView');
     expect(scrollToHash('/docs/signals#rules')).toBe(true);
     expect(scroll).toHaveBeenCalledOnce();
+    expect(document.activeElement).toBe(target);
   });
 
   it('does nothing for an address without a hash, with an empty one or with an unknown one', () => {
@@ -100,5 +102,30 @@ describe('followInternalLinks to a section', () => {
     await vi.waitFor(() => expect(scroll).toHaveBeenCalledOnce());
     expect(router.location.value.path).toBe('/docs/signals');
     expect(router.location.value.hash).toBe('#rules');
+  });
+
+  const withFallback = (href: string) => {
+    const own = document.createElement('div');
+    own.innerHTML = `<a href="${href}" data-internal="${href}">x</a>`;
+    document.body.append(own);
+    const fallback = vi.fn();
+    followInternalLinks(own, router, fallback);
+    click(own.querySelector('a')!);
+    return fallback;
+  };
+
+  it('puts the focus on the section it scrolls to, and not on the fallback', async () => {
+    const target = document.createElement('h2');
+    target.id = 'rules';
+    target.tabIndex = -1;
+    document.body.append(target);
+    const fallback = withFallback('/docs/signals#rules');
+    await vi.waitFor(() => expect(document.activeElement).toBe(target));
+    expect(fallback).not.toHaveBeenCalled();
+  });
+
+  it('calls the fallback when the address names no section', async () => {
+    const fallback = withFallback('/docs/signals');
+    await vi.waitFor(() => expect(fallback).toHaveBeenCalledOnce());
   });
 });

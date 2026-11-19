@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { callout, code, demo, h2, h3, ol, p, table, ul } from '@site/content/builders';
-import { localize, texts } from '@site/content/localize';
+import { localize, texts, withAddressesOf } from '@site/content/localize';
 import type { DocPage } from '@site/content/types';
 
 const page: DocPage = {
@@ -105,5 +105,17 @@ describe('localize', () => {
   it('adds no alias to a heading whose address does not change', () => {
     const result = localize(page, texts(page));
     expect(result.blocks[0]).toEqual(page.blocks[0]);
+  });
+});
+
+describe('withAddressesOf', () => {
+  it('lets the English headings answer to the ids of the Russian ones', () => {
+    const twice: DocPage = { ...page, blocks: [h2('Same'), h3('Same'), h2('Other')] };
+    const russian = localize(twice, ['', '', 'Тот же', 'Тот же', 'other']);
+    expect(withAddressesOf(twice, russian).blocks).toEqual([
+      { type: 'h2', text: 'Same', aliases: ['section'] },
+      { type: 'h3', text: 'Same', aliases: ['section-2'] },
+      { type: 'h2', text: 'Other' },
+    ]);
   });
 });

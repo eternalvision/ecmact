@@ -50,6 +50,7 @@ export interface Messages {
     skipArticle: string;
     skipToc: string;
     table: string;
+    topics: string;
     groups: Record<'Start' | 'Core' | 'Application' | 'Delivery' | 'Reference', string>;
     callouts: Record<'note' | 'tip' | 'warning', string>;
   };
@@ -185,6 +186,7 @@ const en: Messages = {
     skipArticle: 'Skip to the article',
     skipToc: 'Skip to the sections of this page',
     table: 'Table',
+    topics: 'Topics',
     groups: {
       Start: 'Start',
       Core: 'Core',
@@ -439,6 +441,7 @@ const ru: Messages = {
     skipArticle: 'Перейти к статье',
     skipToc: 'Перейти к разделам страницы',
     table: 'Таблица',
+    topics: 'Темы',
     groups: {
       Start: 'Начало',
       Core: 'Основы',

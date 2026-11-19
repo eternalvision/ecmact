@@ -28,19 +28,54 @@ export interface Rendered {
 }
 
 /**
+ * Keeps a table wrapper reachable by keyboard only while it scrolls. A wrapper that overflows takes the focus, so a
+ * keyboard user can scroll it, and it is a region named by the heading above the table (or by a generic label when
+ * there is none). The check runs again when the wrapper or its table changes size.
+ *
+ * @param wrap - The wrapper.
+ * @param labelledBy - The id of the heading above the table, if there is one.
+ */
+const watchOverflow = (wrap: HTMLElement, labelledBy?: string) => {
+  /**
+   * Gives the wrapper or takes from it the focus and the region role. Stops watching a wrapper that left the page.
+   */
+  const update = () => {
+    if (!wrap.isConnected) {
+      observer.disconnect();
+    } else if (wrap.scrollWidth > wrap.clientWidth) {
+      wrap.setAttribute('tabindex', '0');
+      wrap.setAttribute('role', 'region');
+      if (labelledBy) wrap.setAttribute('aria-labelledby', labelledBy);
+      else wrap.setAttribute('aria-label', text().docs.table);
+    } else {
+      ['tabindex', 'role', 'aria-labelledby', 'aria-label'].forEach((name) => {
+        wrap.removeAttribute(name);
+      });
+    }
+  };
+  const observer = new ResizeObserver(update);
+  observer.observe(wrap);
+  observer.observe(wrap.firstElementChild as Element);
+};
+
+/**
  * Renders a table block.
  *
  * @param block - The block.
- * @returns A scrollable wrapper with the table. The wrapper can take the focus, so a keyboard user can scroll it.
+ * @param labelledBy - The id of the heading above the table, which names it when it scrolls.
+ * @returns A wrapper that scrolls sideways, with the table.
  */
-export const renderTable = (block: TableBlock) =>
-  div(
-    { class: 'table-wrap', role: 'region', 'aria-label': text().docs.table, tabindex: 0 },
+export const renderTable = (block: TableBlock, labelledBy?: string) => {
+  const wrap = div(
+    { class: 'table-wrap' },
     table(
       thead(tr(block.head.map((cell) => th(parseInline(cell))))),
       tbody(block.rows.map((row) => tr(row.map((cell) => td(parseInline(cell)))))),
     ),
   );
+  watchOverflow(wrap, labelledBy);
+  return wrap;
+};
 
 /**
  * Renders the blocks of a page into DOM nodes and collects the headings. A heading has the id of its text and an
@@ -60,6 +95,7 @@ export const renderBlocks = (blocks: Block[]): Rendered => {
     headingBlocks.map((block) => block.aliases),
   );
   let position = 0;
+  let lastHeading: string | undefined;
 
   /**
    * Renders one block.
@@ -73,14 +109,17 @@ export const renderBlocks = (blocks: Block[]): Rendered => {
       case 'h3': {
         const at = position++;
         const id = ids[at] as string;
+        lastHeading = id;
         headings.push({
           id,
           text: block.text.replace(/`/g, ''),
           level: block.type === 'h2' ? 2 : 3,
         });
         return tags[block.type](
-          { id },
-          (aliases[at] as string[]).map((alias) => span({ id: alias, class: 'anchor' })),
+          { id, tabindex: -1 },
+          (aliases[at] as string[]).map((alias) =>
+            span({ id: alias, class: 'anchor', tabindex: -1 }),
+          ),
           parseInline(block.text),
         );
       }
@@ -102,7 +141,7 @@ export const renderBlocks = (blocks: Block[]): Rendered => {
           p(parseInline(block.text)),
         );
       case 'table':
-        return renderTable(block);
+        return renderTable(block, lastHeading);
     }
   };
 

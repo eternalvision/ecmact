@@ -40,25 +40,26 @@ const headingsOf = (blocks: Block[]) =>
   blocks.filter((block): block is HeadingBlock => block.type === 'h2' || block.type === 'h3');
 
 /**
- * Lets a translated heading answer to the id of the original one. The id comes from the text, so a translation
- * changes it, and a link made from the original page (or from the baseline of the site) must still land on the
- * section.
+ * Lets the headings of a page answer to the ids of the same headings in another language. The id comes from the
+ * text, so a translation changes it, and a link made from the other language (or from the baseline of the site) must
+ * still land on the section.
  *
- * @param original - The blocks in the original language.
- * @param translated - The same blocks, translated.
- * @returns The translated blocks, with an alias on each heading whose id changed.
+ * @param page - The page that gets the aliases.
+ * @param other - The same page in the other language, with its headings in the same order.
+ * @returns The page, with an alias on each heading whose id differs from the one in the other language.
  */
-const keepAddresses = (original: Block[], translated: Block[]): Block[] => {
-  const before = anchorIds(headingsOf(original).map((heading) => heading.text));
-  const after = anchorIds(headingsOf(translated).map((heading) => heading.text));
+export const withAddressesOf = (page: DocPage, other: DocPage): DocPage => {
+  const mine = anchorIds(headingsOf(page.blocks).map((heading) => heading.text));
+  const theirs = anchorIds(headingsOf(other.blocks).map((heading) => heading.text));
   let index = 0;
-  return translated.map((block) => {
+  const blocks = page.blocks.map((block) => {
     if (block.type !== 'h2' && block.type !== 'h3') return block;
     const at = index++;
-    return before[at] === after[at]
+    return mine[at] === theirs[at]
       ? block
-      : { ...block, aliases: [...(block.aliases ?? []), before[at] as string] };
+      : { ...block, aliases: [...(block.aliases ?? []), theirs[at] as string] };
   });
+  return { ...page, blocks };
 };
 
 /**
@@ -112,5 +113,5 @@ export const localize = (page: DocPage, translated: string[]): DocPage => {
         return block;
     }
   });
-  return { ...page, title, summary, blocks: keepAddresses(page.blocks, blocks) };
+  return withAddressesOf({ ...page, title, summary, blocks }, page);
 };

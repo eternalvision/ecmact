@@ -18,12 +18,12 @@ import { page as tooling } from '@site/content/docs/tooling';
 import { page as typescript } from '@site/content/docs/typescript';
 import { page as widgets } from '@site/content/docs/widgets';
 import { russian } from '@site/content/docs/ru/index';
-import { localize } from '@site/content/localize';
+import { localize, withAddressesOf } from '@site/content/localize';
 import type { DocGroup, DocPage } from '@site/content/types';
 import type { Locale } from '@site/lib/i18n';
 
-/** Every documentation page, in reading order. */
-export const docs: DocPage[] = [
+/** The pages as they are written, in reading order. */
+const written: DocPage[] = [
   gettingStarted,
   comparison,
   components,
@@ -49,7 +49,12 @@ export const docs: DocPage[] = [
 export const groups: DocGroup[] = ['Start', 'Core', 'Application', 'Delivery', 'Reference'];
 
 /** The pages in Russian: the same blocks, with the text translated. */
-const translated: DocPage[] = docs.map((page) => localize(page, russian[page.slug] as string[]));
+const translated: DocPage[] = written.map((page) => localize(page, russian[page.slug] as string[]));
+
+/** Every documentation page, in reading order. Its headings also answer to the ids they have in Russian. */
+export const docs: DocPage[] = written.map((page, index) =>
+  withAddressesOf(page, translated[index] as DocPage),
+);
 
 /**
  * Lists the pages in a language.
