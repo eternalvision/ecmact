@@ -129,6 +129,19 @@ describe('form-associated field in a real form', () => {
     expect(input.disabled).toBe(true);
   });
 
+  it('enables a control shared by nested light-DOM fields when their fieldset is enabled', () => {
+    const input = tags.input();
+    const inner = em.InnerField({ field: true, shadow: false }, input);
+    const outer = em.OuterField({ field: true, shadow: false }, inner);
+    const fieldset = tags.fieldset(outer);
+    makeForm(fieldset);
+
+    fieldset.disabled = true;
+    expect(input.disabled).toBe(true);
+    fieldset.disabled = false;
+    expect(input.disabled).toBe(false);
+  });
+
   it('forwards a click on its wrapping label to the control', () => {
     const field = em.Field(
       { field: true, name: 'agree' },
