@@ -16,7 +16,7 @@ import { Header } from '@site/ui/header';
  */
 export const start = (target: string | Element) => {
   const forced = readLocaleParam(window.location.search);
-  if (forced) localeStore.setState({ locale: forced });
+  if (forced) localeStore.force(forced);
   const root = typeof target === 'string' ? (document.querySelector(target) as Element) : target;
   const router = createSiteRouter();
   announcer();

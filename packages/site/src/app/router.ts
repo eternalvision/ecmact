@@ -45,11 +45,15 @@ export const siteRoutes = (router: () => Router): Route[] => {
   const notFoundView = () => notFound(router());
 
   /**
-   * Sends `/docs` to the first page of the documentation.
+   * Sends `/docs` to the first page of the documentation and keeps the query and the hash, so `?lang=ru` survives.
    *
+   * @param to - Where the navigation was going.
    * @returns The path to go to instead.
    */
-  const firstDoc = () => `/docs/${docs[0]?.slug}`;
+  const firstDoc = ({ query, hash }: RouteContext) => {
+    const search = query.toString();
+    return `/docs/${docs[0]?.slug}${search ? `?${search}` : ''}${hash}`;
+  };
 
   /**
    * Shows a documentation page, or the not found page for a slug that does not exist.

@@ -1,10 +1,11 @@
 import { effect } from 'ecmact';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { applyLocale, currentLocale, localeStore, locales, readLocaleParam } from '@site/lib/i18n';
-import { resetLocale } from '@tests/helpers';
 
-afterEach(async () => {
-  await resetLocale();
+afterEach(() => {
+  vi.unstubAllGlobals();
+  localeStore.force('en');
+  localStorage.clear();
 });
 
 describe('readLocaleParam', () => {
@@ -16,6 +17,7 @@ describe('readLocaleParam', () => {
   it('ignores an unknown language and a missing one', () => {
     expect(readLocaleParam('?lang=de')).toBeUndefined();
     expect(readLocaleParam('')).toBeUndefined();
+    expect(readLocaleParam('?lang=')).toBeUndefined();
   });
 });
 
@@ -27,6 +29,75 @@ describe('localeStore', () => {
     const fresh = await import('@site/lib/i18n');
     expect(fresh.currentLocale()).toBe('en');
     vi.unstubAllGlobals();
+  });
+
+  it('stays English and still switches when the storage throws on read and on write', async () => {
+    const broken = {
+      getItem: () => {
+        throw new Error('blocked');
+      },
+      setItem: () => {
+        throw new Error('blocked');
+      },
+      removeItem: () => {
+        throw new Error('blocked');
+      },
+    };
+    vi.stubGlobal('localStorage', broken);
+    vi.resetModules();
+    const fresh = await import('@site/lib/i18n');
+    expect(fresh.currentLocale()).toBe('en');
+    expect(() => fresh.localeStore.cycle()).not.toThrow();
+    expect(fresh.currentLocale()).toBe('ru');
+    expect(() => fresh.localeStore.persist?.clearStorage()).not.toThrow();
+    vi.unstubAllGlobals();
+  });
+
+  it('stays English and still switches when the storage is not there at all', async () => {
+    vi.stubGlobal('localStorage', undefined);
+    vi.resetModules();
+    const fresh = await import('@site/lib/i18n');
+    expect(fresh.currentLocale()).toBe('en');
+    fresh.localeStore.cycle();
+    expect(fresh.currentLocale()).toBe('ru');
+    vi.unstubAllGlobals();
+  });
+
+  it('ignores a stored value that is not readable', async () => {
+    localStorage.setItem('ecmact-site-locale', '{broken');
+    vi.resetModules();
+    const fresh = await import('@site/lib/i18n');
+    expect(fresh.currentLocale()).toBe('en');
+  });
+
+  it('reads the stored choice', async () => {
+    localStorage.setItem(
+      'ecmact-site-locale',
+      JSON.stringify({ state: { locale: 'ru' }, version: 0 }),
+    );
+    vi.resetModules();
+    const fresh = await import('@site/lib/i18n');
+    expect(fresh.currentLocale()).toBe('ru');
+  });
+
+  it('shows a forced language without keeping it', () => {
+    localeStore.force('ru');
+    expect(currentLocale()).toBe('ru');
+    expect(localStorage.getItem('ecmact-site-locale')).toBeNull();
+  });
+
+  it('leaves a stored choice alone when another language is forced', () => {
+    localeStore.cycle();
+    localeStore.force('en');
+    expect(currentLocale()).toBe('en');
+    expect(JSON.parse(localStorage.getItem('ecmact-site-locale')!).state).toEqual({ locale: 'ru' });
+  });
+
+  it('keeps the language the visitor sees after a switch during a forced visit', () => {
+    localeStore.force('ru');
+    localeStore.cycle();
+    expect(currentLocale()).toBe('en');
+    expect(JSON.parse(localStorage.getItem('ecmact-site-locale')!).state).toEqual({ locale: 'en' });
   });
 
   it('cycles through the languages and wraps around', () => {

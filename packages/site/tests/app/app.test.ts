@@ -8,6 +8,7 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
+  vi.unstubAllGlobals();
   await resetLocale();
   vi.unstubAllEnvs();
   document.body.replaceChildren();
@@ -95,6 +96,101 @@ describe('start and the language', () => {
     stop();
   });
 
+  it('opens in English with a browser in Russian and nothing stored', () => {
+    vi.stubGlobal('navigator', { language: 'ru-RU', languages: ['ru-RU'] });
+    const { target, stop } = open();
+    expect(document.documentElement.lang).toBe('en');
+    expect(target.querySelector('.nav a')?.textContent).toBe('Docs');
+    stop();
+  });
+
+  it('keeps the choice of the control after a reload', async () => {
+    const first = open();
+    localeStore.cycle();
+    first.stop();
+    localeStore.force('en');
+    await localeStore.persist!.rehydrate();
+    const target = document.createElement('div');
+    document.body.append(target);
+    const { stop } = start(target);
+    expect(document.documentElement.lang).toBe('ru');
+    expect(target.querySelector('.nav a')?.textContent).toBe('Документация');
+    stop();
+  });
+
+  it('shows English for ?lang=en over a stored Russian choice, without changing the choice', () => {
+    localeStore.cycle();
+    window.history.replaceState(null, '', '/ecmact/?lang=en');
+    const target = document.createElement('div');
+    document.body.append(target);
+    const { stop } = start(target);
+    expect(currentLocale()).toBe('en');
+    expect(target.querySelector('.nav a')?.textContent).toBe('Docs');
+    expect(JSON.parse(localStorage.getItem('ecmact-site-locale')!).state).toEqual({ locale: 'ru' });
+    stop();
+  });
+
+  it('does not store the language of ?lang=ru, and the next visit without it is English', async () => {
+    window.history.replaceState(null, '', '/ecmact/?lang=ru');
+    const target = document.createElement('div');
+    document.body.append(target);
+    const { stop } = start(target);
+    expect(currentLocale()).toBe('ru');
+    expect(localStorage.getItem('ecmact-site-locale')).toBeNull();
+    stop();
+    localeStore.force('en');
+    await localeStore.persist!.rehydrate();
+    const next = open();
+    expect(document.documentElement.lang).toBe('en');
+    next.stop();
+  });
+
+  it('stores what the visitor sees when the control is used during a ?lang=ru visit', () => {
+    window.history.replaceState(null, '', '/ecmact/?lang=ru');
+    const target = document.createElement('div');
+    document.body.append(target);
+    const { stop } = start(target);
+    target.querySelector<HTMLButtonElement>('button.chip[aria-label^="Сменить язык"]')!.click();
+    expect(currentLocale()).toBe('en');
+    expect(JSON.parse(localStorage.getItem('ecmact-site-locale')!).state).toEqual({ locale: 'en' });
+    stop();
+  });
+
+  it('ignores ?lang=de and an empty ?lang=', () => {
+    for (const search of ['?lang=de', '?lang=']) {
+      window.history.replaceState(null, '', `/ecmact/${search}`);
+      const target = document.createElement('div');
+      document.body.append(target);
+      const { stop } = start(target);
+      expect(currentLocale()).toBe('en');
+      expect(document.documentElement.lang).toBe('en');
+      stop();
+    }
+  });
+
+  it('works for the visit when the storage throws on read and on write', () => {
+    const broken = {
+      getItem: () => {
+        throw new Error('blocked');
+      },
+      setItem: () => {
+        throw new Error('blocked');
+      },
+      removeItem: () => {
+        throw new Error('blocked');
+      },
+    };
+    vi.stubGlobal('localStorage', broken);
+    const { target, stop } = open();
+    expect(document.documentElement.lang).toBe('en');
+    target
+      .querySelector<HTMLButtonElement>('button.chip[aria-label^="Switch the language"]')!
+      .click();
+    expect(document.documentElement.lang).toBe('ru');
+    expect(target.querySelector('.nav a')?.textContent).toBe('Документация');
+    stop();
+  });
+
   it('takes the language from ?lang= in the address', () => {
     window.history.replaceState(null, '', '/ecmact/?lang=ru');
     const target = document.createElement('div');
@@ -114,6 +210,18 @@ describe('start and the language', () => {
     expect(target.querySelector('#section-2')?.localName).toBe('h2');
     expect(target.querySelector('#rules')).not.toBeNull();
     expect(window.location.hash).toBe('#section-2');
+    stop();
+  });
+
+  it('keeps ?lang=ru through the redirect of /docs', async () => {
+    window.history.replaceState(null, '', '/ecmact/docs?lang=ru');
+    const target = document.createElement('div');
+    document.body.append(target);
+    const { router, stop } = start(target);
+    await vi.waitFor(() => expect(router.location.value.path).toMatch(/^\/docs\/.+/));
+    expect(window.location.search).toBe('?lang=ru');
+    expect(document.documentElement.lang).toBe('ru');
+    expect(target.querySelector('article h1')?.textContent).toBe('Быстрый старт');
     stop();
   });
 
