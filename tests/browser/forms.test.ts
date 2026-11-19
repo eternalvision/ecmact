@@ -100,6 +100,35 @@ describe('form-associated field in a real form', () => {
     expect(new FormData(form).get('email')).toBe('a@b.c');
   });
 
+  it('keeps each control’s own disabled state over repeated fieldset toggles', () => {
+    const lockedInput = tags.input({ disabled: true });
+    const openInput = tags.input();
+    const fieldset = tags.fieldset(
+      em.Field({ field: true }, lockedInput),
+      em.Field({ field: true }, openInput),
+    );
+    makeForm(fieldset);
+
+    for (let cycle = 0; cycle < 2; cycle++) {
+      fieldset.disabled = true;
+      expect(lockedInput.disabled).toBe(true);
+      expect(openInput.disabled).toBe(true);
+      fieldset.disabled = false;
+      expect(lockedInput.disabled).toBe(true);
+      expect(openInput.disabled).toBe(false);
+    }
+  });
+
+  it('restores a control’s own state when the host is enabled', () => {
+    const input = tags.input({ disabled: true });
+    const field = em.Field({ field: true }, input);
+    makeForm(field);
+
+    field.setAttribute('disabled', '');
+    field.removeAttribute('disabled');
+    expect(input.disabled).toBe(true);
+  });
+
   it('forwards a click on its wrapping label to the control', () => {
     const field = em.Field(
       { field: true, name: 'agree' },

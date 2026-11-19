@@ -3,7 +3,14 @@ import { build, type AnyProps } from '@em/core/element';
 import { guard } from '@em/core/errors';
 import { notifyAttached } from '@em/core/context';
 import { fieldChangeEvent } from '@em/forms/bindControl';
-import { readFormValue, readValidity, resetControl } from '@em/forms/formControl';
+import {
+  disableFromField,
+  isControl,
+  readFormValue,
+  readValidity,
+  resetControl,
+  restoreOwnDisabled,
+} from '@em/forms/formControl';
 import { owned } from '@em/signals/signals';
 import { applyStyleSheets } from '@em/render/applyStyleSheets';
 import { bind, isReactive, pause, read, resume } from '@em/render/bindings';
@@ -30,6 +37,7 @@ export class Component extends Base {
   #unmounted: ComponentProps['unmounted'];
   #cleanup: (() => void) | undefined;
   #internals: ElementInternals | undefined;
+  #disabledControl: Element | undefined;
   readonly #sheets: SheetState = {
     ownSheet: null,
     sheetText: undefined,
@@ -63,6 +71,7 @@ export class Component extends Base {
       this.#root.addEventListener('change', this.#syncField);
       this.#root.addEventListener(fieldChangeEvent, this.#syncField);
       this.addEventListener('click', this.#forwardClick);
+      if (this.hasAttribute('disabled')) this.formDisabledCallback(true);
       this.#syncField();
     }
   }
@@ -119,8 +128,13 @@ export class Component extends Base {
    * @param disabled - Whether the field is disabled now.
    */
   formDisabledCallback(disabled: boolean) {
+    if (!this.#internals) return;
     const control = this.#control();
-    if (this.#internals && 'disabled' in control) control.disabled = disabled;
+    const next = disabled && isControl(control) ? control : undefined;
+    if (this.#disabledControl === next) return;
+    if (this.#disabledControl) restoreOwnDisabled(this.#disabledControl);
+    this.#disabledControl = next;
+    if (next) disableFromField(next);
   }
 
   /**

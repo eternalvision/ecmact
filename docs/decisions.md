@@ -18,3 +18,7 @@ The dated log of decisions made after the specification and the plan. D1-D21 are
 ## 2026-11-18
 
 - D33 (US4.2): `release-create.yml` runs `npm run test:ci` and does not require the engines. The template pulls `ecmact` from npm, and the library is checked in the engines in its own release (`release.yml`). After US4.1 plain `npm test` needs installed engines, so the old call would break the create-ecmact release.
+
+## 2026-11-19
+
+- D34. The owner approved native disabled-control behavior in a 3.x patch for #30 and #31. Enabling a fieldset must preserve a control's own disabled state. Disabled inner controls must be omitted from FormData.

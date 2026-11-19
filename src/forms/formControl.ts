@@ -14,6 +14,43 @@ const validityKeys = [
   'valueMissing',
 ] as const;
 
+/** The control's own disabled attribute while a field temporarily overrides it. */
+const ownDisabled = new WeakMap<Element, string | null>();
+
+/**
+ * Applies an authored disabled attribute, or remembers it while the field keeps the control disabled.
+ *
+ * @param control - The element whose disabled prop changed.
+ * @param value - The attribute value, or `null` to remove it.
+ */
+export const writeDisabled = (control: Element, value: string | null) => {
+  if (ownDisabled.has(control)) ownDisabled.set(control, value);
+  else if (value === null) control.removeAttribute('disabled');
+  else control.setAttribute('disabled', value);
+};
+
+/**
+ * Keeps a control disabled until its field enables it again.
+ *
+ * @param control - The control inside the field.
+ */
+export const disableFromField = (control: Element) => {
+  const value = control.getAttribute('disabled');
+  ownDisabled.set(control, value);
+  if (value === null) control.setAttribute('disabled', '');
+};
+
+/**
+ * Restores the control's own disabled attribute after its field is enabled again.
+ *
+ * @param control - The control that the field disabled.
+ */
+export const restoreOwnDisabled = (control: Element) => {
+  const value = ownDisabled.get(control);
+  ownDisabled.delete(control);
+  if (value !== undefined) writeDisabled(control, value);
+};
+
 /**
  * Tells whether an element is a native form control that has a value and constraints.
  *
