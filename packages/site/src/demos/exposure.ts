@@ -5,6 +5,7 @@ const { b, button, div, em: emphasis, output, small, span } = tags;
 const css = `
   :host {
     display: block;
+    color-scheme: dark;
     padding: 18px;
     background: #1f2224;
     color: #1c2a1a;

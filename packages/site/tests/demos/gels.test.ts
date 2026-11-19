@@ -41,7 +41,9 @@ describe('gels example', () => {
       'no gel',
       'sky',
     ]);
-    expect(button(zones.stage).getAttribute('aria-label')).toBe('Change the stage gel');
+    expect(button(zones.stage).getAttribute('aria-label')).toBe('Change the stage gel, now no gel');
+    button(zones.stage).click();
+    expect(button(zones.stage).getAttribute('aria-label')).toBe('Change the stage gel, now rose');
   });
 
   it('gives every actor the colour of the nearest zone that has a gel', async () => {

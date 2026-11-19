@@ -1,5 +1,9 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { findDoc } from '@site/content/docs/index';
+import { defineAll } from '@site/widgets/index';
+import { inventory } from '@tests/inventory';
 import { cleanSource, demos, findDemo, groups, type Demo } from '@site/demos/index';
 
 /** Every file of `src/demos`, as the bundler reads it: the text that runs. */
@@ -152,6 +156,26 @@ const areas: Area[] = [
   },
   { area: 'createContext', patterns: [/\bcreateContext\b/], users: ['gels'] },
   {
+    area: 'abort, timeout, retry, HttpError',
+    patterns: [/\bHttpError\b/, /\bretry\b/],
+    users: ['switchboard', 'catalog', 'departures'],
+    waiting: true,
+  },
+  {
+    area: 'interceptors',
+    patterns: [/\binterceptors\b/],
+    users: ['switchboard', 'catalog'],
+    waiting: true,
+  },
+  {
+    area: 'emit: events out of a widget',
+    patterns: [/\bemit\b/],
+    users: ['seedpacket'],
+    waiting: true,
+  },
+  { area: 'custom-property theming', patterns: [/var\(--/], users: ['seedpacket'], waiting: true },
+  { area: 'widget removed and put back', patterns: [/\bremove\(/], users: [], waiting: true },
+  {
     area: 'createHttp',
     patterns: [/\bcreateHttp\b/],
     users: ['switchboard', 'catalog'],
@@ -210,6 +234,27 @@ describe('the coverage matrix', () => {
   });
 });
 
+describe('the stages', () => {
+  const schemes: Record<string, string> = {
+    exposure: 'dark',
+    setlist: 'dark',
+    gels: 'dark',
+    fieldbook: 'light',
+    customs: 'light',
+    typecase: 'light',
+  };
+
+  it('declare a color scheme of their own, so the frame does not decide the native controls', () => {
+    Object.entries(schemes).forEach(([id, scheme]) =>
+      expect(findDemo(id)?.files[0]?.source, id).toContain(`color-scheme: ${scheme};`),
+    );
+  });
+
+  it('pad the stage of the old demos that have no padding of their own, and no other', () => {
+    expect(demos.filter((demo) => demo.padded).map((demo) => demo.id)).toEqual(legacy);
+  });
+});
+
 describe('the sources of the examples', () => {
   const current = demos.filter((demo) => !legacy.includes(demo.id));
 
@@ -232,5 +277,37 @@ describe('the sources of the examples', () => {
         expect(file.source, file.name).not.toMatch(/\bfetch\(/);
       }),
     );
+  });
+});
+
+/** Where the tests of the site run: `packages/site`. */
+const repo = (path: string) => resolve(process.cwd(), '../..', path);
+
+describe('the compatibility inventory', () => {
+  it('lists twelve demo ids and every one still answers', () => {
+    expect(inventory.demoIds).toHaveLength(12);
+    inventory.demoIds.forEach((id) => expect(findDemo(id), id).toBeDefined());
+  });
+
+  it('lists five widget tags and every one is still registered', () => {
+    expect(inventory.widgetTags).toHaveLength(5);
+    defineAll();
+    inventory.widgetTags.forEach((tag) => expect(customElements.get(tag), tag).toBeDefined());
+  });
+
+  it('lists four host pages and every one is still a file of the site', () => {
+    expect(inventory.hosts).toHaveLength(4);
+    inventory.hosts.forEach((host) =>
+      expect(existsSync(repo(`packages/site/public${host}`)), host).toBe(true),
+    );
+  });
+
+  it('lists the addresses of the starter and the widget demo, and the Pages workflow still writes each', () => {
+    const workflow = readFileSync(repo('.github/workflows/pages.yml'), 'utf8');
+    expect(Object.keys(inventory.deployed)).toHaveLength(4);
+    Object.entries(inventory.deployed).forEach(([address, step]) =>
+      expect(workflow, address).toContain(step),
+    );
+    expect(existsSync(repo('.github/pages/embed.html'))).toBe(true);
   });
 });

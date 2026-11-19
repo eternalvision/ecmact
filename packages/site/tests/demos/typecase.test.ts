@@ -68,6 +68,23 @@ describe('typecase example', () => {
     expect(rule(poster)).toContain('animation: none 0.5s');
   });
 
+  it('does not start the press animation when the visitor asked for less motion', () => {
+    vi.stubGlobal('matchMedia', () => ({ matches: true }));
+    const { demo, poster, rule, swatch } = open();
+    const pull = [...demo.querySelectorAll('button')].find(
+      (b) => b.textContent === 'Pull a proof',
+    )!;
+    pull.click();
+    swatch('Red ink').click();
+    expect(rule(poster)).toContain('animation: none 0.5s');
+    expect(rule(poster)).not.toMatch(/animation: em-/);
+  });
+
+  it('declares a light color scheme for its stage', () => {
+    const { rule, styled } = open();
+    expect(rule(styled()[0]!)).toContain('color-scheme: light');
+  });
+
   it('sets the headline from the field', () => {
     const { demo } = open();
     const field = demo.querySelector('input')!;

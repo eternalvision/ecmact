@@ -23,6 +23,7 @@ const slab = css`
 
 const Bench = styled.div`
   ${slab}
+  color-scheme: light;
   padding: 18px;
   background:
     radial-gradient(rgba(90, 60, 20, 0.1) 0.7px, transparent 1px) 0 0 / 4px 4px,
@@ -159,6 +160,14 @@ export const create = () => {
   });
   const headline = signal('Grand opening');
   const pressing = signal(false);
+
+  /**
+   * Starts the press animation, unless the visitor asked for less motion: with no animation running there would
+   * be no event that ends it.
+   */
+  const proof = () => {
+    pressing.value = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  };
   const colophon = signal<Element | undefined>(undefined);
 
   /**
@@ -168,7 +177,7 @@ export const create = () => {
    */
   const choose = (change: Theme) => {
     theme.value = { ...theme.value, ...change };
-    pressing.value = true;
+    proof();
   };
 
   /**
@@ -223,7 +232,7 @@ export const create = () => {
           { role: 'group', 'aria-label': 'Stock', style: { display: 'flex', gap: '8px' } },
           swatches('stock', stocks),
         ),
-        Pull({ type: 'button', onclick: () => (pressing.value = true) }, 'Pull a proof'),
+        Pull({ type: 'button', onclick: proof }, 'Pull a proof'),
       ),
       Colophon({ ref: (element) => (colophon.value = element) }, () => {
         const current = colophon.value && useTheme(colophon.value)?.value;

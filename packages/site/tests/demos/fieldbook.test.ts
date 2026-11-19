@@ -37,6 +37,7 @@ const stored = () => JSON.parse(localStorage.getItem('ecmact-site-fieldbook')!);
 describe('fieldbook example', () => {
   it('opens a page of sample sightings drawn as tally marks', () => {
     const { rows, root, status } = open();
+    expect(root.querySelector('.tally')?.getAttribute('role')).toBe('img');
     expect(rows()).toEqual([
       ['Wren', '7 Wren'],
       ['Curlew', '2 Curlew'],

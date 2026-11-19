@@ -6,6 +6,8 @@ const css = `
   :host {
     display: block;
     position: relative;
+    container-type: inline-size;
+    color-scheme: light;
     padding: 18px;
     background: #eaf1e6;
     color: #17361f;
@@ -50,6 +52,10 @@ const css = `
     margin-top: 10px;
   }
   .acts {
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .acts {
     display: flex;
     gap: 8px;
     margin-top: 12px;
@@ -75,16 +81,22 @@ const css = `
     outline-offset: 2px;
   }
   .stamp {
-    position: absolute;
-    right: 14px;
-    top: 30px;
+    margin-left: auto;
     padding: 4px 10px;
     border: 3px double #b3261e;
     color: #b3261e;
     font: 700 18px/1.2 'Times New Roman', serif;
     letter-spacing: 0.2em;
-    transform: rotate(-12deg);
+    transform: rotate(-8deg);
     opacity: 0.85;
+  }
+  @container (min-width: 440px) {
+    .stamp {
+      position: absolute;
+      right: 14px;
+      top: 30px;
+      transform: rotate(-12deg);
+    }
   }
   .stamp.cleared {
     border-color: #1b6a3a;
@@ -103,6 +115,10 @@ const css = `
 const fieldCss = `
   :host {
     display: block;
+  }
+  :host(.inline) {
+    display: inline-block;
+    vertical-align: middle;
   }
   input[type='text'],
   input[type='date'] {
@@ -139,7 +155,7 @@ const fieldCss = `
 /**
  * A customs declaration whose fields are components with their inputs in a Shadow DOM. With `field: true` the
  * form around them validates them, reports an invalid field itself, reads their values with `FormData`, resets
- * them, and a disabled fieldset leaves them out. The stamp and the receipt read what the form says.
+ * them, a disabled fieldset leaves them out, and so does a field whose own input is disabled. The stamp and the receipt read what the form says.
  *
  * @returns The example.
  */
@@ -147,16 +163,18 @@ export const create = () => {
   const nothing = signal(false);
   const stamp = signal<'cleared' | 'refused' | ''>('');
   const receipt = signal('');
+  const transit = signal(false);
 
   /**
    * Makes a field of the form: a component that hands its first input to the form.
    *
    * @param name - The name of the field, as `FormData` sees it.
    * @param control - The input.
+   * @param inline - Whether the field sits in a line of text instead of filling the line.
    * @returns The field.
    */
-  const Field = (name: string, control: HTMLInputElement) =>
-    em.Field({ css: fieldCss, field: true, name }, control);
+  const Field = (name: string, control: HTMLInputElement, inline = false) =>
+    em.Field({ css: fieldCss, field: true, name, class: inline ? 'inline' : undefined }, control);
 
   /**
    * Makes a checkbox for a good to declare.
@@ -166,7 +184,10 @@ export const create = () => {
    * @returns The field.
    */
   const good = (value: string, title: string) =>
-    label(Field('goods', input({ type: 'checkbox', value, 'aria-label': title })), span(title));
+    label(
+      Field('goods', input({ type: 'checkbox', value, 'aria-label': title }), true),
+      span(title),
+    );
 
   return em.Customs(
     { css },
@@ -191,6 +212,7 @@ export const create = () => {
           stamp.value = '';
           receipt.value = '';
           nothing.value = false;
+          transit.value = false;
         },
       },
       h4('Customs declaration'),
@@ -204,7 +226,7 @@ export const create = () => {
             required: true,
             pattern: '[A-Za-z]{2}[0-9]{6}',
             maxlength: 8,
-            'aria-label': 'Passport number',
+            'aria-label': 'Passport, two letters and six digits',
           }),
         ),
       ),
@@ -216,6 +238,7 @@ export const create = () => {
             type: 'date',
             required: true,
             value: '2026-11-21',
+            disabled: transit,
             'aria-label': 'Arrival date',
           }),
         ),
@@ -231,18 +254,23 @@ export const create = () => {
         input({ type: 'checkbox', bind: nothing }),
         ' Nothing to declare',
       ),
+      label(
+        { class: 'nothing' },
+        input({ type: 'checkbox', bind: transit }),
+        ' In transit: no arrival date',
+      ),
       div(
         { class: 'acts' },
         button({ type: 'submit' }, 'Submit'),
         button({ type: 'reset' }, 'Reset'),
-      ),
-      div(
-        {
-          class: () => ({ stamp: true, cleared: stamp.value === 'cleared' }),
-          hidden: () => stamp.value === '',
-          role: 'status',
-        },
-        () => stamp.value.toUpperCase(),
+        div(
+          {
+            class: () => ({ stamp: true, cleared: stamp.value === 'cleared' }),
+            hidden: () => stamp.value === '',
+            role: 'status',
+          },
+          () => stamp.value.toUpperCase(),
+        ),
       ),
       pre({ class: 'receipt', hidden: () => receipt.value === '' }, receipt),
     ),

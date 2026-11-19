@@ -1307,3 +1307,11 @@ tr:last-child td {
     height: 52rem;
   }
 }
+
+.stage-padded {
+  padding: 1.1rem;
+}
+
+.demo-guide a {
+  color: var(--text);
+}

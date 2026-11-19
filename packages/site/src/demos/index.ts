@@ -51,6 +51,8 @@ export interface Demo {
   group: DemoGroup;
   /** The ids of earlier demos that this one answers for, so that old links and guides keep working. */
   answers: string[];
+  /** Gives the stage padding, for a demo that has none of its own. Only the old demos that #55 replaces. */
+  padded?: boolean;
   /** Creates a fresh instance of the demo. */
   create: () => Node;
   /** The files of the demo, as shown on the page: one tab each. The first is the entry. */
@@ -142,6 +144,7 @@ export const demos: Demo[] = [
   },
   {
     id: 'http',
+    padded: true,
     title: 'HTTP client and resource',
     description: 'Retries, aborted requests and loading state against a fake server.',
     page: 'http',
@@ -152,6 +155,7 @@ export const demos: Demo[] = [
   },
   {
     id: 'github',
+    padded: true,
     title: 'GitHub API',
     description:
       'A repository card from the GitHub API, with a debounced input and a rate-limit interceptor.',
@@ -163,6 +167,7 @@ export const demos: Demo[] = [
   },
   {
     id: 'posts',
+    padded: true,
     title: 'Create, read, delete',
     description:
       'Optimistic updates against jsonplaceholder, with interceptors that count and time the requests.',
@@ -174,6 +179,7 @@ export const demos: Demo[] = [
   },
   {
     id: 'weather',
+    padded: true,
     title: 'Weather API',
     description:
       'The open-meteo.com API through resource(): a signal picks the city, the old request is aborted.',
@@ -185,6 +191,7 @@ export const demos: Demo[] = [
   },
   {
     id: 'lifecycle',
+    padded: true,
     title: 'Lifecycle hooks',
     description:
       'mounted with a cleanup, an effect that stops by itself and unmounted, on a clock you can remove.',
@@ -196,6 +203,7 @@ export const demos: Demo[] = [
   },
   {
     id: 'widget',
+    padded: true,
     title: 'defineWidget',
     description:
       'A custom element configured by attributes, themed by a custom property, speaking through events.',

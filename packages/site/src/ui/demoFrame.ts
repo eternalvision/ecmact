@@ -1,9 +1,12 @@
 import { signal, tags } from 'ecmact';
+import { findDoc } from '@site/content/docs/index';
 import { text } from '@site/content/messages';
 import type { Demo } from '@site/demos/index';
+import { currentLocale } from '@site/lib/i18n';
+import { withBase } from '@site/lib/paths';
 import { CodeBlock } from '@site/ui/codeBlock';
 
-const { button, div, h3, header, p, section, span } = tags;
+const { a, button, div, h3, header, p, section, span } = tags;
 
 /**
  * A live demo with its source. The tabs switch between the stage, where the demo runs, and one file at a time of
@@ -84,11 +87,19 @@ export const DemoFrame = (demo: Demo) => {
     ),
     p({ class: 'demo-note' }, copy.description),
     copy.note && p({ class: 'demo-note demo-since' }, copy.note),
+    p(
+      { class: 'demo-note demo-guide' },
+      `${m.code.guide}: `,
+      a(
+        { href: withBase(`/docs/${demo.page}`), 'data-internal': `/docs/${demo.page}` },
+        findDoc(demo.page, currentLocale())?.title ?? demo.page,
+      ),
+    ),
     panel(
       '',
       'demo-run',
       div({ class: 'stage-bar' }, span(m.code.stage), copy.hint && span(copy.hint)),
-      div({ class: 'stage' }, demo.create()),
+      div({ class: { stage: true, 'stage-padded': demo.padded === true } }, demo.create()),
     ),
     demo.files.map((file) =>
       panel(

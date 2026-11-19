@@ -5,6 +5,7 @@ const { button, div, form, input, p, s, span } = tags;
 const css = `
   :host {
     display: block;
+    color-scheme: light;
     padding: 10px 18px 14px 46px;
     background:
       linear-gradient(90deg, transparent 34px, #e8a2a2 34px 35px, transparent 35px),
@@ -225,7 +226,10 @@ export const create = () => {
         div(
           { class: 'row' },
           span({ class: 'name' }, bird.name),
-          span({ class: 'tally', 'aria-label': `${bird.count} ${bird.name}` }, marks(bird.count)),
+          span(
+            { class: 'tally', role: 'img', 'aria-label': `${bird.count} ${bird.name}` },
+            marks(bird.count),
+          ),
           button(
             {
               type: 'button',

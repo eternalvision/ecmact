@@ -5,6 +5,7 @@ const { button, div, form, input, li, ol, p, span } = tags;
 const css = `
   :host {
     display: block;
+    color-scheme: dark;
     padding: 18px;
     background:
       radial-gradient(rgba(255, 255, 255, 0.05) 0.7px, transparent 1px) 0 0 / 5px 5px,
@@ -21,8 +22,9 @@ const css = `
   li {
     counter-increment: song;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    gap: 2px 8px;
     margin: 0 0 9px;
     padding: 7px 12px;
     background: #f1efe6;
@@ -45,9 +47,13 @@ const css = `
     content: none;
   }
   .title {
-    flex: 1;
-    min-width: 0;
-    overflow-wrap: anywhere;
+    flex: 1 1 8ch;
+    min-width: 8ch;
+    overflow-wrap: break-word;
+  }
+  .controls {
+    display: flex;
+    margin-left: auto;
   }
   .played .title {
     text-decoration: line-through;
@@ -183,11 +189,16 @@ export const create = () => {
    *
    * @param name - What it does, for assistive technology.
    * @param symbol - The symbol on the button.
-   * @param action - What it does.
+   * @param action - What it does, given the click.
    * @param pressed - Whether it is switched on, for a button that toggles.
    * @returns The button.
    */
-  const control = (name: string, symbol: string, action: () => void, pressed?: boolean) =>
+  const control = (
+    name: string,
+    symbol: string,
+    action: (event: Event) => void,
+    pressed?: boolean,
+  ) =>
     button(
       {
         type: 'button',
@@ -197,6 +208,24 @@ export const create = () => {
       },
       symbol,
     );
+
+  /**
+   * Removes a song and moves the focus to the same control of the next row, the previous one when it was the last,
+   * or the title field when no row is left, so that the keyboard does not lose its place.
+   *
+   * @param event - The click on the remove button of the row.
+   * @param id - The song.
+   */
+  const dismiss = (event: Event, id: number) => {
+    const row = (event.currentTarget as HTMLElement).closest('li') as HTMLElement;
+    const near = row.nextElementSibling ?? row.previousElementSibling;
+    const root = row.getRootNode() as ShadowRoot;
+    store.remove(id);
+    const target =
+      near?.querySelector<HTMLElement>('[aria-label^="Remove"]') ??
+      root.querySelector<HTMLElement>('input[name="title"]');
+    target?.focus();
+  };
 
   return em.Setlist(
     { css },
@@ -208,10 +237,13 @@ export const create = () => {
             { class: { played: song.played } },
             span({ class: 'title' }, song.title),
             span(`${song.minutes}'`),
-            control(`Move ${song.title} up`, '↑', () => store.move(song.id, -1)),
-            control(`Move ${song.title} down`, '↓', () => store.move(song.id, 1)),
-            control(`Played ${song.title}`, '✓', () => store.toggle(song.id), song.played),
-            control(`Remove ${song.title}`, '×', () => store.remove(song.id)),
+            span(
+              { class: 'controls' },
+              control(`Move ${song.title} up`, '↑', () => store.move(song.id, -1)),
+              control(`Move ${song.title} down`, '↓', () => store.move(song.id, 1)),
+              control(`Played ${song.title}`, '✓', () => store.toggle(song.id), song.played),
+              control(`Remove ${song.title}`, '×', (event) => dismiss(event, song.id)),
+            ),
           ),
         {
           by: (song) => song.id,

@@ -82,6 +82,24 @@ describe('DemoFrame', () => {
     );
   });
 
+  it('links to the guide page of the demo, in the language in use', async () => {
+    const link = DemoFrame(exposure).querySelector<HTMLAnchorElement>('.demo-guide a')!;
+    expect(DemoFrame(exposure).querySelector('.demo-guide')?.textContent).toBe('Guide: Signals');
+    expect(link.getAttribute('href')).toBe('/docs/signals');
+    expect(link.dataset.internal).toBe('/docs/signals');
+    await useLocale('ru');
+    expect(DemoFrame(exposure).querySelector('.demo-guide')?.textContent).toMatch(/^Руководство: /);
+    await resetLocale();
+    expect(
+      DemoFrame({ ...exposure, page: 'nope' }).querySelector('.demo-guide a')?.textContent,
+    ).toBe('nope');
+  });
+
+  it('pads the stage of a demo that asks for it', () => {
+    expect(DemoFrame(exposure).querySelector('.stage-padded')).toBeNull();
+    expect(DemoFrame({ ...exposure, padded: true }).querySelector('.stage-padded')).not.toBeNull();
+  });
+
   it('runs every demo of the gallery on its stage', () => {
     demos.forEach((demo) => {
       const frame = DemoFrame(demo);

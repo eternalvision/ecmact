@@ -35,6 +35,7 @@ beforeEach(() => {
       readonly entries: [string, string][];
       constructor(form: HTMLFormElement) {
         this.entries = [...form.querySelectorAll('[name]')].flatMap((field) => {
+          if (field.closest('fieldset')?.disabled) return [];
           const value = internals.get(field)?.value;
           return typeof value === 'string' ? [[field.getAttribute('name')!, value]] : [];
         });
@@ -167,6 +168,24 @@ describe('customs example', () => {
     expect(receipt().textContent).toBe(
       'passport=ab123456\narrival=2026-11-21\ngoods=seeds\ngoods=cheese',
     );
+  });
+
+  it('leaves the arrival date out of FormData while in transit, because its own input is disabled', () => {
+    const { type, submit, receipt, control, field } = open();
+    type('passport', 'ab123456');
+    const transit = [
+      ...document.querySelectorAll('em-customs'),
+    ][0]!.shadowRoot!.querySelectorAll<HTMLInputElement>('.nothing input')[1]!;
+    transit.checked = true;
+    transit.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(control('arrival').disabled).toBe(true);
+    expect(internals.get(field('arrival'))?.value).toBeNull();
+    submit();
+    expect(receipt().textContent).toBe('passport=ab123456');
+    transit.checked = false;
+    transit.dispatchEvent(new Event('change', { bubbles: true }));
+    submit();
+    expect(receipt().textContent).toBe('passport=ab123456\narrival=2026-11-21');
   });
 
   it('restores the defaults on reset', () => {

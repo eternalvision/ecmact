@@ -14,6 +14,7 @@ const { button, div, span } = tags;
 const css = `
   :host {
     display: block;
+    color-scheme: dark;
     --c: #9aa0b5;
     padding: 10px;
     border: 1px dashed #5b5f73;
@@ -64,6 +65,7 @@ const css = `
 const stageCss = `
   :host {
     display: block;
+    color-scheme: dark;
     padding: 18px;
     background: #0c0c12;
   }
@@ -117,7 +119,8 @@ const Zone = (name: string, gel: Signal<number>, actor: string, inner?: Child) =
       button(
         {
           type: 'button',
-          'aria-label': `Change the ${name.toLowerCase()} gel`,
+          'aria-label': () =>
+            `Change the ${name.toLowerCase()} gel, now ${gels[gel.value]?.name ?? 'no gel'}`,
           onclick: () => {
             gel.value = gel.value >= gels.length - 1 ? -1 : gel.value + 1;
           },

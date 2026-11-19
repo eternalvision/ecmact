@@ -63,6 +63,7 @@ export interface Messages {
     copyLabel: string;
     run: string;
     stage: string;
+    guide: string;
   };
   /** The gallery: its title, its lead and the tasks it is grouped by. */
   examples: {
@@ -208,10 +209,11 @@ const en: Messages = {
     copyLabel: 'Copy to the clipboard',
     run: 'Run',
     stage: 'Live example',
+    guide: 'Guide',
   },
   examples: {
     title: 'Examples',
-    lead: 'Every example runs on its own stage and needs no network. Open the tab of a file beside Run to read the exact source that runs, and copy it.',
+    lead: 'Every example runs on its own stage. Open the tab of a file beside Run to read the exact source that runs, and copy it.',
     groups: {
       state: {
         title: 'State and signals',
@@ -319,7 +321,7 @@ const en: Messages = {
       title: 'Customs declaration',
       description: 'Shadow DOM fields that a native form validates, submits and resets.',
       hint: 'leave a field wrong',
-      note: 'A disabled fieldset leaves its fields out of FormData from the next 3.0.x patch (#30, #31). In 3.0.0 they are still sent.',
+      note: 'A field whose own input is disabled, like the arrival date while in transit, is left out of FormData from the next 3.0.x patch (#31). In 3.0.0 it is still sent.',
     },
     gels: {
       title: 'Lighting plot',
@@ -486,10 +488,11 @@ const ru: Messages = {
     copyLabel: 'Копировать в буфер обмена',
     run: 'Запуск',
     stage: 'Живой пример',
+    guide: 'Руководство',
   },
   examples: {
     title: 'Примеры',
-    lead: 'Каждый пример работает на своей сцене и не требует сети. Откройте вкладку файла рядом с «Запуском», чтобы прочитать исходник, который выполняется, и скопировать его.',
+    lead: 'Каждый пример работает на своей сцене. Откройте вкладку файла рядом с «Запуском», чтобы прочитать исходник, который выполняется, и скопировать его.',
     groups: {
       state: {
         title: 'Состояние и сигналы',
@@ -599,7 +602,7 @@ const ru: Messages = {
       title: 'Таможенная декларация',
       description: 'Поля в Shadow DOM, которые нативная форма проверяет, отправляет и сбрасывает.',
       hint: 'оставьте поле неверным',
-      note: 'Отключённый fieldset исключает свои поля из FormData со следующего патча 3.0.x (#30, #31). В 3.0.0 они всё ещё отправляются.',
+      note: 'Поле, чей собственный input отключён, как дата прибытия при пересадке, исключается из FormData со следующего патча 3.0.x (#31). В 3.0.0 оно всё ещё отправляется.',
     },
     gels: {
       title: 'Световая схема',
