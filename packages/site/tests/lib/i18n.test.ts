@@ -1,10 +1,18 @@
 import { effect } from 'ecmact';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { applyLocale, currentLocale, localeStore, locales, readLocaleParam } from '@site/lib/i18n';
+import {
+  applyLocale,
+  currentLocale,
+  localeStore,
+  locales,
+  readLocaleParam,
+  readSessionLocale,
+} from '@site/lib/i18n';
 
 afterEach(() => {
   vi.unstubAllGlobals();
-  localeStore.force('en');
+  sessionStorage.clear();
+  localeStore.setState({ locale: 'en' });
   localStorage.clear();
 });
 
@@ -80,6 +88,31 @@ describe('localeStore', () => {
     expect(fresh.currentLocale()).toBe('ru');
   });
 
+  it.each([
+    ['an unknown language', { state: { locale: 'de' }, version: 0 }],
+    ['a value that is not a string', { state: { locale: 5 }, version: 0 }],
+    ['a state without a language', { state: {}, version: 0 }],
+    ['an empty state', { state: null, version: 0 }],
+  ])('ignores a stored choice with %s', async (_name, stored) => {
+    localStorage.setItem('ecmact-site-locale', JSON.stringify(stored));
+    vi.resetModules();
+    const fresh = await import('@site/lib/i18n');
+    expect(fresh.currentLocale()).toBe('en');
+    fresh.localeStore.cycle();
+    expect(fresh.currentLocale()).toBe('ru');
+  });
+
+  it('remembers a forced language for the tab session and keeps it after the modules are loaded again', async () => {
+    localeStore.force('ru');
+    expect(sessionStorage.getItem('ecmact-site-locale-session')).toBe('ru');
+    vi.resetModules();
+    const fresh = await import('@site/lib/i18n');
+    expect(fresh.readSessionLocale()).toBe('ru');
+    expect(localStorage.getItem('ecmact-site-locale')).toBeNull();
+    fresh.localeStore.cycle();
+    expect(sessionStorage.getItem('ecmact-site-locale-session')).toBeNull();
+  });
+
   it('shows a forced language without keeping it', () => {
     localeStore.force('ru');
     expect(currentLocale()).toBe('ru');
@@ -124,6 +157,31 @@ describe('localeStore', () => {
   it('remembers the choice', () => {
     localeStore.cycle();
     expect(JSON.parse(localStorage.getItem('ecmact-site-locale')!).state).toEqual({ locale: 'ru' });
+  });
+});
+
+describe('readSessionLocale', () => {
+  it('reads the language kept for the tab session', () => {
+    sessionStorage.setItem('ecmact-site-locale-session', 'ru');
+    expect(readSessionLocale()).toBe('ru');
+  });
+
+  it('ignores an unknown value and a missing one', () => {
+    expect(readSessionLocale()).toBeUndefined();
+    sessionStorage.setItem('ecmact-site-locale-session', 'de');
+    expect(readSessionLocale()).toBeUndefined();
+  });
+
+  it('gives nothing, and does not stop a switch, when sessionStorage throws', () => {
+    const blocked = () => {
+      throw new Error('blocked');
+    };
+    vi.stubGlobal('sessionStorage', { getItem: blocked, setItem: blocked, removeItem: blocked });
+    expect(readSessionLocale()).toBeUndefined();
+    expect(() => localeStore.force('ru')).not.toThrow();
+    expect(currentLocale()).toBe('ru');
+    expect(() => localeStore.cycle()).not.toThrow();
+    expect(currentLocale()).toBe('en');
   });
 });
 

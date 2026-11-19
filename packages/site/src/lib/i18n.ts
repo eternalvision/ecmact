@@ -1,4 +1,4 @@
-import { createJSONStorage, createStore, type PersistStorage } from 'ecmact';
+import { createJSONStorage, createStore, type PersistStorage, type StorageValue } from 'ecmact';
 
 /** The languages of the site. */
 export type Locale = 'en' | 'ru';
@@ -23,29 +23,59 @@ interface StoredLocale {
   locale: Locale;
 }
 
-/** Whether the language on screen comes from the address and is not the visitor's choice, so it must not be written. */
-let sessionOnly = false;
+/** The key in `sessionStorage` that holds a language the address asked for, for the rest of the tab session. */
+const sessionKey = 'ecmact-site-locale-session';
+
+/**
+ * Reads the language that the address asked for earlier in this tab session.
+ *
+ * @returns The locale, or `undefined` when there is none, it is unknown, or `sessionStorage` refuses.
+ */
+export const readSessionLocale = (): Locale | undefined => {
+  try {
+    const value = sessionStorage.getItem(sessionKey);
+    return locales.find((locale) => locale === value);
+  } catch {
+    return undefined;
+  }
+};
+
+/**
+ * Remembers the language of the address for the tab session, or forgets it.
+ *
+ * @param locale - The language, or `undefined` to forget it.
+ */
+const writeSessionLocale = (locale: Locale | undefined) => {
+  try {
+    if (locale) sessionStorage.setItem(sessionKey, locale);
+    else sessionStorage.removeItem(sessionKey);
+  } catch {
+    /* The language then lasts for this page load only. */
+  }
+};
 
 /**
  * Opens the storage that keeps the choice. A storage that is missing or refuses is not an error: the choice then
  * lives for the visit only.
  *
- * @returns The storage.
+ * @returns The storage, or `undefined` when there is none.
  */
-const backing = () =>
-  createJSONStorage<StoredLocale>(() => localStorage) as PersistStorage<StoredLocale>;
+const backing = () => createJSONStorage<StoredLocale>(() => localStorage);
 
-/** The storage of the choice. It never throws, and it does not write while the language comes from the address. */
+/** The storage of the choice. It never throws, drops a stored language it does not know, and does not write while the language comes from the address. */
 const choiceStorage: PersistStorage<StoredLocale> = {
   /**
    * Reads the stored choice.
    *
    * @param name - The key.
-   * @returns The stored value, or `null` when there is none or the storage refuses.
+   * @returns The stored value, or `null` when there is none, it is not a known language, or the storage refuses.
    */
   getItem: (name) => {
     try {
-      return backing().getItem(name);
+      const stored = backing()?.getItem(name) as StorageValue<StoredLocale> | null | undefined;
+      return locales.includes(stored?.state?.locale as Locale)
+        ? (stored as StorageValue<StoredLocale>)
+        : null;
     } catch {
       return null;
     }
@@ -57,9 +87,9 @@ const choiceStorage: PersistStorage<StoredLocale> = {
    * @param value - The value.
    */
   setItem: (name, value) => {
-    if (sessionOnly) return;
+    if (readSessionLocale()) return;
     try {
-      backing().setItem(name, value);
+      backing()?.setItem(name, value);
     } catch {
       /* The choice is not kept; the visit goes on in the language on screen. */
     }
@@ -71,7 +101,7 @@ const choiceStorage: PersistStorage<StoredLocale> = {
    */
   removeItem: (name) => {
     try {
-      backing().removeItem(name);
+      backing()?.removeItem(name);
     } catch {
       /* Nothing was kept. */
     }
@@ -86,18 +116,18 @@ export const localeStore = createStore(
      * Moves to the next language and keeps it as the visitor's choice.
      */
     cycle: () => {
-      sessionOnly = false;
+      writeSessionLocale(undefined);
       set((state) => ({
         locale: locales[(locales.indexOf(state.locale) + 1) % locales.length] as Locale,
       }));
     },
     /**
-     * Shows a language for this visit only, as `?lang=` asks, and leaves the kept choice as it is.
+     * Shows a language for this tab session, as `?lang=` asks, and leaves the kept choice as it is.
      *
      * @param locale - The language.
      */
     force: (locale: Locale) => {
-      sessionOnly = true;
+      writeSessionLocale(locale);
       set({ locale });
     },
   }),
