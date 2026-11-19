@@ -45,6 +45,14 @@ describe('createSiteRouter', () => {
     router.dispose();
   });
 
+  it('keeps the query and the hash through the redirect of /docs', async () => {
+    const { router } = open('/ecmact/docs?lang=ru&x=1#top');
+    await vi.waitFor(() => expect(router.location.value.path).toBe(`/docs/${docs[0]!.slug}`));
+    expect(window.location.search).toBe('?lang=ru&x=1');
+    expect(window.location.hash).toBe('#top');
+    router.dispose();
+  });
+
   it('redirects /docs to the first page', () => {
     const { router } = open('/ecmact/docs');
     expect(router.location.value.path).toBe(`/docs/${docs[0]!.slug}`);

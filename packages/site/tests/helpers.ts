@@ -18,12 +18,14 @@ export const makeRouter = (path = '/') => {
 
 export const disposeRouters = () => routers.splice(0).forEach((router) => router.dispose());
 
+// After `vi.resetModules()` this imports a new module, so it resets the new store, not the one a test file imported at the top.
 export const useLocale = async (locale: 'en' | 'ru') => {
   const { localeStore } = await import('@site/lib/i18n');
   localeStore.setState({ locale });
 };
 
 export const resetLocale = async () => {
+  sessionStorage.removeItem('ecmact-site-locale-session');
   await useLocale('en');
   localStorage.removeItem('ecmact-site-locale');
 };

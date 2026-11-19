@@ -2,7 +2,13 @@ import { effect, mount } from 'ecmact';
 import { createSiteRouter } from '@site/app/router';
 import { watchTheme } from '@site/app/theme';
 import { announcer } from '@site/lib/announce';
-import { applyLocale, localeStore, readLocaleParam, type Locale } from '@site/lib/i18n';
+import {
+  applyLocale,
+  localeStore,
+  readLocaleParam,
+  readSessionLocale,
+  type Locale,
+} from '@site/lib/i18n';
 import { applyMeta, metaFor } from '@site/lib/title';
 import { Footer } from '@site/ui/footer';
 import { Header } from '@site/ui/header';
@@ -15,8 +21,8 @@ import { Header } from '@site/ui/header';
  * @returns The router, and a function that stops everything.
  */
 export const start = (target: string | Element) => {
-  const forced = readLocaleParam(window.location.search);
-  if (forced) localeStore.setState({ locale: forced });
+  const forced = readLocaleParam(window.location.search) ?? readSessionLocale();
+  if (forced) localeStore.force(forced);
   const root = typeof target === 'string' ? (document.querySelector(target) as Element) : target;
   const router = createSiteRouter();
   announcer();
