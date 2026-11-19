@@ -75,6 +75,36 @@ const focusAt = (node: Node, path: number[]) => {
 };
 
 /**
+ * Finds the focused element inside nested open shadow roots of a retained row.
+ *
+ * @param element - The focused element as seen from the list's root.
+ * @returns The deepest focused element that the list can reach.
+ */
+const deepestFocus = (element: Element): HTMLElement => {
+  let target = element;
+  while (target.shadowRoot?.activeElement) target = target.shadowRoot.activeElement;
+  return target as HTMLElement;
+};
+
+/**
+ * Finds focus in a row that will keep its node, after rendering any new rows.
+ *
+ * @param parent - The parent that holds the list.
+ * @param rows - The rendered rows before the update.
+ * @param next - The rows to reconcile.
+ * @returns The focused element of a retained row, if there is one.
+ */
+const retainedFocus = (parent: Node, rows: Map<unknown, Row>, next: Map<unknown, Row>) => {
+  const { activeElement } = parent.getRootNode() as Document | ShadowRoot;
+  if (!activeElement || !parent.contains(activeElement)) return undefined;
+  for (const [key, row] of next) {
+    if (row === rows.get(key) && row.node.contains(activeElement))
+      return deepestFocus(activeElement);
+  }
+  return undefined;
+};
+
+/**
  * Renders a list that follows an array, a signal of an array or a function that returns one. Put the result
  * among the children of any element: the nodes that `render` makes are placed right there, one for each item,
  * with no wrapper. When the list changes, an item that is still there keeps its node, an item that changed is
@@ -124,9 +154,16 @@ export const each = <T>(
         if (path) focus = { node, path };
         next.set(key, { item, node });
       });
+      const target = retainedFocus(start.parentNode as Node, rows, next);
       rows = next;
       fill(start, end, list.length === 0 ? fallback : Array.from(next.values(), (row) => row.node));
-      if (focus) focusAt(focus.node, focus.path);
+      if (target) {
+        if (target.ownerDocument.activeElement === target.ownerDocument.body) {
+          target.focus({ preventScroll: true });
+        }
+      } else if (focus) {
+        focusAt(focus.node, focus.path);
+      }
     });
   });
 
