@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ECMact documentation redesign</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #141414;
+        --paper: #fff;
+        --surface: #f2f2f2;
+        --muted: #555;
+        --line: #d7d7d7;
+        --mono: 'IBM Plex Mono', ui-monospace, monospace;
+        font-family: Geist, system-ui, sans-serif;
+        background: var(--paper);
+        color: var(--ink);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+      }
+      a {
+        color: inherit;
+        text-underline-offset: 3px;
+      }
+      :focus-visible {
+        outline: 2px solid currentColor;
+        outline-offset: 4px;
+      }
+      .wrap {
+        width: min(1220px, calc(100% - 60px));
+        margin-inline: auto;
+      }
+      .bar,
+      .brand,
+      nav,
+      .actions {
+        display: flex;
+        align-items: center;
+        gap: 22px;
+        flex-wrap: wrap;
+      }
+      .bar {
+        min-height: 72px;
+        justify-content: space-between;
+      }
+      .brand {
+        gap: 12px;
+        font-size: 21px;
+        font-weight: 700;
+        letter-spacing: -0.045em;
+      }
+      .mark {
+        display: inline-grid;
+        place-items: center;
+        min-width: 33px;
+        height: 30px;
+        background: var(--ink);
+        color: var(--paper);
+        font: bold 16px var(--mono);
+      }
+      .intro {
+        display: grid;
+        grid-template-columns: 0.95fr 1fr;
+        gap: clamp(26px, 6vw, 96px);
+        align-items: center;
+        padding-block: clamp(52px, 9vw, 122px);
+        border-block: 1px solid var(--line);
+      }
+      h1 {
+        font-size: clamp(50px, 7vw, 104px);
+        line-height: 0.96;
+        letter-spacing: -0.085em;
+        margin: 0;
+        font-weight: 690;
+        max-width: 9ch;
+      }
+      h2 {
+        font-size: clamp(35px, 5vw, 60px);
+        line-height: 1.05;
+        letter-spacing: -0.06em;
+        margin-block: 0 18px;
+      }
+      p {
+        line-height: 1.6;
+      }
+      .intro p {
+        color: var(--muted);
+        max-width: 43ch;
+        font-size: 18px;
+        margin-block: 24px;
+      }
+      .button {
+        display: inline-block;
+        background: var(--ink);
+        color: var(--paper);
+        padding: 11px 18px;
+        border-radius: 4px;
+        text-decoration: none;
+      }
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        overflow: hidden;
+        min-width: 0;
+      }
+      .panel-title {
+        padding: 12px 17px;
+        font: 13px var(--mono);
+        border-bottom: 1px solid var(--line);
+      }
+      pre {
+        margin: 0;
+        padding: 19px;
+        overflow: auto;
+        font: 13px/1.8 var(--mono);
+        tab-size: 2;
+      }
+      .install {
+        display: inline-block;
+        margin-top: 14px;
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        font: 12px var(--mono);
+        overflow-wrap: anywhere;
+      }
+      .accent-sample .keyword {
+        color: #234c96;
+        font-weight: 650;
+      }
+      .accent-sample .literal {
+        color: #65428f;
+      }
+      .code {
+        background: var(--surface);
+      }
+      .preview {
+        border-top: 1px solid var(--line);
+        padding: 20px;
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .preview button {
+        font: inherit;
+        border: 1px solid var(--ink);
+        border-radius: 4px;
+        background: var(--paper);
+        color: var(--ink);
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+      output {
+        font: 16px var(--mono);
+      }
+      .flow {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        padding-block: 32px;
+      }
+      .flow > div {
+        border-top: 2px solid var(--ink);
+        padding-top: 14px;
+      }
+      .flow p,
+      .note {
+        color: var(--muted);
+        margin-top: 8px;
+      }
+      .section {
+        padding-block: 58px;
+        border-top: 1px solid var(--line);
+      }
+      .docs {
+        display: grid;
+        grid-template-columns: 160px minmax(0, 1fr) 128px;
+        gap: 24px;
+      }
+      .docs > * {
+        padding: 17px 0;
+        min-width: 0;
+      }
+      .docs ul {
+        padding: 0;
+        list-style: none;
+        line-height: 2;
+        margin: 10px 0;
+      }
+      .docs article {
+        border-inline: 1px solid var(--line);
+        padding-inline: 26px;
+      }
+      .docs h3 {
+        margin: 0;
+        font-size: 31px;
+        letter-spacing: -0.04em;
+      }
+      .reverse {
+        --ink: #fff;
+        --paper: #141414;
+        --surface: #222;
+        --muted: #bcbcbc;
+        --line: #444;
+        background: var(--paper);
+        color: var(--ink);
+        padding: 32px;
+        margin-top: 25px;
+      }
+      .reverse .intro {
+        padding-block: 26px;
+        border: 0;
+      }
+      .reverse h3 {
+        font-size: clamp(30px, 5vw, 67px);
+        margin: 0;
+        letter-spacing: -0.075em;
+        line-height: 1;
+      }
+      .reverse p {
+        margin-bottom: 0;
+      }
+      footer {
+        padding-block: 28px 50px;
+        color: var(--muted);
+      }
+      @media (max-width: 780px) {
+        .intro,
+        .flow {
+          grid-template-columns: 1fr;
+        }
+        .docs {
+          grid-template-columns: 125px minmax(0, 1fr);
+        }
+        .docs aside {
+          grid-column: 1 / -1;
+        }
+      }
+      @media (max-width: 520px) {
+        .wrap {
+          width: calc(100% - 32px);
+        }
+        .bar {
+          padding-block: 13px;
+          gap: 10px;
+        }
+        nav {
+          gap: 16px;
+        }
+        .docs {
+          grid-template-columns: 1fr;
+          gap: 0;
+        }
+        .docs article {
+          border-inline: 0;
+          padding-inline: 0;
+        }
+        .docs ul li {
+          display: inline;
+          margin-right: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="wrap bar">
+      <div class="brand"><span class="mark" aria-hidden="true">[E</span>ECMact</div>
+      <nav aria-label="Prototype">
+        <a href="#docs">Docs</a>
+        <a href="#readme">README</a>
+        <a href="#alternative">Visual alternatives</a>
+      </nav>
+    </header>
+    <main class="wrap">
+      <section class="intro" aria-labelledby="title">
+        <div>
+          <h1 id="title">Reactive UI on the DOM.</h1>
+          <p>Build a page or embed a widget with typed elements, signals and Web Components.</p>
+          <div class="actions">
+            <a class="button" href="#docs">Get started</a
+            ><a href="https://github.com/eternalvision/ecmact">GitHub</a>
+          </div>
+          <code class="install">npm create ecmact@latest my-app</code>
+        </div>
+        <div class="panel" aria-label="Illustrative ECMact example">
+          <div class="panel-title">main.ts</div>
+          <pre class="code"><code>import { mount, signal, tags } from 'ecmact';
+
+const hours = signal(1);
+const estimate = () =&gt; `$${hours.value * 49}`;
+
+mount('#app',
+  tags.button(
+    { onclick: () =&gt; hours.value++ },
+    'Add an hour',
+  ),
+  tags.output(estimate),
+);</code></pre>
+          <div class="preview">
+            <button type="button" id="add">Add an hour</button
+            ><output id="quantity" aria-label="Sample estimate" aria-live="polite">$49</output>
+          </div>
+        </div>
+      </section>
+
+      <div class="flow" aria-label="Documentation sequence">
+        <div>
+          <strong>Build an element</strong>
+          <p><code>tags</code> creates a real DOM node.</p>
+        </div>
+        <div>
+          <strong>Give it state</strong>
+          <p>A signal updates readers when its value changes.</p>
+        </div>
+        <div>
+          <strong>Embed the result</strong>
+          <p>Package a widget as a custom element for another page.</p>
+        </div>
+      </div>
+
+      <section class="section" id="docs">
+        <h2>Documentation layout</h2>
+        <div class="docs">
+          <nav aria-label="Example topics" style="display: block">
+            <strong>Start</strong>
+            <ul>
+              <li><a href="#install" aria-current="page">Getting started</a></li>
+              <li><a href="#source">Elements and signals</a></li>
+              <li><a href="#widgets">Widgets</a></li>
+            </ul>
+          </nav>
+          <article>
+            <h3 id="install">Your first reactive element</h3>
+            <p>Install the package, then add a button that updates a value on the page.</p>
+            <pre class="panel code"><code>npm install ecmact</code></pre>
+            <h4 id="source">Run the example</h4>
+            <p>
+              The production docs will pair the runnable TypeScript source with the live result.
+            </p>
+            <h4 id="widgets">Next step</h4>
+            <p>Turn a feature into a custom element and embed it on a separate page.</p>
+          </article>
+          <aside>
+            <strong>On this page</strong>
+            <ul>
+              <li><a href="#install">Install</a></li>
+              <li><a href="#source">Run the example</a></li>
+              <li><a href="#widgets">Next step</a></li>
+            </ul>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section" id="readme">
+        <h2>README structure</h2>
+        <p>
+          Wordmark and product summary → install and first working example → choose app or widget →
+          documentation links and contributor entry points.
+        </p>
+        <p>
+          The existing reference deep links lead readers to the corresponding topic on the site.
+        </p>
+      </section>
+
+      <section class="section" id="alternative">
+        <h2>Dark-first alternative</h2>
+        <div class="reverse panel">
+          <div class="brand"><span class="mark" aria-hidden="true">[E</span>ECMact</div>
+          <div class="intro">
+            <div>
+              <h3>The DOM is your UI.</h3>
+              <p>A contrast-led layout with code as the first thing people see.</p>
+            </div>
+            <pre class="panel code"><code>const active = signal(false);
+const item = tags.button(
+  { onclick: () =&gt; active.value = !active.value },
+  () =&gt; active.value ? 'On' : 'Off',
+);</code></pre>
+          </div>
+        </div>
+        <h3>Monochrome identity with subtle syntax color</h3>
+        <p>
+          The logo and interface stay black and white. The same example uses blue for keywords and
+          violet for strings.
+        </p>
+        <pre
+          class="panel code accent-sample"
+        ><code><span class="keyword">import</span> { mount, signal, tags } <span class="keyword">from</span> <span class="literal">'ecmact'</span>;
+
+<span class="keyword">const</span> hours = signal(1);
+<span class="keyword">const</span> estimate = () =&gt; <span class="literal">`$${hours.value * 49}`</span>;</code></pre>
+        <p class="note">
+          Both directions use the same light and dark tokens. The proposal is to follow the
+          visitor’s system theme at first visit.
+        </p>
+      </section>
+    </main>
+    <footer class="wrap">
+      Design study. The logo and copy are drafts. The example interaction is illustrative.
+    </footer>
+    <script>
+      const estimate = document.querySelector('#quantity');
+      let hours = 1;
+      document.querySelector('#add').addEventListener('click', () => {
+        hours += 1;
+        estimate.value = `$${hours * 49}`;
+      });
+    </script>
+  </body>
+</html>

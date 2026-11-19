@@ -14,3 +14,7 @@
 - [#31](https://github.com/eternalvision/ecmact/issues/31) omits disabled controls from FormData and validation. Reactive disabled props and fieldset changes sync immediately. After direct DOM changes, dispatch a bubbling change event to sync the field.
 
 The published versions are ecmact 3.0.0 and create-ecmact 0.4.0. The published generator writes ^3.0.0, which includes the proposed library patch. Release tags trigger publication and require the owner's release decision.
+
+## Documentation redesign
+
+F2 approved and F3 complete. The five issues are #44–#48 in the Documentation redesign milestone. Begin F4 with #44, the monochrome identity and shared site shell. See the [specification](plans/2026-11-19-docs-redesign-spec.md), [plan](plans/2026-11-19-docs-redesign-plan.md) and [design study](sessions/19112026-DocsRedesign/index.html). The patch release follows the redesign. The component collection follows as a separate specification.

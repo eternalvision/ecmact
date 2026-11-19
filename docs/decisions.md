@@ -22,3 +22,7 @@ The dated log of decisions made after the specification and the plan. D1-D21 are
 ## 2026-11-19
 
 - D34. The owner approved native disabled-control behavior in a 3.x patch for #30 and #31. Enabling a fieldset must preserve a control's own disabled state. Disabled inner controls must be omitted from FormData.
+
+- D35. Following the owner’s “продолжай”, F2 uses the recommended monochrome identity, interface and code, the light-first composition in the prototype, and system theme support. The documentation refresh comes before the package release and the component collection.
+
+- D36. The owner approved the documentation redesign plan and authorized issue creation. Issues #44–#48 are in the Documentation redesign milestone.
