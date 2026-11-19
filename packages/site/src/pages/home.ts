@@ -1,6 +1,7 @@
 import { tags, type Router } from 'ecmact';
 import { featuresFor, useCasesFor } from '@site/content/features';
 import { text } from '@site/content/messages';
+import { create, entryName, markup, markupName, source } from '@site/demos/estimate';
 import { findDemo } from '@site/demos/index';
 import { icon } from '@site/lib/dom';
 import { currentLocale } from '@site/lib/i18n';
@@ -8,7 +9,6 @@ import { CodeBlock } from '@site/ui/codeBlock';
 import { copyButton } from '@site/ui/copyButton';
 import { DemoFrame } from '@site/ui/demoFrame';
 import { external, outside } from '@site/ui/header';
-import { lockup } from '@site/ui/logo';
 
 const { a, code, div, h1, h2, h3, img, li, main, p, section, span, strong, ul } = tags;
 
@@ -99,7 +99,30 @@ const installLine = () =>
   );
 
 /**
- * The hero: logo, promise, install command, calls to action and badges.
+ * The example beside the promise: the entry file, the running result labeled as sample data and the markup the file
+ * needs. The displayed source is checked against the running example by its test.
+ *
+ * @returns The element.
+ */
+const example = () =>
+  div(
+    { class: 'try', role: 'group', 'aria-label': m().exampleLabel },
+    div(
+      { class: 'try-body' },
+      CodeBlock({ code: source, language: 'ts', title: entryName }),
+      div(
+        { class: 'try-result' },
+        p({ class: 'try-label' }, m().exampleResult),
+        create(),
+        p({ class: 'try-sample' }, m().exampleSample),
+      ),
+    ),
+    p({ class: 'try-label' }, m().exampleMarkup),
+    CodeBlock({ code: markup, language: 'html', title: markupName }),
+  );
+
+/**
+ * The hero: the promise, the install command, the entry points and badges beside a runnable example.
  *
  * @param router - The router.
  * @returns The section.
@@ -107,23 +130,26 @@ const installLine = () =>
 const hero = (router: Router) =>
   section(
     { class: 'hero wrap' },
-    div({ class: 'hero-logo', role: 'img', 'aria-label': 'ECMact' }, lockup()),
-    h1(m().heroTitle, span({ class: 'accent' }, m().heroAccent)),
-    p({ class: 'lead' }, m().lead),
-    installLine(),
     div(
-      { class: 'actions' },
-      router.link({ to: '/docs/getting-started', class: 'button' }, m().start),
-      router.link({ to: '/examples', class: 'button ghost' }, m().live),
-      outside(external.github, 'GitHub', 'button ghost'),
-      outside(external.npm, 'npm', 'button ghost'),
-    ),
-    p(
-      { class: 'badges' },
-      badges.map(([src, alt, href]) =>
-        a({ href, target: '_blank', rel: 'noreferrer' }, img({ src, alt, height: 20 })),
+      { class: 'hero-copy' },
+      h1(m().heroTitle, span({ class: 'accent' }, m().heroAccent)),
+      p({ class: 'lead' }, m().lead),
+      installLine(),
+      div(
+        { class: 'actions' },
+        router.link({ to: '/docs/getting-started', class: 'button' }, m().start),
+        router.link({ to: '/docs/widgets', class: 'button ghost' }, m().widgetGuide),
+        router.link({ to: '/examples', class: 'button ghost' }, m().live),
+        outside(external.github, 'GitHub', 'button ghost'),
+      ),
+      p(
+        { class: 'badges' },
+        badges.map(([src, alt, href]) =>
+          a({ href, target: '_blank', rel: 'noreferrer' }, img({ src, alt, height: 20 })),
+        ),
       ),
     ),
+    example(),
   );
 
 /**

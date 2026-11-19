@@ -95,6 +95,11 @@ export interface Messages {
     lead: string;
     start: string;
     live: string;
+    widgetGuide: string;
+    exampleLabel: string;
+    exampleResult: string;
+    exampleSample: string;
+    exampleMarkup: string;
     factsLabel: string;
     facts: [string, string][];
     featuresTitle: string;
@@ -317,6 +322,11 @@ const en: Messages = {
     lead: 'Build an embeddable widget with isolated styles and typed attributes, and ship it as one script tag. Signals, a store, an HTTP client and a router are built in. No dependencies, and nothing that has to be compiled.',
     start: 'Get started',
     live: 'See live examples',
+    widgetGuide: 'Build a widget',
+    exampleLabel: 'A runnable ECMact example',
+    exampleResult: 'Result',
+    exampleSample: 'Sample data: an illustrative rate of $49 per hour, not a price list.',
+    exampleMarkup: 'Put this next to it:',
     factsLabel: 'Facts',
     facts: [
       ['0', 'runtime dependencies'],
@@ -555,6 +565,11 @@ const ru: Messages = {
     lead: 'Соберите встраиваемый виджет с изолированными стилями и типизированными атрибутами и отдайте его одним тегом script. Сигналы, стор, HTTP-клиент и роутер встроены. Без зависимостей и без того, что нужно компилировать.',
     start: 'Начать',
     live: 'Живые примеры',
+    widgetGuide: 'Собрать виджет',
+    exampleLabel: 'Работающий пример ECMact',
+    exampleResult: 'Результат',
+    exampleSample: 'Пример данных: условная ставка 49 за час, а не прайс-лист.',
+    exampleMarkup: 'Положите рядом:',
     factsLabel: 'Факты',
     facts: [
       ['0', 'runtime-зависимостей'],
