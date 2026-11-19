@@ -1,6 +1,7 @@
 import { mount } from 'ecmact';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { docs, docsFor, findDoc } from '@site/content/docs/index';
+import { findDemo } from '@site/demos/index';
 import { docsPage } from '@site/pages/docs';
 import { disposeRouters, makeRouter, resetLocale, useLocale } from '@tests/helpers';
 import { baseline } from '@tests/pages/docAnchors';
@@ -170,7 +171,7 @@ describe.each(locales)('the addresses of the pages in %s', (locale) => {
       [...page.querySelectorAll('article .demo .code-title')].map((title) =>
         title.textContent?.replace(/\.ts$/, ''),
       ),
-    ).toEqual(expected.demos);
+    ).toEqual(expected.demos.map((id) => findDemo(id)?.id));
     expect(page.querySelector('.sidebar a[aria-current="page"]')?.getAttribute('href')).toBe(
       `/docs/${slug}`,
     );

@@ -702,20 +702,46 @@ pre code {
   overflow: hidden;
 }
 
-.demo-run {
-  padding: 1.1rem;
-  border: 1px dashed var(--border);
-  border-radius: var(--radius);
-  background: var(--bg);
-  overflow: auto;
+.demo-since {
+  font-size: 0.85rem;
 }
 
-.demo-run pre {
-  margin: 0.75rem 0 0;
-  white-space: pre-wrap;
-  font-family: var(--mono);
-  font-size: 0.85rem;
+.demo-group + .demo-group {
+  margin-top: 2.5rem;
+}
+
+.demo-group > h2 {
+  font-size: 1.25rem;
+}
+
+.demo-group > .section-lead {
+  margin-bottom: 1rem;
+}
+
+/* The stage is a demonstration as a whole: its content carries its own palette, so the frame stays grayscale. */
+.demo-run {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.stage-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 0.75rem;
+  padding: 0.55rem 0.9rem;
+  border-bottom: 1px solid var(--border);
   color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.stage {
+  min-width: 0;
+  overflow-x: auto;
 }
 
 .tabs {

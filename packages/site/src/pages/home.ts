@@ -228,7 +228,7 @@ const live = () =>
     p({ class: 'section-lead' }, m().liveLead),
     div(
       { class: 'demo-grid' },
-      ['counter', 'styled']
+      ['exposure', 'typecase']
         .map((id) => findDemo(id))
         .filter((demo) => demo !== undefined)
         .map((demo) => DemoFrame(demo)),

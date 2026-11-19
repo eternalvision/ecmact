@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { messages, text } from '@site/content/messages';
-import { demos } from '@site/demos/index';
+import { demos, groups } from '@site/demos/index';
 import { resetLocale, useLocale } from '@tests/helpers';
 
 const shape = (value: unknown): unknown =>
@@ -37,6 +37,34 @@ describe('messages', () => {
       expect(messages.ru.demos[demo.id]?.title, demo.id).toBeTruthy();
     });
     expect(Object.keys(messages.ru.demos).sort()).toEqual(demos.map((demo) => demo.id).sort());
+    demos.forEach((demo) => {
+      expect(messages.en.demos[demo.id]?.hint, demo.id).toBe(messages.en.demos[demo.id]?.hint);
+      expect(typeof messages.ru.demos[demo.id]?.hint, demo.id).toBe(
+        typeof messages.en.demos[demo.id]?.hint,
+      );
+      expect(typeof messages.ru.demos[demo.id]?.note, demo.id).toBe(
+        typeof messages.en.demos[demo.id]?.note,
+      );
+    });
+  });
+
+  it('name the version of the unreleased behavior an example shows', () => {
+    ['en', 'ru'].forEach((locale) => {
+      const { setlist, customs } = messages[locale as 'en' | 'ru'].demos;
+      expect(setlist?.note, locale).toContain('3.0.x');
+      expect(customs?.note, locale).toContain('3.0.x');
+    });
+  });
+
+  it('give every task of the gallery a title and a lead in both languages', () => {
+    ['en', 'ru'].forEach((locale) =>
+      groups.forEach((group) => {
+        const copy = messages[locale as 'en' | 'ru'].examples.groups[group];
+        expect(copy.title, `${locale} ${group}`).toBeTruthy();
+        expect(copy.lead, `${locale} ${group}`).toBeTruthy();
+      }),
+    );
+    expect(Object.keys(messages.en.examples.groups).sort()).toEqual([...groups].sort());
   });
 
   it('are Russian where the text is Russian', () => {

@@ -3,27 +3,30 @@ import { text } from '@site/content/messages';
 import type { Demo } from '@site/demos/index';
 import { CodeBlock } from '@site/ui/codeBlock';
 
-const { button, div, h3, header, p, section } = tags;
+const { button, div, h3, header, p, section, span } = tags;
 
 /**
- * A live demo with its source. The tabs switch between running it and reading the code that makes it.
+ * A live demo with its source. The tabs switch between the stage, where the demo runs, and one file at a time of
+ * the code that makes it.
  *
  * @param demo - The demo.
  * @returns The `section` element.
  */
 export const DemoFrame = (demo: Demo) => {
   const m = text();
-  const copy = m.demos[demo.id] ?? demo;
-  const tab = signal<'run' | 'code'>('run');
+  const copy: { title: string; description: string; hint?: string; note?: string } = m.demos[
+    demo.id
+  ] ?? { title: demo.title, description: demo.description };
+  const tab = signal('');
 
   /**
    * Makes a tab button that selects its panel.
    *
-   * @param name - Which panel it selects.
+   * @param name - Which panel it selects: the empty text for the stage, or the name of a file.
    * @param label - Its text.
    * @returns The button.
    */
-  const tabButton = (name: 'run' | 'code', label: string) =>
+  const tabButton = (name: string, label: string) =>
     button(
       {
         type: 'button',
@@ -53,19 +56,19 @@ export const DemoFrame = (demo: Demo) => {
    * @param content - What the panel holds.
    * @returns The panel.
    */
-  const panel = (name: 'run' | 'code', className: string, content: Node) =>
+  const panel = (name: string, className: string, ...content: Node[]) =>
     div(
       {
         class: className,
         role: 'tabpanel',
         /**
-         * Hides the panel while the other tab is selected.
+         * Hides the panel while another tab is selected.
          *
          * @returns `true` to hide it.
          */
         hidden: () => tab.value !== name,
       },
-      content,
+      ...content,
     );
 
   return section(
@@ -75,16 +78,24 @@ export const DemoFrame = (demo: Demo) => {
       h3(copy.title),
       div(
         { class: 'tabs', role: 'tablist' },
-        tabButton('run', m.code.run),
-        tabButton('code', m.code.source),
+        tabButton('', m.code.run),
+        demo.files.map((file) => tabButton(file.name, file.name)),
       ),
     ),
     p({ class: 'demo-note' }, copy.description),
-    panel('run', 'demo-run', demo.create()),
+    copy.note && p({ class: 'demo-note demo-since' }, copy.note),
     panel(
-      'code',
-      'demo-source',
-      CodeBlock({ code: demo.source, language: 'ts', title: `${demo.id}.ts` }),
+      '',
+      'demo-run',
+      div({ class: 'stage-bar' }, span(m.code.stage), copy.hint && span(copy.hint)),
+      div({ class: 'stage' }, demo.create()),
+    ),
+    demo.files.map((file) =>
+      panel(
+        file.name,
+        'demo-source',
+        CodeBlock({ code: file.source, language: 'ts', title: file.name }),
+      ),
     ),
   );
 };

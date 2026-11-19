@@ -199,7 +199,7 @@ describe('home in Russian', () => {
     expect(page.querySelector('.try-sample')?.textContent).toContain('Пример данных');
     expect(page.querySelector('.split h2')?.textContent).toBe('Создан для встраивания');
     expect(page.querySelector('.use h3')?.textContent).toBe('Виджеты для чужих сайтов');
-    expect(page.querySelector('.demo h3')?.textContent).toBe('Сигналы');
+    expect(page.querySelector('.demo h3')?.textContent).toBe('Треугольник экспозиции');
     await resetLocale();
   });
 });
