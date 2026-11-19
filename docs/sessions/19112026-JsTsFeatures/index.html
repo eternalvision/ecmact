@@ -1,0 +1,3155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ECMact and the 2026 platform - survey and options</title>
+    <style>
+      :root {
+        --bg: #fbfbfa;
+        --panel: #ffffff;
+        --fg: #1b1c1e;
+        --muted: #5d636b;
+        --line: #dcdfe3;
+        --accent: #1f5fbf;
+        --soft: #f1f3f5;
+        --ok-bg: #e2f3e6;
+        --ok-fg: #14602b;
+        --new-bg: #e3edfb;
+        --new-fg: #174c9c;
+        --lim-bg: #fbebd7;
+        --lim-fg: #8a4b06;
+        --tc-bg: #ece8f8;
+        --tc-fg: #4b3398;
+        --no-bg: #f8e1e1;
+        --no-fg: #96211f;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #141516;
+          --panel: #1b1d1f;
+          --fg: #e7e8ea;
+          --muted: #a0a6ae;
+          --line: #33373c;
+          --accent: #8ab4f8;
+          --soft: #212427;
+          --ok-bg: #173a22;
+          --ok-fg: #9fdcae;
+          --new-bg: #172f52;
+          --new-fg: #a9c7f7;
+          --lim-bg: #47300f;
+          --lim-fg: #f2c98f;
+          --tc-bg: #2d2551;
+          --tc-fg: #c7b8f5;
+          --no-bg: #4a1c1c;
+          --no-fg: #f3b0ae;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font:
+          16px/1.55 system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+      }
+      main {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 24px 16px 80px;
+      }
+      h1 {
+        font-size: 1.7rem;
+        line-height: 1.2;
+        margin: 0 0 8px;
+      }
+      h2 {
+        font-size: 1.3rem;
+        margin: 48px 0 12px;
+        padding-top: 16px;
+        border-top: 1px solid var(--line);
+      }
+      h3 {
+        font-size: 1.08rem;
+        margin: 28px 0 8px;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 6px;
+      }
+      p,
+      ul,
+      ol {
+        margin: 0 0 12px;
+      }
+      ul,
+      ol {
+        padding-left: 22px;
+      }
+      li {
+        margin-bottom: 4px;
+      }
+      a {
+        color: var(--accent);
+      }
+      code {
+        font:
+          0.88em/1.4 ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          Consolas,
+          monospace;
+        background: var(--soft);
+        padding: 1px 4px;
+        border-radius: 4px;
+        overflow-wrap: anywhere;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+      .meta b {
+        color: var(--fg);
+      }
+      nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 14px;
+        margin: 16px 0 0;
+        font-size: 0.92rem;
+      }
+      .note {
+        background: var(--soft);
+        border-left: 3px solid var(--accent);
+        padding: 10px 12px;
+        border-radius: 0 6px 6px 0;
+        margin: 0 0 14px;
+      }
+      .scroll {
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        margin: 0 0 14px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 0.9rem;
+      }
+      th,
+      td {
+        text-align: left;
+        vertical-align: top;
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--line);
+      }
+      th {
+        background: var(--soft);
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+      tr.group td {
+        background: var(--soft);
+        font-weight: 600;
+      }
+      td.nowrap {
+        white-space: nowrap;
+      }
+      .survey {
+        min-width: 860px;
+      }
+      .chip {
+        display: inline-block;
+        padding: 1px 8px;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .ok {
+        background: var(--ok-bg);
+        color: var(--ok-fg);
+      }
+      .new {
+        background: var(--new-bg);
+        color: var(--new-fg);
+      }
+      .lim {
+        background: var(--lim-bg);
+        color: var(--lim-fg);
+      }
+      .tc {
+        background: var(--tc-bg);
+        color: var(--tc-fg);
+      }
+      .no {
+        background: var(--no-bg);
+        color: var(--no-fg);
+      }
+      .small {
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      .opt {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 14px 14px 6px;
+        margin: 0 0 14px;
+      }
+      .opt .id {
+        font:
+          600 0.85rem ui-monospace,
+          Menlo,
+          monospace;
+        color: var(--muted);
+        margin-right: 6px;
+      }
+      .opt dl {
+        display: grid;
+        grid-template-columns: 110px 1fr;
+        gap: 4px 12px;
+        margin: 8px 0;
+        font-size: 0.92rem;
+      }
+      .opt dt {
+        color: var(--muted);
+      }
+      .opt dd {
+        margin: 0;
+      }
+      @media (max-width: 560px) {
+        .opt dl {
+          grid-template-columns: 1fr;
+        }
+        .opt dt {
+          margin-top: 6px;
+          font-weight: 600;
+        }
+      }
+      figure {
+        margin: 0 0 16px;
+      }
+      figcaption {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-top: 6px;
+      }
+      svg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .dia {
+        min-width: 640px;
+        padding: 8px;
+      }
+      svg text {
+        fill: var(--fg);
+        font:
+          12px system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+      }
+      svg .mut {
+        fill: var(--muted);
+      }
+      svg .box {
+        fill: var(--panel);
+        stroke: var(--line);
+        stroke-width: 1.2;
+      }
+      svg .q {
+        fill: var(--soft);
+        stroke: var(--accent);
+        stroke-width: 1.2;
+      }
+      svg .good {
+        fill: var(--ok-bg);
+        stroke: var(--ok-fg);
+        stroke-width: 1;
+      }
+      svg .bad {
+        fill: var(--no-bg);
+        stroke: var(--no-fg);
+        stroke-width: 1;
+      }
+      svg .wait {
+        fill: var(--lim-bg);
+        stroke: var(--lim-fg);
+        stroke-width: 1;
+      }
+      svg .arr {
+        stroke: var(--muted);
+        stroke-width: 1.3;
+        fill: none;
+      }
+      svg .head {
+        fill: var(--muted);
+      }
+      svg .grid {
+        stroke: var(--line);
+        stroke-width: 1;
+      }
+      svg .bar {
+        stroke: var(--new-fg);
+        stroke-width: 5;
+        stroke-linecap: round;
+      }
+      svg .dot {
+        fill: var(--ok-fg);
+      }
+      svg .today {
+        stroke: var(--no-fg);
+        stroke-width: 1.4;
+        stroke-dasharray: 4 3;
+      }
+      .q-card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 14px;
+        margin: 0 0 14px;
+      }
+      .q-card ol {
+        margin-bottom: 8px;
+      }
+      .rec {
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>
+          ECMact and the 2026 platform: what is new in JavaScript, TypeScript and the web, and what
+          to do with it
+        </h1>
+        <p class="meta">
+          <b>State: draft for comments</b> (not approved) · version 0.1 · 2026-11-19 · research and
+          proposal, input for a later specification (F1) · written by Fable 5.2
+          (<code>claude-fable-5-2</code>)
+        </p>
+        <p class="meta">
+          Scope: the library <code>ecmact</code> 3.0.0 (<code>src/</code>). Out of scope by the
+          assignment: the CLI <code>create-ecmact</code> and AI-related features (stage 3). Nothing
+          in the repository was changed; no build or test of the repository was run.
+        </p>
+        <nav>
+          <a href="#summary">1 Summary</a>
+          <a href="#constraints">2 Constraints</a>
+          <a href="#survey">3 Survey</a>
+          <a href="#options">4 Options</a>
+          <a href="#roadmap">5 Roadmap</a>
+          <a href="#found">6 Found, outside the task</a>
+          <a href="#decide">7 To decide</a>
+          <a href="#unverified">8 Not verified</a>
+          <a href="#sources">9 Sources and method</a>
+        </nav>
+      </header>
+
+      <h2 id="summary">1 Summary and recommendation</h2>
+
+      <p>
+        The language side has little to offer ECMact today. The toolchain is already current
+        (TypeScript 6.0.3 with <code>erasableSyntaxOnly</code>, Vite 8, scripts run by Node type
+        stripping), and the ES2025 and ES2026 additions that would replace code in
+        <code>src/</code> each replace between one and eight lines and are only Baseline
+        <em>newly</em> available. The web platform side is where the value is, because ECMact's
+        first use case is a widget inside a page it does not control:
+      </p>
+
+      <ul>
+        <li>
+          <b>Scoped custom element registries</b> became Baseline newly available on 2026-10-27.
+          They answer a defect that this research reproduced: two bundles of ECMact on one page that
+          both use <code>em.Card</code> collide, and the second one throws (<a href="#found"
+            >section 6</a
+          >).
+        </li>
+        <li>
+          <b>Trusted Types</b> became Baseline newly available on 2026-02-24. On a host page that
+          enforces them, the <code>html</code> prop cannot be used at all today: a string throws in
+          the browser and a <code>TrustedHTML</code> object is replaced with an empty string by
+          ECMact.
+        </li>
+        <li>
+          <b
+            >Constructable stylesheets, form-associated custom elements and Declarative Shadow
+            DOM</b
+          >
+          are now Baseline widely available. That allows sharing one parsed sheet between instances,
+          a server-rendered placeholder for widgets, and, in a 4.0, deleting two fallbacks.
+        </li>
+        <li>
+          <b><code>moveBefore()</code></b> keeps focus, animations and iframes alive when a keyed
+          row moves. It is not Baseline (no Safari), so it can only be an enhancement next to the
+          current code.
+        </li>
+        <li>
+          <b>View transitions</b> (newly available 2025-10-14) fit the router as an opt-in. The
+          <b>Navigation API</b> (newly available 2026-01-13) would be a rewrite with a second
+          implementation as fallback, so not yet.
+        </li>
+        <li>
+          <b>Not to adopt now:</b> TypeScript 7 (the linter and the declaration build need the
+          compiler API that 7.0 does not ship), TC39 Signals (stage 1), decorators (stage 2.7),
+          <code>using</code>, Temporal and the Sanitizer API (no Safari).
+        </li>
+      </ul>
+
+      <h3>Recommended order</h3>
+      <ol>
+        <li>
+          <b>Decide the browser support rule</b> and write it down: what may be called without a
+          check, what needs feature detection (<a href="#q1">Q1</a>, <a href="#q2">Q2</a>). ECMact
+          says "any evergreen browser" today, so every item below would otherwise be argued again.
+          Enforce the rule for language APIs in <code>tsconfig.json</code> (<a href="#B6">B6</a>).
+        </li>
+        <li>
+          <b
+            >Open an issue for the collision between two copies and fix it with scoped registries</b
+          >
+          where the browser has them (<a href="#B1">B1</a>). All three test engines of the pinned
+          Playwright have them.
+        </li>
+        <li>
+          <b>Let <code>html</code> accept <code>TrustedHTML</code></b> (<a href="#A1">A1</a>).
+          Small, additive, removes a hard blocker on strict hosts.
+        </li>
+        <li>
+          <b>Stylesheets:</b> accept a <code>CSSStyleSheet</code> in <code>css</code> (<a href="#A3"
+            >A3</a
+          >) and share one parsed sheet per css text between instances (<a href="#B2">B2</a>),
+          measured with a new benchmark case.
+        </li>
+        <li>
+          <b><code>moveBefore()</code> for keyed moves</b> with the current path as fallback (<a
+            href="#B3"
+            >B3</a
+          >), together with the zero-cost additions: typed <code>command</code>,
+          <code>commandfor</code> and <code>closedby</code> (<a href="#A2">A2</a>) and a tested
+          Declarative Shadow DOM placeholder for widgets (<a href="#A4">A4</a>).
+        </li>
+      </ol>
+      <p class="note">
+        These are recommendations. None of them is decided. Each item that the owner picks still
+        needs its own specification and plan (F1, F2). By <code>AGENTS.md</code>, a breaking change
+        of the 3.x API and a new runtime dependency are the owner's decisions; nothing recommended
+        for 3.x here needs either.
+      </p>
+
+      <figure>
+        <div class="scroll">
+          <div class="dia">
+            <svg viewBox="0 0 720 280" role="img" aria-labelledby="rule-title">
+              <title id="rule-title">Proposed adoption rule for a new platform feature</title>
+              <defs>
+                <marker
+                  id="ah"
+                  viewBox="0 0 10 10"
+                  refX="9"
+                  refY="5"
+                  markerWidth="7"
+                  markerHeight="7"
+                  orient="auto"
+                >
+                  <path class="head" d="M0 0 10 5 0 10z" />
+                </marker>
+              </defs>
+              <rect class="box" x="20" y="20" width="190" height="50" rx="8" />
+              <text x="115" y="49" text-anchor="middle">New platform feature</text>
+              <rect class="q" x="265" y="20" width="200" height="50" rx="8" />
+              <text x="365" y="42" text-anchor="middle">Changes behaviour that</text>
+              <text x="365" y="58" text-anchor="middle">the README documents?</text>
+              <rect class="bad" x="520" y="20" width="180" height="50" rx="8" />
+              <text x="610" y="42" text-anchor="middle">4.0 candidate, class (c)</text>
+              <text x="610" y="58" text-anchor="middle" class="mut">owner's decision</text>
+              <rect class="q" x="265" y="115" width="200" height="50" rx="8" />
+              <text x="365" y="137" text-anchor="middle">Baseline widely available</text>
+              <text x="365" y="153" text-anchor="middle">(30 months in all engines)?</text>
+              <rect class="good" x="520" y="115" width="180" height="50" rx="8" />
+              <text x="610" y="137" text-anchor="middle">Use it directly</text>
+              <text x="610" y="153" text-anchor="middle" class="mut">
+                class (a) or (b), minor release
+              </text>
+              <rect class="q" x="265" y="210" width="200" height="50" rx="8" />
+              <text x="365" y="232" text-anchor="middle">Cheap fallback that keeps</text>
+              <text x="365" y="248" text-anchor="middle">the same documented result?</text>
+              <rect class="good" x="520" y="210" width="180" height="50" rx="8" />
+              <text x="610" y="232" text-anchor="middle">Native path + fallback</text>
+              <text x="610" y="248" text-anchor="middle" class="mut">both paths tested</text>
+              <rect class="wait" x="20" y="210" width="190" height="50" rx="8" />
+              <text x="115" y="232" text-anchor="middle">Wait: watch list,</text>
+              <text x="115" y="248" text-anchor="middle" class="mut">review at each minor</text>
+              <path class="arr" d="M210 45H263" marker-end="url(#ah)" />
+              <path class="arr" d="M465 45H518" marker-end="url(#ah)" />
+              <text x="491" y="38" text-anchor="middle" class="mut">yes</text>
+              <path class="arr" d="M365 70V113" marker-end="url(#ah)" />
+              <text x="378" y="96" class="mut">no</text>
+              <path class="arr" d="M465 140H518" marker-end="url(#ah)" />
+              <text x="491" y="133" text-anchor="middle" class="mut">yes</text>
+              <path class="arr" d="M365 165V208" marker-end="url(#ah)" />
+              <text x="378" y="191" class="mut">no</text>
+              <path class="arr" d="M465 235H518" marker-end="url(#ah)" />
+              <text x="491" y="228" text-anchor="middle" class="mut">yes</text>
+              <path class="arr" d="M265 235H212" marker-end="url(#ah)" />
+              <text x="238" y="228" text-anchor="middle" class="mut">no</text>
+            </svg>
+          </div>
+        </div>
+        <figcaption>
+          The rule this document applies to every feature. It is the recommended answer to Q1 and
+          Q2, not a decision.
+        </figcaption>
+      </figure>
+
+      <h2 id="constraints">2 Constraints of ECMact found in the code</h2>
+
+      <div class="scroll">
+        <table>
+          <tr>
+            <th>Constraint</th>
+            <th>Evidence</th>
+            <th>What it means for new features</th>
+          </tr>
+          <tr>
+            <td>The 3.x API is stable</td>
+            <td>
+              <code>README.md:74-76</code> ("nothing that this document describes is removed or
+              changes its behaviour"), <code>AGENTS.md</code> Boundaries
+            </td>
+            <td>
+              The contract is the README, not only the exports. A documented warning, fallback or
+              lifecycle order is part of it.
+            </td>
+          </tr>
+          <tr>
+            <td>No runtime dependencies</td>
+            <td>
+              <code>package.json</code> has only <code>devDependencies</code>;
+              <code>AGENTS.md</code> Boundaries
+            </td>
+            <td>
+              No polyfill can be bundled. A feature without a hand-written fallback is either
+              required or not used.
+            </td>
+          </tr>
+          <tr>
+            <td>Syntax floor of the published code</td>
+            <td>
+              <code>vite.config.ts:49-58</code> sets no <code>build.target</code>. Installed Vite
+              8.3.8 resolves the default to <code>chrome111</code>, <code>edge111</code>,
+              <code>firefox114</code>, <code>safari16.4</code>,
+              <code>ios16.4</code> (<code>node_modules/vite/dist/node/chunks/node.js:722-728</code>)
+            </td>
+            <td>The target lowers syntax only. It says nothing about which APIs the code calls.</td>
+          </tr>
+          <tr>
+            <td>API floor is not stated</td>
+            <td>
+              <code>README.md:1725</code> says "Any evergreen browser". The real floor today is set
+              by unguarded calls, for example native CSS nesting in styled components
+              (<code>README.md:1403</code>: Chrome 120, Safari 17.2, Firefox 117) and
+              <code>Array.prototype.at</code> (<code>src/router/flatten.ts:39</code>)
+            </td>
+            <td>
+              There is no rule to test a new API against. This is question <a href="#q1">Q1</a>.
+            </td>
+          </tr>
+          <tr>
+            <td>Nothing stops a too-new language API</td>
+            <td>
+              <code>tsconfig.json:2-23</code> sets neither <code>target</code> nor <code>lib</code>.
+              TypeScript 6.0 defaults <code>target</code> to <code>es2025</code> (release notes), so
+              <code>RegExp.escape</code>, <code>Promise.try</code>, iterator helpers and Set methods
+              type-check in <code>src/</code>
+            </td>
+            <td>
+              A call to an ES2025 built-in would pass <code>npm run typecheck</code> and all three
+              engines and still fail in an older browser. See <a href="#B6">B6</a>.
+            </td>
+          </tr>
+          <tr>
+            <td>Feature detection has a precedent</td>
+            <td>
+              <code>src/render/applyStyleSheets.ts:42-45</code> (<code>supportsAdoption</code>),
+              <code>src/core/component.ts:68</code> (<code>attachInternals</code>)
+            </td>
+            <td>"Native path plus fallback" is already the house pattern.</td>
+          </tr>
+          <tr>
+            <td>Globals go through one module</td>
+            <td>
+              <code>src/utils/env.ts:12-35</code>; tests replace it with
+              <code>vi.mock('@em/utils/env')</code>
+            </td>
+            <td>A new global that a test has to hide belongs there.</td>
+          </tr>
+          <tr>
+            <td>Four test environments, 100% coverage</td>
+            <td>
+              <code>vite.config.ts:10-47</code>. happy-dom 21.0.4, and through Playwright 1.65.1
+              Chromium 159.0.8154.6, Firefox 159.0, WebKit 27.2
+              (<code>node_modules/playwright-core/browsers.json</code>). Thresholds apply to the
+              happy-dom and the Chromium run
+            </td>
+            <td>Every branch of a feature check must be reached in happy-dom and in Chromium.</td>
+          </tr>
+          <tr>
+            <td>happy-dom lacks most of the new DOM</td>
+            <td>
+              No match in <code>node_modules/happy-dom/lib</code> for <code>moveBefore</code>,
+              <code>setHTML(</code>, <code>startViewTransition</code>, <code>URLPattern</code>,
+              <code>CustomStateSet</code>, <code>customElementRegistry</code>,
+              <code>showPopover</code>, <code>attachInternals</code>, <code>trustedTypes</code>,
+              <code>connectedMoveCallback</code>
+            </td>
+            <td>
+              The native branch is covered there only with a stub. The real behaviour needs a
+              browser-only test.
+            </td>
+          </tr>
+          <tr>
+            <td>Browser-only tests are a closed list</td>
+            <td><code>scripts/check-tests.ts:12</code>, <code>tests/browser/</code> (6 files)</td>
+            <td>A new browser-only file needs the owner's decision (<a href="#q5">Q5</a>).</td>
+          </tr>
+          <tr>
+            <td>Documented behaviour that limits rewrites</td>
+            <td>
+              A moved component runs cleanup, <code>unmounted</code>, <code>mounted</code> (README
+              Lifecycle, D32). "<code>css is ignored when shadow is false</code>" (<code
+                >README.md</code
+              >
+              Warnings). The <code>&lt;style&gt;</code> fallback (<code>README.md:1725</code>).
+              <code>html</code> uses <code>innerHTML</code> and does not sanitize (README Security
+              model)
+            </td>
+            <td>Changing any of these is class (c).</td>
+          </tr>
+          <tr>
+            <td>Toolchain pins</td>
+            <td>
+              <code>typescript ~6.0.3</code>; installed <code>typescript-eslint</code> 8.72.2
+              declares the peer range <code>typescript &gt;=4.8.4 &lt;6.1.0</code>;
+              <code>vite-plugin-dts</code> 5.1.2 depends on <code>unplugin-dts</code> 1.1.2 (peer
+              <code>typescript</code>, dependency <code>@volar/typescript</code>). CI runs Node 22
+              and 24 (<code>.github/workflows/ci.yml:21</code>)
+            </td>
+            <td>TypeScript 7 cannot simply replace 6 (<a href="#watch">watch list</a>).</td>
+          </tr>
+          <tr>
+            <td>Documentation rules</td>
+            <td>
+              <code>AGENTS.md</code>: English and Russian string for string; a measured number comes
+              from <code>npm run size</code> or <code>npm run bench</code>
+            </td>
+            <td>
+              Every additive option costs two documentation edits. No size or speed number is given
+              in this document: each one is "to be measured".
+            </td>
+          </tr>
+          <tr>
+            <td>Sizes on record</td>
+            <td>
+              <code>docs/decisions.md</code> D29, D30 (2026-11-13): the whole library 13.5 kB gzip,
+              34.4 kB minified. <code>README.md:64</code>: the counter widget 9.8 kB minified, 4.2
+              kB gzip
+            </td>
+            <td>The base line that <code>npm run size</code> compares against.</td>
+          </tr>
+          <tr>
+            <td>The benchmark covers one case</td>
+            <td>
+              <code>scripts/benchmark.mjs:28</code>: a keyed list of <code>tr</code> with two
+              <code>td</code>
+            </td>
+            <td>
+              Options B2 and B3 need a new case (components with <code>css</code>, a reorder) before
+              a claim can be made.
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <h2 id="survey">3 Feature survey</h2>
+
+      <p class="small">
+        Status as of 2026-11-19. "Widely available" and "newly available" are the Baseline states of
+        the <code>web-features</code> dataset 3.46.0 (its latest listed releases: Chrome 157 of
+        2026-11-03, Firefox 160 of 2026-11-10, Safari 27.2 of 2026-10-26). "Limited" means not
+        Baseline. A date marked "derived" is the newly available date plus 30 months, the interval
+        that the dataset's own pairs show (for example <code>AbortSignal.any()</code>: 2024-03-19
+        and 2026-09-19); it is a projection, not a dataset value. TC39 stages and dates come from
+        the proposal lists of <code>tc39/proposals</code> and the linked meeting notes. Versions are
+        the first release with support. "wf" links to the feature file of the dataset.
+      </p>
+
+      <div class="scroll">
+        <table class="survey">
+          <tr>
+            <th>Feature</th>
+            <th>Area</th>
+            <th>Standard status</th>
+            <th>Browser status</th>
+            <th>Engines</th>
+            <th>Source</th>
+            <th>For ECMact</th>
+          </tr>
+          <tr class="group">
+            <td colspan="7">ECMAScript: finished proposals (stage 4)</td>
+          </tr>
+          <tr>
+            <td>Iterator helpers</td>
+            <td>Language</td>
+            <td><span class="chip tc">TC39</span> ES2025, stage 4 on 2024-10-08</td>
+            <td>
+              <span class="chip new">newly available</span> 2025-03-31; widely 2027-09-30 (derived)
+            </td>
+            <td>Chrome 122, Firefox 131, Safari 18.4</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/finished-proposals.md">TC39</a> ·
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/iterator-methods.yml"
+                >wf</a
+              >
+            </td>
+            <td>Low, one call site (B5)</td>
+          </tr>
+          <tr>
+            <td>New <code>Set</code> methods</td>
+            <td>Language</td>
+            <td><span class="chip tc">TC39</span> ES2025, stage 4 on 2024-04-08</td>
+            <td>
+              <span class="chip new">newly available</span> 2024-06-11; widely 2026-12-11 (derived)
+            </td>
+            <td>Chrome 122, Firefox 127, Safari 17</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/finished-proposals.md">TC39</a> ·
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/set-methods.yml"
+                >wf</a
+              >
+            </td>
+            <td>Low (B5)</td>
+          </tr>
+          <tr>
+            <td><code>RegExp.escape()</code></td>
+            <td>Language</td>
+            <td><span class="chip tc">TC39</span> ES2025, stage 4 on 2025-02-18</td>
+            <td>
+              <span class="chip new">newly available</span> 2025-05-01; widely 2027-11-01 (derived)
+            </td>
+            <td>Chrome 136, Firefox 134, Safari 18.2</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/finished-proposals.md">TC39</a> ·
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/regexp-escape.yml"
+                >wf</a
+              >
+            </td>
+            <td>Low (B5)</td>
+          </tr>
+          <tr>
+            <td><code>Promise.try()</code></td>
+            <td>Language</td>
+            <td><span class="chip tc">TC39</span> ES2025, stage 4 on 2024-10-09</td>
+            <td>
+              <span class="chip new">newly available</span> 2025-01-07; widely 2027-07-07 (derived)
+            </td>
+            <td>Chrome 128, Firefox 134, Safari 18.2</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/finished-proposals.md">TC39</a> ·
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/promise-try.yml"
+                >wf</a
+              >
+            </td>
+            <td>Low (B5)</td>
+          </tr>
+          <tr>
+            <td><code>Float16Array</code>, <code>Math.f16round()</code></td>
+            <td>Language</td>
+            <td><span class="chip tc">TC39</span> ES2025, stage 4 on 2025-02-18</td>
+            <td>
+              <span class="chip new">newly available</span> 2025-04-04; widely 2027-10-04 (derived)
+            </td>
+            <td>Chrome 135, Firefox 129, Safari 18.2</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/finished-proposals.md">TC39</a> ·
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/float16array.yml"
+                >wf</a
+              >
+            </td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td>Import attributes, JSON modules</td>
+            <td>Modules</td>
+            <td><span class="chip tc">TC39</span> ES2025, stage 4 on 2024-10-08</td>
+            <td>
+              <span class="chip new">newly available</span> 2025-04-29; widely 2027-10-29 (derived)
+            </td>
+            <td>Chrome 123, Firefox 138, Safari 17.2</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/finished-proposals.md">TC39</a> ·
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/json-modules.yml"
+                >wf</a
+              >
+            </td>
+            <td>None for a bundled library</td>
+          </tr>
+          <tr>
+            <td>RegExp modifiers; duplicate named capture groups</td>
+            <td>Language</td>
+            <td><span class="chip tc">TC39</span> ES2025, stage 4 on 2024-10-08 and 2024-04-08</td>
+            <td>not looked up</td>
+            <td>-</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/finished-proposals.md">TC39</a>
+            </td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td><code>Array.fromAsync()</code></td>
+            <td>Language</td>
+            <td><span class="chip tc">TC39</span> ES2026, stage 4 on 2025-05-28</td>
+            <td>
+              <span class="chip ok">widely available</span> since 2026-07-25 (newly 2024-01-25)
+            </td>
+            <td>Chrome 121, Firefox 115, Safari 16.4</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/finished-proposals.md">TC39</a> ·
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/array-fromasync.yml"
+                >wf</a
+              >
+            </td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td><code>Error.isError()</code></td>
+            <td>Language</td>
+            <td><span class="chip tc">TC39</span> ES2026, stage 4 on 2025-05-28</td>
+            <td><span class="chip lim">limited</span></td>
+            <td>Chrome 134, Firefox 138, no Safari</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/finished-proposals.md">TC39</a> ·
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/is-error.yml"
+                >wf</a
+              >
+            </td>
+            <td>None today</td>
+          </tr>
+          <tr>
+            <td><code>Math.sumPrecise()</code></td>
+            <td>Language</td>
+            <td><span class="chip tc">TC39</span> ES2026, stage 4 on 2025-07-28</td>
+            <td>
+              <span class="chip new">newly available</span> 2026-04-10; widely 2028-10-10 (derived)
+            </td>
+            <td>Chrome 147, Firefox 137, Safari 26.2</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/finished-proposals.md">TC39</a> ·
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/math-sum-precise.yml"
+                >wf</a
+              >
+            </td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td><code>Uint8Array</code> base64 and hex</td>
+            <td>Language</td>
+            <td><span class="chip tc">TC39</span> ES2026, stage 4 on 2025-07-28</td>
+            <td>
+              <span class="chip new">newly available</span> 2025-09-05; widely 2028-03-05 (derived)
+            </td>
+            <td>Chrome 140, Firefox 133, Safari 18.2</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/finished-proposals.md">TC39</a> ·
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/uint8array-base64-hex.yml"
+                >wf</a
+              >
+            </td>
+            <td>Low (B5)</td>
+          </tr>
+          <tr>
+            <td>Iterator sequencing: <code>Iterator.concat()</code></td>
+            <td>Language</td>
+            <td><span class="chip tc">TC39</span> ES2026, stage 4 on 2025-11-18</td>
+            <td>
+              <span class="chip new">newly available</span> 2026-03-24; widely 2028-09-24 (derived)
+            </td>
+            <td>Chrome 146, Firefox 147, Safari 26.4</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/finished-proposals.md">TC39</a> ·
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/iterator-concat.yml"
+                >wf</a
+              >
+            </td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td><code>JSON.parse</code> source text access</td>
+            <td>Language</td>
+            <td><span class="chip tc">TC39</span> ES2026, last notes 2025-11-18</td>
+            <td>
+              <span class="chip new">newly available</span> 2025-03-31; widely 2027-09-30 (derived)
+            </td>
+            <td>Chrome 114, Firefox 135, Safari 18.4</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/finished-proposals.md">TC39</a> ·
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/json-raw.yml"
+                >wf</a
+              >
+            </td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td>Upsert: <code>Map.prototype.getOrInsert()</code></td>
+            <td>Language</td>
+            <td><span class="chip tc">TC39</span> ES2026, stage 4 on 2026-01-20</td>
+            <td>
+              <span class="chip new">newly available</span> 2026-02-14; widely 2028-08-14 (derived)
+            </td>
+            <td>Chrome 145, Firefox 144, Safari 26.2</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/finished-proposals.md">TC39</a> ·
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/getorinsert.yml"
+                >wf</a
+              >
+            </td>
+            <td>Low (B5)</td>
+          </tr>
+          <tr>
+            <td>Explicit resource management (<code>using</code>)</td>
+            <td>Language</td>
+            <td>
+              <span class="chip tc">TC39</span> finished, publication year 2027; stage 4 notes of
+              2025-05-28, status updates until 2026-05
+            </td>
+            <td><span class="chip lim">limited</span></td>
+            <td>Chrome 134, Firefox 141, no Safari</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/finished-proposals.md">TC39</a> ·
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/explicit-resource-management.yml"
+                >wf</a
+              >
+            </td>
+            <td>Later (A7)</td>
+          </tr>
+          <tr>
+            <td>Temporal</td>
+            <td>Language</td>
+            <td>
+              <span class="chip tc">TC39</span> finished, publication year 2027; stage 4 on
+              2026-03-11
+            </td>
+            <td><span class="chip lim">limited</span></td>
+            <td>Chrome 144, Firefox 139, no Safari</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/finished-proposals.md">TC39</a> ·
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/temporal.yml"
+                >wf</a
+              >
+            </td>
+            <td>None: no date logic</td>
+          </tr>
+          <tr>
+            <td><code>Atomics.pause()</code></td>
+            <td>Language</td>
+            <td>
+              <span class="chip tc">TC39</span> finished, publication year 2027; stage 4 on
+              2026-05-19
+            </td>
+            <td>
+              <span class="chip new">newly available</span> 2025-04-01; widely 2027-10-01 (derived)
+            </td>
+            <td>Chrome 133, Firefox 137, Safari 18.4</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/finished-proposals.md">TC39</a> ·
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/atomics-pause.yml"
+                >wf</a
+              >
+            </td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td>Joint iteration: <code>Iterator.zip()</code></td>
+            <td>Language</td>
+            <td>
+              <span class="chip tc">TC39</span> finished, publication year 2027; stage 4 on
+              2026-05-19
+            </td>
+            <td><span class="chip lim">limited</span></td>
+            <td>Chrome 153, Firefox 148, no Safari</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/finished-proposals.md">TC39</a> ·
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/iterator-zip-zipkeyed.yml"
+                >wf</a
+              >
+            </td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td>
+              Iterator chunking, <code>includes</code>, <code>join</code>; dynamic code brand checks
+            </td>
+            <td>Language</td>
+            <td>
+              <span class="chip tc">TC39</span> finished, publication year 2027; notes of 2026-09
+            </td>
+            <td>not looked up one by one</td>
+            <td>-</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/finished-proposals.md">TC39</a>
+            </td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td><code>Promise.withResolvers()</code></td>
+            <td>Language</td>
+            <td><span class="chip tc">TC39</span> ES2024</td>
+            <td>
+              <span class="chip ok">widely available</span> since 2026-09-05 (newly 2024-03-05)
+            </td>
+            <td>Chrome 119, Firefox 121, Safari 17.4</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/finished-proposals.md">TC39</a> ·
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/promise-withresolvers.yml"
+                >wf</a
+              >
+            </td>
+            <td>Low (B5)</td>
+          </tr>
+          <tr class="group">
+            <td colspan="7">ECMAScript: in progress</td>
+          </tr>
+          <tr>
+            <td>Decorators, decorator metadata</td>
+            <td>Language</td>
+            <td><span class="chip tc">TC39</span> stage 2.7 (notes of 2026-05-19)</td>
+            <td>no entry in the dataset</td>
+            <td>-</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/README.md">TC39</a> ·
+              <a href="https://github.com/tc39/proposal-decorators">proposal</a>
+            </td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <td>Signals</td>
+            <td>Language</td>
+            <td><span class="chip tc">TC39</span> stage 1 (April 2024)</td>
+            <td>not in browsers</td>
+            <td>-</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/stage-1-proposals.md">TC39</a> ·
+              <a href="https://github.com/tc39/proposal-signals">proposal</a>
+            </td>
+            <td>No (C8)</td>
+          </tr>
+          <tr>
+            <td>Deferred module evaluation (<code>import defer</code>)</td>
+            <td>Modules</td>
+            <td><span class="chip tc">TC39</span> stage 3 (2025-02-18)</td>
+            <td><span class="chip lim">limited</span></td>
+            <td>no engine listed</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/README.md">TC39</a> ·
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/import-defer.yml"
+                >wf</a
+              >
+            </td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td>Source phase imports</td>
+            <td>Modules</td>
+            <td><span class="chip tc">TC39</span> stage 3</td>
+            <td>not looked up</td>
+            <td>-</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/README.md">TC39</a>
+            </td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td>Import text</td>
+            <td>Modules</td>
+            <td><span class="chip tc">TC39</span> stage 3</td>
+            <td><span class="chip lim">limited</span></td>
+            <td>Chrome 155, Firefox 153, no Safari</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/README.md">TC39</a> ·
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/text-modules.yml"
+                >wf</a
+              >
+            </td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td>Error stack accessor; await dictionary</td>
+            <td>Language</td>
+            <td><span class="chip tc">TC39</span> stage 3 (2026-05-19 and 2026-07-20)</td>
+            <td>not looked up</td>
+            <td>-</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/README.md">TC39</a>
+            </td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td>Async iterator helpers; AsyncContext</td>
+            <td>Language</td>
+            <td><span class="chip tc">TC39</span> stage 2</td>
+            <td>not looked up</td>
+            <td>-</td>
+            <td class="nowrap">
+              <a href="https://github.com/tc39/proposals/blob/main/README.md">TC39</a>
+            </td>
+            <td>None</td>
+          </tr>
+          <tr class="group">
+            <td colspan="7">TypeScript, Node.js and the build</td>
+          </tr>
+          <tr>
+            <td><code>isolatedDeclarations</code></td>
+            <td>TypeScript</td>
+            <td>TypeScript 5.5</td>
+            <td>available; not enabled in ECMact</td>
+            <td>-</td>
+            <td class="nowrap">
+              <a href="https://www.typescriptlang.org/tsconfig/isolatedDeclarations.html">TS</a>
+            </td>
+            <td>Only with a move to 7 (B7)</td>
+          </tr>
+          <tr>
+            <td><code>erasableSyntaxOnly</code></td>
+            <td>TypeScript</td>
+            <td>The Node.js documentation recommends it with TypeScript 5.8 or newer</td>
+            <td>enabled in <code>tsconfig.json</code></td>
+            <td>-</td>
+            <td class="nowrap"><a href="https://nodejs.org/api/typescript.html">Node</a></td>
+            <td>Already used</td>
+          </tr>
+          <tr>
+            <td><code>import defer</code>, <code>--module node20</code></td>
+            <td>TypeScript</td>
+            <td>TypeScript 5.9 (5.9.2 on npm 2025-07-31)</td>
+            <td>
+              <code>import defer</code> only as a namespace import, under <code>module</code>
+              <code>preserve</code> or <code>esnext</code>
+            </td>
+            <td>-</td>
+            <td class="nowrap">
+              <a
+                href="https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-9.html"
+                >TS</a
+              >
+            </td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td>TypeScript 6.0</td>
+            <td>TypeScript</td>
+            <td>6.0.2 on 2026-03-23, 6.0.3 on 2026-04-16</td>
+            <td>
+              last release on the JavaScript code base; defaults <code>strict</code> true,
+              <code>target</code> es2025, <code>types</code> []
+            </td>
+            <td>-</td>
+            <td class="nowrap">
+              <a href="https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/">TS</a>
+              · <a href="https://www.npmjs.com/package/typescript?activeTab=versions">npm</a>
+            </td>
+            <td>In use (<code>~6.0.3</code>)</td>
+          </tr>
+          <tr>
+            <td>TypeScript 7.0</td>
+            <td>TypeScript</td>
+            <td>7.0.2 on 2026-07-08, <code>latest</code> on npm</td>
+            <td>
+              native port in Go; ships no programmatic API;
+              <code>@typescript/typescript6</code> keeps the 6.0 API
+            </td>
+            <td>-</td>
+            <td class="nowrap">
+              <a href="https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/">TS</a>
+              · <a href="https://www.npmjs.com/package/typescript?activeTab=versions">npm</a>
+            </td>
+            <td>Wait (B7)</td>
+          </tr>
+          <tr>
+            <td>TypeScript 7.1</td>
+            <td>TypeScript</td>
+            <td>beta 7.1.0-beta on 2026-10-20</td>
+            <td>
+              new API as entry points (<code>typescript/sync</code>, <code>typescript/async</code>,
+              <code>typescript/ast</code>); <code>es2026</code> target and lib; no date for the
+              final release
+            </td>
+            <td>-</td>
+            <td class="nowrap">
+              <a href="https://devblogs.microsoft.com/typescript/announcing-typescript-7-1-beta/"
+                >TS</a
+              >
+              · <a href="https://www.npmjs.com/package/typescript?activeTab=versions">npm</a>
+            </td>
+            <td>Wait (B7)</td>
+          </tr>
+          <tr>
+            <td>Type stripping</td>
+            <td>Node.js</td>
+            <td>on by default since 22.18.0 and 23.6.0; stable since 24.12.0 and 25.2.0</td>
+            <td><code>--experimental-transform-types</code> removed in 26.0.0</td>
+            <td>-</td>
+            <td class="nowrap"><a href="https://nodejs.org/api/typescript.html">Node</a></td>
+            <td>Already used for <code>scripts/*.ts</code></td>
+          </tr>
+          <tr>
+            <td><code>require()</code> of ES modules</td>
+            <td>Node.js</td>
+            <td>on by default since 22.12.0 and 20.19.0; stable since 25.4.0</td>
+            <td>-</td>
+            <td>-</td>
+            <td class="nowrap"><a href="https://nodejs.org/api/modules.html">Node</a></td>
+            <td>C6</td>
+          </tr>
+          <tr>
+            <td>Default <code>build.target</code> of Vite 8</td>
+            <td>Build</td>
+            <td>Baseline widely available as of 2026-01-01</td>
+            <td>chrome111, edge111, firefox114, safari16.4, ios16.4</td>
+            <td>-</td>
+            <td class="nowrap"><a href="https://vite.dev/config/build-options">Vite</a></td>
+            <td>The syntax floor today</td>
+          </tr>
+          <tr class="group">
+            <td colspan="7">Web platform: custom elements and DOM</td>
+          </tr>
+          <tr>
+            <td>Scoped custom element registries</td>
+            <td>Custom elements</td>
+            <td>
+              <a
+                href="https://html.spec.whatwg.org/multipage/custom-elements.html#custom-elements-api"
+                >HTML Standard</a
+              >,
+              <a href="https://dom.spec.whatwg.org/#element-custom-element-registry"
+                >DOM Standard</a
+              >
+            </td>
+            <td>
+              <span class="chip new">newly available</span> 2026-10-27; widely 2029-04-27 (derived)
+            </td>
+            <td>Chrome 146, Firefox 159, Safari 26</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/scoped-custom-element-registries.yml"
+                >wf</a
+              >
+            </td>
+            <td>High (B1)</td>
+          </tr>
+          <tr>
+            <td>Declarative Shadow DOM</td>
+            <td>Custom elements</td>
+            <td>
+              <a
+                href="https://html.spec.whatwg.org/multipage/scripting.html#attr-template-shadowrootmode"
+                >HTML Standard</a
+              >
+            </td>
+            <td>
+              <span class="chip ok">widely available</span> since 2026-08-20 (newly 2024-02-20)
+            </td>
+            <td>Chrome 111, Firefox 123, Safari 16.4</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/declarative-shadow-dom.yml"
+                >wf</a
+              >
+            </td>
+            <td>A4, C9</td>
+          </tr>
+          <tr>
+            <td>Form-associated custom elements, <code>ElementInternals</code></td>
+            <td>Custom elements</td>
+            <td>
+              <a
+                href="https://html.spec.whatwg.org/multipage/custom-elements.html#form-associated-custom-elements"
+                >HTML Standard</a
+              >
+            </td>
+            <td>
+              <span class="chip ok">widely available</span> since 2025-09-27 (newly 2023-03-27)
+            </td>
+            <td>Chrome 77, Firefox 98, Safari 16.4</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/form-associated-custom-elements.yml"
+                >wf</a
+              >
+            </td>
+            <td>Used by <code>field: true</code>; C2</td>
+          </tr>
+          <tr>
+            <td>Custom states, <code>:state()</code></td>
+            <td>Custom elements</td>
+            <td>
+              <a
+                href="https://html.spec.whatwg.org/multipage/custom-elements.html#custom-state-pseudo-class"
+                >HTML Standard</a
+              >
+            </td>
+            <td>
+              <span class="chip new">newly available</span> 2024-05-17; widely 2026-11-17 (derived)
+            </td>
+            <td>Chrome 125, Firefox 126, Safari 17.4</td>
+            <td class="nowrap">
+              <a href="https://github.com/web-platform-dx/web-features/blob/main/features/state.yml"
+                >wf</a
+              >
+            </td>
+            <td>A6</td>
+          </tr>
+          <tr>
+            <td><code>moveBefore()</code>, <code>connectedMoveCallback</code></td>
+            <td>DOM</td>
+            <td>
+              <a href="https://dom.spec.whatwg.org/#dom-parentnode-movebefore">DOM Standard</a>,
+              <a
+                href="https://html.spec.whatwg.org/multipage/custom-elements.html#preserving-custom-element-state-when-moved"
+                >HTML Standard</a
+              >
+            </td>
+            <td><span class="chip lim">limited</span></td>
+            <td>Chrome 133, Firefox 144, no Safari</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/move-before.yml"
+                >wf</a
+              >
+            </td>
+            <td>B3, C3</td>
+          </tr>
+          <tr>
+            <td>Reference target</td>
+            <td>Custom elements</td>
+            <td><a href="https://github.com/whatwg/dom/pull/1353">github.com</a></td>
+            <td><span class="chip lim">limited</span></td>
+            <td>Chrome 152, no Firefox, no Safari</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/referencetarget.yml"
+                >wf</a
+              >
+            </td>
+            <td>Watch: labels across a shadow boundary</td>
+          </tr>
+          <tr>
+            <td>Trusted Types</td>
+            <td>Security</td>
+            <td><a href="https://w3c.github.io/trusted-types/dist/spec/">W3C draft</a></td>
+            <td>
+              <span class="chip new">newly available</span> 2026-02-24; widely 2028-08-24 (derived)
+            </td>
+            <td>Chrome 83, Firefox 148, Safari 26</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/trusted-types.yml"
+                >wf</a
+              >
+            </td>
+            <td>High (A1)</td>
+          </tr>
+          <tr>
+            <td>Sanitizer API, <code>setHTML()</code></td>
+            <td>Security</td>
+            <td>
+              <a
+                href="https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#html-sanitization"
+                >HTML Standard</a
+              >
+            </td>
+            <td><span class="chip lim">limited</span></td>
+            <td>Chrome 146, Firefox 148, no Safari</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/sanitizer.yml"
+                >wf</a
+              >
+            </td>
+            <td>No (C7)</td>
+          </tr>
+          <tr>
+            <td><code>setHTMLUnsafe()</code>, <code>parseHTMLUnsafe()</code></td>
+            <td>DOM</td>
+            <td>
+              <a
+                href="https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#dom-parsing-and-serialization"
+                >HTML Standard</a
+              >
+            </td>
+            <td>
+              <span class="chip new">newly available</span> 2025-09-15; widely 2028-03-15 (derived)
+            </td>
+            <td>Chrome 124, Firefox 128, Safari 26</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/parse-html-unsafe.yml"
+                >wf</a
+              >
+            </td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td><code>getHTML()</code></td>
+            <td>DOM</td>
+            <td>
+              <a
+                href="https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#html-serialization-methods"
+                >HTML Standard</a
+              >
+            </td>
+            <td>
+              <span class="chip new">newly available</span> 2024-09-16; widely 2027-03-16 (derived)
+            </td>
+            <td>Chrome 125, Firefox 128, Safari 18</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/gethtml.yml"
+                >wf</a
+              >
+            </td>
+            <td>C9</td>
+          </tr>
+          <tr>
+            <td>Observable</td>
+            <td>DOM</td>
+            <td><a href="https://wicg.github.io/observable/">WICG draft</a></td>
+            <td><span class="chip lim">limited</span></td>
+            <td>Chrome 135, no Firefox, no Safari</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/observable.yml"
+                >wf</a
+              >
+            </td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <td>Scheduler API (<code>scheduler.yield()</code>, <code>postTask()</code>)</td>
+            <td>DOM</td>
+            <td><a href="https://wicg.github.io/scheduling-apis/">WICG draft</a></td>
+            <td><span class="chip lim">limited</span></td>
+            <td>Chrome 129, Firefox 142, no Safari</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/scheduler.yml"
+                >wf</a
+              >
+            </td>
+            <td>No</td>
+          </tr>
+          <tr class="group">
+            <td colspan="7">Web platform: styling</td>
+          </tr>
+          <tr>
+            <td>Constructable stylesheets, <code>adoptedStyleSheets</code></td>
+            <td>CSS</td>
+            <td>
+              <a href="https://drafts.csswg.org/cssom-1/#dom-cssstylesheet-cssstylesheet"
+                >CSS WG draft</a
+              >
+            </td>
+            <td>
+              <span class="chip ok">widely available</span> since 2025-09-27 (newly 2023-03-27)
+            </td>
+            <td>Chrome 73, Firefox 101, Safari 16.4</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/constructed-stylesheets.yml"
+                >wf</a
+              >
+            </td>
+            <td>Used; A3, B2, C1</td>
+          </tr>
+          <tr>
+            <td>CSS import attributes (CSS module scripts)</td>
+            <td>CSS</td>
+            <td>
+              <a href="https://html.spec.whatwg.org/multipage/webappapis.html#css-module-script"
+                >HTML Standard</a
+              >
+            </td>
+            <td><span class="chip lim">limited</span></td>
+            <td>Chrome 123, Firefox 147, no Safari</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/css-modules.yml"
+                >wf</a
+              >
+            </td>
+            <td>A3 accepts their result</td>
+          </tr>
+          <tr>
+            <td>CSS nesting</td>
+            <td>CSS</td>
+            <td><a href="https://drafts.csswg.org/css-nesting-1/">CSS WG draft</a></td>
+            <td>
+              <span class="chip ok">widely available</span> since 2026-06-11 (newly 2023-12-11)
+            </td>
+            <td>Chrome 120, Firefox 117, Safari 17.2</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/nesting.yml"
+                >wf</a
+              >
+            </td>
+            <td>Used by styled components</td>
+          </tr>
+          <tr>
+            <td><code>@scope</code> (the rule alone: newly available 2025-12-09)</td>
+            <td>CSS</td>
+            <td><a href="https://drafts.csswg.org/css-cascade-6/#scope-atrule">CSS WG draft</a></td>
+            <td>
+              <span class="chip new">newly available</span> 2026-03-24; widely 2028-09-24 (derived)
+            </td>
+            <td>Chrome 143, Firefox 146, Safari 26.4</td>
+            <td class="nowrap">
+              <a href="https://github.com/web-platform-dx/web-features/blob/main/features/scope.yml"
+                >wf</a
+              >
+            </td>
+            <td>C4</td>
+          </tr>
+          <tr>
+            <td>Registered custom properties (<code>@property</code>)</td>
+            <td>CSS</td>
+            <td>
+              <a href="https://drafts.css-houdini.org/css-properties-values-api-1/"
+                >drafts.css-houdini.org</a
+              >
+            </td>
+            <td>
+              <span class="chip new">newly available</span> 2024-07-09; widely 2027-01-09 (derived)
+            </td>
+            <td>Chrome 85, Firefox 128, Safari 16.4</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/registered-custom-properties.yml"
+                >wf</a
+              >
+            </td>
+            <td>Used: hoisted to the document (<code>applyStyleSheets.ts:137-146</code>)</td>
+          </tr>
+          <tr class="group">
+            <td colspan="7">Web platform: navigation, HTML primitives, network</td>
+          </tr>
+          <tr>
+            <td>View transitions, same document</td>
+            <td>Router</td>
+            <td><a href="https://drafts.csswg.org/css-view-transitions-1/">CSS WG draft</a></td>
+            <td>
+              <span class="chip new">newly available</span> 2025-10-14; widely 2028-04-14 (derived)
+            </td>
+            <td>Chrome 111, Firefox 144, Safari 18</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/view-transitions.yml"
+                >wf</a
+              >
+            </td>
+            <td>A5</td>
+          </tr>
+          <tr>
+            <td>Element-scoped view transitions</td>
+            <td>Router</td>
+            <td>
+              <a href="https://drafts.csswg.org/css-view-transitions-2/#scoped-vt">CSS WG draft</a>
+            </td>
+            <td><span class="chip lim">limited</span></td>
+            <td>Chrome 147, no Firefox, no Safari</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/view-transitions-element-scoped.yml"
+                >wf</a
+              >
+            </td>
+            <td>Watch: the form that fits a widget</td>
+          </tr>
+          <tr>
+            <td>Navigation API</td>
+            <td>Router</td>
+            <td>
+              <a href="https://html.spec.whatwg.org/multipage/nav-history-apis.html#navigation-api"
+                >HTML Standard</a
+              >
+            </td>
+            <td>
+              <span class="chip new">newly available</span> 2026-01-13; widely 2028-07-13 (derived)
+            </td>
+            <td>Chrome 102, Firefox 147, Safari 26.2</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/navigation.yml"
+                >wf</a
+              >
+            </td>
+            <td>C5</td>
+          </tr>
+          <tr>
+            <td>URLPattern</td>
+            <td>Router</td>
+            <td><a href="https://urlpattern.spec.whatwg.org/">urlpattern.spec.whatwg.org</a></td>
+            <td>
+              <span class="chip new">newly available</span> 2025-09-15; widely 2028-03-15 (derived)
+            </td>
+            <td>Chrome 95, Firefox 142, Safari 26</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/urlpattern.yml"
+                >wf</a
+              >
+            </td>
+            <td>Not yet</td>
+          </tr>
+          <tr>
+            <td>Popover</td>
+            <td>HTML</td>
+            <td><a href="https://html.spec.whatwg.org/multipage/popover.html">HTML Standard</a></td>
+            <td>
+              <span class="chip new">newly available</span> 2025-01-27; widely 2027-07-27 (derived)
+            </td>
+            <td>Chrome 116, Firefox 125, Safari 17</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/popover.yml"
+                >wf</a
+              >
+            </td>
+            <td>Typed already</td>
+          </tr>
+          <tr>
+            <td><code>popover="hint"</code></td>
+            <td>HTML</td>
+            <td>
+              <a href="https://html.spec.whatwg.org/multipage/popover.html#attr-popover-hint"
+                >HTML Standard</a
+              >
+            </td>
+            <td><span class="chip lim">limited</span></td>
+            <td>Chrome 151, Firefox 153, no Safari</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/popover-hint.yml"
+                >wf</a
+              >
+            </td>
+            <td>Typed already</td>
+          </tr>
+          <tr>
+            <td>Invoker commands (<code>command</code>, <code>commandfor</code>)</td>
+            <td>HTML</td>
+            <td>
+              <a
+                href="https://html.spec.whatwg.org/multipage/form-elements.html#attr-button-command"
+                >HTML Standard</a
+              >
+            </td>
+            <td>
+              <span class="chip new">newly available</span> 2025-12-12; widely 2028-06-12 (derived)
+            </td>
+            <td>Chrome 135, Firefox 144, Safari 26.2</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/invoker-commands.yml"
+                >wf</a
+              >
+            </td>
+            <td>A2</td>
+          </tr>
+          <tr>
+            <td><code>&lt;dialog closedby&gt;</code></td>
+            <td>HTML</td>
+            <td>
+              <a
+                href="https://html.spec.whatwg.org/multipage/interactive-elements.html#attr-dialog-closedby"
+                >HTML Standard</a
+              >
+            </td>
+            <td><span class="chip lim">limited</span></td>
+            <td>Chrome 134, Firefox 141, no Safari</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/dialog-closedby.yml"
+                >wf</a
+              >
+            </td>
+            <td>A2</td>
+          </tr>
+          <tr>
+            <td>Customizable <code>&lt;select&gt;</code></td>
+            <td>HTML</td>
+            <td><a href="https://open-ui.org/components/customizableselect/">open-ui.org</a></td>
+            <td><span class="chip lim">limited</span></td>
+            <td>Chrome 135, no Firefox, Safari 27</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/customizable-select.yml"
+                >wf</a
+              >
+            </td>
+            <td>Component collection</td>
+          </tr>
+          <tr>
+            <td><code>AbortSignal.any()</code></td>
+            <td>Fetch</td>
+            <td><a href="https://dom.spec.whatwg.org/#dom-abortsignal-any">DOM Standard</a></td>
+            <td>
+              <span class="chip ok">widely available</span> since 2026-09-19 (newly 2024-03-19)
+            </td>
+            <td>Chrome 116, Firefox 124, Safari 17.4</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/abortsignal-any.yml"
+                >wf</a
+              >
+            </td>
+            <td>B4</td>
+          </tr>
+          <tr>
+            <td><code>AbortSignal.timeout()</code></td>
+            <td>Fetch</td>
+            <td><a href="https://dom.spec.whatwg.org/#dom-abortsignal-timeout">DOM Standard</a></td>
+            <td>
+              <span class="chip ok">widely available</span> since 2026-10-18 (newly 2024-04-18)
+            </td>
+            <td>Chrome 124, Firefox 100, Safari 16</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/abortsignal-timeout.yml"
+                >wf</a
+              >
+            </td>
+            <td>B4</td>
+          </tr>
+          <tr>
+            <td>Asynchronously iterable streams</td>
+            <td>Fetch</td>
+            <td>
+              <a href="https://streams.spec.whatwg.org/#rs-asynciterator"
+                >streams.spec.whatwg.org</a
+              >
+            </td>
+            <td>
+              <span class="chip new">newly available</span> 2026-09-14; widely 2029-03-14 (derived)
+            </td>
+            <td>Chrome 124, Firefox 110, Safari 27</td>
+            <td class="nowrap">
+              <a
+                href="https://github.com/web-platform-dx/web-features/blob/main/features/async-iterable-streams.yml"
+                >wf</a
+              >
+            </td>
+            <td>Later: the reader loop at <code>src/http/body.ts:97-106</code></td>
+          </tr>
+        </table>
+      </div>
+
+      <figure>
+        <div class="scroll">
+          <div class="dia">
+            <svg viewBox="0 0 760 388" role="img" aria-labelledby="tl-title">
+              <title id="tl-title">Baseline dates of the features relevant to ECMact</title>
+              <path class="grid" d="M200.0 22V380" />
+              <text x="200.0" y="14" text-anchor="middle" class="mut">2023</text>
+              <path class="grid" d="M277.1 22V380" />
+              <text x="277.1" y="14" text-anchor="middle" class="mut">2024</text>
+              <path class="grid" d="M354.3 22V380" />
+              <text x="354.3" y="14" text-anchor="middle" class="mut">2025</text>
+              <path class="grid" d="M431.4 22V380" />
+              <text x="431.4" y="14" text-anchor="middle" class="mut">2026</text>
+              <path class="grid" d="M508.6 22V380" />
+              <text x="508.6" y="14" text-anchor="middle" class="mut">2027</text>
+              <path class="grid" d="M585.7 22V380" />
+              <text x="585.7" y="14" text-anchor="middle" class="mut">2028</text>
+              <path class="grid" d="M662.9 22V380" />
+              <text x="662.9" y="14" text-anchor="middle" class="mut">2029</text>
+              <path class="grid" d="M740.0 22V380" />
+              <text x="740.0" y="14" text-anchor="middle" class="mut">2030</text>
+              <path class="today" d="M499.4 20V380" />
+              <text x="188" y="44" text-anchor="end">Constructable stylesheets</text>
+              <path class="bar" d="M218.2 40H411.1" />
+              <circle class="dot" cx="411.1" cy="40" r="5" />
+              <text x="188" y="64" text-anchor="end">Form-associated elements</text>
+              <path class="bar" d="M218.2 60H411.1" />
+              <circle class="dot" cx="411.1" cy="60" r="5" />
+              <text x="188" y="84" text-anchor="end">Declarative Shadow DOM</text>
+              <path class="bar" d="M287.5 80H480.4" />
+              <circle class="dot" cx="480.4" cy="80" r="5" />
+              <text x="188" y="104" text-anchor="end">AbortSignal.any()</text>
+              <path class="bar" d="M293.7 100H486.6" />
+              <circle class="dot" cx="486.6" cy="100" r="5" />
+              <text x="188" y="124" text-anchor="end">:state()</text>
+              <path class="bar" d="M306.2 120H499.0" />
+              <circle class="box" cx="499.0" cy="120" r="5" />
+              <text x="188" y="144" text-anchor="end">Set methods</text>
+              <path class="bar" d="M311.4 140H504.2" />
+              <circle class="box" cx="504.2" cy="140" r="5" />
+              <text x="188" y="164" text-anchor="end">Promise.try()</text>
+              <path class="bar" d="M355.5 160H548.4" />
+              <circle class="box" cx="548.4" cy="160" r="5" />
+              <text x="188" y="184" text-anchor="end">Iterator helpers</text>
+              <path class="bar" d="M373.4 180H566.0" />
+              <circle class="box" cx="566.0" cy="180" r="5" />
+              <text x="188" y="204" text-anchor="end">RegExp.escape()</text>
+              <path class="bar" d="M380.0 200H572.9" />
+              <circle class="box" cx="572.9" cy="200" r="5" />
+              <text x="188" y="224" text-anchor="end">URLPattern</text>
+              <path class="bar" d="M408.6 220H601.5" />
+              <circle class="box" cx="601.5" cy="220" r="5" />
+              <text x="188" y="244" text-anchor="end">View transitions</text>
+              <path class="bar" d="M414.8 240H607.7" />
+              <circle class="box" cx="607.7" cy="240" r="5" />
+              <text x="188" y="264" text-anchor="end">Invoker commands</text>
+              <path class="bar" d="M427.3 260H620.1" />
+              <circle class="box" cx="620.1" cy="260" r="5" />
+              <text x="188" y="284" text-anchor="end">Navigation API</text>
+              <path class="bar" d="M433.9 280H626.8" />
+              <circle class="box" cx="626.8" cy="280" r="5" />
+              <text x="188" y="304" text-anchor="end">Map getOrInsert()</text>
+              <path class="bar" d="M440.6 300H633.4" />
+              <circle class="box" cx="633.4" cy="300" r="5" />
+              <text x="188" y="324" text-anchor="end">Trusted Types</text>
+              <path class="bar" d="M442.6 320H635.5" />
+              <circle class="box" cx="635.5" cy="320" r="5" />
+              <text x="188" y="344" text-anchor="end">@scope</text>
+              <path class="bar" d="M449.1 340H641.9" />
+              <circle class="box" cx="641.9" cy="340" r="5" />
+              <text x="188" y="364" text-anchor="end">Scoped registries</text>
+              <path class="bar" d="M494.7 360H687.5" />
+              <circle class="box" cx="687.5" cy="360" r="5" />
+            </svg>
+          </div>
+        </div>
+        <figcaption>
+          From "newly available" (start of a bar) to "widely available" (dot) for the features that
+          matter to ECMact. A filled dot is a date from the dataset, a hollow dot is derived (newly
+          available plus 30 months). The dashed line is 2026-11-19. Features that are not Baseline
+          have no bar.
+        </figcaption>
+      </figure>
+
+      <h2 id="options">4 Options mapped to ECMact</h2>
+
+      <p>
+        Three classes, as the assignment asks: (a) additive within 3.x, (b) internal rewrite with no
+        API change, (c) needs a 4.0. Line numbers refer to the working tree of 2026-11-19 (branch
+        <code>feature/44-monochrome-identity</code>; the files under <code>src/</code> are unchanged
+        on it). Verdicts are recommendations.
+      </p>
+
+      <h3 id="class-a">(a) Additive within 3.x</h3>
+
+      <article class="opt" id="A1">
+        <h4>
+          <span class="id">A1</span><code>html</code> accepts <code>TrustedHTML</code>
+          <span class="chip ok">do first</span>
+        </h4>
+        <p>
+          On a page whose CSP has <code>require-trusted-types-for 'script'</code>, assigning a
+          string to <code>innerHTML</code> throws a <code>TypeError</code> unless the page has a
+          default policy (MDN). ECMact turns everything that is not a string into an empty string,
+          so the object that would be allowed, a <code>TrustedHTML</code> from the host's policy, is
+          dropped. The prop is unusable on such a host. Proposal: pass a
+          <code>TrustedHTML</code> value through to <code>innerHTML</code> and type the prop as
+          <code>string | TrustedHTML</code>.
+        </p>
+        <dl>
+          <dt>Where</dt>
+          <dd>
+            <code>src/core/element.ts:63-65</code> (the
+            <code>typeof value === 'string'</code> check),
+            <code>src/types/props.ts:135</code> (<code>html?: Reactive&lt;string&gt;</code>)
+          </dd>
+          <dt>Platform</dt>
+          <dd>
+            Trusted Types: Baseline newly available 2026-02-24 (Chrome 83, Firefox 148, Safari 26).
+            In a browser without them no <code>TrustedHTML</code> object exists, so nothing changes
+            there. <code>lib.dom.d.ts</code> of TypeScript 6.0.3 declares the type.
+          </dd>
+          <dt>Trade-offs</dt>
+          <dd>
+            Size: a few bytes, to be measured with <code>npm run size</code>. Complexity and risk:
+            low. ECMact still creates no policy and sanitizes nothing; the Security model text stays
+            true and gains one sentence.
+          </dd>
+          <dt>Tests</dt>
+          <dd>
+            All three engines can create a policy and a <code>TrustedHTML</code>. happy-dom has no
+            <code>trustedTypes</code>: the branch is covered there with
+            <code>vi.stubGlobal('TrustedHTML', ...)</code>.
+          </dd>
+        </dl>
+      </article>
+
+      <article class="opt" id="A2">
+        <h4>
+          <span class="id">A2</span>Typed attributes: <code>command</code>, <code>commandfor</code>,
+          <code>closedby</code> <span class="chip ok">do first</span>
+        </h4>
+        <p>
+          <code>tags.button({ commandfor: 'menu', command: 'toggle-popover' })</code> is a compile
+          error today although it works at run time, because the attribute map of
+          <code>button</code> ends with the popover attributes. <code>dialog</code> has only
+          <code>open</code>.
+        </p>
+        <dl>
+          <dt>Where</dt>
+          <dd>
+            <code>src/types/attributes.ts:218-232</code> (<code>button</code>),
+            <code>src/types/attributes.ts:393</code> (<code>dialog</code>)
+          </dd>
+          <dt>Platform</dt>
+          <dd>
+            Invoker commands: Baseline newly available 2025-12-12.
+            <code>&lt;dialog closedby&gt;</code>: limited (Chrome 134, Firefox 141, no Safari).
+            There is a precedent for typing a limited value: <code>popover: 'hint'</code> at
+            <code>src/types/attributes.ts:70</code>.
+          </dd>
+          <dt>Trade-offs</dt>
+          <dd>
+            Types only, no run-time bytes. Whether limited attributes are typed is question
+            <a href="#q4">Q4</a>. A full audit of the file against the HTML standard is a separate
+            small task.
+          </dd>
+          <dt>Tests</dt>
+          <dd>Type tests in <code>tests/types/</code>; no engine difference.</dd>
+        </dl>
+      </article>
+
+      <article class="opt" id="A3">
+        <h4>
+          <span class="id">A3</span><code>css</code> accepts a
+          <code>CSSStyleSheet</code> (components and widgets) <span class="chip new">do next</span>
+        </h4>
+        <p>
+          <code>configure({ styles })</code> already takes sheets (<code>StyleSource</code>), the
+          <code>css</code> prop and the <code>css</code> option of a widget take only text.
+          Accepting a sheet lets the author parse once and share it, and lets CSS module scripts
+          (<code>import sheet from './x.css' with { type: 'css' }</code>) be passed in where the
+          browser has them.
+        </p>
+        <dl>
+          <dt>Where</dt>
+          <dd>
+            <code>src/core/component.ts:147-150</code>, <code>src/widget/widget.ts:54</code> and
+            <code>:161</code>, <code>src/types/props.ts:179</code>,
+            <code>src/render/applyStyleSheets.ts:94-108</code>. The
+            <code>&lt;style&gt;</code> fallback already converts a sheet to text
+            (<code>applyStyleSheets.ts:66-69</code>).
+          </dd>
+          <dt>Platform</dt>
+          <dd>
+            Constructed stylesheets: Baseline widely available since 2025-09-27. CSS import
+            attributes: limited (Chrome 123, Firefox 147, no Safari) - ECMact would not depend on
+            them, it only accepts their result.
+          </dd>
+          <dt>Trade-offs</dt>
+          <dd>
+            Small. A sheet that the author mutates is shared by every instance that received it;
+            that is the point, and it has to be said in the documentation. Best done together with
+            B2.
+          </dd>
+          <dt>Tests</dt>
+          <dd>
+            Extends <code>tests/browser/adopted-sheets.test.ts</code> and the render tests; all
+            engines.
+          </dd>
+        </dl>
+      </article>
+
+      <article class="opt" id="A4">
+        <h4>
+          <span class="id">A4</span>A Declarative Shadow DOM placeholder for widgets: test and
+          document <span class="chip new">do next</span>
+        </h4>
+        <p>
+          A host page can ship
+          <code
+            >&lt;my-widget&gt;&lt;template
+            shadowrootmode="open"&gt;skeleton&lt;/template&gt;&lt;/my-widget&gt;</code
+          >. The browser renders the skeleton before the script loads. By MDN,
+          <code>attachShadow()</code> on a host with a declarative root of the same mode clears and
+          returns that root, so a widget should take it over when it connects. That would give a
+          first paint without layout shift and without server-side rendering in ECMact. It may need
+          no code, only a test in three engines and a documentation section.
+        </p>
+        <dl>
+          <dt>Where</dt>
+          <dd>
+            <code>src/widget/widget.ts:160</code> (<code>attachShadow({ mode: 'open' })</code>) and
+            <code>:177</code> (<code>replaceChildren</code>)
+          </dd>
+          <dt>Platform</dt>
+          <dd>Declarative Shadow DOM: Baseline widely available since 2026-08-20.</dd>
+          <dt>Trade-offs</dt>
+          <dd>
+            No size cost if it already works. It is a placeholder, not hydration: the nodes are
+            replaced. Not verified that it works today (nothing was run).
+          </dd>
+          <dt>Tests</dt>
+          <dd>
+            Needs a real parser, so a browser-only test; whether it joins an existing file of the
+            closed list is part of <a href="#q5">Q5</a>.
+          </dd>
+        </dl>
+      </article>
+
+      <article class="opt" id="A5">
+        <h4>
+          <span class="id">A5</span>Router: opt-in view transition
+          <span class="chip new">do next</span>
+        </h4>
+        <p>
+          The README lists "no transitions" among the limits of the router. Signals flush their
+          effects synchronously (<code>src/signals/signals.ts:172-177</code>), so the whole DOM
+          update of a navigation happens inside one call - exactly the callback that
+          <code>document.startViewTransition()</code> wants. Proposal: an option (name to decide) on
+          the router or on <code>navigate</code>; when it is on and the API exists, the history
+          write and <code>synchronize()</code> run inside the transition, otherwise the current path
+          runs.
+        </p>
+        <dl>
+          <dt>Where</dt>
+          <dd>
+            <code>src/router/router.ts:312-314</code> (history write, <code>synchronize()</code>,
+            scroll), <code>:343</code> (back and forward), options at <code>:88-93</code>
+          </dd>
+          <dt>Platform</dt>
+          <dd>
+            Same-document view transitions: Baseline newly available 2025-10-14 (Chrome 111, Firefox
+            144, Safari 18).
+          </dd>
+          <dt>Trade-offs</dt>
+          <dd>
+            A transition snapshots the whole document. A router inside a widget would animate the
+            host page, so the option must be off by default and described as for page-level apps.
+            Element-scoped transitions would fit widgets but are Chrome 147 only. The promise that
+            <code>navigate()</code> returns needs a defined moment to resolve. Size: to be measured.
+          </dd>
+          <dt>Tests</dt>
+          <dd>
+            Fallback branch in happy-dom, native in the three engines; the router file already has
+            the WebKit history limit of D31 to respect.
+          </dd>
+        </dl>
+      </article>
+
+      <article class="opt" id="A6">
+        <h4>
+          <span class="id">A6</span>Custom states of a component (<code>:state()</code>)
+          <span class="chip lim">later</span>
+        </h4>
+        <p>
+          A component could mirror boolean signals into <code>ElementInternals.states</code>, so the
+          page styles <code>em-card:state(open)</code> without an attribute or class on the host.
+        </p>
+        <dl>
+          <dt>Where</dt>
+          <dd>
+            <code>src/core/component.ts:68-69</code> (internals exist only with
+            <code>field: true</code>)
+          </dd>
+          <dt>Platform</dt>
+          <dd>
+            <code>:state()</code>: Baseline newly available 2024-05-17; the 30-month mark was
+            2026-11-17 (derived).
+          </dd>
+          <dt>Trade-offs</dt>
+          <dd>
+            The same result is possible today with a reactive <code>class</code> or
+            <code>data-*</code> prop on the host. Low value for the core; it belongs to the planned
+            component collection.
+          </dd>
+          <dt>Tests</dt>
+          <dd>happy-dom has no <code>CustomStateSet</code>.</dd>
+        </dl>
+      </article>
+
+      <article class="opt" id="A7">
+        <h4>
+          <span class="id">A7</span><code>Symbol.dispose</code> on what has a <code>dispose()</code>
+          <span class="chip lim">wait</span>
+        </h4>
+        <p>
+          <code>using data = resource(...)</code> would call <code>dispose()</code> at the end of
+          the block. Additive: a second key on the objects that <code>resource()</code>,
+          <code>createRouter()</code> and store subscriptions return.
+        </p>
+        <dl>
+          <dt>Where</dt>
+          <dd>
+            <code>src/data/resource.ts:100</code>, <code>src/router/router.ts:378-380</code>,
+            <code>src/signals/signals.ts:378-382</code>
+          </dd>
+          <dt>Platform</dt>
+          <dd>
+            Explicit resource management: finished at TC39 (publication year 2027), limited in
+            browsers (Chrome 134, Firefox 141, no Safari).
+          </dd>
+          <dt>Trade-offs</dt>
+          <dd>
+            <code>Symbol.dispose</code> is undefined in Safari, and <code>using</code> needs a
+            compiler there - against "no compiler". Wait for Safari.
+          </dd>
+          <dt>Tests</dt>
+          <dd>WebKit 27.2 would run only the guard.</dd>
+        </dl>
+      </article>
+
+      <h3 id="class-b">(b) Internal rewrite, no API change</h3>
+
+      <article class="opt" id="B1">
+        <h4>
+          <span class="id">B1</span>One scoped registry per copy of the library for
+          <code>em</code> components <span class="chip ok">do first</span>
+        </h4>
+        <p>
+          <code>em.Card</code> defines <code>em-card</code> in the global registry. If another
+          bundle of ECMact on the page defined that name first, this copy skips <code>define</code>,
+          creates an element of the other copy's class and calls its own <code>init</code> symbol on
+          it: <code>TypeError: element[init] is not a function</code> (reproduced,
+          <a href="#found">section 6</a>). <code>configure({ prefix })</code> helps only for
+          one-word names. With a scoped registry each copy keeps its own definitions:
+          <code>registry.define(name, class)</code> and
+          <code>document.createElement(name, { customElementRegistry: registry })</code>.
+          <code>em</code> components are always created by ECMact, never by the HTML parser, so
+          nothing has to be upgraded from markup. Widgets (<code>defineWidget</code>) stay in the
+          global registry: the host page writes their tags.
+        </p>
+        <figure>
+          <div class="scroll">
+            <div class="dia">
+              <svg viewBox="0 0 720 240" role="img" aria-labelledby="reg-title">
+                <title id="reg-title">
+                  Two copies of ECMact on one page: one global registry today, one scoped registry
+                  per copy in the proposal
+                </title>
+                <text x="20" y="20" font-weight="600">Today: one global registry</text>
+                <rect class="box" x="20" y="34" width="150" height="46" rx="8" />
+                <text x="95" y="54" text-anchor="middle">Widget of vendor A</text>
+                <text x="95" y="70" text-anchor="middle" class="mut">ECMact copy A</text>
+                <rect class="box" x="20" y="150" width="150" height="46" rx="8" />
+                <text x="95" y="170" text-anchor="middle">Widget of vendor B</text>
+                <text x="95" y="186" text-anchor="middle" class="mut">ECMact copy B</text>
+                <rect class="q" x="210" y="88" width="130" height="54" rx="8" />
+                <text x="275" y="110" text-anchor="middle">customElements</text>
+                <text x="275" y="127" text-anchor="middle" class="mut">em-card = class of A</text>
+                <path class="arr" d="M170 62 L228 88" marker-end="url(#ah)" />
+                <text x="205" y="58" class="mut">defines</text>
+                <path class="arr" d="M170 168 L228 142" marker-end="url(#ah)" />
+                <text x="205" y="184" class="mut">finds it</text>
+                <rect class="bad" x="20" y="204" width="320" height="26" rx="6" />
+                <text x="180" y="221" text-anchor="middle">
+                  copy B: element[init] is not a function
+                </text>
+                <path class="grid" d="M360 10V232" />
+                <text x="380" y="20" font-weight="600">Proposed: a registry per copy</text>
+                <rect class="box" x="380" y="34" width="150" height="46" rx="8" />
+                <text x="455" y="54" text-anchor="middle">Widget of vendor A</text>
+                <text x="455" y="70" text-anchor="middle" class="mut">ECMact copy A</text>
+                <rect class="box" x="380" y="150" width="150" height="46" rx="8" />
+                <text x="455" y="170" text-anchor="middle">Widget of vendor B</text>
+                <text x="455" y="186" text-anchor="middle" class="mut">ECMact copy B</text>
+                <rect class="good" x="570" y="34" width="130" height="46" rx="8" />
+                <text x="635" y="54" text-anchor="middle">registry A</text>
+                <text x="635" y="70" text-anchor="middle" class="mut">em-card = class of A</text>
+                <rect class="good" x="570" y="150" width="130" height="46" rx="8" />
+                <text x="635" y="170" text-anchor="middle">registry B</text>
+                <text x="635" y="186" text-anchor="middle" class="mut">em-card = class of B</text>
+                <path class="arr" d="M530 57H568" marker-end="url(#ah)" />
+                <path class="arr" d="M530 173H568" marker-end="url(#ah)" />
+                <rect class="q" x="440" y="94" width="200" height="42" rx="8" />
+                <text x="540" y="112" text-anchor="middle">customElements (global)</text>
+                <text x="540" y="128" text-anchor="middle" class="mut">
+                  only the widget tags of A and B
+                </text>
+                <text x="380" y="214" class="mut">Fallback without scoped registries:</text>
+                <text x="380" y="230" class="mut">the global registry and a clear error.</text>
+              </svg>
+            </div>
+          </div>
+          <figcaption>
+            The collision and the proposed isolation. The right half is a proposal: the option names
+            come from MDN, and nothing of it was run in an engine.
+          </figcaption>
+        </figure>
+        <dl>
+          <dt>Where</dt>
+          <dd>
+            <code>src/core/em.ts:45-51</code> (<code>customElements.get</code>, <code>define</code>,
+            <code>createElement</code>),
+            <code>src/core/component.ts:24</code> (<code>Symbol('ecmact.init')</code>, one per
+            copy), optionally <code>src/core/component.ts:60</code> (<code>attachShadow</code> takes
+            <code>customElementRegistry</code>)
+          </dd>
+          <dt>Platform</dt>
+          <dd>
+            Scoped custom element registries: Baseline newly available 2026-10-27 (Chrome 146,
+            Firefox 159, Safari 26). Chromium 159, Firefox 159 and WebKit 27.2 of the pinned
+            Playwright have them. Firefox has them only since version 159 of 2026-10-27, so the
+            fallback will run for many users for a while.
+          </dd>
+          <dt>Trade-offs</dt>
+          <dd>
+            Observable differences where the scoped path runs:
+            <code>customElements.get('em-card')</code> and <code>whenDefined</code> no longer see
+            the component (the README does not document that they do). Tag names, selectors and the
+            DOM tree stay the same. The fallback needs a decision: a clear error that names both
+            copies, or a deterministic renamed tag. If the owner prefers no silent change, the same
+            code can sit behind a configuration key, which makes it class (a) (<a href="#q3">Q3</a
+            >). Size: to be measured. Complexity: medium - a spike in the three engines comes first.
+          </dd>
+          <dt>Tests</dt>
+          <dd>
+            happy-dom has no scoped registries: fallback branch there, native branch in the three
+            engines, plus one test that loads two copies.
+          </dd>
+        </dl>
+      </article>
+
+      <article class="opt" id="B2">
+        <h4>
+          <span class="id">B2</span>One parsed stylesheet per css text, shared by all instances
+          <span class="chip new">do next</span>
+        </h4>
+        <p>
+          Every component and widget instance creates its own <code>CSSStyleSheet</code> and calls
+          <code>replaceSync(css)</code>. A list of a thousand <code>em.Row({ css })</code> parses
+          the same text a thousand times and keeps a thousand sheets. Sharing a sheet between shadow
+          roots is what constructable stylesheets were made for. Proposal: a cache from css text to
+          sheet for a static <code>css</code>; a reactive <code>css</code> keeps its own sheet,
+          because it is rewritten in place.
+        </p>
+        <dl>
+          <dt>Where</dt>
+          <dd>
+            <code>src/render/applyStyleSheets.ts:94-100</code> (<code
+              >state.ownSheet ??= new CSSStyleSheet()</code
+            >, <code>replaceSync</code>), per-instance state at
+            <code>src/core/component.ts:41-46</code> and <code>src/widget/widget.ts:134-139</code>,
+            the reactive case at <code>src/core/component.ts:62</code>
+          </dd>
+          <dt>Platform</dt>
+          <dd>
+            Constructed stylesheets: Baseline widely available since 2025-09-27. No new minimum.
+          </dd>
+          <dt>Trade-offs</dt>
+          <dd>
+            Speed and memory: to be measured with a new case in <code>npm run bench</code> (the
+            benchmark has no component case today). Size: to be measured. Risk: code that reaches
+            into <code>shadowRoot.adoptedStyleSheets</code> and edits the component's sheet would
+            now edit it for all instances (not a documented use). The cache must not grow with
+            generated css text: cache only what was passed as a plain string, and decide on a bound
+            in the specification.
+          </dd>
+          <dt>Tests</dt>
+          <dd>
+            <code>tests/browser/adopted-sheets.test.ts</code> checks the number of adopted sheets,
+            which does not change. All engines.
+          </dd>
+        </dl>
+      </article>
+
+      <article class="opt" id="B3">
+        <h4>
+          <span class="id">B3</span><code>moveBefore()</code> for rows that only move
+          <span class="chip new">do next</span>
+        </h4>
+        <p>
+          <code>fill()</code> calls <code>insertBefore</code> for every row outside the longest
+          stable run, new rows and moved rows alike. For a moved row that is a removal and an
+          insertion: focus is lost (the reason for the restore code of #34), CSS animations and
+          transitions restart, an <code>iframe</code> reloads, an open popover closes.
+          <code>moveBefore()</code> moves the node without removing it and keeps that state (MDN).
+          Proposal: use it when the parent has the method and the row is already connected under the
+          same root, otherwise the current call.
+        </p>
+        <dl>
+          <dt>Where</dt>
+          <dd>
+            <code>src/render/children.ts:81-89</code> (the loop with <code>insertBefore</code>),
+            focus restore at <code>src/core/each.ts:97-105</code> and <code>:157-166</code>
+          </dd>
+          <dt>Platform</dt>
+          <dd>
+            Limited: Chrome 133, Firefox 144, no Safari. WebKit 27.2 of the test set does not have
+            it.
+          </dd>
+          <dt>Trade-offs</dt>
+          <dd>
+            The documented lifecycle holds: a custom element without
+            <code>connectedMoveCallback</code> still gets <code>disconnectedCallback</code> and
+            <code>connectedCallback</code> on a move (MDN), and <code>Component</code> has none, so
+            cleanup, <code>unmounted</code> and <code>mounted</code> run as the README says. The
+            focus restore stays for WebKit. Behaviour then differs by engine (an iframe in a moved
+            row survives in Chromium and Firefox, reloads in Safari); that is an improvement, but it
+            has to be documented. <code>moveBefore</code> throws when the node and the parent differ
+            in connectedness or document, so the condition must be exact. Size: to be measured.
+          </dd>
+          <dt>Tests</dt>
+          <dd>
+            Native branch in Chromium and Firefox, fallback in WebKit and happy-dom; a stub covers
+            the branch in happy-dom. Needs a browser-only test for the preserved state.
+          </dd>
+        </dl>
+      </article>
+
+      <article class="opt" id="B4">
+        <h4>
+          <span class="id">B4</span><code>AbortSignal.any()</code> in the HTTP dispatch
+          <span class="chip lim">later</span>
+        </h4>
+        <p>
+          The dispatch builds its own controller, forwards the caller's signal with a listener and
+          removes the listener in <code>finally</code>.
+          <code>AbortSignal.any([config.signal, controller.signal])</code> does the forwarding and
+          the cleanup.
+        </p>
+        <dl>
+          <dt>Where</dt>
+          <dd><code>src/http/dispatch.ts:90-106</code> and <code>:159-160</code></dd>
+          <dt>Platform</dt>
+          <dd>
+            <code>AbortSignal.any()</code>: Baseline widely available since 2026-09-19 (Chrome 116,
+            Firefox 124, Safari 17.4). <code>AbortSignal.timeout()</code>: widely available since
+            2026-10-18.
+          </dd>
+          <dt>Trade-offs</dt>
+          <dd>
+            Saves a few lines. It raises the minimum for the HTTP client to Safari 17.4, above the
+            syntax target of the build (Safari 16.4): allowed or not depends on
+            <a href="#q2">Q2</a>. Keep <code>setTimeout</code> for the timeout: the tests drive it
+            with fake timers (<code>tests/http/dispatch.test.ts:276</code>, <code>:304</code>);
+            whether fake timers also drive <code>AbortSignal.timeout()</code> was not verified.
+          </dd>
+          <dt>Tests</dt>
+          <dd>All four environments have it (not verified for happy-dom).</dd>
+        </dl>
+      </article>
+
+      <article class="opt" id="B5">
+        <h4>
+          <span class="id">B5</span>One-line replacements by ES2025 and ES2026 built-ins
+          <span class="chip lim">wait</span>
+        </h4>
+        <p>
+          Each of these replaces a short hand-written helper. All are Baseline newly available only;
+          by the proposed rule they wait until they are widely available, and none is worth a
+          fallback.
+        </p>
+        <div class="scroll">
+          <table>
+            <tr>
+              <th>Built-in</th>
+              <th>Replaces</th>
+              <th>Widely available (derived)</th>
+            </tr>
+            <tr>
+              <td><code>Promise.try()</code></td>
+              <td>
+                <code>src/data/resource.ts:90</code> (<code
+                  >new Promise((resolve) =&gt; resolve(fetcher(...)))</code
+                >)
+              </td>
+              <td class="nowrap">2027-07-07</td>
+            </tr>
+            <tr>
+              <td><code>RegExp.escape()</code></td>
+              <td><code>src/router/match.ts:15</code></td>
+              <td class="nowrap">2027-11-01</td>
+            </tr>
+            <tr>
+              <td>Iterator helpers</td>
+              <td>
+                <code>src/core/each.ts:159</code> (<code>Array.from(next.values(), ...)</code>)
+              </td>
+              <td class="nowrap">2027-09-30</td>
+            </tr>
+            <tr>
+              <td><code>Uint8Array.prototype.toBase64()</code></td>
+              <td>
+                <code>src/http/dispatch.ts:15</code> (<code>btoa(String.fromCharCode(...))</code>)
+              </td>
+              <td class="nowrap">2028-03-05</td>
+            </tr>
+            <tr>
+              <td><code>Map.prototype.getOrInsert()</code></td>
+              <td>
+                <code>src/render/bindings.ts:66-67</code>,
+                <code>src/render/applyStyleSheets.ts:77-83</code>,
+                <code>src/styled/inject.ts:103-107</code>
+              </td>
+              <td class="nowrap">2028-08-14</td>
+            </tr>
+            <tr>
+              <td>Set methods (<code>difference</code>)</td>
+              <td><code>src/render/applyStyle.ts:100-102</code></td>
+              <td class="nowrap">2026-12-11</td>
+            </tr>
+            <tr>
+              <td>
+                <code>Promise.withResolvers()</code> (ES2024, widely available since 2026-09-05)
+              </td>
+              <td>
+                <code>src/http/retry.ts:25-32</code>. The same helper is also
+                <code>new Promise((done) =&gt; setTimeout(done, ms))</code>, which needs nothing new
+              </td>
+              <td class="nowrap">now</td>
+            </tr>
+          </table>
+        </div>
+      </article>
+
+      <article class="opt" id="B6">
+        <h4>
+          <span class="id">B6</span>Pin <code>target</code> and <code>lib</code> in
+          <code>tsconfig.json</code> to the support rule <span class="chip ok">do first</span>
+        </h4>
+        <p>
+          Once Q1 is decided, set <code>lib</code> to the newest ECMAScript edition that the rule
+          allows without a check (plus <code>dom</code>). A call to a newer built-in then fails
+          <code>npm run typecheck</code> instead of failing in a user's browser. It costs no
+          dependency. DOM APIs are not covered by <code>lib</code>; a lint rule for them would be a
+          new development dependency and is not proposed here.
+        </p>
+        <dl>
+          <dt>Where</dt>
+          <dd><code>tsconfig.json:2-23</code></dd>
+          <dt>Trade-offs</dt>
+          <dd>
+            Tests share the configuration and may use newer built-ins; they may need their own
+            <code>lib</code>. Which edition <code>src/</code> needs today was not checked (<code
+              >tsc</code
+            >
+            was not run).
+          </dd>
+        </dl>
+      </article>
+
+      <article class="opt" id="B7">
+        <h4>
+          <span class="id">B7</span>TypeScript 7 and <code>isolatedDeclarations</code>
+          <span class="chip lim">wait</span>
+        </h4>
+        <p>
+          TypeScript 7.0.2 (2026-07-08) is the native compiler and is <code>latest</code> on npm. It
+          ships no programmatic API; 7.1 (beta 2026-10-20) brings a new and different one. The
+          configuration of ECMact is already compatible with the 7.0 defaults (no
+          <code>baseUrl</code>, no deprecated option). What blocks the move is the tooling: the
+          installed <code>typescript-eslint</code> accepts <code>typescript &lt;6.1.0</code>, and
+          the declaration build goes through <code>unplugin-dts</code> 1.1.2, which has
+          <code>typescript</code> as a peer and depends on <code>@volar/typescript</code>. Running 6
+          and 7 side by side (<code>@typescript/typescript6</code>) is possible, but type-checking
+          about 7 thousand lines of source is not a bottleneck that pays for two compilers (not
+          measured).
+        </p>
+        <p>
+          <code>isolatedDeclarations</code> (TypeScript 5.5) would let a tool without a type checker
+          write the <code>.d.ts</code> files and so remove the build's need for the compiler API. A
+          rough search finds 74 exported arrow functions in <code>src/</code>, about 22 with an
+          explicit return type, so it means annotating roughly fifty exports. Worth doing only as
+          part of the move to 7.
+        </p>
+        <dl>
+          <dt>Where</dt>
+          <dd>
+            <code>package.json</code> (<code>typescript ~6.0.3</code>), <code>tsconfig.json</code>,
+            <code>vite.config.ts:8</code> (<code>dts</code> plugin)
+          </dd>
+        </dl>
+      </article>
+
+      <h3 id="class-c">(c) Needs a 4.0</h3>
+
+      <p>
+        None of these is urgent. The recommendation is to keep them as a list of candidates and not
+        to schedule a major version for them (<a href="#q7">Q7</a>).
+      </p>
+
+      <div class="scroll">
+        <table>
+          <tr>
+            <th>Id</th>
+            <th>Change</th>
+            <th>Where</th>
+            <th>Why it breaks 3.x</th>
+            <th>Platform status</th>
+            <th>Verdict</th>
+          </tr>
+          <tr id="C1">
+            <td>C1</td>
+            <td>
+              Remove the <code>&lt;style&gt;</code> fallback; require constructable stylesheets
+            </td>
+            <td>
+              <code>src/render/applyStyleSheets.ts:42-45</code>, <code>:117-129</code>,
+              <code>:158</code>; <code>src/styled/inject.ts:71-93</code>;
+              <code>src/core/component.ts:147-153</code>; <code>src/widget/widget.ts:177</code>
+            </td>
+            <td>The fallback is documented (<code>README.md:1725</code>)</td>
+            <td>
+              Widely available since 2025-09-27; minimum Safari 16.4, the same as the syntax target
+            </td>
+            <td>Candidate. Less code (to be measured), fewer stubbed tests</td>
+          </tr>
+          <tr id="C2">
+            <td>C2</td>
+            <td>Remove the <code>attachInternals</code> check</td>
+            <td><code>src/core/component.ts:68</code></td>
+            <td>Silent no-op becomes an error in old browsers</td>
+            <td>Form-associated custom elements: widely available since 2025-09-27</td>
+            <td>Candidate, with C1</td>
+          </tr>
+          <tr id="C3">
+            <td>C3</td>
+            <td>
+              <code>connectedMoveCallback</code>: a move no longer runs cleanup,
+              <code>unmounted</code>, <code>mounted</code>
+            </td>
+            <td>
+              <code>src/core/component.ts:84-114</code>,
+              <code>src/widget/widget.ts:158-193</code> (the <code>queueMicrotask</code> checks that
+              tell a move from a removal)
+            </td>
+            <td>The README documents the hooks on a move (D32)</td>
+            <td>Limited, part of <code>moveBefore</code> (no Safari)</td>
+            <td>Wait for Safari</td>
+          </tr>
+          <tr id="C4">
+            <td>C4</td>
+            <td><code>css</code> for light DOM components through <code>@scope</code></td>
+            <td><code>src/core/component.ts:64-66</code>, <code>src/widget/widget.ts:107</code></td>
+            <td>"<code>css is ignored when shadow is false</code>" is a documented warning</td>
+            <td>
+              <code>@scope</code>: newly available (the rule itself 2025-12-09, the whole feature
+              2026-03-24)
+            </td>
+            <td>Wait until widely available; scoping is not isolation</td>
+          </tr>
+          <tr id="C5">
+            <td>C5</td>
+            <td>Router on the Navigation API</td>
+            <td>
+              <code>src/router/router.ts:288-357</code>, link interception at <code>:406-414</code>,
+              scroll at <code>:314</code>
+            </td>
+            <td>
+              It could be internal, but only with the History code kept as fallback: two routers in
+              the largest file of the library (508 lines)
+            </td>
+            <td>
+              Newly available 2026-01-13 (Chrome 102, Firefox 147, Safari 26.2); widely 2028-07-13
+              (derived)
+            </td>
+            <td>
+              Not yet. It would bring scroll restoration and abortable guards. The
+              <code>navigate</code> event is global to the window: a router inside a widget must not
+              take over the host page - a design question of its own
+            </td>
+          </tr>
+          <tr id="C6">
+            <td>C6</td>
+            <td>ESM-only package</td>
+            <td><code>package.json:5-16</code>, <code>vite.config.ts:55</code></td>
+            <td>Removes <code>dist/index.cjs</code> and the <code>require</code> condition</td>
+            <td>
+              Node loads ES modules with <code>require()</code> by default since 22.12.0 and
+              20.19.0, stable since 25.4.0
+            </td>
+            <td>
+              Candidate. Removes one of the two builds from the package and one way to load two
+              copies
+            </td>
+          </tr>
+          <tr id="C7">
+            <td>C7</td>
+            <td>Sanitize <code>html</code> by default (<code>setHTML()</code>)</td>
+            <td><code>src/core/element.ts:63-65</code></td>
+            <td>Changes the documented Security model</td>
+            <td>Sanitizer API: limited (Chrome 146, Firefox 148, no Safari)</td>
+            <td>No. No fallback without a dependency</td>
+          </tr>
+          <tr id="C8">
+            <td>C8</td>
+            <td>Signals shaped like the TC39 proposal</td>
+            <td><code>src/signals/signals.ts</code></td>
+            <td>Different API (<code>get()</code>, <code>set()</code>, watchers)</td>
+            <td>
+              Stage 1 since April 2024; the README of the proposal plans prototyping before stage 2
+            </td>
+            <td>No</td>
+          </tr>
+          <tr id="C9">
+            <td>C9</td>
+            <td>Server rendering with hydration on Declarative Shadow DOM</td>
+            <td>whole renderer</td>
+            <td>The README states there is none; a new architecture</td>
+            <td>DSD widely available; <code>getHTML()</code> newly available 2024-09-16</td>
+            <td>
+              Not in this round; its own specification if the owner wants it. A4 covers the cheap
+              part
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <h2 id="roadmap">5 Prioritized roadmap</h2>
+
+      <p>
+        Proposed order, to be placed after the work that is already planned: the documentation
+        redesign (#44-#48) and the 3.x patch release. Features belong in a minor version by the
+        README ("New features come in minor versions").
+      </p>
+
+      <div class="scroll">
+        <table>
+          <tr>
+            <th>Step</th>
+            <th>Items</th>
+            <th>Class</th>
+            <th>Why in this place</th>
+            <th>Needs first</th>
+          </tr>
+          <tr>
+            <td class="nowrap">0 Decide</td>
+            <td>Q1 support rule, Q2 what counts as breaking, Q3 registry, Q5 browser-only tests</td>
+            <td>-</td>
+            <td>Every later step is judged by these answers</td>
+            <td>The owner</td>
+          </tr>
+          <tr>
+            <td class="nowrap">1 Guard</td>
+            <td><a href="#B6">B6</a> pin <code>lib</code></td>
+            <td>(b)</td>
+            <td>Makes the rule checkable before any new API is used</td>
+            <td>Q1</td>
+          </tr>
+          <tr>
+            <td class="nowrap">2 Defect</td>
+            <td>Issue for the two-copies collision, spike, <a href="#B1">B1</a></td>
+            <td>(b) or (a)</td>
+            <td>The only item that fixes something broken, in the main use case</td>
+            <td>Q3, the owner's yes for the issue</td>
+          </tr>
+          <tr>
+            <td class="nowrap">3 Quick additions</td>
+            <td>
+              <a href="#A1">A1</a> TrustedHTML, <a href="#A2">A2</a> typed attributes,
+              <a href="#A4">A4</a> DSD placeholder
+            </td>
+            <td>(a)</td>
+            <td>Small, independent, no fallback logic of their own</td>
+            <td>Q4 for A2, Q5 for A4</td>
+          </tr>
+          <tr>
+            <td class="nowrap">4 Stylesheets</td>
+            <td>
+              <a href="#A3">A3</a> sheet in <code>css</code>, <a href="#B2">B2</a> shared sheets
+            </td>
+            <td>(a) + (b)</td>
+            <td>Same files; B2 needs the new benchmark case first</td>
+            <td>A benchmark case</td>
+          </tr>
+          <tr>
+            <td class="nowrap">5 Lists</td>
+            <td><a href="#B3">B3</a> <code>moveBefore</code></td>
+            <td>(b)</td>
+            <td>Visible gain in Chromium and Firefox, fallback elsewhere</td>
+            <td>Q5</td>
+          </tr>
+          <tr>
+            <td class="nowrap">6 Router</td>
+            <td><a href="#A5">A5</a> opt-in view transition</td>
+            <td>(a)</td>
+            <td>Closes a limit the README names; lowest urgency of the set</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td class="nowrap">Later</td>
+            <td>
+              <a href="#A6">A6</a>, <a href="#B4">B4</a>, <a href="#B5">B5</a>,
+              <a href="#B7">B7</a>, <a href="#A7">A7</a>
+            </td>
+            <td></td>
+            <td>Low value now, or waiting for Baseline</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="nowrap">4.0 list</td>
+            <td>C1, C2, C6; C3, C4, C5 when their features are widely available</td>
+            <td>(c)</td>
+            <td>Collected, not scheduled</td>
+            <td>Q7</td>
+          </tr>
+        </table>
+      </div>
+
+      <h3 id="watch">Do not adopt yet</h3>
+
+      <div class="scroll">
+        <table>
+          <tr>
+            <th>Item</th>
+            <th>Reason</th>
+            <th>Look again when</th>
+          </tr>
+          <tr>
+            <td>TypeScript 7 as the only compiler</td>
+            <td>
+              7.0 has no programmatic API; the installed <code>typescript-eslint</code> accepts
+              <code>typescript &lt;6.1.0</code>; the declaration build uses the API
+            </td>
+            <td>
+              7.1 is final and <code>typescript-eslint</code> and <code>unplugin-dts</code> declare
+              support
+            </td>
+          </tr>
+          <tr>
+            <td>TC39 Signals</td>
+            <td>Stage 1; the API is not settled</td>
+            <td>Stage 2.7 or later</td>
+          </tr>
+          <tr>
+            <td>Decorators</td>
+            <td>
+              Stage 2.7 in <code>tc39/proposals</code> and in the proposal's README; no engine entry
+              in the dataset; ECMact's API is functions, and decorators would need a compiler
+            </td>
+            <td>Not planned</td>
+          </tr>
+          <tr>
+            <td><code>using</code> and <code>Symbol.dispose</code></td>
+            <td>No Safari</td>
+            <td>Baseline newly available</td>
+          </tr>
+          <tr>
+            <td>Temporal</td>
+            <td>No Safari; ECMact has no date logic</td>
+            <td>Not planned</td>
+          </tr>
+          <tr>
+            <td>Navigation API router, URLPattern matcher</td>
+            <td>
+              Newly available; a second implementation would have to stay as fallback. URLPattern
+              would replace 61 lines that work
+            </td>
+            <td>Widely available (2028, derived)</td>
+          </tr>
+          <tr>
+            <td>Sanitizer API</td>
+            <td>No Safari; no fallback without a dependency</td>
+            <td>Baseline</td>
+          </tr>
+          <tr>
+            <td><code>scheduler.yield()</code></td>
+            <td>
+              No Safari; effects flush synchronously by design
+              (<code>src/signals/signals.ts:114-137</code>)
+            </td>
+            <td>If chunked rendering of long lists becomes a goal</td>
+          </tr>
+          <tr>
+            <td>Observable (<code>element.when()</code>), reference target</td>
+            <td>
+              Chrome only. Reference target would address the documented limit that labels do not
+              cross a shadow boundary
+            </td>
+            <td>A second engine ships it</td>
+          </tr>
+          <tr>
+            <td>
+              Customizable <code>&lt;select&gt;</code>, anchor positioning,
+              <code>popover="hint"</code>, <code>focusgroup</code>, interest invokers
+            </td>
+            <td>
+              Not Baseline. They are material for the planned component collection, not for the core
+            </td>
+            <td>The specification of the component collection</td>
+          </tr>
+          <tr>
+            <td><code>import defer</code>, source phase imports, import text</td>
+            <td>Stage 3; the library ships one bundled module, there is nothing to defer</td>
+            <td>Not planned</td>
+          </tr>
+        </table>
+      </div>
+
+      <h2 id="found">6 Found, outside the task</h2>
+
+      <p>Not fixed, not filed. Each one becomes an issue or is dropped by the owner.</p>
+      <ol>
+        <li>
+          <b>Two copies of ECMact with the same component name: the second copy throws.</b>
+          <code>src/core/em.ts:45-51</code> skips <code>define</code> when the name exists and then
+          calls <code>element[init]</code>, where <code>init</code> is
+          <code>Symbol('ecmact.init')</code> of this copy (<code>src/core/component.ts:24</code>).
+          Reproduced on 2026-11-19 outside the repository: two copies of
+          <code>dist/index.js</code> under happy-dom 21.0.4; copy A created <code>EM-CARD</code>,
+          copy B threw <code>TypeError: element[init] is not a function</code>. Not run in the three
+          engines. Two-word names such as <code>em.UserCard</code> collide whatever the prefix is.
+          Relevant because two independent ECMact widgets on one host page is the main use case.
+          Answer: <a href="#B1">B1</a>.
+        </li>
+        <li>
+          <b><code>html</code> drops a <code>TrustedHTML</code> value</b>
+          (<code>src/core/element.ts:63-65</code>). Read from the code, not run. Answer:
+          <a href="#A1">A1</a>.
+        </li>
+        <li>
+          <b><code>tsconfig.json</code> has no <code>target</code> or <code>lib</code></b
+          >, so the type check allows built-ins newer than any stated support. Answer:
+          <a href="#B6">B6</a>.
+        </li>
+        <li>
+          <b>The benchmark has no component case</b> (<code>scripts/benchmark.mjs:28</code>). Needed
+          before B2 or B3 can claim anything.
+        </li>
+        <li>
+          Upstream only, no action: the comment above the target list in the installed Vite 8.3.8
+          says "2025-05-01" while the Vite documentation says "2026-01-01 for this major". The list
+          is the same in both, and the README matches the documentation.
+        </li>
+      </ol>
+
+      <h2 id="decide">7 To decide</h2>
+
+      <div class="q-card" id="q1">
+        <h4>Q1 Which browsers may ECMact require without a check?</h4>
+        <ol type="A">
+          <li>
+            Baseline widely available on the day of a release. Anything newer only behind feature
+            detection with a fallback that gives the documented result.
+          </li>
+          <li>
+            Baseline newly available. More features directly, but users on a browser a few months
+            old get errors.
+          </li>
+          <li>Keep "any evergreen browser" and decide case by case.</li>
+        </ol>
+        <p>
+          <span class="rec">Recommendation: A.</span> It is a dated, checkable rule from a public
+          dataset, it matches what the code already does for stylesheets, and it matches the build
+          target that Vite applies to syntax.
+        </p>
+      </div>
+
+      <div class="q-card" id="q2">
+        <h4>Q2 Is raising the minimum browser version inside 3.x a breaking change?</h4>
+        <p>
+          Example: B4 would raise the HTTP client from "whatever has <code>fetch</code> and
+          <code>AbortController</code>" to Safari 17.4. By <code>AGENTS.md</code> a breaking change
+          of 3.x is the owner's decision.
+        </p>
+        <ol type="A">
+          <li>
+            No, as long as the new minimum is inside the rule of Q1; it ships in a minor version and
+            is named in the release notes.
+          </li>
+          <li>Yes; any higher minimum waits for 4.0.</li>
+        </ol>
+        <p>
+          <span class="rec">Recommendation: A</span>, and only where the change removes real code.
+          Under B, options B4 and B5 move to class (c).
+        </p>
+      </div>
+
+      <div class="q-card" id="q3">
+        <h4>Q3 How should the collision between two copies be handled?</h4>
+        <ol type="A">
+          <li>
+            Fix in 3.x: a scoped registry per copy where the browser has it, automatically; a clear
+            error in the fallback.
+          </li>
+          <li>The same code behind a configuration key in 3.x, default in 4.0.</li>
+          <li>Document only: a unique prefix and no shared two-word names.</li>
+        </ol>
+        <p>
+          <span class="rec"
+            >Recommendation: open the issue now, run a spike in the three engines, then A</span
+          >
+          if the spike shows no documented behaviour depends on the global registry, otherwise B. C
+          leaves a run-time error in the main use case.
+        </p>
+      </div>
+
+      <div class="q-card" id="q4">
+        <h4>Q4 Are attributes that are not Baseline typed?</h4>
+        <ol type="A">
+          <li>
+            Yes: the types follow the HTML standard; an attribute a browser does not know is ignored
+            by it.
+          </li>
+          <li>Only Baseline attributes.</li>
+        </ol>
+        <p>
+          <span class="rec">Recommendation: A.</span> <code>popover: 'hint'</code> is already typed
+          and is not Baseline.
+        </p>
+      </div>
+
+      <div class="q-card" id="q5">
+        <h4>Q5 Where are native-only paths tested?</h4>
+        <p>
+          <code>tests/browser/</code> is a closed list, and a new browser-only area needs the
+          owner's decision.
+        </p>
+        <ol type="A">
+          <li>
+            Add one file for platform paths (scoped registry, <code>moveBefore</code>, Declarative
+            Shadow DOM, Trusted Types, view transition) to the list.
+          </li>
+          <li>
+            Put each test into the existing file closest to it (<code>lifecycle</code>,
+            <code>nesting</code>, <code>focus</code>, <code>adopted-sheets</code>).
+          </li>
+          <li>Only stubs in the common tests.</li>
+        </ol>
+        <p>
+          <span class="rec">Recommendation: A.</span> One place shows which engine takes which path.
+          C would test the stub, not the browser.
+        </p>
+      </div>
+
+      <div class="q-card" id="q6">
+        <h4>Q6 When, relative to the planned work?</h4>
+        <ol type="A">
+          <li>
+            After the documentation redesign and the patch release, as a minor version 3.1 with
+            steps 1-4 of the roadmap.
+          </li>
+          <li>Put A1 and A2 into the planned patch release.</li>
+          <li>After the component collection.</li>
+        </ol>
+        <p>
+          <span class="rec">Recommendation: A.</span> A1 and A2 add to the API, and the README puts
+          features into minor versions. The collision fix may go into a patch if the owner
+          classifies it as a bug fix.
+        </p>
+      </div>
+
+      <div class="q-card" id="q7">
+        <h4>Q7 What happens to the 4.0 candidates?</h4>
+        <ol type="A">
+          <li>Record them as candidates in the decision log; no date.</li>
+          <li>Plan a 4.0 around C1, C2 and C6.</li>
+          <li>Drop them.</li>
+        </ol>
+        <p>
+          <span class="rec">Recommendation: A.</span> None of them gives users anything they need
+          now, and 3.0 is recent.
+        </p>
+      </div>
+
+      <div class="q-card" id="q8">
+        <h4>Q8 TypeScript 7</h4>
+        <ol type="A">
+          <li>Stay on 6.0.x until the linter and the declaration build support 7.x.</li>
+          <li>Install 7 next to 6 now and type-check with 7.</li>
+        </ol>
+        <p><span class="rec">Recommendation: A.</span></p>
+      </div>
+
+      <h2 id="unverified">8 Not verified</h2>
+
+      <ul>
+        <li>
+          <b>Nothing was built, tested or measured in the repository</b> (read-only assignment).
+          Every size and speed effect is "to be measured with <code>npm run size</code>" or "<code
+            >npm run bench</code
+          >".
+        </li>
+        <li>
+          The collision (section 6) was reproduced only under happy-dom 21.0.4 with the
+          <code>dist/index.js</code> present on 2026-11-19, not in Chromium, Firefox or WebKit.
+        </li>
+        <li>
+          A4: that a widget takes over a declarative shadow root today. Derived from
+          <code>src/widget/widget.ts:160</code> and the MDN text for <code>attachShadow()</code>;
+          not run.
+        </li>
+        <li>
+          B1: the behaviour of an element created with <code>{ customElementRegistry }</code> after
+          it is inserted into the document, and of <code>html</code> content inside such a root. The
+          option names were read on MDN (<code>attachShadow</code>, <code>createElement</code>,
+          <code>CustomElementRegistry</code>); the MDN guide section on scoped registries and the
+          engines were not checked.
+        </li>
+        <li>
+          B3: the exact condition under which <code>moveBefore()</code> is safe inside
+          <code>fill()</code>; MDN lists the exceptions, the DOM standard was not read.
+        </li>
+        <li>
+          B4: whether Vitest fake timers drive <code>AbortSignal.timeout()</code>, and whether
+          happy-dom has <code>AbortSignal.any()</code>.
+        </li>
+        <li>
+          B6: which ECMAScript edition <code>src/</code> needs today, and the effective
+          <code>target</code> and <code>lib</code> (<code>tsc --showConfig</code> was not run; the
+          default <code>es2025</code> is from the TypeScript 6.0 announcement).
+        </li>
+        <li>
+          B7: the exact annotation rules of <code>isolatedDeclarations</code> (the option page only
+          links to the 5.5 notes); the count of exports is a rough text search. Whether
+          <code>unplugin-dts</code> works with TypeScript 7.x. The plans of
+          <code>typescript-eslint</code> for 7.x: only the installed peer range was verified, the
+          rest is from secondary articles.
+        </li>
+        <li>
+          The date of the final TypeScript 7.1: the beta post says a release candidate about a month
+          after the beta and the final release shortly after, without a date.
+        </li>
+        <li>
+          Safari support for Temporal, <code>using</code>, <code>Error.isError()</code>,
+          <code>moveBefore()</code>, the Sanitizer API and the Scheduler API: taken from the dataset
+          (no Safari version listed up to 27.2); Safari release notes were not read.
+        </li>
+        <li>
+          Native decorators in any engine: the dataset has no entry; not checked further. The
+          Node.js documentation still calls decorators "Stage 3" while
+          <code>tc39/proposals</code> and the proposal's README say 2.7.
+        </li>
+        <li>
+          RegExp modifiers, duplicate named groups, iterator chunking, <code>includes</code> and
+          <code>join</code>: browser status not looked up one by one, no use in ECMact.
+        </li>
+        <li>
+          The publication years ES2025, ES2026 and 2027 are the "expected publication year" column
+          of the TC39 list; the Ecma approval dates were not checked.
+        </li>
+        <li>
+          How a strict <code>style-src</code> CSP treats constructable stylesheets and the
+          <code>&lt;style&gt;</code> fallback: not researched.
+        </li>
+        <li>
+          The <code>find-docs</code> skill (context7) was not used; the facts come from the primary
+          sources listed below.
+        </li>
+      </ul>
+
+      <h2 id="sources">9 Sources and method</h2>
+
+      <ul>
+        <li>
+          Repository, read only: <code>AGENTS.md</code>, <code>README.md</code>,
+          <code>CONTRIBUTING.md</code>, <code>docs/handoff.md</code>,
+          <code>docs/decisions.md</code>, <code>package.json</code>, <code>tsconfig.json</code>,
+          <code>vite.config.ts</code>, <code>.github/workflows/ci.yml</code>, all of
+          <code>src/</code>, parts of <code>tests/</code> and <code>scripts/</code>, and the
+          installed versions under <code>node_modules/</code>.
+        </li>
+        <li>
+          TC39:
+          <a href="https://github.com/tc39/proposals/blob/main/finished-proposals.md"
+            >finished proposals</a
+          >,
+          <a href="https://github.com/tc39/proposals/blob/main/README.md"
+            >active proposals (stage 2 to 3)</a
+          >,
+          <a href="https://github.com/tc39/proposals/blob/main/stage-1-proposals.md"
+            >stage 1 proposals</a
+          >, <a href="https://github.com/tc39/proposal-decorators">decorators</a> and
+          <a
+            href="https://github.com/tc39/notes/blob/HEAD/meetings/2026-05/may-19.md#decorators-for-stage-27"
+            >its May 2026 notes</a
+          >, <a href="https://github.com/tc39/proposal-signals">Signals</a>,
+          <a
+            href="https://github.com/tc39/notes/blob/HEAD/meetings/2026-03/march-11.md#temporal-for-stage-4"
+            >Temporal for stage 4</a
+          >. Read on 2026-11-19.
+        </li>
+        <li>
+          Baseline: the
+          <a href="https://www.npmjs.com/package/web-features">web-features</a> dataset 3.46.0
+          (<code>data.json</code>), cross-checked for three features against the
+          <a href="https://github.com/web-platform-dx/web-features/tree/main/features"
+            >feature files</a
+          >.
+        </li>
+        <li>
+          MDN:
+          <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/moveBefore"
+            >moveBefore()</a
+          >,
+          <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow"
+            >attachShadow()</a
+          >,
+          <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement"
+            >createElement()</a
+          >,
+          <a href="https://developer.mozilla.org/en-US/docs/Web/API/CustomElementRegistry"
+            >CustomElementRegistry</a
+          >,
+          <a href="https://developer.mozilla.org/en-US/docs/Web/API/Trusted_Types_API"
+            >Trusted Types API</a
+          >.
+        </li>
+        <li>
+          TypeScript:
+          <a href="https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/">6.0</a>,
+          <a href="https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/">7.0</a>,
+          <a href="https://devblogs.microsoft.com/typescript/announcing-typescript-7-1-beta/"
+            >7.1 beta</a
+          >,
+          <a href="https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-9.html"
+            >5.9 notes</a
+          >,
+          <a href="https://www.typescriptlang.org/tsconfig/isolatedDeclarations.html"
+            >isolatedDeclarations</a
+          >; versions and dates from the
+          <a href="https://www.npmjs.com/package/typescript?activeTab=versions">npm registry</a>.
+        </li>
+        <li>
+          Node.js: <a href="https://nodejs.org/api/typescript.html">TypeScript support</a>,
+          <a href="https://nodejs.org/api/modules.html">require() of ES modules</a>. Vite:
+          <a href="https://vite.dev/config/build-options">build.target</a>.
+        </li>
+      </ul>
+    </main>
+  </body>
+</html>

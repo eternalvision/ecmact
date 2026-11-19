@@ -28,3 +28,7 @@ The dated log of decisions made after the specification and the plan. D1-D21 are
 - D36. The owner approved the documentation redesign plan and authorized issue creation. Issues #44–#48 are in the Documentation redesign milestone.
 
 - D37 (US1). The transparent README and site lockup is drawn in one gray, #767676: a single-color transparent PNG cannot be black and white at once, and this gray keeps 4.5:1 on white and on black. The header uses the text color through an inline SVG, the mark and the favicon are ink on paper, and `npm run brand:images` renders all the images from `packages/site/src/lib/brand.ts`.
+
+- D38. Browser support for 3.x (owner, after the JS/TS platform survey in `docs/sessions/19112026-JsTsFeatures/`): unguarded calls use only Baseline widely available features; newer platform features are used behind feature detection with a fallback and ship in a minor (3.1), so the minimum browser does not rise within 3.x.
+- D39. Two ECMact copies defining the same component name crash the second copy: #50, a spike in the three engines, then a scoped custom element registry where available with a clear error as fallback.
+- D40. Native-only platform paths (scoped registries, `moveBefore`, `TrustedHTML`) are tested in one new file added to the closed `tests/browser/` list (owner approved extending the list).
