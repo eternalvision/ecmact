@@ -1,5 +1,6 @@
 import { offer, type Provision } from '@em/core/context';
 import { bindControl } from '@em/forms/bindControl';
+import { writeDisabled } from '@em/forms/formControl';
 import type { ErrorHandler } from '@em/core/config';
 import { catchErrors, report } from '@em/core/errors';
 import { applyStyle, setStyle } from '@em/render/applyStyle';
@@ -60,13 +61,14 @@ const isOff = (value: unknown) => value === undefined || value === null || value
  * @param value - The value.
  */
 const setAttribute = (element: HTMLElement, key: string, value: unknown) => {
-  if (typeof value === 'string' || typeof value === 'number') {
-    element.setAttribute(key, String(value));
-  } else if (value === true) {
-    element.setAttribute(key, '');
-  } else {
-    element.removeAttribute(key);
-    if (!isOff(value)) warn(`attribute "${key}" was ignored, ${typeof value} values cannot be set`);
+  let text: string | null = null;
+  if (typeof value === 'string' || typeof value === 'number') text = String(value);
+  else if (value === true) text = '';
+  if (key === 'disabled') writeDisabled(element, text);
+  else if (text === null) element.removeAttribute(key);
+  else element.setAttribute(key, text);
+  if (text === null && !isOff(value)) {
+    warn(`attribute "${key}" was ignored, ${typeof value} values cannot be set`);
   }
 };
 

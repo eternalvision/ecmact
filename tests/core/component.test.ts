@@ -409,6 +409,39 @@ describe('Component: form fields', () => {
     expect(() => em.Field({ field: true }).formDisabledCallback(true)).not.toThrow();
   });
 
+  it('preserves the current reactive control setting while the host disables it', () => {
+    const disabled = signal(false);
+    const input = tags.input({ disabled });
+    const field = em.Field({ field: true }, input);
+
+    field.formDisabledCallback(true);
+    disabled.value = true;
+    field.formDisabledCallback(true);
+    field.formDisabledCallback(false);
+    expect(input.disabled).toBe(true);
+
+    field.formDisabledCallback(true);
+    disabled.value = false;
+    expect(input.disabled).toBe(true);
+    field.formDisabledCallback(false);
+    expect(input.disabled).toBe(false);
+  });
+
+  it('keeps a shared control disabled until both fields release it', () => {
+    const disabled = signal(true);
+    const input = tags.input({ disabled });
+    const inner = em.InnerField({ field: true, shadow: false }, input);
+    const outer = em.OuterField({ field: true, shadow: false }, inner);
+
+    outer.formDisabledCallback(true);
+    inner.formDisabledCallback(true);
+    disabled.value = false;
+    inner.formDisabledCallback(false);
+    expect(input.disabled).toBe(true);
+    outer.formDisabledCallback(false);
+    expect(input.disabled).toBe(false);
+  });
+
   it('forwards a click on the host to the control', () => {
     const input = tags.input({ type: 'checkbox' });
     const field = em.Field({ field: true, name: 'n' }, input);

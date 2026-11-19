@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { isControl, readFormValue, readValidity, resetControl } from '@em/forms/formControl';
+import {
+  isControl,
+  readFormValue,
+  readValidity,
+  resetControl,
+  restoreOwnDisabled,
+} from '@em/forms/formControl';
 
 const fill = <T extends HTMLElement>(element: T, init: Record<string, unknown>) => {
   Object.entries(init).forEach(([key, value]) => {
@@ -21,6 +27,14 @@ describe('isControl', () => {
     expect(isControl(makeSelect())).toBe(true);
     expect(isControl(makeArea())).toBe(true);
     expect(isControl(makeDiv())).toBe(false);
+  });
+});
+
+describe('restoreOwnDisabled', () => {
+  it('leaves an author-disabled control alone when it is not disabled by a field', () => {
+    const input = makeInput({ disabled: true });
+    restoreOwnDisabled(input);
+    expect(input.disabled).toBe(true);
   });
 });
 

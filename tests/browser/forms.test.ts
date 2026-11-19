@@ -100,6 +100,48 @@ describe('form-associated field in a real form', () => {
     expect(new FormData(form).get('email')).toBe('a@b.c');
   });
 
+  it('keeps each control’s own disabled state over repeated fieldset toggles', () => {
+    const lockedInput = tags.input({ disabled: true });
+    const openInput = tags.input();
+    const fieldset = tags.fieldset(
+      em.Field({ field: true }, lockedInput),
+      em.Field({ field: true }, openInput),
+    );
+    makeForm(fieldset);
+
+    for (let cycle = 0; cycle < 2; cycle++) {
+      fieldset.disabled = true;
+      expect(lockedInput.disabled).toBe(true);
+      expect(openInput.disabled).toBe(true);
+      fieldset.disabled = false;
+      expect(lockedInput.disabled).toBe(true);
+      expect(openInput.disabled).toBe(false);
+    }
+  });
+
+  it('restores a control’s own state when the host is enabled', () => {
+    const input = tags.input({ disabled: true });
+    const field = em.Field({ field: true }, input);
+    makeForm(field);
+
+    field.setAttribute('disabled', '');
+    field.removeAttribute('disabled');
+    expect(input.disabled).toBe(true);
+  });
+
+  it('enables a control shared by nested light-DOM fields when their fieldset is enabled', () => {
+    const input = tags.input();
+    const inner = em.InnerField({ field: true, shadow: false }, input);
+    const outer = em.OuterField({ field: true, shadow: false }, inner);
+    const fieldset = tags.fieldset(outer);
+    makeForm(fieldset);
+
+    fieldset.disabled = true;
+    expect(input.disabled).toBe(true);
+    fieldset.disabled = false;
+    expect(input.disabled).toBe(false);
+  });
+
   it('forwards a click on its wrapping label to the control', () => {
     const field = em.Field(
       { field: true, name: 'agree' },

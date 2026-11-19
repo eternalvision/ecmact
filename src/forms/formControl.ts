@@ -14,6 +14,59 @@ const validityKeys = [
   'valueMissing',
 ] as const;
 
+/** The control's own disabled attribute and the number of fields temporarily overriding it. */
+interface DisabledOverride {
+  /** The attribute value to restore when the last field is enabled. */
+  value: string | null;
+  /** Field hosts that currently keep this control disabled. */
+  fields: number;
+}
+
+const disabledOverrides = new WeakMap<Element, DisabledOverride>();
+
+/**
+ * Applies an authored disabled attribute, or remembers it while the field keeps the control disabled.
+ *
+ * @param control - The element whose disabled prop changed.
+ * @param value - The attribute value, or `null` to remove it.
+ */
+export const writeDisabled = (control: Element, value: string | null) => {
+  const override = disabledOverrides.get(control);
+  if (override) override.value = value;
+  else if (value === null) control.removeAttribute('disabled');
+  else control.setAttribute('disabled', value);
+};
+
+/**
+ * Keeps a control disabled until its field enables it again.
+ *
+ * @param control - The control inside the field.
+ */
+export const disableFromField = (control: Element) => {
+  const override = disabledOverrides.get(control);
+  if (override) {
+    override.fields++;
+    return;
+  }
+  const value = control.getAttribute('disabled');
+  disabledOverrides.set(control, { value, fields: 1 });
+  if (value === null) control.setAttribute('disabled', '');
+};
+
+/**
+ * Restores the control's own disabled attribute after its field is enabled again.
+ *
+ * @param control - The control that the field disabled.
+ */
+export const restoreOwnDisabled = (control: Element) => {
+  const override = disabledOverrides.get(control);
+  if (!override) return;
+  override.fields--;
+  if (override.fields > 0) return;
+  disabledOverrides.delete(control);
+  writeDisabled(control, override.value);
+};
+
 /**
  * Tells whether an element is a native form control that has a value and constraints.
  *
