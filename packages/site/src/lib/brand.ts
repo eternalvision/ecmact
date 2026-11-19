@@ -1,6 +1,7 @@
 /**
  * The geometry of the ECMact identity, drawn once on a grid where the mark is 64 units tall. The header, the favicon
- * and the raster images in `public/` are all made from these strings, so the three cannot drift apart.
+ * and the raster images in `public/` are all made from these strings, so the three cannot drift apart. After a change,
+ * run `npm run brand:images` (`scripts/brand-images.mjs`) to render the images again.
  */
 export const brand = {
   /** The solid square of the mark. */

@@ -132,6 +132,9 @@ describe('stylesheet themes', () => {
         });
       });
       expect(contrast(theme['--on-primary']!, theme['--primary']!)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(theme['--on-primary']!, theme['--primary-hover']!)).toBeGreaterThanOrEqual(
+        4.5,
+      );
       expect(contrast(theme['--danger']!, theme['--surface']!)).toBeGreaterThanOrEqual(4.5);
       Object.keys(theme)
         .filter((name) => name.startsWith('--tok-') || name === '--code-text')

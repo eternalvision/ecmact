@@ -11,6 +11,7 @@
   --primary: #141414;
   --primary-bright: #141414;
   --on-primary: #ffffff;
+  --primary-hover: #3a3a3a;
   --focus: #141414;
   --danger: #b42318;
   --code-bg: #f2f2f2;
@@ -43,6 +44,7 @@
     --primary: #ffffff;
     --primary-bright: #ffffff;
     --on-primary: #141414;
+    --primary-hover: #d4d4d4;
     --focus: #ffffff;
     --danger: #ff9b9b;
     --code-bg: #1c1c1c;
@@ -71,6 +73,7 @@
   --primary: #ffffff;
   --primary-bright: #ffffff;
   --on-primary: #141414;
+  --primary-hover: #d4d4d4;
   --focus: #ffffff;
   --danger: #ff9b9b;
   --code-bg: #1c1c1c;
@@ -264,11 +267,12 @@ pre code {
   text-decoration: none;
   transition:
     transform 0.05s,
-    filter 0.15s;
+    background 0.15s;
 }
 
 .button:hover {
-  filter: brightness(1.1);
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
   text-decoration: none;
 }
 
@@ -302,6 +306,12 @@ pre code {
 
 .hero-logo {
   width: min(26rem, 80%);
+  color: var(--text);
+}
+
+.hero-logo .logo-art {
+  width: 100%;
+  height: auto;
 }
 
 .hero h1 {
@@ -636,7 +646,6 @@ pre code {
 .tok-comment {
   font-style: italic;
   color: var(--tok-comment);
-  font-style: italic;
 }
 .tok-string {
   color: var(--tok-string);

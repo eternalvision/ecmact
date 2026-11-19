@@ -3,8 +3,8 @@ import { text } from '@site/content/messages';
 import { localeStore } from '@site/lib/i18n';
 
 /**
- * A button that switches the language. It names the language it will switch to, and its accessible name repeats
- * that text after what the button does.
+ * A button that switches the language. It names the language it will switch to. Only that name is marked with
+ * its own language, so the accessible name of the button stays in the language of the page.
  *
  * @returns The button.
  */
@@ -14,10 +14,9 @@ export const LanguageToggle = () => {
     {
       type: 'button',
       class: 'chip',
-      lang: m.languageName.toLowerCase(),
       'aria-label': `${m.language}: ${m.languageName}`,
       onclick: localeStore.cycle,
     },
-    m.languageName,
+    tags.span({ lang: m.languageName.toLowerCase() }, m.languageName),
   );
 };
