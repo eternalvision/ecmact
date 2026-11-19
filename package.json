@@ -37,7 +37,8 @@
     "build:all": "npm run build && npm run build --workspaces --if-present",
     "test:template": "node scripts/check-template.mjs",
     "bench": "npm run build && node scripts/benchmark.mjs",
-    "size": "node scripts/size.mjs"
+    "size": "node scripts/size.mjs",
+    "brand:images": "node scripts/brand-images.mjs"
   },
   "keywords": [
     "web-components",
