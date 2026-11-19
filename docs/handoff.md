@@ -17,4 +17,4 @@ The published versions are ecmact 3.0.0 and create-ecmact 0.4.0. The published g
 
 ## Documentation redesign
 
-F2 approved and F3 complete. The five issues are #44–#48 in the Documentation redesign milestone. Begin F4 with #44, the monochrome identity and shared site shell. See the [specification](plans/2026-11-19-docs-redesign-spec.md), [plan](plans/2026-11-19-docs-redesign-plan.md) and [design study](sessions/19112026-DocsRedesign/index.html). The patch release follows the redesign. The component collection follows as a separate specification.
+F2 approved and F3 complete. The five issues are #44–#48 in the Documentation redesign milestone. Begin F4 with #44, the monochrome identity and shared site shell. See the [specification](plans/2026-11-19-docs-redesign-spec.md), [plan](plans/2026-11-19-docs-redesign-plan.md) and [design study](sessions/19112026-DocsRedesign/index.html). US7 (default English) is merged. US4b (the registry, the frame and six examples of state and interface, #54) is in review on `feature/54-examples-state-interface`; US4c (#55) is next. The patch release follows the redesign. The component collection follows as a separate specification.

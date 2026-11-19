@@ -1,3 +1,4 @@
+import type { DemoGroup } from '@site/demos/index';
 import { currentLocale, type Locale } from '@site/lib/i18n';
 
 /** Every piece of text of the interface that is not documentation: one set per language. */
@@ -61,10 +62,15 @@ export interface Messages {
     failed: string;
     copyLabel: string;
     run: string;
-    source: string;
+    stage: string;
+    guide: string;
   };
-  /** The gallery. */
-  examples: { title: string; lead: string };
+  /** The gallery: its title, its lead and the tasks it is grouped by. */
+  examples: {
+    title: string;
+    lead: string;
+    groups: Record<DemoGroup, { title: string; lead: string }>;
+  };
   /** The page for an unknown address. */
   notFound: { title: string; lead: string; home: string; docs: string };
   /** The widget gallery. */
@@ -91,7 +97,7 @@ export interface Messages {
     themeLead: string;
   };
   /** The titles of the demos, by id. */
-  demos: Record<string, { title: string; description: string }>;
+  demos: Record<string, { title: string; description: string; hint?: string; note?: string }>;
   /** The home page. */
   home: {
     heroTitle: string;
@@ -202,11 +208,30 @@ const en: Messages = {
     failed: 'Failed',
     copyLabel: 'Copy to the clipboard',
     run: 'Run',
-    source: 'Code',
+    stage: 'Live example',
+    guide: 'Guide',
   },
   examples: {
     title: 'Examples',
-    lead: 'Every example below is a live ECMact component. Switch to the Code tab to read the exact source that runs.',
+    lead: 'Every example runs on its own stage. Open the tab of a file beside Run to read the exact source that runs, and copy it.',
+    groups: {
+      state: {
+        title: 'State and signals',
+        lead: 'Values that change, and the texts and rows that follow them.',
+      },
+      interface: {
+        title: 'Interface',
+        lead: 'Styling, forms and context: what a visitor sees and touches.',
+      },
+      requests: {
+        title: 'Requests and data',
+        lead: 'Calls to a server that can be slow, wrong or gone.',
+      },
+      lifecycle: {
+        title: 'Lifecycle and widgets',
+        lead: 'What happens when a part appears, changes and leaves.',
+      },
+    },
   },
   notFound: {
     title: 'Page not found',
@@ -270,57 +295,62 @@ const en: Messages = {
       'Set them on the widget element or on any ancestor. A widget reads them with its own defaults, so setting none gives its original look. The flip cards of countdown-timer are painted from --w-bg too, so if --w-bg is a gradient, also set --w-tile to a plain color for them.',
   },
   demos: {
-    counter: {
-      title: 'Signals',
+    exposure: {
+      title: 'Exposure triangle',
       description:
-        'A signal, a value computed from it and two texts that follow them: nothing else updates.',
+        'Aperture, shutter and ISO are three signals; the exposure value is computed from them.',
+      hint: 'try the keys',
     },
-    todo: {
-      title: 'Keyed list and store',
-      description:
-        'A store holds the to-dos, a keyed list shows them, a function child counts them.',
+    setlist: {
+      title: 'Setlist for tonight',
+      description: "A band's running order: reorder the songs and keep an eye on the curfew.",
+      hint: 'move a song',
+      note: 'A moved row keeps its focus from the next 3.0.x patch (#34). In 3.0.0 the focus is lost.',
     },
-    styled: {
-      title: 'Styled components and themes',
-      description:
-        'Props, keyframes and a theme from a signal: pick a swatch to restyle everything.',
+    fieldbook: {
+      title: 'Field notebook',
+      description: "A bird-watcher's tally that is still there after a reload.",
+      hint: 'add a sighting, then reload',
     },
-    store: {
-      title: 'Persistent store',
-      description:
-        'The persist option keeps the notes in localStorage: add one and reload the page.',
+    typecase: {
+      title: 'Wood-type poster',
+      description: 'Set a headline, choose the ink and the stock, pull a proof.',
+      hint: 'try the inks',
+    },
+    customs: {
+      title: 'Customs declaration',
+      description: 'Shadow DOM fields that a native form validates, submits and resets.',
+      hint: 'leave a field wrong',
+      note: 'A field whose own input is disabled, like the arrival date while in transit, is left out of FormData from the next 3.0.x patch (#31). In 3.0.0 it is still sent.',
+    },
+    gels: {
+      title: 'Lighting plot',
+      description: 'Nested zones of a stage, each able to put a gel in front of its lamps.',
+      hint: 'cycle the gels',
     },
     http: {
       title: 'HTTP client and resource',
       description: 'Retries, aborted requests and loading state against a fake server.',
-    },
-    form: {
-      title: 'Form fields in a Shadow DOM',
-      description: 'Components that take part in native form validation and FormData.',
     },
     github: {
       title: 'GitHub API',
       description:
         'A repository card from the GitHub API, with a debounced input and a rate-limit interceptor.',
     },
-    weather: {
-      title: 'Weather API',
-      description:
-        'The open-meteo.com API through resource(): a signal picks the city, the old request is aborted.',
-    },
     posts: {
       title: 'Create, read, delete',
       description:
         'Optimistic updates against jsonplaceholder, with interceptors that count and time the requests.',
     },
+    weather: {
+      title: 'Weather API',
+      description:
+        'The open-meteo.com API through resource(): a signal picks the city, the old request is aborted.',
+    },
     lifecycle: {
       title: 'Lifecycle hooks',
       description:
         'mounted with a cleanup, an effect that stops by itself and unmounted, on a clock you can remove.',
-    },
-    context: {
-      title: 'Context',
-      description: 'Nested providers: each label asks the nearest one above it for its color.',
     },
     widget: {
       title: 'defineWidget',
@@ -457,11 +487,30 @@ const ru: Messages = {
     failed: 'Не вышло',
     copyLabel: 'Копировать в буфер обмена',
     run: 'Запуск',
-    source: 'Код',
+    stage: 'Живой пример',
+    guide: 'Руководство',
   },
   examples: {
     title: 'Примеры',
-    lead: 'Каждый пример ниже - живой компонент ECMact. Откройте вкладку «Код», чтобы прочитать исходник, который выполняется.',
+    lead: 'Каждый пример работает на своей сцене. Откройте вкладку файла рядом с «Запуском», чтобы прочитать исходник, который выполняется, и скопировать его.',
+    groups: {
+      state: {
+        title: 'Состояние и сигналы',
+        lead: 'Значения, которые меняются, и тексты и строки, которые за ними следят.',
+      },
+      interface: {
+        title: 'Интерфейс',
+        lead: 'Стили, формы и контекст: то, что посетитель видит и трогает.',
+      },
+      requests: {
+        title: 'Запросы и данные',
+        lead: 'Обращения к серверу, который может быть медленным, неправым или недоступным.',
+      },
+      lifecycle: {
+        title: 'Жизненный цикл и виджеты',
+        lead: 'Что происходит, когда часть появляется, меняется и уходит.',
+      },
+    },
   },
   notFound: {
     title: 'Страница не найдена',
@@ -526,57 +575,64 @@ const ru: Messages = {
       'Задавайте их на элементе виджета или на любом предке. Виджет читает их со своими значениями по умолчанию, поэтому без них он выглядит исходно. Карточки счётчика countdown-timer тоже закрашиваются из --w-bg, поэтому если --w-bg - градиент, задайте для них ещё и --w-tile простым цветом.',
   },
   demos: {
-    counter: {
-      title: 'Сигналы',
+    exposure: {
+      title: 'Треугольник экспозиции',
       description:
-        'Сигнал, вычисленное из него значение и два текста, которые за ними следят: больше ничего не обновляется.',
+        'Диафрагма, выдержка и ISO - три сигнала; значение экспозиции вычисляется из них.',
+      hint: 'понажимайте клавиши',
     },
-    todo: {
-      title: 'Список с ключами и стор',
+    setlist: {
+      title: 'Сет-лист на вечер',
       description:
-        'Стор хранит дела, список с ключами их показывает, реактивная функция их считает.',
+        'Порядок выступления группы: переставляйте песни и следите за комендантским часом.',
+      hint: 'переставьте песню',
+      note: 'Переставленная строка сохраняет фокус со следующего патча 3.0.x (#34). В 3.0.0 фокус теряется.',
     },
-    styled: {
-      title: 'Styled-компоненты и темы',
-      description: 'Пропсы, keyframes и тема из сигнала: выберите цвет, и всё перестилизуется.',
+    fieldbook: {
+      title: 'Полевой блокнот',
+      description: 'Счёт наблюдений орнитолога, который остаётся и после перезагрузки.',
+      hint: 'добавьте наблюдение и перезагрузите страницу',
     },
-    store: {
-      title: 'Стор с сохранением',
+    typecase: {
+      title: 'Афиша деревянным шрифтом',
+      description: 'Задайте заголовок, выберите краску и бумагу, сделайте оттиск.',
+      hint: 'попробуйте краски',
+    },
+    customs: {
+      title: 'Таможенная декларация',
+      description: 'Поля в Shadow DOM, которые нативная форма проверяет, отправляет и сбрасывает.',
+      hint: 'оставьте поле неверным',
+      note: 'Поле, чей собственный input отключён, как дата прибытия при пересадке, исключается из FormData со следующего патча 3.0.x (#31). В 3.0.0 оно всё ещё отправляется.',
+    },
+    gels: {
+      title: 'Световая схема',
       description:
-        'Опция persist хранит заметки в localStorage: добавьте одну и перезагрузите страницу.',
+        'Вложенные зоны сцены, и каждая может поставить светофильтр перед своими приборами.',
+      hint: 'листайте светофильтры',
     },
     http: {
       title: 'HTTP-клиент и resource',
       description: 'Повторы, прерванные запросы и состояние загрузки на фейковом сервере.',
-    },
-    form: {
-      title: 'Поля формы в Shadow DOM',
-      description: 'Компоненты, которые участвуют в нативной валидации формы и в FormData.',
     },
     github: {
       title: 'GitHub API',
       description:
         'Карточка репозитория из GitHub API: ввод с задержкой и интерцептор лимита запросов.',
     },
-    weather: {
-      title: 'API погоды',
-      description:
-        'API open-meteo.com через resource(): сигнал выбирает город, старый запрос прерывается.',
-    },
     posts: {
       title: 'Создать, прочитать, удалить',
       description:
         'Оптимистичные обновления на jsonplaceholder, интерцепторы считают запросы и замеряют время.',
     },
+    weather: {
+      title: 'API погоды',
+      description:
+        'API open-meteo.com через resource(): сигнал выбирает город, старый запрос прерывается.',
+    },
     lifecycle: {
       title: 'Хуки жизненного цикла',
       description:
         'mounted с очисткой, эффект, который останавливается сам, и unmounted на часах, которые можно убрать.',
-    },
-    context: {
-      title: 'Контекст',
-      description:
-        'Вложенные провайдеры: каждая подпись спрашивает у ближайшего над ней свой цвет.',
     },
     widget: {
       title: 'defineWidget',
