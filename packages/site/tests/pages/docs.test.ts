@@ -178,6 +178,18 @@ describe.each(locales)('the addresses of the pages in %s', (locale) => {
   });
 });
 
+describe('the guide http', () => {
+  it.each(['en', 'ru'] as const)('runs the telephone exchange in %s', async (locale) => {
+    await useLocale(locale);
+    const { page } = open('http');
+    expect(page.querySelector('article .demo h3')?.textContent).toBe(
+      locale === 'en' ? 'Telephone exchange' : 'Телефонная станция',
+    );
+    expect(page.querySelector('article .demo em-switchboard')).not.toBeNull();
+    await resetLocale();
+  });
+});
+
 describe('the addresses of the English headings in Russian', () => {
   afterEach(async () => {
     await resetLocale();

@@ -95,9 +95,22 @@ describe('DemoFrame', () => {
     ).toBe('nope');
   });
 
-  it('pads the stage of a demo that asks for it', () => {
-    expect(DemoFrame(exposure).querySelector('.stage-padded')).toBeNull();
-    expect(DemoFrame({ ...exposure, padded: true }).querySelector('.stage-padded')).not.toBeNull();
+  it('links a demo that runs on a page of its own to that page, in both languages, and no other', async () => {
+    vi.stubEnv('BASE_URL', '/ecmact/');
+    expect(DemoFrame(exposure).querySelector('.demo-open')).toBeNull();
+    const atlas = findDemo('atlas')!;
+    const link = DemoFrame(atlas).querySelector<HTMLAnchorElement>('.demo-open a')!;
+    expect(DemoFrame(atlas).querySelector('.demo-open')?.textContent).toBe(
+      'Runs on its own page: Pocket atlas',
+    );
+    expect(link.getAttribute('href')).toBe('/ecmact/examples/atlas');
+    expect(link.dataset.internal).toBe('/examples/atlas');
+    await useLocale('ru');
+    expect(DemoFrame(atlas).querySelector('.demo-open')?.textContent).toBe(
+      'Работает на своей странице: Карманный атлас',
+    );
+    await resetLocale();
+    vi.unstubAllEnvs();
   });
 
   it('runs every demo of the gallery on its stage', () => {

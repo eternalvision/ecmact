@@ -116,6 +116,42 @@ describe('the links into the documentation under the base path', () => {
   });
 });
 
+describe('the atlas, a branch of the routes of the site, under the base path', () => {
+  it('opens the island in the page of the atlas, and a place under it', async () => {
+    const { router, outlet } = open('/ecmact/examples/atlas');
+    expect(outlet.querySelector('h1')?.textContent).toBe('Pocket atlas');
+    expect(outlet.querySelector('em-atlas')).not.toBeNull();
+    expect(outlet.querySelector('.code-title')?.textContent).toBe('atlas.ts');
+    const root = outlet.querySelector('em-atlas')!.shadowRoot!;
+    expect(root.querySelector('a[aria-current="page"]')?.textContent).toBe('The whole island');
+    root.querySelector<HTMLAnchorElement>('a[href="/ecmact/examples/atlas/saltmarsh"]')!.click();
+    await vi.waitFor(() => expect(router.location.value.path).toBe('/examples/atlas/saltmarsh'));
+    expect(window.location.pathname).toBe('/ecmact/examples/atlas/saltmarsh');
+    expect(outlet.querySelectorAll('h1')).toHaveLength(1);
+    expect(outlet.querySelector('em-atlas')!.shadowRoot!.querySelector('h3')?.textContent).toBe(
+      'Saltmarsh',
+    );
+    router.dispose();
+  });
+
+  it('opens a place with a layer again, as a reload does, and goes back to the gallery', async () => {
+    const first = open('/ecmact/examples/atlas/saltmarsh?layer=tides');
+    first.router.dispose();
+    document.body.replaceChildren();
+    const { router, outlet } = open('/ecmact/examples/atlas/saltmarsh?layer=tides');
+    const root = outlet.querySelector('em-atlas')!.shadowRoot!;
+    expect(root.querySelector('.addr')?.textContent).toBe('/examples/atlas/saltmarsh?layer=tides');
+    expect(root.querySelector('a[aria-current="page"]')?.textContent).toBe('Saltmarsh');
+    outlet.querySelector<HTMLAnchorElement>('.demo-back a')!.click();
+    await vi.waitFor(() => expect(router.location.value.path).toBe('/examples'));
+    expect(outlet.querySelector('h1')?.textContent).toBe('Examples');
+    window.history.back();
+    await vi.waitFor(() => expect(router.location.value.path).toBe('/examples/atlas/saltmarsh'));
+    expect(outlet.querySelector('h1')?.textContent).toBe('Pocket atlas');
+    router.dispose();
+  });
+});
+
 describe('siteRoutes', () => {
   it('has a view for /docs that is only a fallback behind the redirect', () => {
     const { router, outlet } = open('/ecmact/');

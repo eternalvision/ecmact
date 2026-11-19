@@ -1,27 +1,27 @@
+import * as atlas from '@site/demos/atlas';
+import atlasSource from '@site/demos/atlas.ts?raw';
+import * as catalog from '@site/demos/catalog';
+import catalogSource from '@site/demos/catalog.ts?raw';
 import * as customs from '@site/demos/customs';
 import customsSource from '@site/demos/customs.ts?raw';
+import * as darkroom from '@site/demos/darkroom';
+import darkroomSource from '@site/demos/darkroom.ts?raw';
+import * as departures from '@site/demos/departures';
+import departuresSource from '@site/demos/departures.ts?raw';
 import * as exposure from '@site/demos/exposure';
 import exposureSource from '@site/demos/exposure.ts?raw';
 import * as fieldbook from '@site/demos/fieldbook';
 import fieldbookSource from '@site/demos/fieldbook.ts?raw';
 import * as gels from '@site/demos/gels';
 import gelsSource from '@site/demos/gels.ts?raw';
-import * as github from '@site/demos/github';
-import githubSource from '@site/demos/github.ts?raw';
-import * as http from '@site/demos/http';
-import httpSource from '@site/demos/http.ts?raw';
-import * as lifecycle from '@site/demos/lifecycle';
-import lifecycleSource from '@site/demos/lifecycle.ts?raw';
-import * as posts from '@site/demos/posts';
-import postsSource from '@site/demos/posts.ts?raw';
+import * as seedpacket from '@site/demos/seedpacket';
+import seedpacketSource from '@site/demos/seedpacket.ts?raw';
 import * as setlist from '@site/demos/setlist';
 import setlistSource from '@site/demos/setlist.ts?raw';
+import * as switchboard from '@site/demos/switchboard';
+import switchboardSource from '@site/demos/switchboard.ts?raw';
 import * as typecase from '@site/demos/typecase';
 import typecaseSource from '@site/demos/typecase.ts?raw';
-import * as weather from '@site/demos/weather';
-import weatherSource from '@site/demos/weather.ts?raw';
-import * as widget from '@site/demos/widget';
-import widgetSource from '@site/demos/widget.ts?raw';
 
 /** The tasks that the gallery groups its examples by, in the order of the page. */
 export const groups = ['state', 'interface', 'requests', 'lifecycle'] as const;
@@ -51,8 +51,8 @@ export interface Demo {
   group: DemoGroup;
   /** The ids of earlier demos that this one answers for, so that old links and guides keep working. */
   answers: string[];
-  /** Gives the stage padding, for a demo that has none of its own. Only the old demos that #55 replaces. */
-  padded?: boolean;
+  /** The path of a page of the site that runs the example, for one that is a branch of the site's routes. The frame links to it. */
+  open?: string;
   /** Creates a fresh instance of the demo. */
   create: () => Node;
   /** The files of the demo, as shown on the page: one tab each. The first is the entry. */
@@ -143,75 +143,67 @@ export const demos: Demo[] = [
     files: single('gels', gelsSource),
   },
   {
-    id: 'http',
-    padded: true,
-    title: 'HTTP client and resource',
-    description: 'Retries, aborted requests and loading state against a fake server.',
+    id: 'switchboard',
+    title: 'Telephone exchange',
+    description: 'Four lines, four fates of a request: answered, cancelled, retried, refused.',
     page: 'http',
     group: 'requests',
-    answers: [],
-    create: http.create,
-    files: single('http', httpSource),
+    answers: ['http'],
+    create: switchboard.create,
+    files: single('switchboard', switchboardSource),
   },
   {
-    id: 'github',
-    padded: true,
-    title: 'GitHub API',
-    description:
-      'A repository card from the GitHub API, with a debounced input and a rate-limit interceptor.',
+    id: 'catalog',
+    title: 'Library card catalogue',
+    description: 'Search the drawer, borrow a book, and meet a desk that closes and a rate limit.',
     page: 'http',
     group: 'requests',
-    answers: [],
-    create: github.create,
-    files: single('github', githubSource),
+    answers: ['github', 'posts'],
+    create: catalog.create,
+    files: single('catalog', catalogSource),
   },
   {
-    id: 'posts',
-    padded: true,
-    title: 'Create, read, delete',
-    description:
-      'Optimistic updates against jsonplaceholder, with interceptors that count and time the requests.',
-    page: 'http',
-    group: 'requests',
-    answers: [],
-    create: posts.create,
-    files: single('posts', postsSource),
-  },
-  {
-    id: 'weather',
-    padded: true,
-    title: 'Weather API',
-    description:
-      'The open-meteo.com API through resource(): a signal picks the city, the old request is aborted.',
+    id: 'departures',
+    title: 'Ferry departures',
+    description: 'A board that follows the chosen harbour and drops the answer it no longer needs.',
     page: 'data',
     group: 'requests',
-    answers: [],
-    create: weather.create,
-    files: single('weather', weatherSource),
+    answers: ['weather'],
+    create: departures.create,
+    files: single('departures', departuresSource),
   },
   {
-    id: 'lifecycle',
-    padded: true,
-    title: 'Lifecycle hooks',
+    id: 'darkroom',
+    title: 'Darkroom trays',
     description:
-      'mounted with a cleanup, an effect that stops by itself and unmounted, on a clock you can remove.',
+      'A print goes through developer, stop bath and fixer; every hook leaves a line in the log.',
     page: 'lifecycle',
     group: 'lifecycle',
-    answers: [],
-    create: lifecycle.create,
-    files: single('lifecycle', lifecycleSource),
+    answers: ['lifecycle'],
+    create: darkroom.create,
+    files: single('darkroom', darkroomSource),
   },
   {
-    id: 'widget',
-    padded: true,
-    title: 'defineWidget',
+    id: 'seedpacket',
+    title: 'Seed packet',
     description:
-      'A custom element configured by attributes, themed by a custom property, speaking through events.',
+      'A custom element that a page configures with attributes and hears through an event.',
     page: 'widgets',
     group: 'lifecycle',
+    answers: ['widget'],
+    create: seedpacket.create,
+    files: single('seedpacket', seedpacketSource),
+  },
+  {
+    id: 'atlas',
+    title: 'Pocket atlas',
+    description: 'An island with a page per place: nested routes, a guard and a lazy view.',
+    page: 'routing',
+    group: 'lifecycle',
     answers: [],
-    create: widget.create,
-    files: single('widget', widgetSource),
+    open: '/examples/atlas',
+    create: atlas.create,
+    files: single('atlas', atlasSource),
   },
 ];
 

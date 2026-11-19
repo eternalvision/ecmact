@@ -26,6 +26,9 @@ export const metaFor = (address: string, locale: Locale = 'en'): PageMeta => {
   if (path === '/examples') {
     return { title: `${m.examplesTitle} - ${site}`, description: m.examplesDescription };
   }
+  if (path === '/examples/atlas' || path.startsWith('/examples/atlas/')) {
+    return { title: `${m.atlasTitle} - ${site}`, description: m.atlasDescription };
+  }
   if (path === '/widgets') {
     return { title: `${m.widgetsTitle} - ${site}`, description: m.widgetsDescription };
   }

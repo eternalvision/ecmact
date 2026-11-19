@@ -95,11 +95,17 @@ export const DemoFrame = (demo: Demo) => {
         findDoc(demo.page, currentLocale())?.title ?? demo.page,
       ),
     ),
+    demo.open &&
+      p(
+        { class: 'demo-note demo-open' },
+        `${m.code.open}: `,
+        a({ href: withBase(demo.open), 'data-internal': demo.open }, copy.title),
+      ),
     panel(
       '',
       'demo-run',
       div({ class: 'stage-bar' }, span(m.code.stage), copy.hint && span(copy.hint)),
-      div({ class: { stage: true, 'stage-padded': demo.padded === true } }, demo.create()),
+      div({ class: 'stage' }, demo.create()),
     ),
     demo.files.map((file) =>
       panel(

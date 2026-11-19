@@ -1,16 +1,17 @@
 import { createRouter, type Route, type RouteContext, type Router } from 'ecmact';
 import { docs, findDoc } from '@site/content/docs/index';
+import { atlasRoute } from '@site/demos/atlas';
 import { currentLocale } from '@site/lib/i18n';
 import { basePath } from '@site/lib/paths';
 import { docsPage } from '@site/pages/docs';
-import { examples } from '@site/pages/examples';
+import { atlasPage, examples } from '@site/pages/examples';
 import { home } from '@site/pages/home';
 import { notFound } from '@site/pages/notFound';
 import { widgetsPage } from '@site/pages/widgets';
 
 /**
- * Lists the routes of the site: the home page, the examples, the documentation and the redirect from `/docs` to
- * the first page of the documentation.
+ * Lists the routes of the site: the home page, the examples, the branch of the atlas example, the documentation
+ * and the redirect from `/docs` to the first page of the documentation.
  *
  * @param router - Returns the router that the pages link with. It is a function, because the routes are needed to create the router.
  * @returns The routes.
@@ -28,7 +29,15 @@ export const siteRoutes = (router: () => Router): Route[] => {
    *
    * @returns The page.
    */
-  const examplesView = () => examples();
+  const examplesView = () => examples(router());
+
+  /**
+   * Shows the atlas, the example that is a branch of these routes, in its own page.
+   *
+   * @param stage - The map of the atlas, which its route made.
+   * @returns The page.
+   */
+  const atlasView = (stage: Node) => atlasPage(router(), stage);
 
   /**
    * Shows the gallery of widgets.
@@ -69,6 +78,7 @@ export const siteRoutes = (router: () => Router): Route[] => {
   return [
     { path: '/', view: homeView },
     { path: '/examples', view: examplesView },
+    atlasRoute(atlasView),
     { path: '/widgets', view: widgetsView },
     { path: '/docs', view: notFoundView, beforeEnter: firstDoc },
     { path: '/docs/:slug', view: docView },
