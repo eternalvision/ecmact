@@ -1,29 +1,16 @@
-# Handoff: browser tests, P1-P5 done (2026-11-18)
+# Handoff for the 3.x maintenance release (2026-11-19)
 
-State: F4/F5 done for every story; waiting for the owner to merge. Merged into `main`: #19-#25 (US1.1-US2.5). Open, stacked, none merged, every check green: #29 US3.1 (`feature/12-form-fields`, base `main`), #32 US3.2, #33 US3.3, #35 US4.1, #37 US4.2, #38 US5.1, #39 US5.2 (`feature/18-browser-support`). AC verification and review results are comments on each PR. Plan: `docs/plans/2026-11-13-browser-tests-plan.md`.
+## Current work
 
-## Done
+- The browser-test stack through #39 is on main. Its [CI run](https://github.com/eternalvision/ecmact/actions/runs/44387323923) passed. Historical acceptance criteria and follow-ups are in the [browser-test plan](plans/2026-11-13-browser-tests-plan.md) and [decision log](decisions.md).
+- [#40](https://github.com/eternalvision/ecmact/pull/40) updated six development dependencies, including Playwright 1.65.1. All five [PR jobs](https://github.com/eternalvision/ecmact/actions/runs/44387795291) and the [main CI run](https://github.com/eternalvision/ecmact/actions/runs/44517136577) passed.
+- CodeQL alerts #7 and #8 were dismissed as false positives. The renderer inserts DOM nodes and writes character data into a Text node. Alert #6 was dismissed as intended behavior under the trusted-markup contract for the html prop. The GitHub alert records contain the individual rationales.
+- [#34](https://github.com/eternalvision/ecmact/issues/34) restores focus after reordering retained keyed rows. The regression tests cover node identity, backward selection, document and shadow roots, removal and focus changes during render. Independent review covered the final diff on feature/34-keyed-focus.
 
-- F0-F3: spec v1.1, plan v1.0 approved; issues #5-#18, milestone "Browser tests".
-- P1-P3: engine projects, scripts, structure check, shared tests and the six files of `tests/browser/` green in Chromium, Firefox and WebKit (743 of 743), Chromium coverage 100%.
-- P4: `npm test` runs the engines; CI runs `test:ci` plus reusable `browsers.yml`; `release.yml` publishes only after the engines, write permissions only on the publish job; `release-create.yml` without engines (D33). R8 closed: engine jobs 30-64 s, CI about 2-2.5 min.
-- P5: contributor docs in `AGENTS.md`, `CONTRIBUTING.md`, README Development; tested engines in README Browser support and the site (EN/RU), versions referred to the pinned Playwright, no hardcoded number.
-- F5 review (Opus) of every PR; accepted findings fixed, the fixes not reviewed again.
+## Forms and release
 
-## Next step
+- D34 records the owner's approval for both native disabled-control fixes in a 3.x patch.
+- [#30](https://github.com/eternalvision/ecmact/issues/30) preserves the control's own disabled state across host and fieldset toggles, including overlapping overrides of a control shared by nested fields. [PR #42](https://github.com/eternalvision/ecmact/pull/42).
+- [#31](https://github.com/eternalvision/ecmact/issues/31) omits disabled controls from FormData and validation. Reactive disabled props and fieldset changes sync immediately. After direct DOM changes, dispatch a bubbling change event to sync the field.
 
-Owner: merge the stack in order #29 → #32 → #33 → #35 → #37 → #38 → #39. #35 only together with #37, no tag between them. Then: delete merged branches, close issues #5-#18 and #27 if the owner says so, attach the first push-to-`main` run of `ci.yml`.
-
-## Open questions
-
-- Required status checks on `main` are not set (only the ruleset "Protect main history"): owner action.
-- US4.1 AC-05 (cache key follows a Playwright bump) verified by construction only; attach the run of the first Dependabot `playwright` bump.
-- macOS arm64 runners are sometimes not acquired ("capacity constraints"); a cancelled WebKit job is re-run, not a failure of the code.
-- Library defects, issues open, no code changed (3.x behaviour, owner's call): #30, #31, #34.
-- Not verified: the `<style>` fallback of `src/styled/inject.ts`; Node 26; `release.yml` never parsed by GitHub (no tag); `actionlint`; Linux system libraries and Windows for contributors (docs say POSIX shell, `install-deps`).
-- Spec line 40 still says "WebKit is the engine of Safari"; the user docs are more precise. Left as is.
-- No F5 review of the spec and US1.1-US2.4.
-
-## Decisions (do not reopen)
-
-- D1-D21 spec, D22-D26 plan section 1, D27-D33 and the owner's answers: `docs/decisions.md`.
+The published versions are ecmact 3.0.0 and create-ecmact 0.4.0. The published generator writes ^3.0.0, which includes the proposed library patch. Release tags trigger publication and require the owner's release decision.

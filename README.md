@@ -719,6 +719,7 @@ mount(
 - A checkbox or a radio contributes its value only while checked. A multiple `select` contributes every selected option.
 - `form.reset()` puts the control back to its default, and a disabled `<fieldset>` disables it.
 - A control with `bind` tells the field when the signal changed it, so the form always has the current value.
+- A disabled inner control is omitted from submission and validation. The `disabled` prop updates the field automatically. After setting `control.disabled` directly, dispatch a bubbling `change` event on the control to sync the form.
 - `field` needs `ElementInternals`. Labels with `for` and `id` do not cross the shadow boundary: put the component inside the `<label>`, where a click on the label is forwarded to the control, or use `aria-label`.
 - A component with `shadow: false` and plain elements need none of this: their controls are in the form already.
 
