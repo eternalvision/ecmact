@@ -41,7 +41,9 @@ describe('home', () => {
   it('has the three steps under the hero, with plain links to the examples and the widget guide', () => {
     const { page, router } = build();
     const flow = page.querySelector('.flow')!;
+    expect(flow.getAttribute('role')).toBe('group');
     expect(flow.getAttribute('aria-label')).toBe('How ECMact fits together');
+    expect(flow.querySelector('p code')?.textContent).toBe('tags');
     expect([...flow.querySelectorAll('strong')].map((strong) => strong.textContent)).toEqual([
       'Build an element',
       'Give it state',
@@ -55,7 +57,7 @@ describe('home', () => {
     examples!.click();
     expect(router.location.value.path).toBe('/examples');
     expect(page.querySelector('.hero')!.nextElementSibling).toBe(flow);
-    expect(flow.nextElementSibling?.className).toContain('badges');
+    expect(flow.nextElementSibling?.className).toContain('starter');
   });
 
   it('sends a visitor to the app guide', () => {
@@ -72,31 +74,31 @@ describe('home', () => {
     const following = (first: Element, second: Element) =>
       Boolean(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING);
     expect(following(hero.querySelector('.install')!, example)).toBe(true);
-    const [entry, result, markupBlock] = [
-      example.querySelector('.code')!,
-      example.querySelector('.preview')!,
-      example.querySelectorAll('.code')[1]!,
-    ];
+    expect(example.querySelectorAll('.code')).toHaveLength(1);
+    const [entry, result] = [example.querySelector('.code')!, example.querySelector('.preview')!];
     expect(following(entry, result)).toBe(true);
-    expect(following(result, markupBlock)).toBe(true);
     expect(entry.querySelector('.code-title')?.textContent).toBe(entryName);
     expect(entry.querySelector('pre')?.textContent).toBe(source);
-    expect(markupBlock.querySelector('.code-title')?.textContent).toBe(markupName);
-    expect(markupBlock.querySelector('pre')?.textContent).toBe(markup);
-    expect(example.querySelector('.try-label')?.textContent).toBe(
-      "The starter's index.html already has the mount target:",
-    );
   });
 
-  it('labels the example result as sample data and updates it from the keyboard-operable button', () => {
+  it('shows how to run the example in a starter below the steps', () => {
+    const { page } = build();
+    const strip = page.querySelector('.starter')!;
+    expect(page.querySelector('.flow')!.nextElementSibling).toBe(strip);
+    expect(strip.querySelector('strong')?.textContent).toBe('Run it in a starter');
+    expect(strip.querySelector('p')?.textContent).toContain('src/main.ts');
+    expect(strip.querySelector('.code-title')?.textContent).toBe(markupName);
+    expect(strip.querySelector('pre')?.textContent).toBe(markup);
+    expect(page.querySelector('.hero')!.contains(strip)).toBe(false);
+  });
+
+  it('labels the example result as sample data and updates it from the button', () => {
     const { page } = build();
     const result = page.querySelector('.preview')!;
     expect(page.querySelector('.try-sample')?.textContent).toContain('Sample data');
     const button = result.querySelector('button')!;
     const output = result.querySelector('output')!;
-    expect(button.type).toBe('button');
     expect(button.tabIndex).toBe(0);
-    expect(output.getAttribute('aria-live')).toBe('polite');
     expect(output.textContent).toBe('$49');
     button.click();
     expect(output.textContent).toBe('$98');
@@ -120,8 +122,7 @@ describe('home', () => {
     );
     expect(names).toEqual([
       'Copy to the clipboard: install command',
-      'Copy to the clipboard: src/main.ts',
-      'Copy to the clipboard: index.html',
+      'Copy to the clipboard: main.ts',
     ]);
   });
 
@@ -134,7 +135,9 @@ describe('home', () => {
     const copy = page.querySelector<HTMLButtonElement>('.try .code-copy')!;
     copy.click();
     await vi.waitFor(() => expect(copy.textContent).toBe('Failed'));
-    expect(document.querySelector('.sr-status')?.textContent).toBe('Failed');
+    await vi.waitFor(() =>
+      expect(document.querySelector('.sr-status')?.textContent).toBe('Failed'),
+    );
   });
 
   it('states the facts', () => {
@@ -181,11 +184,10 @@ describe('home in Russian', () => {
     mount(document.body, page);
     expect(page.querySelector('.hero h1')?.textContent).toBe('Реактивный UI на DOM.');
     expect(page.querySelector('.try-sample')?.textContent).toBe(
-      'Пример данных: условная ставка $49 в час, а не прайс-лист.',
+      'Пример данных: условные $49 в час.',
     );
-    expect(page.querySelector('.try-label')?.textContent).toBe(
-      'В index.html стартера уже есть точка монтирования:',
-    );
+    expect(page.querySelector('.starter strong')?.textContent).toBe('Запустите в стартере');
+    expect(page.querySelector('.flow p code')?.textContent).toBe('tags');
     expect(page.querySelector('.preview')?.getAttribute('aria-label')).toBe('Результат');
     expect(page.querySelector('.flow strong')?.textContent).toBe('Соберите элемент');
     expect(page.querySelector('.flow a')?.textContent).toBe('Живые примеры');

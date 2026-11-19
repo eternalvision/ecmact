@@ -5,6 +5,7 @@ import { create, entryName, markup, markupName, source } from '@site/demos/estim
 import { findDemo } from '@site/demos/index';
 import { icon } from '@site/lib/dom';
 import { currentLocale } from '@site/lib/i18n';
+import { parseInline } from '@site/lib/inline';
 import { CodeBlock } from '@site/ui/codeBlock';
 import { copyButton } from '@site/ui/copyButton';
 import { DemoFrame } from '@site/ui/demoFrame';
@@ -110,8 +111,6 @@ const example = () =>
     CodeBlock({ code: source, language: 'ts', title: entryName }),
     div({ class: 'preview', role: 'group', 'aria-label': m().exampleResult }, create()),
     p({ class: 'try-sample' }, m().exampleSample),
-    p({ class: 'try-label' }, m().exampleMarkup),
-    CodeBlock({ code: markup, language: 'html', title: markupName }),
   );
 
 /**
@@ -150,12 +149,24 @@ const flow = (router: Router) => {
     router.link({ to: '/docs/widgets' }, m().widgetGuide),
   ];
   return div(
-    { class: 'flow wrap', 'aria-label': m().flowLabel },
+    { class: 'flow wrap', role: 'group', 'aria-label': m().flowLabel },
     m().flow.map(([title, note], index) =>
-      div(strong(title), p(note), links[index] ? p(links[index]) : undefined),
+      div(strong(title), p(parseInline(note)), links[index] ? p(links[index]) : undefined),
     ),
   );
 };
+
+/**
+ * The strip that says how to run the example in a starter: where to paste it and the markup the starter already has.
+ *
+ * @returns The element.
+ */
+const starter = () =>
+  div(
+    { class: 'starter wrap' },
+    div(strong(m().starterTitle), p(m().starterNote)),
+    CodeBlock({ code: markup, language: 'html', title: markupName }),
+  );
 
 /**
  * The badges of the project, below the first screen.
@@ -312,6 +323,7 @@ export const home = (router: Router) =>
     { class: 'home' },
     hero(router),
     flow(router),
+    starter(),
     badgeRow(),
     facts(),
     featureGrid(router),

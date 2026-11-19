@@ -291,17 +291,13 @@ pre code {
   background: var(--surface-hover);
 }
 
-body:has(main.home) .site-header {
-  border-bottom-color: transparent;
-}
-
 .intro {
   display: grid;
   grid-template-columns: minmax(0, 0.95fr) minmax(0, 1fr);
   gap: clamp(26px, 6vw, 96px);
   align-items: center;
   padding-block: clamp(52px, 9vw, 122px);
-  border-block: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
 .hero-copy {
@@ -396,25 +392,25 @@ body:has(main.home) .site-header {
   font-size: 1rem;
 }
 
-.try-sample,
-.try-label {
-  margin: 0;
-  padding: 10px 20px;
-  border-top: 1px solid var(--border);
-  background: var(--bg);
+.starter {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 24px;
+  align-items: start;
+  padding-block: 8px 24px;
+}
+
+.starter p {
+  margin-top: 8px;
   color: var(--muted);
-  font-size: 0.85rem;
 }
 
 .try-sample {
-  border-top: 0;
-  padding-top: 0;
-}
-
-.try .try-label {
-  font-family: var(--mono);
-  padding-bottom: 8px;
-  background: var(--code-bg);
+  margin: 0;
+  padding: 0 20px 10px;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 0.85rem;
 }
 
 .flow {
@@ -497,8 +493,6 @@ body:has(main.home) .site-header {
 @media (max-width: 480px) {
   .install code {
     font-size: 0.85rem;
-    white-space: normal;
-    overflow-wrap: anywhere;
   }
 }
 
@@ -1103,6 +1097,7 @@ tr:last-child td {
 }
 
 @media (max-width: 780px) {
+  .starter,
   .flow {
     grid-template-columns: minmax(0, 1fr);
   }

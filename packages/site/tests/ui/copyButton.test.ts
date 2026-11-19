@@ -2,7 +2,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { copyButton } from '@site/ui/copyButton';
 import { resetLocale, useLocale } from '@tests/helpers';
 
+const execCommand = document.execCommand;
+
 afterEach(() => {
+  (document as { execCommand?: unknown }).execCommand = execCommand;
   vi.useRealTimers();
   vi.unstubAllGlobals();
   document.body.replaceChildren();
@@ -53,7 +56,7 @@ describe('copyButton accessibility', () => {
     const button = copyButton('x', 'c');
     document.body.append(button);
     button.click();
-    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(20);
     expect(document.querySelector('.sr-status')?.textContent).toBe('Copied');
     await vi.advanceTimersByTimeAsync(1500);
     expect(document.querySelector('.sr-status')?.textContent).toBe('');

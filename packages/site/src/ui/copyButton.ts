@@ -25,10 +25,7 @@ export const copyButton = (content: string, className: string, name?: string) =>
       onclick: async () => {
         label.value = (await copyText(content)) ? m.copied : m.failed;
         announce(label.value);
-        setTimeout(() => {
-          label.value = m.copy;
-          announce('');
-        }, 1500);
+        setTimeout(() => (label.value = m.copy), 1500);
       },
     },
     label,

@@ -98,7 +98,8 @@ export interface Messages {
     exampleLabel: string;
     exampleResult: string;
     exampleSample: string;
-    exampleMarkup: string;
+    starterTitle: string;
+    starterNote: string;
     installName: string;
     flowLabel: string;
     flow: [string, string][];
@@ -327,12 +328,14 @@ const en: Messages = {
     widgetGuide: 'Build a widget',
     exampleLabel: 'A runnable ECMact example',
     exampleResult: 'Result',
-    exampleSample: 'Sample data: an illustrative rate of $49 per hour, not a price list.',
-    exampleMarkup: "The starter's index.html already has the mount target:",
+    exampleSample: 'Sample data: an illustrative $49 per hour.',
+    starterTitle: 'Run it in a starter',
+    starterNote:
+      "Paste the code into src/main.ts. The starter's index.html already has the mount target and loads that file:",
     installName: 'install command',
     flowLabel: 'How ECMact fits together',
     flow: [
-      ['Build an element', 'tags creates a real DOM node.'],
+      ['Build an element', '`tags` creates a real DOM node.'],
       ['Give it state', 'A signal updates readers when its value changes.'],
       ['Embed the result', 'Package a widget as a custom element for another page.'],
     ],
@@ -577,12 +580,14 @@ const ru: Messages = {
     widgetGuide: 'Собрать виджет',
     exampleLabel: 'Работающий пример ECMact',
     exampleResult: 'Результат',
-    exampleSample: 'Пример данных: условная ставка $49 в час, а не прайс-лист.',
-    exampleMarkup: 'В index.html стартера уже есть точка монтирования:',
+    exampleSample: 'Пример данных: условные $49 в час.',
+    starterTitle: 'Запустите в стартере',
+    starterNote:
+      'Вставьте код в src/main.ts. В index.html стартера уже есть точка монтирования, и он загружает этот файл:',
     installName: 'команда установки',
     flowLabel: 'Как устроен ECMact',
     flow: [
-      ['Соберите элемент', 'tags создаёт настоящий DOM-узел.'],
+      ['Соберите элемент', '`tags` создаёт настоящий DOM-узел.'],
       ['Дайте ему состояние', 'Сигнал обновляет читателей, когда меняется его значение.'],
       ['Встройте результат', 'Упакуйте виджет как пользовательский элемент для другой страницы.'],
     ],

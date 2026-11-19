@@ -32,6 +32,17 @@ describe('start', () => {
     stop();
   });
 
+  it('creates the status region once, outside the interface that is rebuilt', () => {
+    window.history.replaceState(null, '', '/ecmact/');
+    const target = document.createElement('div');
+    document.body.append(target);
+    const { stop } = start(target);
+    const region = document.querySelector('.sr-status');
+    expect(region).not.toBeNull();
+    expect(target.contains(region)).toBe(false);
+    stop();
+  });
+
   it('keeps the title in step with the page', async () => {
     window.history.replaceState(null, '', '/ecmact/');
     const target = document.createElement('div');
