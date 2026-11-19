@@ -4,7 +4,16 @@ import { describe, expect, it } from 'vitest';
 import { findDoc } from '@site/content/docs/index';
 import { defineAll } from '@site/widgets/index';
 import { inventory } from '@tests/inventory';
-import { cleanSource, demos, findDemo, groups, type Demo } from '@site/demos/index';
+import {
+  cleanSource,
+  demos,
+  findDemo,
+  groups,
+  styleAxes,
+  type Demo,
+  type DemoStyle,
+  type StyleAxis,
+} from '@site/demos/index';
 
 /** Every file of `src/demos`, as the bundler reads it: the text that runs. */
 const raw = import.meta.glob<string>('/src/demos/*.ts', {
@@ -263,15 +272,15 @@ describe('the coverage matrix', () => {
 
 describe('the stages', () => {
   const schemes: Record<string, string> = {
-    exposure: 'dark',
-    setlist: 'dark',
+    exposure: 'light',
+    setlist: 'light',
     gels: 'dark',
     fieldbook: 'light',
     customs: 'light',
     typecase: 'light',
     switchboard: 'light',
     catalog: 'light',
-    departures: 'dark',
+    departures: 'light',
     darkroom: 'dark',
     seedpacket: 'light',
     atlas: 'light',
@@ -281,6 +290,238 @@ describe('the stages', () => {
     Object.entries(schemes).forEach(([id, scheme]) =>
       expect(findDemo(id)?.files[0]?.source, id).toContain(`color-scheme: ${scheme};`),
     );
+  });
+});
+
+/** The six axes of a look, in the order of the style matrix. */
+const axes = Object.keys(styleAxes) as StyleAxis[];
+
+/**
+ * Finds the pairs of looks that share more than two values.
+ *
+ * @param looks - The looks, by the id of the piece.
+ * @returns The pairs that are too alike, with what they share.
+ */
+const tooAlike = (looks: Record<string, DemoStyle>) => {
+  const ids = Object.keys(looks);
+  return ids.flatMap((a, index) =>
+    ids.slice(index + 1).flatMap((b) => {
+      const same = axes.filter((axis) => looks[a]![axis] === looks[b]![axis]);
+      return same.length > 2 ? [`${a} and ${b} share ${same.join(', ')}`] : [];
+    }),
+  );
+};
+
+/**
+ * Counts the pieces that use a value, and says which limit of the matrix a count breaks.
+ *
+ * @param looks - The looks, by the id of the piece.
+ * @param dark - The ids of the pieces whose stage is dark.
+ * @returns The limits that are broken.
+ */
+const overLimits = (looks: Record<string, DemoStyle>, dark: string[]) => {
+  const all = Object.values(looks);
+  const broken: string[] = [];
+  if (all.filter((look) => look.shape === 'sharp').length > 2) broken.push('sharp corners');
+  if (dark.length > 5) broken.push('dark stages');
+  if (all.filter((look) => look.type === 'mono').length > 2) broken.push('monospace');
+  return broken;
+};
+
+/**
+ * Names the devices of the first build that must not come back, found in the source of one piece.
+ *
+ * @param id - The id of the piece.
+ * @param source - Its source.
+ * @returns What is found and not allowed in this piece.
+ */
+const forbidden = (id: string, source: string) => {
+  const found: string[] = [];
+  if (id !== 'typecase' && /border-radius:\s*0\s*[;}\n]/.test(source))
+    found.push('border-radius: 0');
+  if (id !== 'typecase' && /text-transform:\s*uppercase/.test(source))
+    found.push('text-transform: uppercase');
+  if (/monospace|Courier|Menlo|Consolas/.test(source)) found.push('a monospace stack');
+  if (/\b1px solid/.test(source)) found.push('1px solid');
+  if (/@font-face|\burl\(/.test(source)) found.push('a font or an image by address');
+  return found;
+};
+
+/**
+ * Removes the blocks that run only without a request for less motion.
+ *
+ * @param source - The source of a piece.
+ * @returns The source without them.
+ */
+const unguarded = (source: string) => {
+  const head = '@media (prefers-reduced-motion: no-preference) {';
+  let text = source;
+  for (let at = text.indexOf(head); at !== -1; at = text.indexOf(head)) {
+    let depth = 1;
+    let end = at + head.length;
+    while (depth > 0 && end < text.length) {
+      const char = text[end++];
+      if (char === '{') depth++;
+      if (char === '}') depth--;
+    }
+    text = text.slice(0, at) + text.slice(end);
+  }
+  return text;
+};
+
+/**
+ * Finds motion in a source that no media query on the visitor's preference holds back.
+ *
+ * @param source - The source of a piece.
+ * @returns The motion that runs for everyone.
+ */
+const runsAlways = (source: string) =>
+  source.includes('(prefers-reduced-motion: reduce)')
+    ? []
+    : (unguarded(source).match(/\b(animation|transition)\s*:|@keyframes/g) ?? []);
+
+const looks = Object.fromEntries(demos.map((demo) => [demo.id, demo.style]));
+const sources = Object.fromEntries(
+  demos.map((demo) => [demo.id, raw[`/src/demos/${demo.id}.ts`]!]),
+);
+
+describe('the looks of the examples', () => {
+  it('give every example one value on each of the six axes, from the closed sets', () => {
+    demos.forEach((demo) => {
+      expect(Object.keys(demo.style).sort(), demo.id).toEqual([...axes].sort());
+      axes.forEach((axis) =>
+        expect(styleAxes[axis] as readonly string[], `${demo.id}: ${axis}`).toContain(
+          demo.style[axis],
+        ),
+      );
+    });
+  });
+
+  it('share at most two values between any two examples', () => {
+    expect(tooAlike(looks)).toEqual([]);
+  });
+
+  it('fail the rule when a thirteenth look is the same as one of them', () => {
+    const twin = { ...looks.exposure!, palette: looks.setlist!.palette };
+    expect(tooAlike({ ...looks, twin })).toEqual([
+      'exposure and twin share shape, type, surface, control, motion',
+    ]);
+  });
+
+  it('keep sharp corners, dark stages and monospace within the limits', () => {
+    const dark = Object.entries(sources).flatMap(([id, source]) =>
+      source.includes('color-scheme: dark;') ? [id] : [],
+    );
+    expect(overLimits(looks, dark)).toEqual([]);
+    expect(dark.sort()).toEqual(['darkroom', 'gels']);
+    expect(
+      overLimits(
+        {
+          ...looks,
+          a: { ...looks.exposure!, shape: 'sharp' },
+          b: { ...looks.exposure!, shape: 'sharp' },
+        },
+        dark,
+      ),
+    ).toEqual(['sharp corners']);
+    expect(overLimits(looks, ['a', 'b', 'c', 'd', 'e', 'f'])).toEqual(['dark stages']);
+    expect(
+      overLimits(
+        {
+          ...looks,
+          a: { ...looks.exposure!, type: 'mono' },
+          b: { ...looks.exposure!, type: 'mono' },
+          c: { ...looks.exposure!, type: 'mono' },
+        },
+        [],
+      ),
+    ).toEqual(['monospace']);
+  });
+});
+
+describe('the sources of the examples keep out the devices of the first build', () => {
+  it('have none of them, and the scan finds each when it is added', () => {
+    Object.entries(sources).forEach(([id, source]) =>
+      expect(forbidden(id, source), id).toEqual([]),
+    );
+    expect(forbidden('atlas', 'a { border-radius: 0; }')).toEqual(['border-radius: 0']);
+    expect(forbidden('atlas', 'a { border-radius: 0.5em; }')).toEqual([]);
+    expect(forbidden('typecase', 'a { border-radius: 0; text-transform: uppercase; }')).toEqual([]);
+    expect(forbidden('atlas', 'a { text-transform: uppercase; }')).toEqual([
+      'text-transform: uppercase',
+    ]);
+    expect(forbidden('atlas', 'a { font: 12px ui-monospace, monospace; }')).toEqual([
+      'a monospace stack',
+    ]);
+    expect(forbidden('atlas', 'a { border: 1px solid #000; }')).toEqual(['1px solid']);
+    expect(forbidden('atlas', "a { background: url('x.png'); }")).toEqual([
+      'a font or an image by address',
+    ]);
+  });
+});
+
+describe('motion in the examples', () => {
+  it('runs only when the visitor has not asked for less', () => {
+    Object.entries(sources).forEach(([id, source]) => expect(runsAlways(source), id).toEqual([]));
+    expect(runsAlways('a { animation: x 1s; }')).toEqual(['animation:']);
+    expect(runsAlways('a { transition: x 1s; }')).toEqual(['transition:']);
+    expect(
+      runsAlways(
+        '@media (prefers-reduced-motion: no-preference) { a { animation: x 1s; } @keyframes x { to { top: 0; } } }',
+      ),
+    ).toEqual([]);
+    expect(
+      runsAlways(
+        '@media (prefers-reduced-motion: no-preference) { a { top: 0; } } b { animation: y 1s; }',
+      ),
+    ).toEqual(['animation:']);
+    expect(
+      runsAlways(
+        'a { animation: x 1s; } @media (prefers-reduced-motion: reduce) { a { animation: none; } }',
+      ),
+    ).toEqual([]);
+  });
+
+  it('has an animated example for each of the ones that name a motion', () => {
+    const animated = Object.entries(sources).filter(([, source]) =>
+      /@keyframes|keyframes`|transition:/.test(source),
+    );
+    expect(animated.map(([id]) => id).sort()).toEqual(
+      [
+        'atlas',
+        'catalog',
+        'customs',
+        'darkroom',
+        'departures',
+        'exposure',
+        'fieldbook',
+        'gels',
+        'seedpacket',
+        'setlist',
+        'switchboard',
+        'typecase',
+      ].sort(),
+    );
+  });
+});
+
+describe('focus and the states of the examples', () => {
+  it('show a focus outline of 3 px in every source', () => {
+    Object.entries(sources).forEach(([id, source]) => {
+      expect(source, id).toContain(':focus-visible');
+      expect(source, id).toContain('outline: 3px solid');
+    });
+  });
+
+  it('give the glass of the form a solid card where the blur is not supported', () => {
+    const css = sources.customs!;
+    expect(css).toContain('@supports (backdrop-filter: blur(1px))');
+    expect(css.indexOf('background: #ffffff;')).toBeLessThan(css.indexOf('@supports'));
+  });
+
+  it('draw a control of the darkroom that is not available as one that is not available', () => {
+    expect(sources.darkroom).toContain("button[aria-disabled='true'] {");
+    expect(sources.darkroom).not.toContain('opacity: 0.45');
   });
 });
 

@@ -2,6 +2,35 @@ import { em, signal, tags } from 'ecmact';
 
 const { button, div, fieldset, form, h4, input, label, legend, p, pre, span } = tags;
 
+/** The switch that a checkbox is drawn as, shared by the plain checkboxes and the ones inside the fields. */
+const switchRule = `
+  input[type='checkbox'] {
+    flex: none;
+    appearance: none;
+    -webkit-appearance: none;
+    width: 44px;
+    height: 26px;
+    margin: 0;
+    border-radius: 999px;
+    background: radial-gradient(circle closest-side, #ffffff 74%, transparent 80%) 0 0 / 26px 26px
+      no-repeat #8a90b8;
+    box-shadow: inset 0 1px 3px rgba(27, 31, 59, 0.3);
+    cursor: pointer;
+  }
+  input[type='checkbox']:checked {
+    background-position: 18px 0;
+    background-color: #3b5bff;
+  }
+  input[type='checkbox']:disabled {
+    cursor: not-allowed;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    input[type='checkbox'] {
+      transition: background-position 0.2s;
+    }
+  }
+`;
+
 const css = `
   :host {
     display: block;
@@ -9,86 +38,127 @@ const css = `
     container-type: inline-size;
     color-scheme: light;
     padding: 18px;
-    background: #eaf1e6;
-    color: #17361f;
-    font: 12px/1.4 'Courier New', Courier, monospace;
+    background:
+      radial-gradient(70% 55% at 0% 0%, #ffb3d9 0, transparent 70%),
+      radial-gradient(60% 55% at 100% 25%, #8fd0ff 0, transparent 70%),
+      radial-gradient(70% 60% at 55% 100%, #8ff0d2 0, transparent 70%), #eef0ff;
+    color: #1b1f3b;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  }
+  form {
+    box-sizing: border-box;
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 20px 18px 18px;
+    border-radius: 28px;
+    background: #ffffff;
+    box-shadow: 0 12px 30px rgba(60, 50, 140, 0.18);
+  }
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    form {
+      background: rgba(255, 255, 255, 0.5);
+      -webkit-backdrop-filter: blur(18px) saturate(1.4);
+      backdrop-filter: blur(18px) saturate(1.4);
+      box-shadow:
+        0 12px 30px rgba(60, 50, 140, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+    }
   }
   h4 {
-    margin: 0 0 2px;
-    font: 700 13px/1.3 'Times New Roman', Times, serif;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
+    margin: 0;
+    font-size: 21px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
   .no {
-    margin: 0 0 10px;
-    font-size: 11px;
+    margin: 2px 0 6px;
+    font-size: 13.5px;
+    color: #4a4f78;
   }
   label {
     display: block;
-    margin-top: 8px;
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    margin-top: 12px;
+    font-size: 13.5px;
+    font-weight: 600;
   }
   fieldset {
-    margin: 10px 0 0;
-    padding: 6px 10px 8px;
-    border: 1px solid #17361f;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    margin: 14px 0 0;
+    padding: 12px 14px;
+    border: 0;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.45);
   }
   legend {
-    padding: 0 4px;
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    float: left;
+    width: 100%;
+    padding: 0;
+    font-size: 13.5px;
+    font-weight: 600;
   }
   fieldset:disabled {
-    opacity: 0.55;
+    opacity: 0.7;
   }
-  fieldset label {
-    display: inline-block;
-    margin-right: 12px;
+  fieldset label,
+  .nothing {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 0;
+    font-size: 15px;
+    font-weight: 500;
   }
   .nothing {
-    margin-top: 10px;
+    margin-top: 12px;
+    padding-left: 14px;
   }
-  .acts {
-    flex-wrap: wrap;
-    align-items: center;
-  }
+  ${switchRule}
   .acts {
     display: flex;
-    gap: 8px;
-    margin-top: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 18px;
   }
   button {
-    padding: 6px 14px;
-    border: 1px solid #17361f;
-    border-radius: 0;
-    background: #17361f;
-    color: #eaf1e6;
+    min-height: 44px;
+    padding: 0 22px;
+    border: 0;
+    border-radius: 999px;
     font: inherit;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    font-size: 15px;
+    font-weight: 650;
     cursor: pointer;
   }
-  button[type='reset'] {
-    background: none;
-    color: #17361f;
+  button[type='submit'] {
+    background: linear-gradient(135deg, #3b5bff, #5b5bf0);
+    color: #ffffff;
+    box-shadow: 0 6px 14px rgba(59, 91, 255, 0.4);
   }
-  button:focus-visible,
-  input:focus-visible {
-    outline: 3px solid #b3261e;
-    outline-offset: 2px;
+  button[type='reset'] {
+    background: rgba(255, 255, 255, 0.8);
+    color: #1b1f3b;
+  }
+  :focus-visible {
+    outline: 3px solid #1b1f3b;
+    outline-offset: 3px;
   }
   .stamp {
     margin-left: auto;
-    padding: 4px 10px;
-    border: 3px double #b3261e;
-    color: #b3261e;
-    font: 700 18px/1.2 'Times New Roman', serif;
-    letter-spacing: 0.2em;
+    padding: 3px 12px;
+    border: 3px solid currentColor;
+    border-radius: 12px;
+    color: #9c0f45;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
     transform: rotate(-8deg);
-    opacity: 0.85;
+  }
+  .stamp.cleared {
+    color: #08593c;
   }
   @container (min-width: 440px) {
     .stamp {
@@ -98,17 +168,26 @@ const css = `
       transform: rotate(-12deg);
     }
   }
-  .stamp.cleared {
-    border-color: #1b6a3a;
-    color: #1b6a3a;
-  }
   .receipt {
-    margin: 12px 0 0;
-    padding: 6px 8px;
-    border: 1px dashed #17361f;
+    margin: 14px 0 0;
+    padding: 10px 14px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.8);
     white-space: pre-wrap;
     overflow-wrap: anywhere;
     font: inherit;
+    font-size: 14px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .stamp {
+      animation: thud 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+    }
+    @keyframes thud {
+      from {
+        opacity: 0;
+        transform: rotate(-24deg) scale(1.6);
+      }
+    }
   }
 `;
 
@@ -117,7 +196,7 @@ const fieldCss = `
     display: block;
   }
   :host(.inline) {
-    display: inline-block;
+    display: inline-flex;
     vertical-align: middle;
   }
   input[type='text'],
@@ -125,30 +204,32 @@ const fieldCss = `
     box-sizing: border-box;
     display: block;
     width: 100%;
-    max-width: 240px;
-    padding: 5px 7px;
-    border: 1px solid #17361f;
-    border-radius: 0;
-    background: #fbfdf9;
-    color: #17361f;
-    font: 14px/1.3 'Courier New', Courier, monospace;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
+    margin-top: 6px;
+    padding: 11px 16px;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: inset 0 1px 3px rgba(27, 31, 59, 0.16);
+    color: #1b1f3b;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
   }
-  input[type='date'] {
-    letter-spacing: 0.05em;
+  input:disabled {
+    background: rgba(255, 255, 255, 0.5);
+    box-shadow: none;
+    color: #4a4f78;
+    cursor: not-allowed;
   }
   input:user-invalid {
-    border-color: #b3261e;
-    box-shadow: inset 4px 0 0 #b3261e;
+    box-shadow: inset 0 0 0 3px #b3261e;
   }
-  input:focus-visible {
-    outline: 3px solid #b3261e;
-    outline-offset: 2px;
-  }
-  input[type='checkbox'] {
-    margin-right: 4px;
-    accent-color: #17361f;
+  ${switchRule}
+  input:focus-visible,
+  input[type='date']:focus-within {
+    outline: 3px solid #1b1f3b;
+    outline-offset: 3px;
   }
 `;
 

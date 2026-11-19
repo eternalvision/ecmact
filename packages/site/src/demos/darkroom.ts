@@ -6,79 +6,101 @@ const css = `
   :host {
     display: block;
     color-scheme: dark;
-    padding: 18px;
-    background: radial-gradient(ellipse at 50% -20%, #5a0a05, #120000 70%);
-    color: #ff4a3a;
-    font: 11px/1.4 ui-monospace, Menlo, Consolas, monospace;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    padding: 20px;
+    background: radial-gradient(120% 70% at 50% 0, #2a0403 0, #0a0000 62%);
+    color: #ff3b2f;
+    font-family: 'Helvetica Neue', 'Segoe UI', Roboto, 'Noto Sans', Arial, sans-serif;
+    font-weight: 300;
   }
   .trays {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
+    gap: 10px;
   }
   .tray {
-    min-height: 92px;
-    padding: 6px;
-    border: 1px solid #ff4a3a;
-    border-radius: 3px 3px 10px 10px;
-    box-shadow: inset 0 -14px 20px rgba(255, 74, 58, 0.14);
+    min-height: 164px;
+    padding: 14px 10px 12px;
+    border-radius: 26px;
+    background: linear-gradient(#140101, #2b0403);
+    box-shadow:
+      inset 0 10px 18px #000000,
+      inset 0 -2px 0 rgba(255, 59, 47, 0.45),
+      0 1px 0 rgba(255, 59, 47, 0.2);
+    font-size: 17px;
+    text-align: center;
     overflow-wrap: anywhere;
   }
   .acts {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 12px;
+    gap: 8px;
+    margin-top: 18px;
   }
   button {
-    padding: 5px 10px;
-    border: 1px solid #ff4a3a;
-    border-radius: 0;
-    background: none;
-    color: #ff4a3a;
+    min-height: 44px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 999px;
+    background: #2b0605;
+    color: #ff6a5e;
     font: inherit;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    font-size: 15.5px;
+    font-weight: 400;
     cursor: pointer;
   }
-  button:hover {
-    background: #ff4a3a;
-    color: #120000;
+  .acts button:first-child {
+    background: #ff3b2f;
+    color: #0a0000;
+    font-weight: 500;
   }
   button[aria-disabled='true'] {
-    opacity: 0.45;
+    background: transparent;
+    box-shadow: inset 0 0 0 2px #5c1a16;
+    color: #c4665d;
     cursor: default;
   }
-  button[aria-disabled='true']:hover {
-    background: none;
-    color: #ff4a3a;
-  }
-  button:focus-visible {
-    outline: 3px solid #ffb3aa;
-    outline-offset: 2px;
-  }
-  .log {
-    min-height: 92px;
-  }
-  ol {
-    margin: 12px 0 0;
-    padding: 0 0 0 22px;
-    color: #ff8a7d;
-    text-transform: none;
-    letter-spacing: 0;
+  .log ol {
+    display: grid;
+    gap: 6px;
+    margin: 18px 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 15.5px;
     overflow-wrap: anywhere;
+  }
+  .log li {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    color: #e0584c;
+  }
+  .log li::before {
+    content: '';
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .log li:last-child {
+    color: #ff3b2f;
+  }
+  .log li:last-child::before {
+    box-shadow: 0 0 12px 3px rgba(255, 59, 47, 0.7);
+  }
+  :focus-visible {
+    outline: 3px solid #ff6a5e;
+    outline-offset: 3px;
   }
   @media (max-width: 480px) {
     :host {
-      padding: 14px 12px;
+      padding: 16px 12px;
     }
     .trays {
-      gap: 4px;
+      gap: 6px;
     }
     .tray {
-      padding: 4px;
+      padding: 12px 6px 10px;
     }
   }
 `;
@@ -86,16 +108,22 @@ const css = `
 const printCss = `
   :host {
     display: block;
-    margin-top: 6px;
+    width: 84%;
+    margin: 12px auto 0;
+    padding: 5px 5px 14px;
+    box-sizing: border-box;
+    border-radius: 8px;
+    background: #ffd9d4;
+    box-shadow: 0 0 26px rgba(255, 59, 47, 0.55);
   }
   .picture {
-    height: 56px;
-    border: 1px solid #ff4a3a;
+    aspect-ratio: 5 / 4;
+    border-radius: 4px;
     background:
-      radial-gradient(circle at 30% 40%, #ff4a3a 0 16%, transparent 17%),
-      linear-gradient(160deg, transparent 55%, #ff4a3a 56% 70%, transparent 71%),
-      #3a0603;
-    opacity: calc(0.15 + var(--d, 0) / 118);
+      radial-gradient(circle at 68% 34%, #ffe3de 0 13%, transparent 14%),
+      linear-gradient(168deg, transparent 0 56%, #7a0f08 57%),
+      linear-gradient(192deg, transparent 0 66%, #3a0503 67%), linear-gradient(#ff8a7e, #d5281c);
+    opacity: calc(0.15 + var(--d, 0) / 150);
   }
   @media (prefers-reduced-motion: no-preference) {
     .picture {

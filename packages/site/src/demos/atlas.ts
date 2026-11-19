@@ -6,132 +6,233 @@ const css = `
   :host {
     display: block;
     color-scheme: light;
-    padding: 18px;
-    background:
-      radial-gradient(rgba(74, 53, 32, 0.12) 0.7px, transparent 1px) 0 0 / 5px 5px,
-      #efe2c2;
-    color: #4a3520;
-    font-family: 'Hoefler Text', 'Baskerville', Georgia, serif;
+    padding: 16px;
+    background: #f1faff;
+    color: #0b2b3a;
+    font-family: Seravek, 'Gill Sans Nova', 'Gill Sans', Ubuntu, Calibri, 'DejaVu Sans', sans-serif;
   }
   .addr {
-    margin: 0;
-    padding: 4px 8px;
-    border: 1px solid #4a3520;
-    background: #f7eed6;
-    font: 12px/1.5 ui-monospace, Menlo, monospace;
+    position: relative;
+    margin: 0 0 12px;
+    padding: 8px 14px 8px 34px;
+    border-radius: 999px;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 70, 110, 0.14);
+    color: #44606c;
+    font-size: 14.5px;
     overflow-wrap: anywhere;
+  }
+  .addr::before {
+    content: '';
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    width: 10px;
+    height: 10px;
+    margin-top: -5px;
+    border-radius: 50%;
+    background: #19c37d;
   }
   .sea {
     position: relative;
-    max-width: 520px;
-    height: 150px;
-    margin: 12px 4px 10px;
-    border: 1px solid #4a3520;
-    outline: 1px solid #4a3520;
-    outline-offset: 3px;
-    background: repeating-linear-gradient(0deg, transparent 0 9px, rgba(74, 53, 32, 0.14) 9px 10px);
+    height: 216px;
+    border-radius: 26px;
+    background:
+      radial-gradient(70px 16px at 78% 16%, #c4eeff 97%, transparent),
+      radial-gradient(54px 12px at 86% 82%, #c4eeff 97%, transparent),
+      radial-gradient(40px 10px at 8% 92%, #c4eeff 97%, transparent), #8fdbff;
+    overflow: hidden;
   }
   .isle {
     position: absolute;
-    inset: 16px 22px 18px 26px;
-    border: 1.5px solid #4a3520;
-    border-radius: 58% 42% 55% 45% / 46% 60% 40% 54%;
-    background: #e6d3a3;
+    inset: 22px 76px 30px 26px;
+    border-radius: 58% 42% 55% 45% / 48% 60% 40% 52%;
+    background: #8ee06b;
     box-shadow:
-      0 0 0 4px #efe2c2,
-      0 0 0 5px rgba(74, 53, 32, 0.5),
-      0 0 0 9px #efe2c2,
-      0 0 0 10px rgba(74, 53, 32, 0.25);
+      inset -12px -16px 0 #6fcb4e,
+      0 0 0 9px #f7e8a6,
+      0 10px 0 9px #6cc6ec;
   }
   .place {
     position: absolute;
-    padding: 4px 3px;
-    border-bottom: 1px dotted #4a3520;
-    color: #4a3520;
-    font: italic 15px/1.2 'Hoefler Text', Georgia, serif;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 12px 6px 9px;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #0b2b3a;
+    font-size: 14.5px;
+    font-weight: 600;
     text-decoration: none;
+    white-space: nowrap;
+    box-shadow: 0 4px 0 rgba(11, 60, 40, 0.28);
+  }
+  .place::before {
+    content: '';
+    flex: none;
+    width: 13px;
+    height: 13px;
+    border-radius: 50% 50% 50% 0;
+    background: #ff5a47;
+    transform: rotate(-45deg);
   }
   .place[aria-current='page'] {
-    border-bottom: 2px solid #4a3520;
-    font-weight: 700;
+    background: #0b2b3a;
+    color: #ffffff;
+    box-shadow:
+      0 4px 0 rgba(11, 60, 40, 0.28),
+      0 0 0 6px rgba(255, 90, 71, 0.35);
   }
   .rose {
     position: absolute;
-    right: 6px;
-    bottom: 2px;
-    font-size: 22px;
+    top: 12px;
+    right: 12px;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #ff5a47;
+    font-size: 20px;
+    box-shadow: 0 4px 0 rgba(0, 70, 110, 0.2);
   }
-  a:focus-visible,
-  button:focus-visible,
-  .sheet:focus-visible {
-    outline: 3px solid #4a3520;
-    outline-offset: 2px;
+  .note {
+    margin: 12px 0 0;
+    font-size: 15.5px;
   }
   .controls {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px 14px;
-    margin: 0 0 10px;
-    font-size: 14px;
+    gap: 8px;
+    margin: 12px 0;
   }
-  .controls a {
-    color: inherit;
-  }
-  .controls a[aria-current='page'] {
-    font-weight: 700;
-  }
+  .controls a,
   button {
-    padding: 3px 10px;
-    border: 1px solid #4a3520;
-    border-radius: 0;
-    background: #f7eed6;
-    color: #4a3520;
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 999px;
+    background: #ddf2fd;
+    color: #0b2b3a;
     font: inherit;
+    font-size: 14.5px;
+    font-weight: 600;
+    text-decoration: none;
     cursor: pointer;
   }
-  button[aria-pressed='true'] {
-    background: #4a3520;
-    color: #f7eed6;
+  .controls a[aria-current='page'] {
+    background: #0b2b3a;
+    color: #ffffff;
   }
-  .note {
-    margin: 0;
-    font-size: 15px;
-    font-style: italic;
+  .controls button {
+    margin-left: auto;
+    gap: 8px;
+    background: #ffe27a;
+    color: #3b2e00;
+  }
+  .controls button::before {
+    content: '';
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #ff9f1a;
+  }
+  .controls button[aria-pressed='true'] {
+    background: #0b2b3a;
+    color: #ffffff;
+  }
+  .controls button[aria-pressed='true']::before {
+    background: transparent;
+    box-shadow: inset -4px -2px 0 #ffe27a;
   }
   .sheet {
+    position: relative;
     min-height: 120px;
-    font-size: 15px;
+    padding: 22px 18px 16px;
+    border-radius: 24px 24px 14px 14px;
+    background: #ffffff;
+    box-shadow: 0 10px 24px rgba(0, 70, 110, 0.16);
+  }
+  .sheet::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    width: 38px;
+    height: 4px;
+    margin-left: -19px;
+    border-radius: 999px;
+    background: #c9d9e0;
   }
   .sheet h3 {
     margin: 0 0 4px;
-    font-size: 19px;
-    font-style: italic;
+    font-size: 21px;
   }
   .sheet p {
-    margin: 0 0 8px;
+    margin: 0 0 10px;
+    font-size: 15.5px;
+    line-height: 1.45;
+  }
+  .sheet p:last-child {
+    margin-bottom: 0;
+  }
+  .sheet a {
+    color: #0e6b85;
+    font-weight: 600;
   }
   .layers {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    margin: 0 0 8px;
+    margin: 0 0 10px;
+  }
+  .layers button {
+    min-height: 34px;
+    border-radius: 14px 4px 14px 4px;
+    background: #e6f6ff;
+    font-size: 14.5px;
+  }
+  .layers button[aria-pressed='true'] {
+    background: #0e6b85;
+    color: #ffffff;
   }
   .notice {
-    padding: 6px 10px;
-    border-left: 4px solid #8a2d1b;
-    background: #f7eed6;
+    padding: 10px 14px;
+    border-radius: 14px;
+    background: #ffeeeb;
+    color: #8a1c14;
   }
-  .sheet a {
-    color: inherit;
+  :focus-visible {
+    outline: 3px solid #0b2b3a;
+    outline-offset: 3px;
   }
   @media (prefers-reduced-motion: no-preference) {
     .waiting {
       animation: unroll 1.2s ease-in-out infinite alternate;
     }
+    .place[aria-current='page']::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      animation: ping 1.8s ease-out infinite;
+    }
     @keyframes unroll {
       to {
-        opacity: 0.4;
+        opacity: 0.72;
+      }
+    }
+    @keyframes ping {
+      from {
+        box-shadow: 0 0 0 0 rgba(255, 90, 71, 0.6);
+      }
+      to {
+        box-shadow: 0 0 0 16px rgba(255, 90, 71, 0);
       }
     }
   }
