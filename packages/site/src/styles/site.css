@@ -1308,10 +1308,11 @@ tr:last-child td {
   }
 }
 
-.stage-padded {
-  padding: 1.1rem;
+.demo-guide a,
+.demo-open a {
+  color: var(--text);
 }
 
-.demo-guide a {
+.demo-back a {
   color: var(--text);
 }

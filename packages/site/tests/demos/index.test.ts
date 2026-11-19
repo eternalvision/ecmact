@@ -13,7 +13,7 @@ const raw = import.meta.glob<string>('/src/demos/*.ts', {
   eager: true,
 });
 
-/** The ids that the six examples of this story answer for, with the twelve ids of the old gallery. */
+/** The twelve ids of the old gallery, with the example that answers for each. */
 const oldIds = {
   counter: 'exposure',
   todo: 'setlist',
@@ -21,16 +21,29 @@ const oldIds = {
   store: 'fieldbook',
   form: 'customs',
   context: 'gels',
-  http: 'http',
-  github: 'github',
-  posts: 'posts',
-  weather: 'weather',
-  lifecycle: 'lifecycle',
-  widget: 'widget',
+  http: 'switchboard',
+  github: 'catalog',
+  posts: 'catalog',
+  weather: 'departures',
+  lifecycle: 'darkroom',
+  widget: 'seedpacket',
 };
 
-/** Demos that the next story replaces. They may still call a server, until then. */
-const legacy = ['http', 'github', 'posts', 'weather', 'lifecycle', 'widget'];
+/** The twelve examples of the gallery, in the order of the page. */
+const ids = [
+  'exposure',
+  'setlist',
+  'fieldbook',
+  'typecase',
+  'customs',
+  'gels',
+  'switchboard',
+  'catalog',
+  'departures',
+  'darkroom',
+  'seedpacket',
+  'atlas',
+];
 
 describe('cleanSource', () => {
   it('removes documentation comments and trims', () => {
@@ -40,6 +53,13 @@ describe('cleanSource', () => {
 });
 
 describe('demos', () => {
+  it('are the twelve of the concept sheet, and no source of an old demo remains', () => {
+    expect(demos.map((demo) => demo.id)).toEqual(ids);
+    expect(Object.keys(raw).sort()).toEqual(
+      [...ids, 'estimate', 'index'].map((name) => `/src/demos/${name}.ts`).sort(),
+    );
+  });
+
   it('have unique ids and point at pages that exist', () => {
     expect(new Set(demos.map((demo) => demo.id)).size).toBe(demos.length);
     demos.forEach((demo) => expect(findDoc(demo.page), demo.id).toBeDefined());
@@ -94,9 +114,16 @@ describe('findDemo', () => {
   });
 
   it('answers for the ids the guides and the home page ask for', () => {
-    ['counter', 'todo', 'styled', 'store', 'form'].forEach((id) =>
+    ['counter', 'todo', 'styled', 'store', 'form', 'http'].forEach((id) =>
       expect(findDemo(id), id).toBeDefined(),
     );
+  });
+
+  it('keeps the page of a demo that answers for an old id, and links only the atlas to a page of its own', () => {
+    expect(findDemo('http')?.page).toBe('http');
+    expect(demos.filter((demo) => demo.open).map((demo) => [demo.id, demo.open])).toEqual([
+      ['atlas', '/examples/atlas'],
+    ]);
   });
 });
 
@@ -128,7 +155,7 @@ const areas: Area[] = [
     users: ['exposure', 'setlist', 'fieldbook', 'customs', 'gels'],
   },
   { area: 'mounted, unmounted', patterns: [/mounted:/], users: ['exposure', 'darkroom'] },
-  { area: 'error prop and phases', patterns: [/error:/], users: ['darkroom'], waiting: true },
+  { area: 'error prop and phases', patterns: [/error:/], users: ['darkroom'] },
   {
     area: 'each, keyed list',
     patterns: [/\beach\(/, /\bby:/, /\bempty:/],
@@ -159,30 +186,30 @@ const areas: Area[] = [
     area: 'abort, timeout, retry, HttpError',
     patterns: [/\bHttpError\b/, /\bretry\b/],
     users: ['switchboard', 'catalog', 'departures'],
-    waiting: true,
   },
   {
     area: 'interceptors',
     patterns: [/\binterceptors\b/],
     users: ['switchboard', 'catalog'],
-    waiting: true,
   },
   {
     area: 'emit: events out of a widget',
     patterns: [/\bemit\b/],
     users: ['seedpacket'],
-    waiting: true,
   },
-  { area: 'custom-property theming', patterns: [/var\(--/], users: ['seedpacket'], waiting: true },
+  { area: 'custom-property theming', patterns: [/var\(--/], users: ['seedpacket'] },
   { area: 'widget removed and put back', patterns: [/\bremove\(/], users: [], waiting: true },
   {
-    area: 'createHttp',
-    patterns: [/\bcreateHttp\b/],
+    area: 'createHttp, with a fetch of its own',
+    patterns: [/\bcreateHttp\b/, /\bfetch:/],
     users: ['switchboard', 'catalog'],
-    waiting: true,
   },
-  { area: 'resource', patterns: [/\bresource\b/], users: ['departures'], waiting: true },
-  { area: 'createRouter', patterns: [/\bcreateRouter\b/], users: ['atlas'], waiting: true },
+  { area: 'resource', patterns: [/\bresource\b/], users: ['departures'] },
+  {
+    area: 'routes: children, outlet, guard, link (the site calls createRouter with them)',
+    patterns: [/\bchildren:/, /\bbeforeEnter:/, /\.outlet\(/, /\.link\(/, /\bRoute\b/],
+    users: ['atlas'],
+  },
   {
     area: 'styled, css, keyframes',
     patterns: [/\bstyled\./, /\bcss`/, /\bkeyframes`/],
@@ -197,7 +224,6 @@ const areas: Area[] = [
     area: 'defineWidget, emit',
     patterns: [/\bdefineWidget\b/],
     users: ['seedpacket'],
-    waiting: true,
   },
 ];
 
@@ -242,6 +268,12 @@ describe('the stages', () => {
     fieldbook: 'light',
     customs: 'light',
     typecase: 'light',
+    switchboard: 'light',
+    catalog: 'light',
+    departures: 'dark',
+    darkroom: 'dark',
+    seedpacket: 'light',
+    atlas: 'light',
   };
 
   it('declare a color scheme of their own, so the frame does not decide the native controls', () => {
@@ -249,15 +281,9 @@ describe('the stages', () => {
       expect(findDemo(id)?.files[0]?.source, id).toContain(`color-scheme: ${scheme};`),
     );
   });
-
-  it('pad the stage of the old demos that have no padding of their own, and no other', () => {
-    expect(demos.filter((demo) => demo.padded).map((demo) => demo.id)).toEqual(legacy);
-  });
 });
 
 describe('the sources of the examples', () => {
-  const current = demos.filter((demo) => !legacy.includes(demo.id));
-
   it('import only from ecmact', () => {
     demos.forEach((demo) =>
       demo.files.forEach((file) =>
@@ -269,8 +295,8 @@ describe('the sources of the examples', () => {
   });
 
   it('name no address on another origin', () => {
-    expect(current.length).toBeGreaterThanOrEqual(6);
-    current.forEach((demo) =>
+    expect(demos).toHaveLength(12);
+    demos.forEach((demo) =>
       demo.files.forEach((file) => {
         expect(file.source, file.name).not.toMatch(/https?:\/\//);
         expect(file.source, file.name).not.toMatch(/['"`]\/\/[a-z]/i);

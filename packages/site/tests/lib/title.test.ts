@@ -11,6 +11,13 @@ describe('metaFor', () => {
     expect(metaFor('').description).toContain('signals');
   });
 
+  it('describes the atlas and every place in it, in both languages', () => {
+    expect(metaFor('/examples/atlas').title).toBe('Pocket atlas - ECMact');
+    expect(metaFor('/examples/atlas/saltmarsh').description).toContain('branch of the routes');
+    expect(metaFor('/examples/atlas/', 'ru').title).toBe('Карманный атлас - ECMact');
+    expect(metaFor('/examples/atlasx').title).toBe('Not found - ECMact');
+  });
+
   it('describes the examples', () => {
     expect(metaFor('/examples').title).toBe('Examples - ECMact');
   });

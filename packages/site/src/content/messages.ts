@@ -64,6 +64,7 @@ export interface Messages {
     run: string;
     stage: string;
     guide: string;
+    open: string;
   };
   /** The gallery: its title, its lead and the tasks it is grouped by. */
   examples: {
@@ -71,6 +72,8 @@ export interface Messages {
     lead: string;
     groups: Record<DemoGroup, { title: string; lead: string }>;
   };
+  /** The page of the example that runs on its own address, the atlas. */
+  atlas: { title: string; lead: string; back: string; source: string };
   /** The page for an unknown address. */
   notFound: { title: string; lead: string; home: string; docs: string };
   /** The widget gallery. */
@@ -139,6 +142,8 @@ export interface Messages {
     summary: string;
     examplesTitle: string;
     examplesDescription: string;
+    atlasTitle: string;
+    atlasDescription: string;
     widgetsTitle: string;
     widgetsDescription: string;
     notFound: string;
@@ -210,10 +215,11 @@ const en: Messages = {
     run: 'Run',
     stage: 'Live example',
     guide: 'Guide',
+    open: 'Runs on its own page',
   },
   examples: {
     title: 'Examples',
-    lead: 'Every example runs on its own stage. Open the tab of a file beside Run to read the exact source that runs, and copy it.',
+    lead: 'Every example runs on its own stage, and none of them needs a network. Open the tab of a file beside Run to read the exact source that runs, and copy it.',
     groups: {
       state: {
         title: 'State and signals',
@@ -225,13 +231,19 @@ const en: Messages = {
       },
       requests: {
         title: 'Requests and data',
-        lead: 'Calls to a server that can be slow, wrong or gone.',
+        lead: 'Calls to a server that can be slow, wrong or gone. Every server here is a function inside the example.',
       },
       lifecycle: {
-        title: 'Lifecycle and widgets',
-        lead: 'What happens when a part appears, changes and leaves.',
+        title: 'Lifecycle, widgets and routes',
+        lead: 'What happens when a part appears, changes and leaves, and how a page finds its way.',
       },
     },
+  },
+  atlas: {
+    title: 'Pocket atlas',
+    lead: 'This example is a branch of the routes of this site, so it has an address of its own. Walk the island, reload the page and use Back.',
+    back: 'Back to the examples',
+    source: 'The source of this example',
   },
   notFound: {
     title: 'Page not found',
@@ -328,34 +340,39 @@ const en: Messages = {
       description: 'Nested zones of a stage, each able to put a gel in front of its lamps.',
       hint: 'cycle the gels',
     },
-    http: {
-      title: 'HTTP client and resource',
-      description: 'Retries, aborted requests and loading state against a fake server.',
+    switchboard: {
+      title: 'Telephone exchange',
+      description: 'Four lines, four fates of a request: answered, cancelled, retried, refused.',
+      hint: 'plug into a line',
     },
-    github: {
-      title: 'GitHub API',
+    catalog: {
+      title: 'Library card catalogue',
       description:
-        'A repository card from the GitHub API, with a debounced input and a rate-limit interceptor.',
+        'Search the drawer, borrow a book, and meet a desk that closes and a rate limit.',
+      hint: 'type, borrow, close the desk',
     },
-    posts: {
-      title: 'Create, read, delete',
+    departures: {
+      title: 'Ferry departures',
       description:
-        'Optimistic updates against jsonplaceholder, with interceptors that count and time the requests.',
+        'A board that follows the chosen harbour and drops the answer it no longer needs.',
+      hint: 'switch harbours quickly',
     },
-    weather: {
-      title: 'Weather API',
+    darkroom: {
+      title: 'Darkroom trays',
       description:
-        'The open-meteo.com API through resource(): a signal picks the city, the old request is aborted.',
+        'A print goes through developer, stop bath and fixer; every hook leaves a line in the log.',
+      hint: 'move the print',
     },
-    lifecycle: {
-      title: 'Lifecycle hooks',
+    seedpacket: {
+      title: 'Seed packet',
       description:
-        'mounted with a cleanup, an effect that stops by itself and unmounted, on a clock you can remove.',
+        'A custom element that a page configures with attributes and hears through an event.',
+      hint: 'edit the attributes',
     },
-    widget: {
-      title: 'defineWidget',
-      description:
-        'A custom element configured by attributes, themed by a custom property, speaking through events.',
+    atlas: {
+      title: 'Pocket atlas',
+      description: 'An island with a page per place: nested routes, a guard and a lazy view.',
+      hint: 'a preview',
     },
   },
   home: {
@@ -417,6 +434,9 @@ const en: Messages = {
     examplesTitle: 'Examples',
     examplesDescription:
       'Live ECMact demos with their source: signals, stores, styled components, an HTTP client and forms.',
+    atlasTitle: 'Pocket atlas',
+    atlasDescription:
+      'An ECMact example that is a branch of the routes of this site: nested routes, a guard, a lazy view and a query.',
     widgetsTitle: 'Widgets',
     widgetsDescription:
       'The same ECMact widgets embedded into four unrelated sites, each with its own hostile CSS.',
@@ -489,10 +509,11 @@ const ru: Messages = {
     run: 'Запуск',
     stage: 'Живой пример',
     guide: 'Руководство',
+    open: 'Работает на своей странице',
   },
   examples: {
     title: 'Примеры',
-    lead: 'Каждый пример работает на своей сцене. Откройте вкладку файла рядом с «Запуском», чтобы прочитать исходник, который выполняется, и скопировать его.',
+    lead: 'Каждый пример работает на своей сцене, и ни одному не нужна сеть. Откройте вкладку файла рядом с «Запуском», чтобы прочитать исходник, который выполняется, и скопировать его.',
     groups: {
       state: {
         title: 'Состояние и сигналы',
@@ -504,13 +525,19 @@ const ru: Messages = {
       },
       requests: {
         title: 'Запросы и данные',
-        lead: 'Обращения к серверу, который может быть медленным, неправым или недоступным.',
+        lead: 'Обращения к серверу, который может быть медленным, неправым или недоступным. Каждый сервер здесь - функция внутри примера.',
       },
       lifecycle: {
-        title: 'Жизненный цикл и виджеты',
-        lead: 'Что происходит, когда часть появляется, меняется и уходит.',
+        title: 'Жизненный цикл, виджеты и маршруты',
+        lead: 'Что происходит, когда часть появляется, меняется и уходит, и как страница находит свой путь.',
       },
     },
+  },
+  atlas: {
+    title: 'Карманный атлас',
+    lead: 'Этот пример - ветка маршрутов этого сайта, поэтому у него есть собственный адрес. Пройдитесь по острову, перезагрузите страницу и нажмите «Назад».',
+    back: 'Назад к примерам',
+    source: 'Исходник этого примера',
   },
   notFound: {
     title: 'Страница не найдена',
@@ -610,34 +637,39 @@ const ru: Messages = {
         'Вложенные зоны сцены, и каждая может поставить светофильтр перед своими приборами.',
       hint: 'листайте светофильтры',
     },
-    http: {
-      title: 'HTTP-клиент и resource',
-      description: 'Повторы, прерванные запросы и состояние загрузки на фейковом сервере.',
+    switchboard: {
+      title: 'Телефонная станция',
+      description: 'Четыре линии, четыре судьбы запроса: ответ, отмена, повтор, отказ.',
+      hint: 'подключитесь к линии',
     },
-    github: {
-      title: 'GitHub API',
+    catalog: {
+      title: 'Библиотечный каталог',
       description:
-        'Карточка репозитория из GitHub API: ввод с задержкой и интерцептор лимита запросов.',
+        'Поищите в ящике, возьмите книгу и встретьте стойку, которая закрывается, и лимит запросов.',
+      hint: 'введите запрос, возьмите книгу, закройте стойку',
     },
-    posts: {
-      title: 'Создать, прочитать, удалить',
-      description:
-        'Оптимистичные обновления на jsonplaceholder, интерцепторы считают запросы и замеряют время.',
+    departures: {
+      title: 'Отправления паромов',
+      description: 'Табло следует за выбранной гаванью и отбрасывает ответ, который уже не нужен.',
+      hint: 'быстро переключайте гавани',
     },
-    weather: {
-      title: 'API погоды',
+    darkroom: {
+      title: 'Кюветы фотолаборатории',
       description:
-        'API open-meteo.com через resource(): сигнал выбирает город, старый запрос прерывается.',
+        'Отпечаток проходит проявитель, стоп-ванну и фиксаж; каждый хук оставляет строку в журнале.',
+      hint: 'переместите отпечаток',
     },
-    lifecycle: {
-      title: 'Хуки жизненного цикла',
+    seedpacket: {
+      title: 'Пакетик семян',
       description:
-        'mounted с очисткой, эффект, который останавливается сам, и unmounted на часах, которые можно убрать.',
+        'Кастомный элемент: страница настраивает его атрибутами и слышит его по событию.',
+      hint: 'измените атрибуты',
     },
-    widget: {
-      title: 'defineWidget',
+    atlas: {
+      title: 'Карманный атлас',
       description:
-        'Кастомный элемент: настраивается атрибутами, красится CSS-свойством, отвечает событиями.',
+        'Остров со страницей на каждое место: вложенные маршруты, охранник и ленивый вид.',
+      hint: 'предпросмотр',
     },
   },
   home: {
@@ -698,6 +730,9 @@ const ru: Messages = {
     examplesTitle: 'Примеры',
     examplesDescription:
       'Живые демо ECMact с исходниками: сигналы, сторы, styled-компоненты, HTTP-клиент и формы.',
+    atlasTitle: 'Карманный атлас',
+    atlasDescription:
+      'Пример ECMact, который сам является веткой маршрутов этого сайта: вложенные маршруты, охранник, ленивый вид и query.',
     widgetsTitle: 'Виджеты',
     widgetsDescription:
       'Одни и те же виджеты ECMact, встроенные в четыре несвязанных сайта, у каждого своя враждебная таблица стилей.',
