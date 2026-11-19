@@ -55,6 +55,12 @@ describe('seedpacket example', () => {
     expect(inner().querySelector('.sow')?.textContent).toBe('Sow in January · 3 cm deep');
   });
 
+  it('falls back to the default depth when the attribute is not a number', async () => {
+    const { packet, inner } = await open();
+    packet.setAttribute('depth', 'deep');
+    expect(inner().querySelector('.sow')?.textContent).toBe('Sow in April · 1 cm deep');
+  });
+
   it('writes the attributes from the controls beside the packet', async () => {
     const { packet, field, type, attributes } = await open();
     type(field('Plant'), 'Calendula');

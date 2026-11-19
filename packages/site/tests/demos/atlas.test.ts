@@ -130,6 +130,39 @@ describe('atlas example, as a branch of the routes', () => {
     expect(sheet().getAttribute('aria-busy')).toBe('false');
   });
 
+  it('keeps the ticket of the newest sheet: an older lazy sheet that finishes does not end the wait', async () => {
+    const { link, sheet } = await open();
+    link('North Shoal').click();
+    await vi.advanceTimersByTimeAsync(200);
+    link('The whole island').click();
+    link('North Shoal').click();
+    await vi.advanceTimersByTimeAsync(500);
+    expect(sheet().getAttribute('aria-busy')).toBe('true');
+    await vi.advanceTimersByTimeAsync(300);
+    expect(sheet().getAttribute('aria-busy')).toBe('false');
+  });
+
+  it('does not scroll the page to the top when a link of the map is followed, also through the guard', async () => {
+    const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+    const { link, router } = await open();
+    link('Saltmarsh').click();
+    link('The whole island').click();
+    link('The Lighthouse').click();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(router.location.value.query.get('closed')).toBe('lighthouse');
+    expect(scroll).not.toHaveBeenCalled();
+    scroll.mockRestore();
+  });
+
+  it('leaves a click with a modifier key to the browser', async () => {
+    const { link, router } = await open();
+    link('Saltmarsh').dispatchEvent(
+      new MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: true }),
+    );
+    await vi.advanceTimersByTimeAsync(0);
+    expect(router.location.value.path).toBe('/examples/atlas');
+  });
+
   it('sends the closed lighthouse back to the island, and lets a visitor in by day', async () => {
     const { link, router, view, sheet, night } = await open();
     expect(night().getAttribute('aria-pressed')).toBe('true');

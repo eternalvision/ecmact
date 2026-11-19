@@ -185,7 +185,7 @@ const register = () => {
         div(
           { class: 'sow' },
           () =>
-            `Sow in ${months[Math.min(11, Math.max(0, props.sow - 1))]} · ${props.depth} cm deep`,
+            `Sow in ${months[Math.min(11, Math.max(0, props.sow - 1))]} · ${Number.isFinite(props.depth) ? props.depth : 1} cm deep`,
         ),
         button(
           {

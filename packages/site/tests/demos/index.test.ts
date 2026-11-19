@@ -183,7 +183,7 @@ const areas: Area[] = [
   },
   { area: 'createContext', patterns: [/\bcreateContext\b/], users: ['gels'] },
   {
-    area: 'abort, timeout, retry, HttpError',
+    area: 'abort, retry, HttpError',
     patterns: [/\bHttpError\b/, /\bretry\b/],
     users: ['switchboard', 'catalog', 'departures'],
   },
@@ -198,6 +198,7 @@ const areas: Area[] = [
     users: ['seedpacket'],
   },
   { area: 'custom-property theming', patterns: [/var\(--/], users: ['seedpacket'] },
+  { area: 'timeout', patterns: [/\btimeout\b/], users: [], waiting: true },
   { area: 'widget removed and put back', patterns: [/\bremove\(/], users: [], waiting: true },
   {
     area: 'createHttp, with a fetch of its own',

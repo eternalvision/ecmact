@@ -34,6 +34,12 @@ describe('switchboard example', () => {
     expect(root.querySelector('.strip')?.getAttribute('aria-live')).toBe('polite');
   });
 
+  it('draws every lamp as a block, so that it has a size', () => {
+    const { root } = open();
+    const lamp = root.querySelector('.lamp') as HTMLElement;
+    expect(getComputedStyle(lamp).display).toBe('block');
+  });
+
   it('answers the clear line with a 200 and reports the time the request took', async () => {
     const { jack, lamp, lines } = open();
     jack('Clear').click();

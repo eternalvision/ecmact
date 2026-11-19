@@ -21,6 +21,7 @@ const css = `
     text-align: center;
   }
   .lamp {
+    display: block;
     width: 16px;
     height: 16px;
     margin: 0 auto 8px;

@@ -43,6 +43,15 @@ describe('catalog example', () => {
     expect(root.querySelector('.card small')?.textContent).toBe('Shelf 598.2 · 1961');
   });
 
+  it('keeps the cards in a scrollable region that the keyboard can reach, so the desk stays near', async () => {
+    const { root } = await open();
+    const list = root.querySelector('.list')!;
+    expect(list.getAttribute('role')).toBe('region');
+    expect(list.getAttribute('aria-label')).toBe('Cards');
+    expect(list.getAttribute('tabindex')).toBe('0');
+    expect(list.querySelectorAll('.card')).toHaveLength(6);
+  });
+
   it('searches the drawer, ignoring case and spaces around the words', async () => {
     const { titles, search } = await open();
     search('  KNOTS ');

@@ -23,6 +23,7 @@ const css = `
   }
   .sea {
     position: relative;
+    max-width: 520px;
     height: 150px;
     margin: 12px 4px 10px;
     border: 1px solid #4a3520;
@@ -201,6 +202,22 @@ const layers = [
 const unroll = () => new Promise<void>((resolve) => setTimeout(resolve, 700));
 
 /**
+ * Makes the click handler of a link of the atlas: a plain click navigates without scrolling the page to the top,
+ * which `router.link` does by itself; a click with a modifier key is left to the browser.
+ *
+ * @param router - The router.
+ * @param to - The path to go to.
+ * @param after - Runs once the navigation is done.
+ * @returns The handler.
+ */
+const stay = (router: Router, to: string, after?: () => void) => (event: MouseEvent) => {
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+    return;
+  event.preventDefault();
+  void router.navigate(to, { scroll: false }).then(after);
+};
+
+/**
  * Draws the island with the names of its places, as the teaser in the gallery does.
  *
  * @param name - What to put in the place of each name.
@@ -269,7 +286,7 @@ export const atlasRoute = (frame: (stage: Node) => Node = (stage) => stage): Rou
     enter('');
     return div(
       h3('The whole island'),
-      p('Choose a place, or press the sun to see the lighthouse open.'),
+      p('Choose a place, or turn Night off to see the lighthouse open.'),
       query.get('closed') === 'lighthouse' &&
         p(
           { class: 'notice' },
@@ -307,9 +324,7 @@ export const atlasRoute = (frame: (stage: Node) => Node = (stage) => stage): Rou
           /**
            * Puts the focus on the sheet, because the link that had it leaves with the view.
            */
-          onclick: () => {
-            queueMicrotask(() => sheet.focus());
-          },
+          onclick: stay(router, '/examples/atlas', () => sheet.focus()),
         },
         'Back to the island',
       ),
@@ -395,6 +410,7 @@ export const atlasRoute = (frame: (stage: Node) => Node = (stage) => stage): Rou
             router.link(
               {
                 to: `/examples/atlas/${place.id}`,
+                onclick: stay(router, `/examples/atlas/${place.id}`),
                 class: 'place',
                 style: { left: `${place.left}%`, top: `${place.top}%` },
               },
@@ -404,7 +420,10 @@ export const atlasRoute = (frame: (stage: Node) => Node = (stage) => stage): Rou
         ),
         div(
           { class: 'controls' },
-          router.link({ to: '/examples/atlas' }, 'The whole island'),
+          router.link(
+            { to: '/examples/atlas', onclick: stay(router, '/examples/atlas') },
+            'The whole island',
+          ),
           button(
             {
               type: 'button',

@@ -37,6 +37,14 @@ const css = `
     outline: 3px solid #ffd479;
     outline-offset: 2px;
   }
+  .list {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  .list:focus-visible {
+    outline: 3px solid #ffd479;
+    outline-offset: 2px;
+  }
   .card {
     position: relative;
     margin-top: 9px;
@@ -349,29 +357,33 @@ export const create = () => {
       placeholder: 'search the drawer',
       'aria-label': 'Search the catalogue',
     }),
-    each(
-      () => found.value.books,
-      (book) =>
-        div(
-          { class: 'card' },
-          b(book.title),
-          small(`Shelf ${book.shelf} · ${book.year}`),
-          button(
-            {
-              type: 'button',
-              'aria-label': () => `${loans.value.has(book.id) ? 'Return' : 'Borrow'} ${book.title}`,
-              onclick: () => toggle(book),
-            },
-            () => (loans.value.has(book.id) ? 'Return' : 'Borrow'),
+    div(
+      { class: 'list', role: 'region', tabindex: 0, 'aria-label': 'Cards' },
+      each(
+        () => found.value.books,
+        (book) =>
+          div(
+            { class: 'card' },
+            b(book.title),
+            small(`Shelf ${book.shelf} · ${book.year}`),
+            button(
+              {
+                type: 'button',
+                'aria-label': () =>
+                  `${loans.value.has(book.id) ? 'Return' : 'Borrow'} ${book.title}`,
+                onclick: () => toggle(book),
+              },
+              () => (loans.value.has(book.id) ? 'Return' : 'Borrow'),
+            ),
+            span({ class: 'due', hidden: () => !loans.value.has(book.id) }, 'ON LOAN'),
           ),
-          span({ class: 'due', hidden: () => !loans.value.has(book.id) }, 'ON LOAN'),
-        ),
-      {
-        by: (book) => book.id,
-        empty: p({ class: 'none' }, () =>
-          searching.value ? 'Looking in the drawer...' : `No card matches "${found.value.q}".`,
-        ),
-      },
+        {
+          by: (book) => book.id,
+          empty: p({ class: 'none' }, () =>
+            searching.value ? 'Looking in the drawer...' : `No card matches "${found.value.q}".`,
+          ),
+        },
+      ),
     ),
     p({ class: 'notice', role: 'status' }, notice),
     div(
