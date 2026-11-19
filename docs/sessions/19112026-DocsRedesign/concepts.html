@@ -1,0 +1,3591 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ECMact gallery concepts</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --ink: #141414;
+        --paper: #ffffff;
+        --surface: #f7f7f7;
+        --muted: #555555;
+        --line: #d7d7d7;
+        --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+        --sans: Geist, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --ink: #ffffff;
+          --paper: #141414;
+          --surface: #1c1c1c;
+          --muted: #bcbcbc;
+          --line: #444444;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        background: var(--paper);
+        color: var(--ink);
+        font-family: var(--sans);
+        -webkit-text-size-adjust: 100%;
+      }
+      body {
+        margin: 0;
+        line-height: 1.55;
+      }
+      a {
+        color: inherit;
+        text-underline-offset: 3px;
+      }
+      :focus-visible {
+        outline: 2px solid currentColor;
+        outline-offset: 3px;
+      }
+      code {
+        font-family: var(--mono);
+        font-size: 0.92em;
+      }
+      .wrap {
+        width: min(1220px, calc(100% - 32px));
+        margin-inline: auto;
+      }
+      .top {
+        padding-block: 28px 36px;
+        border-bottom: 1px solid var(--line);
+      }
+      .lockup {
+        display: block;
+        height: 26px;
+        width: auto;
+        color: var(--ink);
+      }
+      h1 {
+        margin: 34px 0 0;
+        max-width: 14ch;
+        font-size: clamp(40px, 7vw, 84px);
+        line-height: 0.98;
+        letter-spacing: -0.06em;
+        font-weight: 690;
+      }
+      .lead {
+        max-width: 62ch;
+        margin: 22px 0 0;
+        color: var(--muted);
+        font-size: 18px;
+      }
+      .facts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 10px;
+        margin: 22px 0 0;
+        padding: 0;
+        list-style: none;
+        font: 12px/1.5 var(--mono);
+      }
+      .facts li {
+        padding: 5px 9px;
+        border: 1px solid var(--line);
+      }
+      .toc {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 20px;
+        margin-top: 22px;
+        font-size: 15px;
+      }
+      section {
+        padding-block: 52px 8px;
+      }
+      h2 {
+        margin: 0 0 10px;
+        font-size: clamp(30px, 4.4vw, 52px);
+        line-height: 1.04;
+        letter-spacing: -0.05em;
+      }
+      .section-lead {
+        max-width: 70ch;
+        margin: 0 0 28px;
+        color: var(--muted);
+      }
+      .card {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 20px;
+        padding-block: 26px;
+        border-top: 1px solid var(--line);
+      }
+      @media (min-width: 900px) {
+        .card {
+          grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+          gap: 44px;
+          align-items: start;
+        }
+      }
+      .kicker {
+        margin: 0 0 8px;
+        color: var(--muted);
+        font: 12px/1.5 var(--mono);
+      }
+      h3 {
+        margin: 0;
+        font-size: 26px;
+        line-height: 1.15;
+        letter-spacing: -0.035em;
+      }
+      h3 code {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 14px;
+        font-weight: 400;
+        letter-spacing: 0;
+        color: var(--muted);
+      }
+      .idea {
+        margin: 10px 0 14px;
+        font-size: 17px;
+      }
+      dl {
+        display: grid;
+        grid-template-columns: 96px minmax(0, 1fr);
+        gap: 8px 12px;
+        margin: 0;
+        font-size: 14.5px;
+      }
+      dt {
+        color: var(--muted);
+        font: 12px/1.9 var(--mono);
+      }
+      dd {
+        margin: 0;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+      .chips span {
+        padding: 1px 7px;
+        border: 1px solid var(--line);
+        font: 12px/1.7 var(--mono);
+      }
+      .stage {
+        min-width: 0;
+        margin: 0;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        overflow: hidden;
+      }
+      .stage figcaption {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 9px 14px;
+        border-bottom: 1px solid var(--line);
+        color: var(--muted);
+        font: 12px/1.5 var(--mono);
+      }
+      .mock {
+        min-height: 240px;
+        padding: 18px;
+        overflow: hidden;
+      }
+      .mock button,
+      .mock input,
+      .mock select {
+        font: inherit;
+        color: inherit;
+      }
+      .mock button {
+        cursor: pointer;
+      }
+      .table-scroll {
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+      }
+      table {
+        border-collapse: collapse;
+        font-size: 13.5px;
+        min-width: 100%;
+      }
+      th,
+      td {
+        padding: 7px 10px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+      tr:last-child > * {
+        border-bottom: 0;
+      }
+      thead th {
+        font: 12px/1.4 var(--mono);
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      #matrix-table th.col {
+        height: 124px;
+        padding: 6px 4px;
+        vertical-align: bottom;
+        white-space: nowrap;
+      }
+      #matrix-table th.col span {
+        display: inline-block;
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+      }
+      #matrix-table td {
+        text-align: center;
+        padding: 6px 4px;
+        min-width: 26px;
+      }
+      #matrix-table td.on {
+        font-weight: 700;
+      }
+      #matrix-table th.row {
+        position: sticky;
+        left: 0;
+        background: var(--paper);
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      #matrix-table .sep {
+        border-left: 2px solid var(--ink);
+      }
+      #matrix-table td.total {
+        color: var(--muted);
+        font-family: var(--mono);
+      }
+      .note {
+        max-width: 78ch;
+        color: var(--muted);
+        font-size: 14.5px;
+      }
+      footer {
+        margin-top: 56px;
+        padding-block: 26px 44px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      /* W1 print-quote: Swiss poster */
+      .m-quote {
+        background: #f2efe6;
+        color: #111;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        padding: 0;
+      }
+      .m-quote .bar {
+        display: flex;
+        justify-content: space-between;
+        padding: 9px 18px;
+        background: #e10600;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .m-quote .body {
+        padding: 14px 18px 18px;
+      }
+      .m-quote .total {
+        font-size: clamp(64px, 17vw, 112px);
+        font-weight: 800;
+        line-height: 0.86;
+        letter-spacing: -0.07em;
+      }
+      .m-quote .total small {
+        font-size: 0.3em;
+        letter-spacing: 0;
+        vertical-align: top;
+      }
+      .m-quote .rows {
+        margin-top: 14px;
+        border-top: 3px solid #111;
+      }
+      .m-quote .r {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        padding: 6px 0;
+        border-bottom: 1px solid #111;
+        font-size: 14px;
+      }
+      .m-quote .r b {
+        font-weight: 700;
+      }
+      .m-quote .step {
+        width: 30px;
+        height: 26px;
+        border: 0;
+        background: #111;
+        color: #f2efe6;
+        font-weight: 700;
+      }
+      .m-quote .go {
+        margin-top: 12px;
+        padding: 9px 14px;
+        border: 0;
+        background: #111;
+        color: #f2efe6;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      /* W2 moon-dial: e-ink */
+      .m-moon {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 18px;
+        align-items: center;
+        background: #e6e4dc;
+        color: #1a1a1a;
+        font-family: ui-monospace, Menlo, Consolas, monospace;
+      }
+      .m-moon .disc {
+        position: relative;
+        width: 118px;
+        height: 118px;
+        border: 2px solid #1a1a1a;
+        border-radius: 50%;
+        background: #f4f2ea;
+        overflow: hidden;
+      }
+      .m-moon .disc::after {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        border-radius: 50%;
+        background:
+          radial-gradient(#e6e4dc 0.8px, transparent 1px) 0 0 / 4px 4px,
+          #1a1a1a;
+        transform: translateX(var(--shift, 75%));
+      }
+      .m-moon .name {
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      .m-moon .sub {
+        margin-top: 4px;
+        font-size: 12px;
+      }
+      .m-moon .dither {
+        height: 10px;
+        margin: 10px 0;
+        background: radial-gradient(#1a1a1a 1px, transparent 1.2px) 0 0 / 4px 4px;
+      }
+      .m-moon button {
+        padding: 4px 9px;
+        border: 2px solid #1a1a1a;
+        border-radius: 0;
+        background: #e6e4dc;
+        font-size: 12px;
+      }
+
+      /* W3 proof-clock: risograph */
+      .m-proof {
+        background:
+          radial-gradient(rgba(0, 0, 0, 0.06) 0.6px, transparent 0.8px) 0 0 / 3px 3px,
+          #fbf4e2;
+        color: #0b4f7a;
+        font-family: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
+      }
+      .m-proof .head {
+        position: relative;
+        font-size: clamp(34px, 9vw, 56px);
+        font-weight: 900;
+        line-height: 0.95;
+        letter-spacing: -0.03em;
+        text-transform: uppercase;
+        color: #0078bf;
+      }
+      .m-proof .head::after {
+        content: attr(data-t);
+        position: absolute;
+        left: 4px;
+        top: 3px;
+        color: #ff48b0;
+        mix-blend-mode: multiply;
+      }
+      .m-proof .time {
+        margin: 12px 0 10px;
+        font:
+          700 30px/1 ui-monospace,
+          Menlo,
+          monospace;
+        color: #ff48b0;
+      }
+      .m-proof .line {
+        display: flex;
+        height: 34px;
+        border: 2px solid #0078bf;
+      }
+      .m-proof .line span {
+        flex: 1 1 0;
+        display: grid;
+        place-items: center;
+        min-width: 0;
+        overflow: hidden;
+        font:
+          700 9px/1 ui-monospace,
+          Menlo,
+          monospace;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #0b4f7a;
+        border-right: 2px solid #0078bf;
+      }
+      .m-proof .line span:last-child {
+        border-right: 0;
+      }
+      .m-proof .line .a {
+        background: radial-gradient(#ff48b0 1.2px, transparent 1.4px) 0 0 / 5px 5px;
+      }
+      .m-proof .line .b {
+        background: #ff48b0;
+        color: #fff;
+        flex-grow: 3.3;
+      }
+      .m-proof .line .c {
+        background: radial-gradient(#0078bf 1.2px, transparent 1.4px) 0 0 / 5px 5px;
+      }
+      .m-proof .line .d {
+        background: repeating-linear-gradient(45deg, #ff48b0 0 3px, transparent 3px 7px);
+        flex-grow: 2;
+      }
+      .m-proof .line .e {
+        background: #0078bf;
+        color: #fff;
+      }
+      .m-proof label {
+        display: block;
+        margin-top: 12px;
+        font:
+          700 12px/1.4 ui-monospace,
+          Menlo,
+          monospace;
+      }
+      .m-proof input {
+        width: 100%;
+        accent-color: #ff48b0;
+      }
+
+      /* W4 row-counter: 8-bit cross-stitch */
+      .m-rows {
+        background:
+          linear-gradient(rgba(0, 0, 0, 0.07) 1px, transparent 1px) 0 0 / 8px 8px,
+          linear-gradient(90deg, rgba(0, 0, 0, 0.07) 1px, transparent 1px) 0 0 / 8px 8px,
+          #f1e7cf;
+        color: #2d1b4e;
+        font-family: ui-monospace, 'Courier New', monospace;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+      .m-rows .big {
+        font-size: 44px;
+        line-height: 1;
+        letter-spacing: 0.04em;
+        text-shadow:
+          3px 0 0 #e63946,
+          0 3px 0 #e63946,
+          3px 3px 0 #e63946;
+      }
+      .m-rows .grid {
+        display: grid;
+        grid-template-columns: repeat(10, 1fr);
+        gap: 3px;
+        margin: 14px 0 10px;
+        max-width: 300px;
+      }
+      .m-rows .grid i {
+        aspect-ratio: 1;
+        background: rgba(45, 27, 78, 0.12);
+      }
+      .m-rows .grid i.on {
+        background:
+          linear-gradient(45deg, transparent 42%, #2d1b4e 42% 58%, transparent 58%),
+          linear-gradient(-45deg, transparent 42%, #2d1b4e 42% 58%, transparent 58%);
+      }
+      .m-rows .grid i.on.mark {
+        background:
+          linear-gradient(45deg, transparent 42%, #e63946 42% 58%, transparent 58%),
+          linear-gradient(-45deg, transparent 42%, #e63946 42% 58%, transparent 58%);
+      }
+      .m-rows .hint {
+        font-size: 12px;
+      }
+      .m-rows button {
+        margin-top: 10px;
+        padding: 8px 14px;
+        border: 3px solid #2d1b4e;
+        border-radius: 0;
+        background: #ffd166;
+        box-shadow: 4px 4px 0 #2d1b4e;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+      .m-rows button:active {
+        transform: translate(2px, 2px);
+        box-shadow: 2px 2px 0 #2d1b4e;
+      }
+
+      /* W5 feed-lamp: brutalist terminal */
+      .m-feed {
+        background: #070b07;
+        color: #7dfc8a;
+        font:
+          12.5px/1.65 ui-monospace,
+          Menlo,
+          Consolas,
+          monospace;
+      }
+      .m-feed .box {
+        border: 1px solid #7dfc8a;
+      }
+      .m-feed .ttl,
+      .m-feed .keys {
+        padding: 3px 9px;
+        background: #7dfc8a;
+        color: #070b07;
+        font-weight: 700;
+        overflow-wrap: anywhere;
+      }
+      .m-feed .keys {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 6px;
+        background: transparent;
+        border-top: 1px solid #7dfc8a;
+        padding: 7px 9px;
+      }
+      .m-feed .lines {
+        min-height: 112px;
+        margin: 0;
+        padding: 8px 9px;
+        white-space: pre-wrap;
+        font: inherit;
+      }
+      .m-feed .warn {
+        color: #ffb000;
+      }
+      .m-feed .bad {
+        color: #ff5a4f;
+      }
+      .m-feed button {
+        padding: 1px 7px;
+        border: 1px solid #7dfc8a;
+        border-radius: 0;
+        background: transparent;
+        color: #7dfc8a;
+      }
+      .m-feed button[aria-pressed='true'] {
+        background: #7dfc8a;
+        color: #070b07;
+      }
+      .m-feed .cur {
+        display: inline-block;
+        width: 8px;
+        height: 14px;
+        vertical-align: -2px;
+        background: #7dfc8a;
+      }
+
+      /* W6 morse-key: skeuomorphic hardware */
+      .m-morse {
+        background: linear-gradient(#3a2a1d, #241810);
+        color: #2a1c10;
+        font-family: 'Courier New', Courier, monospace;
+      }
+      .m-morse .tape {
+        height: 34px;
+        padding: 0 10px;
+        overflow: hidden;
+        white-space: nowrap;
+        background: linear-gradient(#f6edd2, #e9dcb6);
+        box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.35);
+        font:
+          700 20px/34px 'Courier New',
+          monospace;
+        letter-spacing: 0.18em;
+      }
+      .m-morse .text {
+        min-height: 22px;
+        margin: 8px 0 0;
+        color: #f1e3bd;
+        font-size: 15px;
+        letter-spacing: 0.2em;
+      }
+      .m-morse .base {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-top: 14px;
+        padding: 16px;
+        border-radius: 8px;
+        background: linear-gradient(#8a5a33, #5c3a1e);
+        box-shadow:
+          inset 0 2px 0 rgba(255, 255, 255, 0.18),
+          0 6px 12px rgba(0, 0, 0, 0.5);
+      }
+      .m-morse .arm {
+        flex: 1;
+        height: 12px;
+        border-radius: 3px;
+        background: linear-gradient(#f5dc8a, #b8892f 55%, #7a5718);
+        box-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+      }
+      .m-morse .knob {
+        width: 66px;
+        height: 66px;
+        flex: none;
+        border: 0;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, #5a5a5a, #111 62%);
+        box-shadow:
+          0 6px 0 #000,
+          0 9px 10px rgba(0, 0, 0, 0.6);
+        color: #cfcfcf;
+        font:
+          700 10px/1 'Courier New',
+          monospace;
+        letter-spacing: 0.1em;
+        touch-action: none;
+      }
+      .m-morse .knob.down {
+        transform: translateY(5px);
+        box-shadow:
+          0 1px 0 #000,
+          0 3px 5px rgba(0, 0, 0, 0.6);
+      }
+      .m-morse .plate {
+        padding: 3px 7px;
+        border-radius: 2px;
+        background: linear-gradient(#f5dc8a, #b8892f);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+      }
+
+      /* W7 fret-map: blueprint */
+      .m-fret {
+        background:
+          linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px) 0 0 / 16px 16px,
+          linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px) 0 0 / 16px 16px,
+          #12508c;
+        color: #eaf4ff;
+        font:
+          11px/1.4 ui-monospace,
+          Menlo,
+          Consolas,
+          monospace;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .m-fret .ttl {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 8px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #eaf4ff;
+      }
+      .m-fret select {
+        border: 1px solid #eaf4ff;
+        border-radius: 0;
+        background: #12508c;
+        color: #eaf4ff;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .m-fret .board {
+        display: grid;
+        grid-template-columns: repeat(9, 1fr);
+        margin: 14px 0 6px;
+        border: 1px solid #eaf4ff;
+        border-left-width: 4px;
+      }
+      .m-fret .board i {
+        display: grid;
+        place-items: center;
+        height: 22px;
+        border-right: 1px solid rgba(234, 244, 255, 0.75);
+        background: linear-gradient(
+          transparent 10px,
+          rgba(234, 244, 255, 0.7) 10px 11px,
+          transparent 11px
+        );
+        font-style: normal;
+      }
+      .m-fret .board i:nth-child(9n) {
+        border-right: 0;
+      }
+      .m-fret .board b {
+        display: grid;
+        place-items: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #eaf4ff;
+        color: #12508c;
+        font-size: 9px;
+        letter-spacing: 0;
+      }
+      .m-fret .board b.root {
+        background: #ffd400;
+      }
+      .m-fret .dim {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .m-fret .dim::before,
+      .m-fret .dim::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #eaf4ff;
+      }
+
+      /* W8 clue-box: editorial serif */
+      .m-clue {
+        background: #fbfaf5;
+        color: #1b1b1b;
+        font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+      }
+      .m-clue .rule {
+        height: 5px;
+        border-block: 1px solid #1b1b1b;
+      }
+      .m-clue .cap {
+        margin: 9px 0 6px;
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+      .m-clue .q {
+        margin: 0;
+        font-size: 23px;
+        line-height: 1.25;
+        font-style: italic;
+      }
+      .m-clue .q::first-letter {
+        font-size: 1.9em;
+        font-style: normal;
+        line-height: 0.8;
+      }
+      .m-clue .cells {
+        display: flex;
+        gap: 0;
+        margin: 16px 0 12px;
+      }
+      .m-clue .cells input {
+        width: 40px;
+        height: 46px;
+        margin-right: -1px;
+        border: 1px solid #1b1b1b;
+        border-radius: 0;
+        background: #fff;
+        text-align: center;
+        text-transform: uppercase;
+        font:
+          24px/1 'Iowan Old Style',
+          Georgia,
+          serif;
+      }
+      .m-clue .cells input.ok {
+        background: #1b1b1b;
+        color: #fbfaf5;
+      }
+      .m-clue .cells input.bad {
+        background: repeating-linear-gradient(45deg, #fff 0 4px, #d9d6cc 4px 6px);
+      }
+      .m-clue .acts button {
+        margin-right: 14px;
+        padding: 0;
+        border: 0;
+        border-bottom: 1px solid #1b1b1b;
+        background: none;
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+      .m-clue .by {
+        margin: 12px 0 0;
+        font-size: 12px;
+        color: #555;
+      }
+
+      /* E1 exposure: segmented LCD */
+      .m-lcd {
+        background: #1f2224;
+        color: #1c2a1a;
+        font-family: ui-monospace, Menlo, Consolas, monospace;
+      }
+      .m-lcd .glass {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        padding: 12px;
+        border-radius: 4px;
+        background: linear-gradient(#b9c6a8, #a9b796);
+        box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.45);
+      }
+      .m-lcd .cell small {
+        display: block;
+        font-size: 9px;
+        letter-spacing: 0.14em;
+      }
+      .m-lcd .cell b {
+        display: block;
+        font:
+          italic 700 clamp(20px, 6vw, 30px) / 1.1 ui-monospace,
+          Menlo,
+          monospace;
+        letter-spacing: 0.02em;
+      }
+      .m-lcd .cell em {
+        font-style: normal;
+        font-size: 9px;
+        opacity: 0.75;
+      }
+      .m-lcd .ev {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding-top: 8px;
+        border-top: 1px solid rgba(28, 42, 26, 0.5);
+      }
+      .m-lcd .keys {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        margin-top: 12px;
+      }
+      .m-lcd .keys div {
+        display: flex;
+        gap: 4px;
+      }
+      .m-lcd .keys button {
+        flex: 1;
+        padding: 7px 0;
+        border: 0;
+        border-radius: 3px;
+        background: linear-gradient(#4a4f53, #2c3033);
+        box-shadow: 0 2px 0 #000;
+        color: #d7d7d7;
+        font-size: 11px;
+      }
+
+      /* E2 setlist: gaffer tape and marker */
+      .m-set {
+        background:
+          radial-gradient(rgba(255, 255, 255, 0.05) 0.7px, transparent 1px) 0 0 / 5px 5px,
+          #131313;
+        color: #171717;
+        font-family: 'Marker Felt', 'Bradley Hand', 'Segoe Print', 'Comic Sans MS', cursive;
+      }
+      .m-set ol {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: song;
+      }
+      .m-set li {
+        counter-increment: song;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0 0 9px;
+        padding: 7px 12px;
+        background: #f1efe6;
+        clip-path: polygon(0 6%, 2% 0, 98% 3%, 100% 0, 99% 94%, 100% 100%, 3% 97%, 0 100%);
+        font-size: 19px;
+      }
+      .m-set li:nth-child(odd) {
+        transform: rotate(-0.7deg);
+      }
+      .m-set li:nth-child(even) {
+        transform: rotate(0.5deg);
+        background: #ecd94a;
+      }
+      .m-set li::before {
+        content: counter(song) '.';
+      }
+      .m-set li span {
+        flex: 1;
+        min-width: 0;
+      }
+      .m-set li button {
+        border: 0;
+        background: none;
+        font-size: 18px;
+        padding: 0 4px;
+      }
+      .m-set .sum {
+        margin: 12px 0 0;
+        color: #f1efe6;
+        font-size: 15px;
+        letter-spacing: 0.04em;
+      }
+
+      /* E3 typecase: wood-type letterpress */
+      .m-type {
+        --ink-c: #1a1a1a;
+        background:
+          radial-gradient(rgba(90, 60, 20, 0.1) 0.7px, transparent 1px) 0 0 / 4px 4px,
+          #eee3c9;
+        color: var(--ink-c);
+        text-align: center;
+        font-family: Rockwell, 'Roboto Slab', 'Courier New', Georgia, serif;
+      }
+      .m-type .frame {
+        padding: 10px 8px 14px;
+        border: 3px double var(--ink-c);
+      }
+      .m-type .sm {
+        font-size: 11px;
+        letter-spacing: 0.34em;
+        text-transform: uppercase;
+      }
+      .m-type .xl {
+        margin: 4px 0;
+        font-size: clamp(34px, 10vw, 62px);
+        font-weight: 900;
+        line-height: 0.95;
+        text-transform: uppercase;
+        transform: scaleY(1.25);
+        opacity: 0.92;
+      }
+      .m-type .frame.press {
+        animation: m-press 0.5s ease-out;
+      }
+      @keyframes m-press {
+        0% {
+          opacity: 0.1;
+          transform: scale(1.03);
+        }
+        100% {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .m-type .frame.press {
+          animation: none;
+        }
+      }
+      .m-type .tools {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 12px;
+        color: #1a1a1a;
+      }
+      .m-type .sw {
+        width: 26px;
+        height: 26px;
+        border: 2px solid #1a1a1a;
+        border-radius: 50%;
+        padding: 0;
+      }
+      .m-type .pull {
+        padding: 5px 12px;
+        border: 2px solid #1a1a1a;
+        background: #1a1a1a;
+        color: #eee3c9;
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+
+      /* E4 fieldbook: pencil on ruled paper */
+      .m-field {
+        background:
+          linear-gradient(90deg, transparent 34px, #e8a2a2 34px 35px, transparent 35px),
+          repeating-linear-gradient(#fbf8ec 0 27px, #b9cfe6 27px 28px);
+        color: #4a4a4a;
+        font:
+          19px/28px 'Bradley Hand',
+          'Segoe Print',
+          'Marker Felt',
+          'Comic Sans MS',
+          cursive;
+        padding: 10px 18px 14px 46px;
+      }
+      .m-field p {
+        margin: 0;
+      }
+      .m-field .hd {
+        text-decoration: underline;
+        text-decoration-style: wavy;
+      }
+      .m-field s {
+        text-decoration-thickness: 2px;
+        margin-right: 6px;
+      }
+      .m-field .t {
+        letter-spacing: 0.12em;
+      }
+      .m-field button {
+        margin: 0 8px 0 0;
+        padding: 0 8px;
+        border: 1.5px solid #4a4a4a;
+        border-radius: 12px 9px 13px 8px;
+        background: none;
+        line-height: 24px;
+        font-size: 16px;
+      }
+      .m-field .tear {
+        border-style: dashed;
+      }
+
+      /* E5 switchboard: mid-century control panel */
+      .m-board {
+        background: linear-gradient(#ece5d0, #ddd4b9);
+        color: #2b2a26;
+        font:
+          11px/1.4 'Gill Sans',
+          'Trebuchet MS',
+          Arial,
+          sans-serif;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        box-shadow: inset 0 0 0 6px #c9bf9f;
+      }
+      .m-board .jacks {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+        text-align: center;
+      }
+      .m-board .lamp {
+        width: 16px;
+        height: 16px;
+        margin: 0 auto 8px;
+        border-radius: 50%;
+        background: #8d8672;
+        box-shadow: inset 0 -2px 3px rgba(0, 0, 0, 0.4);
+      }
+      .m-board .on-ok .lamp {
+        background: #5fd16a;
+        box-shadow: 0 0 10px #5fd16a;
+      }
+      .m-board .on-wait .lamp {
+        background: #ffb52e;
+        box-shadow: 0 0 10px #ffb52e;
+      }
+      .m-board .on-bad .lamp {
+        background: #ef4b3c;
+        box-shadow: 0 0 10px #ef4b3c;
+      }
+      .m-board .jack {
+        display: block;
+        width: 44px;
+        height: 44px;
+        margin: 0 auto 6px;
+        border: 5px solid #9b9482;
+        border-radius: 50%;
+        background: radial-gradient(#000 38%, #3b3a36 40%);
+        box-shadow: 0 2px 0 #fff8;
+      }
+      .m-board .strip {
+        margin-top: 14px;
+        padding: 8px 10px;
+        background: #fffdf4;
+        border: 1px solid #b9b095;
+        font:
+          12px/1.5 ui-monospace,
+          Menlo,
+          monospace;
+        letter-spacing: 0;
+        text-transform: none;
+        min-height: 54px;
+      }
+
+      /* E6 customs: bureaucratic form */
+      .m-form {
+        background: #eaf1e6;
+        color: #17361f;
+        font:
+          12px/1.4 'Courier New',
+          Courier,
+          monospace;
+        position: relative;
+      }
+      .m-form h4 {
+        margin: 0 0 2px;
+        font:
+          700 13px/1.3 'Times New Roman',
+          Times,
+          serif;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+      .m-form .no {
+        margin: 0 0 10px;
+        font-size: 10px;
+      }
+      .m-form label {
+        display: block;
+        margin-top: 8px;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .m-form input[type='text'],
+      .m-form input[type='date'] {
+        display: block;
+        width: 100%;
+        max-width: 240px;
+        padding: 5px 7px;
+        border: 1px solid #17361f;
+        border-radius: 0;
+        background: #fbfdf9;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+      }
+      .m-form fieldset {
+        margin: 10px 0 0;
+        padding: 6px 10px 8px;
+        border: 1px solid #17361f;
+      }
+      .m-form fieldset:disabled {
+        opacity: 0.45;
+      }
+      .m-form fieldset label,
+      .m-form .chk {
+        display: inline-block;
+        margin: 0 12px 0 0;
+      }
+      .m-form .chk {
+        margin-top: 10px;
+      }
+      .m-form .acts {
+        margin-top: 10px;
+      }
+      .m-form button {
+        padding: 5px 12px;
+        border: 1px solid #17361f;
+        border-radius: 0;
+        background: #17361f;
+        color: #eaf1e6;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      .m-form button[type='reset'] {
+        background: none;
+        color: #17361f;
+      }
+      .m-form .stamp {
+        position: absolute;
+        right: 14px;
+        top: 34px;
+        padding: 4px 10px;
+        border: 3px double #b3261e;
+        color: #b3261e;
+        font:
+          700 18px/1.2 'Times New Roman',
+          serif;
+        letter-spacing: 0.2em;
+        transform: rotate(-12deg);
+        opacity: 0.85;
+      }
+
+      /* E7 catalog: typewritten index cards */
+      .m-cat {
+        background: linear-gradient(#6f5340, #4e3828);
+        color: #2a2118;
+        font:
+          13px/1.45 'American Typewriter',
+          'Courier New',
+          Courier,
+          monospace;
+      }
+      .m-cat .find {
+        width: 100%;
+        padding: 6px 9px;
+        border: 0;
+        border-radius: 2px;
+        background: #f6efdc;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+      }
+      .m-cat .cardx {
+        position: relative;
+        margin-top: 9px;
+        padding: 12px 12px 9px;
+        background: #f4ecd6;
+        border-top: 2px solid #b3261e;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+      }
+      .m-cat .cardx b {
+        display: block;
+      }
+      .m-cat .cardx small {
+        font-size: 11px;
+      }
+      .m-cat .cardx button {
+        margin-top: 4px;
+        padding: 1px 8px;
+        border: 1px solid #2a2118;
+        border-radius: 0;
+        background: none;
+        font-size: 11px;
+      }
+      .m-cat .due {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        padding: 1px 6px;
+        border: 2px solid #b3261e;
+        color: #b3261e;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        transform: rotate(6deg);
+      }
+      .m-cat .desk {
+        margin: 10px 0 0;
+        color: #f4ecd6;
+        font-size: 11px;
+      }
+
+      /* E8 departures: transit signage */
+      .m-dep {
+        background: #101010;
+        color: #ffd400;
+        font-family: 'DIN Condensed', 'Arial Narrow', 'Roboto Condensed', Arial, sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .m-dep .tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .m-dep .tabs button {
+        padding: 4px 12px;
+        border: 2px solid #ffd400;
+        border-radius: 0;
+        background: none;
+        color: #ffd400;
+        font-size: 15px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .m-dep .tabs button[aria-pressed='true'] {
+        background: #ffd400;
+        color: #101010;
+      }
+      .m-dep .rowx {
+        display: grid;
+        grid-template-columns: 52px minmax(0, 1fr) 40px;
+        gap: 8px;
+        padding: 6px 0;
+        border-bottom: 2px solid #2b2b2b;
+        font-size: 21px;
+        line-height: 1.1;
+      }
+      .m-dep .rows {
+        margin-top: 10px;
+        min-height: 122px;
+      }
+      .m-dep .rowx.off {
+        color: #fff;
+      }
+      .m-dep .rowx small {
+        display: block;
+        font-size: 12px;
+      }
+      .m-dep .foot {
+        margin: 10px 0 0;
+        color: #bdbdbd;
+        font:
+          11px/1.4 ui-monospace,
+          Menlo,
+          monospace;
+        text-transform: none;
+        letter-spacing: 0;
+      }
+
+      /* E9 darkroom: red safelight */
+      .m-dark {
+        background: radial-gradient(ellipse at 50% -20%, #5a0a05, #120000 70%);
+        color: #ff4a3a;
+        font:
+          11px/1.4 ui-monospace,
+          Menlo,
+          Consolas,
+          monospace;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .m-dark .trays {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .m-dark .tray {
+        min-height: 92px;
+        padding: 6px;
+        border: 1px solid #ff4a3a;
+        border-radius: 3px 3px 10px 10px;
+        box-shadow: inset 0 -14px 20px rgba(255, 74, 58, 0.14);
+      }
+      .m-dark .print {
+        height: 56px;
+        margin-top: 6px;
+        background:
+          radial-gradient(circle at 30% 40%, #ff4a3a 0 16%, transparent 17%),
+          linear-gradient(160deg, transparent 55%, #ff4a3a 56% 70%, transparent 71%), #3a0603;
+        opacity: 0.85;
+        border: 1px solid #ff4a3a;
+      }
+      .m-dark .acts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 12px;
+      }
+      .m-dark button {
+        padding: 4px 9px;
+        border: 1px solid #ff4a3a;
+        border-radius: 0;
+        background: none;
+        color: #ff4a3a;
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .m-dark ol {
+        margin: 12px 0 0;
+        padding: 0 0 0 20px;
+        color: #ff8a7d;
+        text-transform: none;
+        letter-spacing: 0;
+        min-height: 54px;
+      }
+
+      /* E10 gels: lighting plot */
+      .m-gel {
+        background: #0c0c12;
+        color: #e9e9f2;
+        font:
+          11px/1.4 ui-monospace,
+          Menlo,
+          Consolas,
+          monospace;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .m-gel .zone {
+        --c: #9aa0b5;
+        padding: 10px;
+        border: 1px dashed #5b5f73;
+        border-radius: 10px;
+        background: radial-gradient(
+          ellipse at 50% 0,
+          color-mix(in srgb, var(--c) 32%, transparent),
+          transparent 72%
+        );
+      }
+      .m-gel .zone .zone {
+        margin-top: 10px;
+      }
+      .m-gel .zh {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+      }
+      .m-gel .zh button {
+        padding: 2px 8px;
+        border: 1px solid currentColor;
+        border-radius: 999px;
+        background: none;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .m-gel .actor {
+        display: inline-block;
+        margin: 8px 6px 0 0;
+        padding: 3px 9px;
+        border-radius: 3px;
+        background: var(--c);
+        color: #0c0c12;
+        font-weight: 700;
+      }
+
+      /* E11 seedpacket: vintage packet */
+      .m-seed {
+        display: grid;
+        grid-template-columns: minmax(0, 150px) minmax(0, 1fr);
+        gap: 16px;
+        background: #f6f1e4;
+        color: #2f5d3a;
+        font-family: 'Hoefler Text', 'Baskerville', 'Times New Roman', serif;
+      }
+      .m-seed .packet {
+        padding: 10px 8px 12px;
+        border: 2px solid #2f5d3a;
+        outline: 1px solid #2f5d3a;
+        outline-offset: -6px;
+        background: #f3e7c6;
+        text-align: center;
+      }
+      .m-seed .packet .co {
+        font-size: 8.5px;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+      }
+      .m-seed .packet .orn {
+        margin: 4px 0;
+        color: #b8862b;
+        font-size: 30px;
+        line-height: 1;
+      }
+      .m-seed .packet .nm {
+        font-size: 24px;
+        font-style: italic;
+        line-height: 1.1;
+        overflow-wrap: anywhere;
+      }
+      .m-seed .packet .sow {
+        margin-top: 6px;
+        padding-top: 6px;
+        border-top: 1px solid #2f5d3a;
+        font-size: 9.5px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .m-seed .packet button {
+        margin-top: 8px;
+        padding: 3px 9px;
+        border: 1px solid #2f5d3a;
+        border-radius: 0;
+        background: #2f5d3a;
+        color: #f3e7c6;
+        font-size: 9.5px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+      .m-seed .side {
+        min-width: 0;
+        color: #2a2a2a;
+        font:
+          12px/1.6 ui-monospace,
+          Menlo,
+          Consolas,
+          monospace;
+      }
+      .m-seed .side input {
+        width: 100%;
+        max-width: 150px;
+        padding: 3px 6px;
+        border: 1px solid #2a2a2a;
+        border-radius: 0;
+        background: #fff;
+      }
+      .m-seed .side p {
+        margin: 8px 0 0;
+        overflow-wrap: anywhere;
+      }
+
+      /* E12 atlas: old atlas */
+      .m-atlas {
+        background:
+          radial-gradient(rgba(74, 53, 32, 0.12) 0.7px, transparent 1px) 0 0 / 5px 5px,
+          #efe2c2;
+        color: #4a3520;
+        font-family: 'Hoefler Text', 'Baskerville', Georgia, serif;
+      }
+      .m-atlas .addr {
+        padding: 4px 8px;
+        border: 1px solid #4a3520;
+        background: #f7eed6;
+        font:
+          11.5px/1.5 ui-monospace,
+          Menlo,
+          monospace;
+        overflow-wrap: anywhere;
+      }
+      .m-atlas .sea {
+        position: relative;
+        height: 150px;
+        margin: 10px 0 8px;
+        border: 1px solid #4a3520;
+        outline: 1px solid #4a3520;
+        outline-offset: 3px;
+        background: repeating-linear-gradient(
+          0deg,
+          transparent 0 9px,
+          rgba(74, 53, 32, 0.14) 9px 10px
+        );
+      }
+      .m-atlas .isle {
+        position: absolute;
+        inset: 16px 22px 18px 26px;
+        border: 1.5px solid #4a3520;
+        border-radius: 58% 42% 55% 45% / 46% 60% 40% 54%;
+        background: #e6d3a3;
+        box-shadow:
+          0 0 0 4px #efe2c2,
+          0 0 0 5px rgba(74, 53, 32, 0.5),
+          0 0 0 9px #efe2c2,
+          0 0 0 10px rgba(74, 53, 32, 0.25);
+      }
+      .m-atlas .isle button {
+        position: absolute;
+        padding: 0 2px;
+        border: 0;
+        border-bottom: 1px dotted #4a3520;
+        background: none;
+        font:
+          italic 14px/1.3 'Hoefler Text',
+          Georgia,
+          serif;
+        color: #4a3520;
+      }
+      .m-atlas .isle button[aria-current='page'] {
+        border-bottom: 2px solid #4a3520;
+        font-weight: 700;
+      }
+      .m-atlas .rose {
+        position: absolute;
+        right: 6px;
+        bottom: 2px;
+        font-size: 22px;
+      }
+      .m-atlas .cap {
+        margin: 0;
+        font-style: italic;
+        font-size: 14px;
+        min-height: 42px;
+      }
+
+      /* Starter mock: the site's monochrome style, both themes */
+      .starter-pair {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 20px;
+      }
+      @media (min-width: 900px) {
+        .starter-pair {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      .browser {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        overflow: hidden;
+      }
+      .browser .chrome {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--line);
+        color: var(--muted);
+        font: 12px/1.5 var(--mono);
+      }
+      .st {
+        --s-ink: #141414;
+        --s-paper: #ffffff;
+        --s-surface: #f7f7f7;
+        --s-muted: #555555;
+        --s-line: #d7d7d7;
+        padding: clamp(22px, 5vw, 44px);
+        background: var(--s-paper);
+        color: var(--s-ink);
+        font-family: var(--sans);
+      }
+      .st.dark {
+        --s-ink: #ffffff;
+        --s-paper: #141414;
+        --s-surface: #1c1c1c;
+        --s-muted: #bcbcbc;
+        --s-line: #444444;
+      }
+      .st svg {
+        display: block;
+        height: 30px;
+        width: auto;
+      }
+      .st h4 {
+        margin: 34px 0 0;
+        max-width: 11ch;
+        font-size: clamp(34px, 6.5vw, 58px);
+        line-height: 0.98;
+        letter-spacing: -0.06em;
+        font-weight: 690;
+      }
+      .st .hint {
+        margin: 16px 0 22px;
+        max-width: 36ch;
+        color: var(--s-muted);
+        font-size: 16px;
+      }
+      .st .hint code {
+        color: var(--s-ink);
+      }
+      .st .panel {
+        border: 1px solid var(--s-line);
+        border-radius: 6px;
+        overflow: hidden;
+      }
+      .st .panel-title {
+        padding: 9px 13px;
+        border-bottom: 1px solid var(--s-line);
+        color: var(--s-muted);
+        font: 12px/1.5 var(--mono);
+      }
+      .st .panel-body {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 13px;
+        background: var(--s-surface);
+      }
+      .st .panel-body button {
+        padding: 10px 18px;
+        border: 0;
+        border-radius: 4px;
+        background: var(--s-ink);
+        color: var(--s-paper);
+        font: 500 15px/1.2 var(--sans);
+        cursor: pointer;
+      }
+      .st .panel-body button:focus-visible {
+        outline: 2px solid var(--s-ink);
+        outline-offset: 3px;
+      }
+      .st .panel-body span {
+        color: var(--s-muted);
+        font: 12px/1.5 var(--mono);
+      }
+      .st nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 22px;
+        margin-top: 24px;
+        font-size: 15px;
+      }
+      .st nav a {
+        color: var(--s-ink);
+      }
+      .st .cmd {
+        display: inline-block;
+        margin-top: 22px;
+        padding: 7px 10px;
+        border: 1px solid var(--s-line);
+        color: var(--s-muted);
+        font: 12px/1.5 var(--mono);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="wrap top">
+      <svg class="lockup" viewBox="0 0 267 64" role="img" aria-label="ECMact" fill="currentColor">
+        <path
+          fill-rule="evenodd"
+          d="M0 0H64V64H0Z M10 10H25V19H19V45H25V54H10Z M35 10H54V19H44V27.5H51V36.5H44V45H54V54H35Z"
+        />
+        <g transform="translate(82 0)">
+          <path
+            d="M0 14H20V21H7V28.5H17V35.5H7V43H20V50H0Z M64 50V14H72L83.5 32L95 14H103V50H96V25.5L83.5 43.5L71 25.5V50Z M172 17H179V26H185V33H179V50H172V33H167V26H172Z M126 26H133V50H126Z"
+          />
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="7"
+            d="M55.11 22.68A14.5 14.5 0 1 0 55.11 41.32 M129.5 38A8.5 8.5 0 1 1 112.5 38A8.5 8.5 0 1 1 129.5 38 M157.51 32.53A8.5 8.5 0 1 0 157.51 43.47"
+          />
+        </g>
+      </svg>
+      <h1>Eight widgets, twelve examples, one starter</h1>
+      <p class="lead">
+        Concepts for the rewritten widget gallery, the rewritten examples and the restyled starter.
+        The page chrome stays monochrome, as the design study decided. Each widget and each example
+        is a small world of its own, so the difference between them is the first thing a visitor
+        sees.
+      </p>
+      <ul class="facts">
+        <li>Draft for comments</li>
+        <li>19 November 2026</li>
+        <li>Belongs to spec addendum 1.3 (R09 to R12)</li>
+        <li>Every name, price, time and reading in the mocks is sample data</li>
+      </ul>
+      <nav class="toc" aria-label="Sections">
+        <a href="#widgets">Widgets</a>
+        <a href="#examples">Examples</a>
+        <a href="#matrix">Coverage matrix</a>
+        <a href="#ids">Old ids</a>
+        <a href="#starter">Starter</a>
+      </nav>
+    </header>
+
+    <main class="wrap">
+      <section id="widgets">
+        <h2>Widgets</h2>
+        <p class="section-lead">
+          Eight custom elements made with <code>defineWidget</code>. No two share a job or a look.
+          Each keeps its character inside any host and lets the host tune a few custom properties.
+          The mocks are sketches of the direction, drawn with CSS only, because
+          <code>tags</code> creates HTML elements and has no SVG namespace (checked in
+          <code>src/core/element.ts</code>).
+        </p>
+
+        <article class="card">
+          <div class="meta">
+            <p class="kicker">W1 · replaces price-calculator</p>
+            <h3><code>&lt;print-quote&gt;</code>Print-run quote</h3>
+            <p class="idea">
+              A print shop's quote: copies, ink colours and paper stock, with price breaks.
+            </p>
+            <dl>
+              <dt>Style</dt>
+              <dd>
+                Swiss poster. One grotesque, a red bar, a strict grid and a numeral as large as the
+                widget.
+              </dd>
+              <dt>Interaction</dt>
+              <dd>
+                Step the copies through the price breaks, pick inks and stock, request the quote.
+              </dd>
+              <dt>ECMact</dt>
+              <dd class="chips">
+                <span>defineWidget</span><span>typed attributes</span><span>signal</span
+                ><span>computed</span><span>bind</span><span>emit quote</span
+                ><span>custom properties</span>
+              </dd>
+              <dt>Hosts</dt>
+              <dd>zine, kids</dd>
+            </dl>
+          </div>
+          <figure class="stage">
+            <figcaption><span>mock</span><span>sample prices</span></figcaption>
+            <div class="mock m-quote">
+              <div class="bar"><span>Print quote</span><span>No. 12</span></div>
+              <div class="body">
+                <div class="total"><small>EUR</small><span data-total>184</span></div>
+                <div class="rows">
+                  <div class="r">
+                    <span>Copies <b data-copies>100</b></span>
+                    <span
+                      ><button class="step" data-step="-1" aria-label="Fewer copies">-</button>
+                      <button class="step" data-step="1" aria-label="More copies">+</button></span
+                    >
+                  </div>
+                  <div class="r">
+                    <span>Inks <b>2</b></span
+                    ><span>black + red</span>
+                  </div>
+                  <div class="r">
+                    <span>Stock <b>120 g</b></span
+                    ><span>uncoated</span>
+                  </div>
+                </div>
+                <button class="go">Request quote</button>
+              </div>
+            </div>
+          </figure>
+        </article>
+
+        <article class="card">
+          <div class="meta">
+            <p class="kicker">W2 · replaces weather-now</p>
+            <h3><code>&lt;moon-dial&gt;</code>Moon phase</h3>
+            <p class="idea">
+              Tonight's moon for anglers and gardeners, computed from the date with no network.
+            </p>
+            <dl>
+              <dt>Style</dt>
+              <dd>
+                E-ink reader. One-bit dither, square corners, no gradients, no animation beyond a
+                refresh.
+              </dd>
+              <dt>Interaction</dt>
+              <dd>
+                Step the days back and forward by button or arrow keys, return to today, flip the
+                hemisphere.
+              </dd>
+              <dt>ECMact</dt>
+              <dd class="chips">
+                <span>defineWidget</span><span>attributes date, hemisphere</span
+                ><span>computed</span><span>effect with cleanup</span><span>emit phase</span
+                ><span>reconnect</span>
+              </dd>
+              <dt>Hosts</dt>
+              <dd>cafe, terminal</dd>
+            </dl>
+          </div>
+          <figure class="stage">
+            <figcaption><span>mock</span><span>sample phase, approximate shape</span></figcaption>
+            <div class="mock m-moon">
+              <div class="disc" data-disc></div>
+              <div>
+                <div class="name" data-moon-name>WANING GIBBOUS</div>
+                <div class="sub" data-moon-sub>DAY 18 OF 29</div>
+                <div class="dither"></div>
+                <button data-moon="-1" aria-label="Previous phase">&lt;</button>
+                <button data-moon="0">TODAY</button>
+                <button data-moon="1" aria-label="Next phase">&gt;</button>
+              </div>
+            </div>
+          </figure>
+        </article>
+
+        <article class="card">
+          <div class="meta">
+            <p class="kicker">W3 · replaces countdown-timer</p>
+            <h3><code>&lt;proof-clock&gt;</code>Sourdough schedule</h3>
+            <p class="idea">
+              A bake planned backwards from the hour the loaf must be out, in five stages.
+            </p>
+            <dl>
+              <dt>Style</dt>
+              <dd>
+                Risograph. Two spot inks, halftone fills and a headline printed slightly out of
+                register.
+              </dd>
+              <dt>Interaction</dt>
+              <dd>
+                Slide the kitchen temperature and the stages stretch or shrink; start and watch the
+                stage change.
+              </dd>
+              <dt>ECMact</dt>
+              <dd class="chips">
+                <span>defineWidget</span><span>attributes to, label, temp</span><span>computed</span
+                ><span>effect + interval</span><span>untracked</span><span>emit stage, done</span
+                ><span>reconnect</span>
+              </dd>
+              <dt>Hosts</dt>
+              <dd>cafe, zine</dd>
+            </dl>
+          </div>
+          <figure class="stage">
+            <figcaption><span>mock</span><span>sample schedule, not a recipe</span></figcaption>
+            <div class="mock m-proof">
+              <div class="head" data-t="Bulk rise">Bulk rise</div>
+              <div class="time">02:14:09</div>
+              <div class="line">
+                <span class="a">auto</span><span class="b" data-bulk>bulk</span
+                ><span class="c">shape</span><span class="d">proof</span><span class="e">bake</span>
+              </div>
+              <label
+                >Kitchen <span data-temp>24</span> °C
+                <input
+                  type="range"
+                  min="18"
+                  max="30"
+                  value="24"
+                  data-temp-in
+                  aria-label="Kitchen temperature"
+                />
+              </label>
+            </div>
+          </figure>
+        </article>
+
+        <article class="card">
+          <div class="meta">
+            <p class="kicker">W4 · replaces poll-widget</p>
+            <h3><code>&lt;row-counter&gt;</code>Knitting row counter</h3>
+            <p class="idea">
+              Counts rows, reminds about the pattern repeat, and survives a closed tab.
+            </p>
+            <dl>
+              <dt>Style</dt>
+              <dd>
+                Eight-bit cross-stitch. Aida cloth grid, stitches as pixels, hard offset shadows.
+              </dd>
+              <dt>Interaction</dt>
+              <dd>
+                One large button or Space adds a row, undo takes one back, every sixth row is
+                marked.
+              </dd>
+              <dt>ECMact</dt>
+              <dd class="chips">
+                <span>defineWidget</span><span>createStore</span><span>persist per pattern</span
+                ><span>each</span><span>attributes pattern, repeat</span><span>emit row</span>
+              </dd>
+              <dt>Hosts</dt>
+              <dd>cafe, kids</dd>
+            </dl>
+          </div>
+          <figure class="stage">
+            <figcaption><span>mock</span><span>sample pattern</span></figcaption>
+            <div class="mock m-rows">
+              <div class="big">ROW <span data-row>27</span></div>
+              <div class="grid" data-grid></div>
+              <div class="hint" data-hint>NEXT DECREASE: ROW 30</div>
+              <button data-row-add>+1 row</button>
+            </div>
+          </figure>
+        </article>
+
+        <article class="card">
+          <div class="meta">
+            <p class="kicker">W5 · replaces repo-card</p>
+            <h3><code>&lt;feed-lamp&gt;</code>Status lamp for a JSON feed</h3>
+            <p class="idea">
+              Is the kiln done? Reads one JSON file and has a designed state for every way it fails.
+            </p>
+            <dl>
+              <dt>Style</dt>
+              <dd>
+                Brutalist terminal. Phosphor green on black, box rules, a block cursor, no rounded
+                corner.
+              </dd>
+              <dt>Interaction</dt>
+              <dd>
+                Refresh, or point <code>src</code> at the slow, missing and malformed feeds and
+                watch the attempts.
+              </dd>
+              <dt>ECMact</dt>
+              <dd class="chips">
+                <span>defineWidget</span><span>createHttp</span><span>resource</span
+                ><span>timeout, retry, abort</span><span>isHttpError</span
+                ><span>emit loaded, failed</span><span>reconnect</span>
+              </dd>
+              <dt>Hosts</dt>
+              <dd>
+                terminal, kids. The feeds are static files of the site, so nothing leaves the
+                origin.
+              </dd>
+            </dl>
+          </div>
+          <figure class="stage">
+            <figcaption><span>mock</span><span>sample feed</span></figcaption>
+            <div class="mock m-feed">
+              <div class="box">
+                <div class="ttl">FEED hosts/data/kiln.json</div>
+                <pre class="lines" data-feed-lines></pre>
+                <div class="keys">
+                  <button data-feed="ok" aria-pressed="true">OK</button>
+                  <button data-feed="slow" aria-pressed="false">SLOW</button>
+                  <button data-feed="missing" aria-pressed="false">MISSING</button>
+                  <button data-feed="broken" aria-pressed="false">MALFORMED</button>
+                </div>
+              </div>
+            </div>
+          </figure>
+        </article>
+
+        <article class="card">
+          <div class="meta">
+            <p class="kicker">W6 · new</p>
+            <h3><code>&lt;morse-key&gt;</code>Telegraph key</h3>
+            <p class="idea">Hold the key to send. The widget turns dots and dashes into letters.</p>
+            <dl>
+              <dt>Style</dt>
+              <dd>
+                Skeuomorphic hardware. Brass arm, bakelite knob, walnut base and a paper tape.
+              </dd>
+              <dt>Interaction</dt>
+              <dd>
+                Press and hold with the pointer or Space. A short press is a dot, a long one a dash,
+                a pause ends the letter.
+              </dd>
+              <dt>ECMact</dt>
+              <dd class="chips">
+                <span>defineWidget</span><span>signal</span><span>computed decode</span
+                ><span>each tape</span><span>effect timers</span><span>attribute wpm</span
+                ><span>emit letter, message</span>
+              </dd>
+              <dt>Hosts</dt>
+              <dd>terminal, zine</dd>
+            </dl>
+          </div>
+          <figure class="stage">
+            <figcaption><span>mock, press and hold the knob</span><span>try it</span></figcaption>
+            <div class="mock m-morse">
+              <div class="tape" data-tape aria-hidden="true"></div>
+              <p class="text" data-morse-text aria-live="polite">&nbsp;</p>
+              <div class="base">
+                <span class="plate">20 WPM</span>
+                <span class="arm"></span>
+                <button class="knob" data-knob aria-label="Telegraph key, hold to send">KEY</button>
+              </div>
+            </div>
+          </figure>
+        </article>
+
+        <article class="card">
+          <div class="meta">
+            <p class="kicker">W7 · new</p>
+            <h3><code>&lt;fret-map&gt;</code>Fretboard scale map</h3>
+            <p class="idea">
+              Where the notes of a scale sit on a guitar neck, for any key and tuning.
+            </p>
+            <dl>
+              <dt>Style</dt>
+              <dd>
+                Blueprint. Cyan sheet, white hairlines, stencil capitals and a dimension line.
+              </dd>
+              <dt>Interaction</dt>
+              <dd>
+                Choose the key and the scale; presets change both at once; a fret reports its note.
+              </dd>
+              <dt>ECMact</dt>
+              <dd class="chips">
+                <span>defineWidget</span><span>signal</span><span>computed</span><span>batch</span
+                ><span>each grid</span><span>attributes key, scale, tuning</span
+                ><span>emit note</span>
+              </dd>
+              <dt>Hosts</dt>
+              <dd>terminal, kids</dd>
+            </dl>
+          </div>
+          <figure class="stage">
+            <figcaption><span>mock</span><span>minor pentatonic, standard tuning</span></figcaption>
+            <div class="mock m-fret">
+              <div class="ttl">
+                <span>Sheet 07 · minor pentatonic</span>
+                <select data-key aria-label="Key">
+                  <option value="9">A</option>
+                  <option value="4">E</option>
+                  <option value="2">D</option>
+                  <option value="7">G</option>
+                  <option value="0">C</option>
+                </select>
+              </div>
+              <div class="board" data-board></div>
+              <div class="dim">frets 0 to 8</div>
+            </div>
+          </figure>
+        </article>
+
+        <article class="card">
+          <div class="meta">
+            <p class="kicker">W8 · new</p>
+            <h3><code>&lt;clue-box&gt;</code>One crossword clue</h3>
+            <p class="idea">A single cryptic clue a day, set by the page that embeds it.</p>
+            <dl>
+              <dt>Style</dt>
+              <dd>
+                Editorial serif. Newspaper column, double hairline, small capitals and a raised
+                initial.
+              </dd>
+              <dt>Interaction</dt>
+              <dd>
+                Type into the cells, move with arrows and Backspace, check the answer or reveal it.
+              </dd>
+              <dt>ECMact</dt>
+              <dd class="chips">
+                <span>defineWidget</span><span>each cells</span><span>signal</span
+                ><span>ref and focus</span><span>attributes clue, answer</span
+                ><span>emit solved</span>
+              </dd>
+              <dt>Hosts</dt>
+              <dd>cafe, zine</dd>
+            </dl>
+          </div>
+          <figure class="stage">
+            <figcaption><span>mock, the answer is PEAR</span><span>sample clue</span></figcaption>
+            <div class="mock m-clue">
+              <div class="rule"></div>
+              <div class="cap">Cryptic · No. 412</div>
+              <p class="q">Fruit that sounds like a couple (4)</p>
+              <div class="cells" data-cells>
+                <input maxlength="1" aria-label="Letter 1" /><input
+                  maxlength="1"
+                  aria-label="Letter 2"
+                /><input maxlength="1" aria-label="Letter 3" /><input
+                  maxlength="1"
+                  aria-label="Letter 4"
+                />
+              </div>
+              <div class="acts">
+                <button data-check>Check</button><button data-reveal>Reveal</button>
+              </div>
+              <p class="by">Set by the host page through two attributes.</p>
+            </div>
+          </figure>
+        </article>
+      </section>
+
+      <section id="examples">
+        <h2>Examples</h2>
+        <p class="section-lead">
+          Twelve examples. Each one runs inside its own stage, works with the network unplugged, and
+          shows the source that produced it. A failure is always one control away, because the
+          failure path is the part people need to copy.
+        </p>
+
+        <article class="card">
+          <div class="meta">
+            <p class="kicker">E1 · exposure · answers the old id counter · guide: signals</p>
+            <h3>Exposure triangle</h3>
+            <p class="idea">
+              Aperture, shutter and ISO as three signals; the exposure value is computed from them.
+            </p>
+            <dl>
+              <dt>Style</dt>
+              <dd>Segmented LCD of a camera top plate, with hard plastic keys.</dd>
+              <dt>Interaction</dt>
+              <dd>
+                Step each value. With the lock on, one press changes two signals in a batch and the
+                value stays.
+              </dd>
+              <dt>ECMact</dt>
+              <dd class="chips">
+                <span>signal</span><span>computed</span><span>batch</span><span>effect</span
+                ><span>untracked</span><span>em + css</span>
+              </dd>
+              <dt>Proves</dt>
+              <dd>A counter beside each readout shows which texts ran again, and which did not.</dd>
+            </dl>
+          </div>
+          <figure class="stage">
+            <figcaption><span>mock</span><span>try the keys</span></figcaption>
+            <div class="mock m-lcd">
+              <div class="glass">
+                <div class="cell">
+                  <small>APERTURE</small><b data-lcd="f">f/5.6</b><em data-n="f">x1</em>
+                </div>
+                <div class="cell">
+                  <small>SHUTTER</small><b data-lcd="t">1/125</b><em data-n="t">x1</em>
+                </div>
+                <div class="cell">
+                  <small>ISO</small><b data-lcd="i">400</b><em data-n="i">x1</em>
+                </div>
+                <div class="ev">
+                  <small>EXPOSURE VALUE</small><b data-lcd="ev">EV 10.0</b><em data-n="ev">x1</em>
+                </div>
+              </div>
+              <div class="keys">
+                <div>
+                  <button data-k="f" data-d="-1" aria-label="Wider aperture">-</button
+                  ><button data-k="f" data-d="1" aria-label="Narrower aperture">+</button>
+                </div>
+                <div>
+                  <button data-k="t" data-d="-1" aria-label="Slower shutter">-</button
+                  ><button data-k="t" data-d="1" aria-label="Faster shutter">+</button>
+                </div>
+                <div>
+                  <button data-k="i" data-d="-1" aria-label="Lower ISO">-</button
+                  ><button data-k="i" data-d="1" aria-label="Higher ISO">+</button>
+                </div>
+              </div>
+            </div>
+          </figure>
+        </article>
+
+        <article class="card">
+          <div class="meta">
+            <p class="kicker">E2 · setlist · answers the old id todo · guide: components</p>
+            <h3>Setlist for tonight</h3>
+            <p class="idea">
+              A band's running order: reorder the songs and keep an eye on the curfew.
+            </p>
+            <dl>
+              <dt>Style</dt>
+              <dd>Gaffer tape on a black stage floor, written with a marker.</dd>
+              <dt>Interaction</dt>
+              <dd>Add a song, move it up or down from the keyboard, strike it once played.</dd>
+              <dt>ECMact</dt>
+              <dd class="chips">
+                <span>each + by + empty</span><span>createStore</span><span>function children</span
+                ><span>bind</span><span>em + css</span>
+              </dd>
+              <dt>Proves</dt>
+              <dd>A moved row keeps its node and its focus; only the total is computed again.</dd>
+            </dl>
+          </div>
+          <figure class="stage">
+            <figcaption><span>mock</span><span>sample songs</span></figcaption>
+            <div class="mock m-set">
+              <ol data-set>
+                <li>
+                  <span>Opening drone</span>4'<button aria-label="Move Opening drone up">^</button>
+                </li>
+                <li>
+                  <span>Harbour lights</span>6'<button aria-label="Move Harbour lights up">
+                    ^
+                  </button>
+                </li>
+                <li>
+                  <span>The long one</span>11'<button aria-label="Move The long one up">^</button>
+                </li>
+                <li>
+                  <span>Encore, maybe</span>5'<button aria-label="Move Encore, maybe up">^</button>
+                </li>
+              </ol>
+              <p class="sum">SET 26' · CURFEW 45'</p>
+            </div>
+          </figure>
+        </article>
+
+        <article class="card">
+          <div class="meta">
+            <p class="kicker">E3 · typecase · answers the old id styled · guide: styled</p>
+            <h3>Wood-type poster</h3>
+            <p class="idea">Set a headline, choose the ink and the paper, pull a proof.</p>
+            <dl>
+              <dt>Style</dt>
+              <dd>Letterpress wood type on cream stock inside a double rule.</dd>
+              <dt>Interaction</dt>
+              <dd>
+                The ink and the stock are one theme signal; a proof plays the keyframes of the
+                press.
+              </dd>
+              <dt>ECMact</dt>
+              <dd class="chips">
+                <span>styled</span><span>css</span><span>keyframes</span><span>ThemeProvider</span
+                ><span>useTheme</span><span>signal</span>
+              </dd>
+              <dt>Proves</dt>
+              <dd>One theme value restyles every styled component below the provider.</dd>
+            </dl>
+          </div>
+          <figure class="stage">
+            <figcaption><span>mock</span><span>try the inks</span></figcaption>
+            <div class="mock m-type">
+              <div class="frame" data-frame>
+                <div class="sm">One night only</div>
+                <div class="xl">Grand<br />opening</div>
+                <div class="sm">Doors at eight</div>
+              </div>
+              <div class="tools">
+                <button
+                  class="sw"
+                  style="background: #1a1a1a"
+                  data-ink="#1a1a1a"
+                  aria-label="Black ink"
+                ></button>
+                <button
+                  class="sw"
+                  style="background: #b3261e"
+                  data-ink="#b3261e"
+                  aria-label="Red ink"
+                ></button>
+                <button
+                  class="sw"
+                  style="background: #1f3a5f"
+                  data-ink="#1f3a5f"
+                  aria-label="Blue ink"
+                ></button>
+                <button class="pull" data-pull>Pull a proof</button>
+              </div>
+            </div>
+          </figure>
+        </article>
+
+        <article class="card">
+          <div class="meta">
+            <p class="kicker">E4 · fieldbook · answers the old id store · guide: state</p>
+            <h3>Field notebook</h3>
+            <p class="idea">A bird-watcher's tally that is still there after a reload.</p>
+            <dl>
+              <dt>Style</dt>
+              <dd>Pencil on ruled notebook paper with a red margin.</dd>
+              <dt>Interaction</dt>
+              <dd>Add a sighting, reload the page, then tear the page out to clear the storage.</dd>
+              <dt>ECMact</dt>
+              <dd class="chips">
+                <span>createStore</span><span>persist</span><span>version + migrate</span
+                ><span>partialize</span><span>watch</span><span>select + shallow</span
+                ><span>each</span>
+              </dd>
+              <dt>Proves</dt>
+              <dd>
+                With storage blocked the notebook still works for the visit and says that it will
+                not be kept.
+              </dd>
+            </dl>
+          </div>
+          <figure class="stage">
+            <figcaption><span>mock</span><span>sample sightings</span></figcaption>
+            <div class="mock m-field">
+              <p class="hd">Saltmarsh, Thursday</p>
+              <p>Wren <span class="t" data-tally></span></p>
+              <p>Curlew <span class="t">||</span></p>
+              <p>Heron <span class="t">|</span></p>
+              <p>
+                <button data-wren>+ wren</button><button class="tear">tear out the page</button>
+              </p>
+            </div>
+          </figure>
+        </article>
+
+        <article class="card">
+          <div class="meta">
+            <p class="kicker">E5 · switchboard · answers the old id http · guide: http</p>
+            <h3>Telephone exchange</h3>
+            <p class="idea">
+              Four lines, four fates of a request: answered, aborted, retried, refused.
+            </p>
+            <dl>
+              <dt>Style</dt>
+              <dd>Mid-century enamel control panel with jacks, lamps and a paper strip.</dd>
+              <dt>Interaction</dt>
+              <dd>
+                Plug into a line. Pull the plug on the slow one to abort; the crackly one answers on
+                the third try.
+              </dd>
+              <dt>ECMact</dt>
+              <dd class="chips">
+                <span>createHttp</span><span>fetch option</span><span>AbortSignal</span
+                ><span>timeout</span><span>retry</span><span>HttpError codes</span
+                ><span>interceptors</span>
+              </dd>
+              <dt>Proves</dt>
+              <dd>
+                The exchange is a function inside the example, so every outcome is the same on every
+                run.
+              </dd>
+            </dl>
+          </div>
+          <figure class="stage">
+            <figcaption><span>mock</span><span>pick a line</span></figcaption>
+            <div class="mock m-board">
+              <div class="jacks" data-jacks>
+                <div>
+                  <span class="lamp"></span
+                  ><button class="jack" data-line="clear" aria-label="Clear line"></button>Clear
+                </div>
+                <div>
+                  <span class="lamp"></span
+                  ><button class="jack" data-line="slow" aria-label="Slow line"></button>Slow
+                </div>
+                <div>
+                  <span class="lamp"></span
+                  ><button class="jack" data-line="crackly" aria-label="Crackly line"></button
+                  >Crackly
+                </div>
+                <div>
+                  <span class="lamp"></span
+                  ><button class="jack" data-line="dead" aria-label="Dead line"></button>Dead
+                </div>
+              </div>
+              <div class="strip" data-strip aria-live="polite">No call yet.</div>
+            </div>
+          </figure>
+        </article>
+
+        <article class="card">
+          <div class="meta">
+            <p class="kicker">E6 · customs · answers the old id form · guide: forms</p>
+            <h3>Customs declaration</h3>
+            <p class="idea">Shadow DOM fields that a native form validates, submits and resets.</p>
+            <dl>
+              <dt>Style</dt>
+              <dd>A government form on carbon paper, typewriter capitals and a rubber stamp.</dd>
+              <dt>Interaction</dt>
+              <dd>
+                Leave a field wrong and submit; tick "nothing to declare" and the goods leave the
+                FormData.
+              </dd>
+              <dt>ECMact</dt>
+              <dd class="chips">
+                <span>em field: true</span><span>ElementInternals</span><span>FormData</span
+                ><span>validation</span><span>reset</span><span>disabled fieldset</span
+                ><span>bind</span>
+              </dd>
+              <dt>Proves</dt>
+              <dd>
+                The form reports the error of a control it cannot see. The disabled-control rule is
+                labelled with its 3.x patch.
+              </dd>
+            </dl>
+          </div>
+          <figure class="stage">
+            <figcaption><span>mock, native controls</span><span>sample form</span></figcaption>
+            <div class="mock m-form">
+              <form data-customs novalidate>
+                <h4>Customs declaration</h4>
+                <p class="no">Form C-12 · sample</p>
+                <label
+                  >Passport, two letters and six digits
+                  <input
+                    type="text"
+                    name="passport"
+                    required
+                    pattern="[A-Za-z]{2}[0-9]{6}"
+                    maxlength="8"
+                  />
+                </label>
+                <fieldset data-goods>
+                  <legend>Goods to declare</legend>
+                  <label><input type="checkbox" name="goods" value="seeds" /> Seeds</label>
+                  <label><input type="checkbox" name="goods" value="cheese" /> Cheese</label>
+                </fieldset>
+                <label class="chk"><input type="checkbox" data-nothing /> Nothing to declare</label>
+                <div class="acts"><button>Submit</button> <button type="reset">Reset</button></div>
+                <div class="stamp" data-stamp hidden></div>
+              </form>
+            </div>
+          </figure>
+        </article>
+
+        <article class="card">
+          <div class="meta">
+            <p class="kicker">E7 · catalog · answers the old ids github and posts · guide: http</p>
+            <h3>Library card catalogue</h3>
+            <p class="idea">
+              Search the drawer, borrow a book, and meet a desk that closes and a rate limit.
+            </p>
+            <dl>
+              <dt>Style</dt>
+              <dd>Typewritten index cards in a wooden drawer, with red date stamps.</dd>
+              <dt>Interaction</dt>
+              <dd>
+                Type to search; a stale search is aborted. Borrow is optimistic and rolls back when
+                the desk is closed.
+              </dd>
+              <dt>ECMact</dt>
+              <dd class="chips">
+                <span>createHttp get, post, delete</span><span>interceptors</span
+                ><span>HttpError status</span><span>effect cleanup</span><span>each + by</span>
+              </dd>
+              <dt>Proves</dt>
+              <dd>
+                The sixth request in a window gets 429, and an interceptor turns it into a wait the
+                reader can see.
+              </dd>
+            </dl>
+          </div>
+          <figure class="stage">
+            <figcaption><span>mock</span><span>invented titles</span></figcaption>
+            <div class="mock m-cat">
+              <input
+                class="find"
+                data-find
+                placeholder="search the drawer"
+                aria-label="Search the catalogue"
+              />
+              <div data-cards>
+                <div class="cardx" data-title="marsh birds of the north shore">
+                  <b>Marsh Birds of the North Shore</b><small>Shelf 598.2 · 1961</small><br />
+                  <button data-borrow>Borrow</button><span class="due" hidden>ON LOAN</span>
+                </div>
+                <div class="cardx" data-title="a short history of knots">
+                  <b>A Short History of Knots</b><small>Shelf 623.8 · 1974</small><br />
+                  <button data-borrow>Borrow</button><span class="due" hidden>ON LOAN</span>
+                </div>
+              </div>
+              <p class="desk">desk: 3 of 5 requests in this window</p>
+            </div>
+          </figure>
+        </article>
+
+        <article class="card">
+          <div class="meta">
+            <p class="kicker">E8 · departures · answers the old id weather · guide: data</p>
+            <h3>Ferry departures</h3>
+            <p class="idea">
+              A board that follows the chosen harbour and drops the answer it no longer needs.
+            </p>
+            <dl>
+              <dt>Style</dt>
+              <dd>Transit signage. Yellow on black, condensed capitals, heavy rules.</dd>
+              <dt>Interaction</dt>
+              <dd>Switch harbours quickly, raise the latency, call the fog in and retry.</dd>
+              <dt>ECMact</dt>
+              <dd class="chips">
+                <span>resource</span><span>AbortSignal</span><span>loading, error, data</span
+                ><span>refetch</span><span>initial</span><span>each</span>
+              </dd>
+              <dt>Proves</dt>
+              <dd>
+                A counter of aborted requests rises while the board only ever shows the last harbour
+                asked for.
+              </dd>
+            </dl>
+          </div>
+          <figure class="stage">
+            <figcaption><span>mock</span><span>sample timetable</span></figcaption>
+            <div class="mock m-dep">
+              <div class="tabs" data-harbours>
+                <button data-h="north" aria-pressed="true">North Pier</button>
+                <button data-h="salt" aria-pressed="false">Saltmarsh</button>
+                <button data-h="light" aria-pressed="false">Lighthouse</button>
+              </div>
+              <div class="rows" data-dep></div>
+              <p class="foot" data-dep-foot>requests aborted: 0</p>
+            </div>
+          </figure>
+        </article>
+
+        <article class="card">
+          <div class="meta">
+            <p class="kicker">E9 · darkroom · answers the old id lifecycle · guide: lifecycle</p>
+            <h3>Darkroom trays</h3>
+            <p class="idea">
+              A print goes through developer, stop bath and fixer; every hook leaves a line in the
+              log.
+            </p>
+            <dl>
+              <dt>Style</dt>
+              <dd>Red safelight. Black and one red, nothing else.</dd>
+              <dt>Interaction</dt>
+              <dd>
+                Put the print in, move it between trays, pull it out, or drop it to throw inside a
+                hook.
+              </dd>
+              <dt>ECMact</dt>
+              <dd class="chips">
+                <span>mounted + cleanup</span><span>unmounted</span
+                ><span>effect that stops itself</span><span>error prop</span><span>phases</span>
+              </dd>
+              <dt>Proves</dt>
+              <dd>
+                A move runs cleanup, unmounted and mounted, as the guide documents; a thrown error
+                reaches the nearest handler.
+              </dd>
+            </dl>
+          </div>
+          <figure class="stage">
+            <figcaption><span>mock</span><span>move the print</span></figcaption>
+            <div class="mock m-dark">
+              <div class="trays" data-trays>
+                <div class="tray">
+                  Developer
+                  <div class="print" data-print></div>
+                </div>
+                <div class="tray">Stop bath</div>
+                <div class="tray">Fixer</div>
+              </div>
+              <div class="acts">
+                <button data-move>Move to the next tray</button
+                ><button data-pull-out>Pull out</button>
+              </div>
+              <ol data-dark-log>
+                <li>mounted: timer started</li>
+              </ol>
+            </div>
+          </figure>
+        </article>
+
+        <article class="card">
+          <div class="meta">
+            <p class="kicker">E10 · gels · answers the old id context · guide: context</p>
+            <h3>Lighting plot</h3>
+            <p class="idea">
+              Nested zones of a stage, each able to put a gel in front of its lamps.
+            </p>
+            <dl>
+              <dt>Style</dt>
+              <dd>Lighting plan on a dark stage. Here the colour is the behaviour being shown.</dd>
+              <dt>Interaction</dt>
+              <dd>
+                Give a zone a gel or take it away; every actor takes the colour of the nearest zone
+                that has one.
+              </dd>
+              <dt>ECMact</dt>
+              <dd class="chips">
+                <span>createContext</span><span>nested providers</span><span>signal in context</span
+                ><span>across shadow roots</span>
+              </dd>
+              <dt>Proves</dt>
+              <dd>
+                Remove the inner gel and the actor falls back to the next provider without being
+                rebuilt.
+              </dd>
+            </dl>
+          </div>
+          <figure class="stage">
+            <figcaption><span>mock</span><span>cycle the gels</span></figcaption>
+            <div class="mock m-gel">
+              <div class="zone" data-zone="0">
+                <div class="zh">
+                  House <button data-gel aria-label="Change the house gel">gel</button>
+                </div>
+                <span class="actor">Usher</span>
+                <div class="zone" data-zone="1">
+                  <div class="zh">
+                    Stage <button data-gel aria-label="Change the stage gel">gel</button>
+                  </div>
+                  <span class="actor">Chorus</span>
+                  <div class="zone" data-zone="2">
+                    <div class="zh">
+                      Spot <button data-gel aria-label="Change the spot gel">gel</button>
+                    </div>
+                    <span class="actor">Soloist</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </figure>
+        </article>
+
+        <article class="card">
+          <div class="meta">
+            <p class="kicker">E11 · seedpacket · answers the old id widget · guide: widgets</p>
+            <h3>Seed packet</h3>
+            <p class="idea">
+              A custom element that a page configures with attributes and hears through an event.
+            </p>
+            <dl>
+              <dt>Style</dt>
+              <dd>
+                Vintage seed packet. Botanical green and ochre, serif capitals, a double border.
+              </dd>
+              <dt>Interaction</dt>
+              <dd>
+                Edit the attributes beside it, change one custom property, tear the packet open.
+              </dd>
+              <dt>ECMact</dt>
+              <dd class="chips">
+                <span>defineWidget</span><span>string, number, boolean attributes</span
+                ><span>props</span><span>emit, cancellable</span><span>custom property</span>
+              </dd>
+              <dt>Proves</dt>
+              <dd>
+                The page cancels the event out of season, and the widget reads the refusal from
+                <code>emit</code>.
+              </dd>
+            </dl>
+          </div>
+          <figure class="stage">
+            <figcaption><span>mock</span><span>sample plant</span></figcaption>
+            <div class="mock m-seed">
+              <div class="packet">
+                <div class="co">Heirloom seeds</div>
+                <div class="orn" aria-hidden="true">&#10047;</div>
+                <div class="nm" data-plant>Borage</div>
+                <div class="sow">Sow in April · 1 cm deep</div>
+                <button data-sow>Tear open</button>
+              </div>
+              <div class="side">
+                <label
+                  >name<br /><input data-plant-in value="Borage" aria-label="Attribute name"
+                /></label>
+                <p>sow="4" depth="1" organic</p>
+                <p data-seed-log>no event yet</p>
+              </div>
+            </div>
+          </figure>
+        </article>
+
+        <article class="card">
+          <div class="meta">
+            <p class="kicker">E12 · atlas · new, no old id · guide: routing</p>
+            <h3>Pocket atlas</h3>
+            <p class="idea">
+              An island with a page per place: nested routes, a guard and a lazy view.
+            </p>
+            <dl>
+              <dt>Style</dt>
+              <dd>Old atlas. Parchment, sepia hairlines, italic place names and a compass rose.</dd>
+              <dt>Interaction</dt>
+              <dd>
+                Open a place, switch the layer in the query, use Back, and try the lighthouse that
+                is closed.
+              </dd>
+              <dt>ECMact</dt>
+              <dd class="chips">
+                <span>createRouter</span><span>children + outlet</span><span>params, query</span
+                ><span>beforeEnter</span><span>lazy view</span><span>link, navigate</span
+                ><span>location signal</span>
+              </dd>
+              <dt>Open</dt>
+              <dd>
+                The router has history mode only and the site already owns the history. How this
+                example runs is question Q3.
+              </dd>
+            </dl>
+          </div>
+          <figure class="stage">
+            <figcaption><span>mock</span><span>invented island</span></figcaption>
+            <div class="mock m-atlas">
+              <div class="addr" data-addr>/examples/atlas</div>
+              <div class="sea">
+                <div class="isle" data-isle>
+                  <button style="left: 12%; top: 14%" data-place="north-shoal">North Shoal</button>
+                  <button style="left: 38%; top: 46%" data-place="saltmarsh">Saltmarsh</button>
+                  <button style="left: 8%; top: 70%" data-place="lighthouse">The Lighthouse</button>
+                </div>
+                <span class="rose" aria-hidden="true">&#10022;</span>
+              </div>
+              <p class="cap" data-atlas-cap>The whole island. Choose a place.</p>
+            </div>
+          </figure>
+        </article>
+      </section>
+
+      <section id="matrix">
+        <h2>Coverage matrix</h2>
+        <p class="section-lead">
+          Every API area of the README is exercised by at least one concept. The last column counts
+          them. The addendum asks for this table to exist as a test, so that a later edit cannot
+          drop an area without notice.
+        </p>
+        <div class="table-scroll"><table id="matrix-table"></table></div>
+        <noscript><p class="note">The matrix is drawn by a script in this file.</p></noscript>
+        <p class="note">
+          Columns W1 to W8 are the widgets and E1 to E12 the examples, in the order above. A widget
+          is not a form field: <code>defineWidget</code> documents no <code>field</code> option, so
+          forms are covered by an example.
+        </p>
+      </section>
+
+      <section id="ids">
+        <h2>Where the old ids go</h2>
+        <p class="section-lead">
+          The twelve demo ids are keys of the registry that guide pages use. The five widget tags
+          and four host addresses are public pages. Each keeps an answer.
+        </p>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Old demo id</th>
+                <th>Answered by</th>
+                <th>Used by a guide today</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>counter</code></td>
+                <td>exposure</td>
+                <td>signals, homepage</td>
+              </tr>
+              <tr>
+                <td><code>todo</code></td>
+                <td>setlist</td>
+                <td>components</td>
+              </tr>
+              <tr>
+                <td><code>styled</code></td>
+                <td>typecase</td>
+                <td>styled, homepage</td>
+              </tr>
+              <tr>
+                <td><code>store</code></td>
+                <td>fieldbook</td>
+                <td>state</td>
+              </tr>
+              <tr>
+                <td><code>http</code></td>
+                <td>switchboard</td>
+                <td>http</td>
+              </tr>
+              <tr>
+                <td><code>form</code></td>
+                <td>customs</td>
+                <td>forms</td>
+              </tr>
+              <tr>
+                <td><code>github</code></td>
+                <td>catalog</td>
+                <td>none</td>
+              </tr>
+              <tr>
+                <td><code>posts</code></td>
+                <td>catalog</td>
+                <td>none</td>
+              </tr>
+              <tr>
+                <td><code>weather</code></td>
+                <td>departures</td>
+                <td>none</td>
+              </tr>
+              <tr>
+                <td><code>lifecycle</code></td>
+                <td>darkroom</td>
+                <td>none</td>
+              </tr>
+              <tr>
+                <td><code>context</code></td>
+                <td>gels</td>
+                <td>none</td>
+              </tr>
+              <tr>
+                <td><code>widget</code></td>
+                <td>seedpacket</td>
+                <td>none</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p></p>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Old widget tag</th>
+                <th>Successor</th>
+                <th>Same attributes and event</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>price-calculator</code></td>
+                <td><code>print-quote</code></td>
+                <td>yes: currency, base, heading, quote</td>
+              </tr>
+              <tr>
+                <td><code>countdown-timer</code></td>
+                <td><code>proof-clock</code></td>
+                <td>yes: to, label, done</td>
+              </tr>
+              <tr>
+                <td><code>poll-widget</code></td>
+                <td><code>row-counter</code></td>
+                <td>no</td>
+              </tr>
+              <tr>
+                <td><code>weather-now</code></td>
+                <td><code>moon-dial</code></td>
+                <td>no</td>
+              </tr>
+              <tr>
+                <td><code>repo-card</code></td>
+                <td><code>feed-lamp</code></td>
+                <td>event loaded only</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">
+          The four host addresses <code>hosts/cafe.html</code>, <code>terminal.html</code>,
+          <code>zine.html</code> and <code>kids.html</code> stay and get new content. What happens
+          to the old tags is question Q2.
+        </p>
+      </section>
+
+      <section id="starter">
+        <h2>The starter, restyled</h2>
+        <p class="section-lead">
+          The first screen of <code>npm create ecmact</code>, app template, in the site's ink and
+          paper. The blue glow and the hexagon image go. The mark is drawn from the same geometry as
+          the site header. The structure of the project stays: one component, one test, one hint
+          about where to edit. Both themes are shown; the real page follows the system.
+        </p>
+        <div class="starter-pair">
+          <div class="browser">
+            <div class="chrome"><span>light</span><span>localhost · my-app</span></div>
+            <div class="st" data-starter></div>
+          </div>
+          <div class="browser">
+            <div class="chrome"><span>dark</span><span>localhost · my-app</span></div>
+            <div class="st dark" data-starter></div>
+          </div>
+        </div>
+        <p class="note" style="margin-top: 18px">
+          The widget template keeps <code>&lt;price-widget&gt;</code> and its script name, because
+          the README, the guide, the homepage, the Pages workflow and the template check all name
+          it. It takes the same tokens. Whether it is replaced too is question Q6.
+        </p>
+      </section>
+    </main>
+
+    <footer class="wrap">
+      Concept sheet for the ECMact documentation redesign, addendum 1.3. Draft for comments until
+      the owner writes "approved". Sketch quality: the mocks show direction, not final drawing.
+    </footer>
+
+    <template id="starter-tpl">
+      <svg viewBox="0 0 267 64" role="img" aria-label="ECMact" fill="currentColor">
+        <path
+          fill-rule="evenodd"
+          d="M0 0H64V64H0Z M10 10H25V19H19V45H25V54H10Z M35 10H54V19H44V27.5H51V36.5H44V45H54V54H35Z"
+        />
+        <g transform="translate(82 0)">
+          <path
+            d="M0 14H20V21H7V28.5H17V35.5H7V43H20V50H0Z M64 50V14H72L83.5 32L95 14H103V50H96V25.5L83.5 43.5L71 25.5V50Z M172 17H179V26H185V33H179V50H172V33H167V26H172Z M126 26H133V50H126Z"
+          />
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="7"
+            d="M55.11 22.68A14.5 14.5 0 1 0 55.11 41.32 M129.5 38A8.5 8.5 0 1 1 112.5 38A8.5 8.5 0 1 1 129.5 38 M157.51 32.53A8.5 8.5 0 1 0 157.51 43.47"
+          />
+        </g>
+      </svg>
+      <h4>Your app is running.</h4>
+      <p class="hint">Edit <code>src/app.ts</code> and save to see your changes.</p>
+      <div class="panel">
+        <div class="panel-title">src/components/counter.ts</div>
+        <div class="panel-body">
+          <button type="button" data-count>count is 0</button>
+          <span>a signal and one text that follows it</span>
+        </div>
+      </div>
+      <nav aria-label="Where to go next">
+        <a href="#starter">Documentation</a><a href="#starter">Examples</a
+        ><a href="#starter">Widgets</a><a href="#starter">GitHub</a>
+      </nav>
+      <div class="cmd">npm test · npm run check · npm run build</div>
+    </template>
+
+    <script>
+      (() => {
+        const $ = (selector, root = document) => root.querySelector(selector);
+        const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+        const safe = (run) => {
+          try {
+            run();
+          } catch (error) {
+            console.warn(error);
+          }
+        };
+
+        // W1 print-quote
+        safe(() => {
+          const root = $('.m-quote');
+          const breaks = [25, 50, 100, 250, 500];
+          let copies = 100;
+          const draw = () => {
+            $('[data-copies]', root).textContent = copies;
+            $('[data-total]', root).textContent = Math.round(40 + copies * 1.44);
+          };
+          root.addEventListener('click', (event) => {
+            const step = event.target.dataset.step;
+            if (!step) return;
+            const index = breaks.indexOf(copies) + Number(step);
+            copies = breaks[Math.max(0, Math.min(breaks.length - 1, index))];
+            draw();
+          });
+          draw();
+        });
+
+        // W2 moon-dial
+        safe(() => {
+          const root = $('.m-moon');
+          const phases = [
+            ['NEW MOON', 0, 0],
+            ['WAXING CRESCENT', -30, 4],
+            ['FIRST QUARTER', -50, 7],
+            ['WAXING GIBBOUS', -75, 11],
+            ['FULL MOON', -101, 15],
+            ['WANING GIBBOUS', 75, 18],
+            ['LAST QUARTER', 50, 22],
+            ['WANING CRESCENT', 30, 26],
+          ];
+          const today = 5;
+          let at = today;
+          const draw = () => {
+            const [name, shift, day] = phases[at];
+            $('[data-disc]', root).style.setProperty('--shift', `${shift}%`);
+            $('[data-moon-name]', root).textContent = name;
+            $('[data-moon-sub]', root).textContent = `DAY ${day} OF 29`;
+          };
+          root.addEventListener('click', (event) => {
+            const move = event.target.dataset.moon;
+            if (move === undefined) return;
+            at = move === '0' ? today : (at + Number(move) + phases.length) % phases.length;
+            draw();
+          });
+          draw();
+        });
+
+        // W3 proof-clock
+        safe(() => {
+          const root = $('.m-proof');
+          $('[data-temp-in]', root).addEventListener('input', (event) => {
+            const temp = Number(event.target.value);
+            $('[data-temp]', root).textContent = temp;
+            $('[data-bulk]', root).style.flexGrow = String((34 - temp) / 3);
+          });
+        });
+
+        // W4 row-counter
+        safe(() => {
+          const root = $('.m-rows');
+          const grid = $('[data-grid]', root);
+          let rows = 27;
+          for (let index = 0; index < 40; index++) grid.append(document.createElement('i'));
+          const draw = () => {
+            $$('i', grid).forEach((cell, index) => {
+              cell.className = index < rows ? ((index + 1) % 6 === 0 ? 'on mark' : 'on') : '';
+            });
+            $('[data-row]', root).textContent = rows;
+            $('[data-hint]', root).textContent =
+              `NEXT DECREASE: ROW ${Math.floor(rows / 6) * 6 + 6}`;
+          };
+          $('[data-row-add]', root).addEventListener('click', () => {
+            rows = rows >= 40 ? 1 : rows + 1;
+            draw();
+          });
+          draw();
+        });
+
+        // W5 feed-lamp
+        safe(() => {
+          const root = $('.m-feed');
+          const states = {
+            ok: '<b>OK</b>     cone 6, 1222 C, holding\nGET    200  attempt 1 of 2\nnext read in 30 s ',
+            slow: '<span class="warn"><b>WAIT</b>   last good reading kept</span>\nGET    ---  timeout, attempt 1 of 2\nGET    200  attempt 2 of 2 ',
+            missing:
+              '<span class="bad"><b>LOST</b>   the feed is not there</span>\nGET    404  not retried\npress refresh to ask again ',
+            broken:
+              '<span class="bad"><b>GARBLED</b> the feed is not JSON</span>\nGET    200  body rejected\nlast good reading: cone 6 ',
+          };
+          const show = (name) => {
+            $('[data-feed-lines]', root).innerHTML = `${states[name]}<span class="cur"></span>`;
+            $$('[data-feed]', root).forEach((button) =>
+              button.setAttribute('aria-pressed', String(button.dataset.feed === name)),
+            );
+          };
+          root.addEventListener('click', (event) => {
+            if (event.target.dataset.feed) show(event.target.dataset.feed);
+          });
+          show('ok');
+        });
+
+        // W6 morse-key
+        safe(() => {
+          const root = $('.m-morse');
+          const knob = $('[data-knob]', root);
+          const code = {
+            '.-': 'A',
+            '-...': 'B',
+            '-.-.': 'C',
+            '-..': 'D',
+            '.': 'E',
+            '..-.': 'F',
+            '--.': 'G',
+            '....': 'H',
+            '..': 'I',
+            '.---': 'J',
+            '-.-': 'K',
+            '.-..': 'L',
+            '--': 'M',
+            '-.': 'N',
+            '---': 'O',
+            '.--.': 'P',
+            '--.-': 'Q',
+            '.-.': 'R',
+            '...': 'S',
+            '-': 'T',
+            '..-': 'U',
+            '...-': 'V',
+            '.--': 'W',
+            '-..-': 'X',
+            '-.--': 'Y',
+            '--..': 'Z',
+          };
+          let started = 0;
+          let letter = '';
+          let text = '';
+          let tape = '';
+          let timer;
+          const down = () => {
+            if (started) return;
+            started = Date.now();
+            knob.classList.add('down');
+            clearTimeout(timer);
+          };
+          const up = () => {
+            if (!started) return;
+            const mark = Date.now() - started < 220 ? '.' : '-';
+            started = 0;
+            knob.classList.remove('down');
+            letter += mark;
+            tape = (tape + (mark === '.' ? '·' : '—')).slice(-16);
+            $('[data-tape]', root).textContent = tape;
+            timer = setTimeout(() => {
+              text = (text + (code[letter] ?? '?')).slice(-12);
+              letter = '';
+              tape = (tape + ' ').slice(-16);
+              $('[data-morse-text]', root).textContent = text;
+            }, 700);
+          };
+          knob.addEventListener('pointerdown', down);
+          knob.addEventListener('pointerup', up);
+          knob.addEventListener('pointerleave', up);
+          knob.addEventListener('keydown', (event) => {
+            if (event.key === ' ') {
+              event.preventDefault();
+              down();
+            }
+          });
+          knob.addEventListener('keyup', (event) => {
+            if (event.key === ' ') up();
+          });
+        });
+
+        // W7 fret-map
+        safe(() => {
+          const root = $('.m-fret');
+          const board = $('[data-board]', root);
+          const names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+          const strings = [4, 11, 7, 2, 9, 4];
+          const scale = [0, 3, 5, 7, 10];
+          const draw = (key) => {
+            board.replaceChildren();
+            strings.forEach((open) => {
+              for (let fret = 0; fret < 9; fret++) {
+                const cell = document.createElement('i');
+                const note = (open + fret) % 12;
+                if (scale.includes((note - key + 12) % 12)) {
+                  const dot = document.createElement('b');
+                  dot.textContent = names[note];
+                  if (note === key) dot.className = 'root';
+                  cell.append(dot);
+                }
+                board.append(cell);
+              }
+            });
+          };
+          $('[data-key]', root).addEventListener('change', (event) =>
+            draw(Number(event.target.value)),
+          );
+          draw(9);
+        });
+
+        // W8 clue-box
+        safe(() => {
+          const root = $('.m-clue');
+          const cells = $$('[data-cells] input', root);
+          const answer = 'PEAR';
+          cells.forEach((cell, index) => {
+            cell.addEventListener('input', () => {
+              cell.className = '';
+              if (cell.value && cells[index + 1]) cells[index + 1].focus();
+            });
+            cell.addEventListener('keydown', (event) => {
+              if (event.key === 'Backspace' && !cell.value && cells[index - 1])
+                cells[index - 1].focus();
+              if (event.key === 'ArrowLeft' && cells[index - 1]) cells[index - 1].focus();
+              if (event.key === 'ArrowRight' && cells[index + 1]) cells[index + 1].focus();
+            });
+          });
+          $('[data-check]', root).addEventListener('click', () => {
+            cells.forEach((cell, index) => {
+              cell.className = cell.value.toUpperCase() === answer[index] ? 'ok' : 'bad';
+            });
+          });
+          $('[data-reveal]', root).addEventListener('click', () => {
+            cells.forEach((cell, index) => {
+              cell.value = answer[index];
+              cell.className = 'ok';
+            });
+          });
+        });
+
+        // E1 exposure
+        safe(() => {
+          const root = $('.m-lcd');
+          const stops = {
+            f: [1.4, 2, 2.8, 4, 5.6, 8, 11, 16],
+            t: [15, 30, 60, 125, 250, 500, 1000],
+            i: [100, 200, 400, 800, 1600, 3200],
+          };
+          const at = { f: 4, t: 3, i: 2 };
+          const runs = { f: 1, t: 1, i: 1, ev: 1 };
+          const draw = () => {
+            const f = stops.f[at.f];
+            const t = stops.t[at.t];
+            const iso = stops.i[at.i];
+            $('[data-lcd="f"]', root).textContent = `f/${f}`;
+            $('[data-lcd="t"]', root).textContent = `1/${t}`;
+            $('[data-lcd="i"]', root).textContent = iso;
+            const ev = Math.log2(f * f * t) - Math.log2(iso / 100);
+            $('[data-lcd="ev"]', root).textContent = `EV ${ev.toFixed(1)}`;
+            Object.keys(runs).forEach((key) => {
+              $(`[data-n="${key}"]`, root).textContent = `x${runs[key]}`;
+            });
+          };
+          root.addEventListener('click', (event) => {
+            const key = event.target.dataset.k;
+            if (!key) return;
+            const next = Math.max(
+              0,
+              Math.min(stops[key].length - 1, at[key] + Number(event.target.dataset.d)),
+            );
+            if (next === at[key]) return;
+            at[key] = next;
+            runs[key]++;
+            runs.ev++;
+            draw();
+          });
+          draw();
+        });
+
+        // E2 setlist
+        safe(() => {
+          $('[data-set]').addEventListener('click', (event) => {
+            if (event.target.localName !== 'button') return;
+            const row = event.target.closest('li');
+            if (row.previousElementSibling)
+              row.parentNode.insertBefore(row, row.previousElementSibling);
+            event.target.focus();
+          });
+        });
+
+        // E3 typecase
+        safe(() => {
+          const root = $('.m-type');
+          const frame = $('[data-frame]', root);
+          root.addEventListener('click', (event) => {
+            const ink = event.target.dataset.ink;
+            if (ink) root.style.setProperty('--ink-c', ink);
+            if (ink || event.target.dataset.pull !== undefined) {
+              frame.classList.remove('press');
+              void frame.offsetWidth;
+              frame.classList.add('press');
+            }
+          });
+        });
+
+        // E4 fieldbook
+        safe(() => {
+          const root = $('.m-field');
+          let wrens = 7;
+          const draw = () => {
+            const tally = $('[data-tally]', root);
+            tally.replaceChildren();
+            for (let group = 0; group < Math.floor(wrens / 5); group++) {
+              const five = document.createElement('s');
+              five.textContent = '||||';
+              tally.append(five);
+            }
+            tally.append('|'.repeat(wrens % 5));
+          };
+          $('[data-wren]', root).addEventListener('click', () => {
+            wrens = wrens >= 20 ? 1 : wrens + 1;
+            draw();
+          });
+          draw();
+        });
+
+        // E5 switchboard
+        safe(() => {
+          const root = $('.m-board');
+          const lines = {
+            clear: ['on-ok', 'GET /line/1 ... 200 after 400 ms. "Exchange, go ahead."'],
+            slow: [
+              'on-wait',
+              'GET /line/2 ... still ringing. Pull the plug: ERR_CANCELED, nothing retried.',
+            ],
+            crackly: ['on-ok', 'GET /line/3 ... failed, failed, 200 on attempt 3 of 3.'],
+            dead: ['on-bad', 'GET /line/4 ... 503 after 2 retries. HttpError, status 503.'],
+          };
+          root.addEventListener('click', (event) => {
+            const line = lines[event.target.dataset.line];
+            if (!line) return;
+            $$('[data-jacks] > div', root).forEach((jack) => (jack.className = ''));
+            event.target.parentNode.className = line[0];
+            $('[data-strip]', root).textContent = line[1];
+          });
+        });
+
+        // E6 customs
+        safe(() => {
+          const form = $('[data-customs]');
+          const stamp = $('[data-stamp]', form);
+          $('[data-nothing]', form).addEventListener('change', (event) => {
+            $('[data-goods]', form).disabled = event.target.checked;
+          });
+          form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const valid = form.checkValidity();
+            stamp.textContent = valid ? 'CLEARED' : 'REFUSED';
+            stamp.hidden = false;
+            if (!valid) form.reportValidity();
+          });
+          form.addEventListener('reset', () => {
+            stamp.hidden = true;
+            $('[data-goods]', form).disabled = false;
+          });
+        });
+
+        // E7 catalog
+        safe(() => {
+          const root = $('.m-cat');
+          $('[data-find]', root).addEventListener('input', (event) => {
+            const query = event.target.value.trim().toLowerCase();
+            $$('.cardx', root).forEach((card) => {
+              card.hidden = !card.dataset.title.includes(query);
+            });
+          });
+          root.addEventListener('click', (event) => {
+            if (event.target.dataset.borrow === undefined) return;
+            const due = $('.due', event.target.parentNode);
+            due.hidden = !due.hidden;
+            event.target.textContent = due.hidden ? 'Borrow' : 'Return';
+          });
+        });
+
+        // E8 departures
+        safe(() => {
+          const root = $('.m-dep');
+          const boards = {
+            north: [
+              ['07:10', 'Saltmarsh', 'A', ''],
+              ['07:45', 'Lighthouse', 'B', ''],
+              ['08:20', 'Saltmarsh', 'A', ''],
+            ],
+            salt: [
+              ['07:30', 'North Pier', 'C', ''],
+              ['09:00', 'North Pier', 'C', ''],
+            ],
+            light: [
+              ['08:05', 'North Pier', 'D', 'cancelled, fog'],
+              ['10:40', 'North Pier', 'D', ''],
+            ],
+          };
+          let aborted = 0;
+          const draw = (name) => {
+            $('[data-dep]', root).replaceChildren(
+              ...boards[name].map(([time, place, pier, status]) => {
+                const row = document.createElement('div');
+                row.className = status ? 'rowx off' : 'rowx';
+                const where = document.createElement('span');
+                where.textContent = place;
+                if (status) {
+                  const note = document.createElement('small');
+                  note.textContent = status;
+                  where.append(note);
+                }
+                const at = document.createElement('span');
+                at.textContent = time;
+                const gate = document.createElement('span');
+                gate.textContent = pier;
+                row.append(at, where, gate);
+                return row;
+              }),
+            );
+            $$('[data-h]', root).forEach((button) =>
+              button.setAttribute('aria-pressed', String(button.dataset.h === name)),
+            );
+          };
+          $('[data-harbours]', root).addEventListener('click', (event) => {
+            const name = event.target.dataset.h;
+            if (!name || event.target.getAttribute('aria-pressed') === 'true') return;
+            aborted++;
+            $('[data-dep-foot]', root).textContent = `requests aborted: ${aborted}`;
+            draw(name);
+          });
+          draw('north');
+        });
+
+        // E9 darkroom
+        safe(() => {
+          const root = $('.m-dark');
+          const trays = $$('.tray', root);
+          const print = $('[data-print]', root);
+          const log = $('[data-dark-log]', root);
+          let at = 0;
+          const say = (...lines) => {
+            lines.forEach((line) => {
+              const item = document.createElement('li');
+              item.textContent = line;
+              log.append(item);
+            });
+            while (log.children.length > 4) log.firstElementChild.remove();
+          };
+          $('[data-move]', root).addEventListener('click', () => {
+            const out = !print.isConnected;
+            at = out ? 0 : (at + 1) % trays.length;
+            trays[at].append(print);
+            if (out) say('mounted: timer started');
+            else say('cleanup: timer stopped', 'unmounted, then mounted again');
+          });
+          $('[data-pull-out]', root).addEventListener('click', () => {
+            if (!print.isConnected) return;
+            print.remove();
+            say('cleanup: timer stopped', 'unmounted');
+          });
+        });
+
+        // E10 gels
+        safe(() => {
+          const root = $('.m-gel');
+          const colours = [null, '#ff5d73', '#57c7ff', '#ffd166', '#8aff9c'];
+          const chosen = [3, 0, 1];
+          const zones = $$('[data-zone]', root);
+          const draw = () => {
+            let inherited = '#9aa0b5';
+            zones.forEach((zone, index) => {
+              const own = colours[chosen[index]];
+              inherited = own ?? inherited;
+              zone.style.setProperty('--c', inherited);
+              $('[data-gel]', zone).textContent = own ? 'gel on' : 'no gel';
+            });
+          };
+          root.addEventListener('click', (event) => {
+            if (event.target.dataset.gel === undefined) return;
+            const index = Number(event.target.closest('[data-zone]').dataset.zone);
+            chosen[index] = (chosen[index] + 1) % colours.length;
+            draw();
+          });
+          draw();
+        });
+
+        // E11 seedpacket
+        safe(() => {
+          const root = $('.m-seed');
+          $('[data-plant-in]', root).addEventListener('input', (event) => {
+            $('[data-plant]', root).textContent = event.target.value || 'Unnamed';
+          });
+          $('[data-sow]', root).addEventListener('click', () => {
+            $('[data-seed-log]', root).textContent =
+              `sow: { plant: "${$('[data-plant]', root).textContent}" }`;
+          });
+        });
+
+        // E12 atlas
+        safe(() => {
+          const root = $('.m-atlas');
+          const places = {
+            'north-shoal': [
+              '/examples/atlas/north-shoal',
+              'North Shoal. Seals at low water. The view is loaded on demand.',
+            ],
+            saltmarsh: [
+              '/examples/atlas/saltmarsh?layer=tides',
+              'Saltmarsh, with the tides layer from the query.',
+            ],
+            lighthouse: [
+              '/examples/atlas',
+              'The lighthouse is closed at night: the guard sent you back to the island.',
+            ],
+          };
+          root.addEventListener('click', (event) => {
+            const name = event.target.dataset.place;
+            if (!name) return;
+            $('[data-addr]', root).textContent = places[name][0];
+            $('[data-atlas-cap]', root).textContent = places[name][1];
+            $$('[data-place]', root).forEach((button) => button.removeAttribute('aria-current'));
+            if (name !== 'lighthouse') event.target.setAttribute('aria-current', 'page');
+          });
+        });
+
+        // Starter mock
+        safe(() => {
+          const template = $('#starter-tpl');
+          $$('[data-starter]').forEach((target) => {
+            target.append(template.content.cloneNode(true));
+            let count = 0;
+            $('[data-count]', target).addEventListener('click', (event) => {
+              count++;
+              event.target.textContent = `count is ${count}`;
+            });
+          });
+        });
+
+        // Coverage matrix
+        safe(() => {
+          const columns = [
+            'W1',
+            'W2',
+            'W3',
+            'W4',
+            'W5',
+            'W6',
+            'W7',
+            'W8',
+            'E1',
+            'E2',
+            'E3',
+            'E4',
+            'E5',
+            'E6',
+            'E7',
+            'E8',
+            'E9',
+            'E10',
+            'E11',
+            'E12',
+          ];
+          const titles = [
+            'print-quote',
+            'moon-dial',
+            'proof-clock',
+            'row-counter',
+            'feed-lamp',
+            'morse-key',
+            'fret-map',
+            'clue-box',
+            'exposure',
+            'setlist',
+            'typecase',
+            'fieldbook',
+            'switchboard',
+            'customs',
+            'catalog',
+            'departures',
+            'darkroom',
+            'gels',
+            'seedpacket',
+            'atlas',
+          ];
+          const rows = [
+            ['signal', 'W1 W2 W3 W4 W5 W6 W7 W8 E1 E2 E3 E4 E5 E6 E7 E8 E9 E10 E11 E12'],
+            ['computed', 'W1 W2 W3 W6 W7 E1 E2'],
+            ['effect and its cleanup', 'W2 W3 W5 W6 E1 E7 E9'],
+            ['batch, untracked', 'W3 W7 E1'],
+            ['tags: reactive props, class, style, ref', 'W1 W7 W8 E1 E2 E10 E12'],
+            ['em component with shadow css', 'E1 E2 E4 E5 E6 E7 E8 E9 E10 E11'],
+            ['mounted, unmounted', 'E9'],
+            ['error prop and phases', 'E9'],
+            ['each, keyed list', 'W4 W6 W7 W8 E2 E4 E7 E8'],
+            ['bind and native controls', 'W1 E2 E4 E6 E11'],
+            ['field: true, ElementInternals, FormData', 'E6'],
+            ['createStore: actions, select, watch', 'W4 E2 E4'],
+            ['persist', 'W4 E4'],
+            ['createContext', 'E10'],
+            ['createHttp: methods, config, fetch', 'W5 E5 E7'],
+            ['abort, timeout, retry, HttpError', 'W5 E5 E7 E8'],
+            ['interceptors', 'E5 E7'],
+            ['resource', 'W5 E8'],
+            ['createRouter: routes, params, guards, lazy', 'E12'],
+            ['styled, css, keyframes', 'E3'],
+            ['ThemeProvider, useTheme', 'E3'],
+            ['defineWidget and typed attributes', 'W1 W2 W3 W4 W5 W6 W7 W8 E11'],
+            ['emit: events out of a widget', 'W1 W2 W3 W4 W5 W6 W7 W8 E11'],
+            ['custom-property theming', 'W1 W2 W3 W4 W5 W6 W7 W8 E11'],
+            ['widget removed and put back', 'W2 W3 W5'],
+          ];
+          const table = $('#matrix-table');
+          const cell = (tag, text, className) => {
+            const node = document.createElement(tag);
+            node.textContent = text;
+            if (className) node.className = className;
+            return node;
+          };
+          const head = document.createElement('tr');
+          head.append(cell('th', 'API area'));
+          columns.forEach((name, index) => {
+            const th = cell('th', '', index === 8 ? 'col sep' : 'col');
+            th.scope = 'col';
+            th.append(cell('span', `${name} ${titles[index]}`));
+            head.append(th);
+          });
+          head.append(cell('th', 'n'));
+          const thead = document.createElement('thead');
+          thead.append(head);
+          const tbody = document.createElement('tbody');
+          rows.forEach(([name, used]) => {
+            const marks = used.split(' ');
+            const row = document.createElement('tr');
+            const th = cell('th', name, 'row');
+            th.scope = 'row';
+            row.append(th);
+            columns.forEach((column, index) => {
+              const on = marks.includes(column);
+              const td = cell(
+                'td',
+                on ? '●' : '',
+                `${on ? 'on' : ''}${index === 8 ? ' sep' : ''}`.trim(),
+              );
+              if (on) td.setAttribute('aria-label', `${titles[index]} uses ${name}`);
+              row.append(td);
+            });
+            row.append(cell('td', String(marks.length), 'total'));
+            tbody.append(row);
+          });
+          table.append(thead, tbody);
+        });
+      })();
+    </script>
+  </body>
+</html>
