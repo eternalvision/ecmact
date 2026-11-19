@@ -291,6 +291,10 @@ pre code {
   background: var(--surface-hover);
 }
 
+body:has(main.home) .site-header {
+  border-bottom-color: transparent;
+}
+
 .intro {
   display: grid;
   grid-template-columns: minmax(0, 0.95fr) minmax(0, 1fr);
@@ -352,7 +356,8 @@ pre code {
 }
 
 .try .code pre {
-  font-size: 0.8rem;
+  font-size: 13px;
+  line-height: 1.8;
 }
 
 .preview {
@@ -482,7 +487,7 @@ pre code {
 }
 
 .hero-copy .install code {
-  font-size: 0.9rem;
+  font-size: 12px;
 }
 
 .install .code-copy {
