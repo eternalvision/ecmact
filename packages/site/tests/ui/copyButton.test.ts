@@ -39,6 +39,27 @@ describe('copyButton', () => {
   });
 });
 
+describe('copyButton accessibility', () => {
+  it('has a name that tells what it copies, or the general name without one', () => {
+    expect(copyButton('x', 'c', 'main.ts').getAttribute('aria-label')).toBe(
+      'Copy to the clipboard: main.ts',
+    );
+    expect(copyButton('x', 'c').getAttribute('aria-label')).toBe('Copy to the clipboard');
+  });
+
+  it('announces the result to assistive technology and clears it again', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal('navigator', { clipboard: { writeText: async () => {} } });
+    const button = copyButton('x', 'c');
+    document.body.append(button);
+    button.click();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(document.querySelector('.sr-status')?.textContent).toBe('Copied');
+    await vi.advanceTimersByTimeAsync(1500);
+    expect(document.querySelector('.sr-status')?.textContent).toBe('');
+  });
+});
+
 describe('copyButton in Russian', () => {
   it('says so in Russian', async () => {
     await useLocale('ru');

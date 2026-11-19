@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CodeBlock, highlighted } from '@site/ui/codeBlock';
 
 afterEach(() => {
+  vi.unstubAllGlobals();
   document.body.replaceChildren();
 });
 
@@ -64,6 +65,18 @@ describe('CodeBlock content', () => {
     document.body.append(block);
     block.querySelector<HTMLButtonElement>('.code-copy')!.click();
     await vi.waitFor(() => expect(writeText).toHaveBeenCalledWith(code));
-    vi.unstubAllGlobals();
+  });
+});
+
+describe('CodeBlock copy button', () => {
+  it('is named after the block', () => {
+    const block = CodeBlock({ code: 'a', language: 'ts', title: 'main.ts' });
+    expect(block.querySelector('.code-copy')?.getAttribute('aria-label')).toBe(
+      'Copy to the clipboard: main.ts',
+    );
+    const plain = CodeBlock({ code: 'a', language: 'ts' });
+    expect(plain.querySelector('.code-copy')?.getAttribute('aria-label')).toBe(
+      'Copy to the clipboard: ts',
+    );
   });
 });

@@ -91,7 +91,6 @@ export interface Messages {
   /** The home page. */
   home: {
     heroTitle: string;
-    heroAccent: string;
     lead: string;
     start: string;
     live: string;
@@ -100,6 +99,10 @@ export interface Messages {
     exampleResult: string;
     exampleSample: string;
     exampleMarkup: string;
+    installName: string;
+    flowLabel: string;
+    flow: [string, string][];
+    badgesLabel: string;
     factsLabel: string;
     facts: [string, string][];
     featuresTitle: string;
@@ -317,16 +320,23 @@ const en: Messages = {
     },
   },
   home: {
-    heroTitle: 'Widgets for any website, in ',
-    heroAccent: 'plain TypeScript',
-    lead: 'Build an embeddable widget with isolated styles and typed attributes, and ship it as one script tag. Signals, a store, an HTTP client and a router are built in. No dependencies, and nothing that has to be compiled.',
+    heroTitle: 'Reactive UI on the DOM.',
+    lead: 'Build a page or embed a widget with typed elements, signals and Web Components.',
     start: 'Get started',
     live: 'See live examples',
     widgetGuide: 'Build a widget',
     exampleLabel: 'A runnable ECMact example',
     exampleResult: 'Result',
     exampleSample: 'Sample data: an illustrative rate of $49 per hour, not a price list.',
-    exampleMarkup: 'Put this next to it:',
+    exampleMarkup: "The starter's index.html already has the mount target:",
+    installName: 'install command',
+    flowLabel: 'How ECMact fits together',
+    flow: [
+      ['Build an element', 'tags creates a real DOM node.'],
+      ['Give it state', 'A signal updates readers when its value changes.'],
+      ['Embed the result', 'Package a widget as a custom element for another page.'],
+    ],
+    badgesLabel: 'Project status',
     factsLabel: 'Facts',
     facts: [
       ['0', 'runtime dependencies'],
@@ -560,16 +570,23 @@ const ru: Messages = {
     },
   },
   home: {
-    heroTitle: 'Виджеты для любого сайта на ',
-    heroAccent: 'чистом TypeScript',
-    lead: 'Соберите встраиваемый виджет с изолированными стилями и типизированными атрибутами и отдайте его одним тегом script. Сигналы, стор, HTTP-клиент и роутер встроены. Без зависимостей и без того, что нужно компилировать.',
+    heroTitle: 'Реактивный UI на DOM.',
+    lead: 'Соберите страницу или встройте виджет с помощью типизированных элементов, сигналов и Web Components.',
     start: 'Начать',
     live: 'Живые примеры',
     widgetGuide: 'Собрать виджет',
     exampleLabel: 'Работающий пример ECMact',
     exampleResult: 'Результат',
-    exampleSample: 'Пример данных: условная ставка 49 за час, а не прайс-лист.',
-    exampleMarkup: 'Положите рядом:',
+    exampleSample: 'Пример данных: условная ставка $49 в час, а не прайс-лист.',
+    exampleMarkup: 'В index.html стартера уже есть точка монтирования:',
+    installName: 'команда установки',
+    flowLabel: 'Как устроен ECMact',
+    flow: [
+      ['Соберите элемент', 'tags создаёт настоящий DOM-узел.'],
+      ['Дайте ему состояние', 'Сигнал обновляет читателей, когда меняется его значение.'],
+      ['Встройте результат', 'Упакуйте виджет как пользовательский элемент для другой страницы.'],
+    ],
+    badgesLabel: 'Состояние проекта',
     factsLabel: 'Факты',
     facts: [
       ['0', 'runtime-зависимостей'],

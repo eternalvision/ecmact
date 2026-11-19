@@ -95,61 +95,79 @@ const installLine = () =>
   div(
     { class: 'install' },
     code(span({ class: 'prompt' }, '$'), ` ${install}`),
-    copyButton(install, 'code-copy'),
+    copyButton(install, 'code-copy', m().installName),
   );
 
 /**
- * The example beside the promise: the entry file, the running result labeled as sample data and the markup the file
- * needs. The displayed source is checked against the running example by its test.
+ * The example beside the promise: the entry file, the running result under it labeled as sample data and the markup
+ * the file needs. The displayed source is checked against the running example by its test.
  *
  * @returns The element.
  */
 const example = () =>
   div(
     { class: 'try', role: 'group', 'aria-label': m().exampleLabel },
-    div(
-      { class: 'try-body' },
-      CodeBlock({ code: source, language: 'ts', title: entryName }),
-      div(
-        { class: 'try-result' },
-        p({ class: 'try-label' }, m().exampleResult),
-        create(),
-        p({ class: 'try-sample' }, m().exampleSample),
-      ),
-    ),
+    CodeBlock({ code: source, language: 'ts', title: entryName }),
+    div({ class: 'preview', role: 'group', 'aria-label': m().exampleResult }, create()),
+    p({ class: 'try-sample' }, m().exampleSample),
     p({ class: 'try-label' }, m().exampleMarkup),
     CodeBlock({ code: markup, language: 'html', title: markupName }),
   );
 
 /**
- * The hero: the promise, the install command, the entry points and badges beside a runnable example.
+ * The hero: the promise, the entry points and the install command beside a runnable example.
  *
  * @param router - The router.
  * @returns The section.
  */
 const hero = (router: Router) =>
   section(
-    { class: 'hero wrap' },
+    { class: 'hero intro wrap' },
     div(
       { class: 'hero-copy' },
-      h1(m().heroTitle, span({ class: 'accent' }, m().heroAccent)),
+      h1(m().heroTitle),
       p({ class: 'lead' }, m().lead),
-      installLine(),
       div(
         { class: 'actions' },
         router.link({ to: '/docs/getting-started', class: 'button' }, m().start),
-        router.link({ to: '/docs/widgets', class: 'button ghost' }, m().widgetGuide),
-        router.link({ to: '/examples', class: 'button ghost' }, m().live),
-        outside(external.github, 'GitHub', 'button ghost'),
+        outside(external.github, 'GitHub'),
       ),
-      p(
-        { class: 'badges' },
-        badges.map(([src, alt, href]) =>
-          a({ href, target: '_blank', rel: 'noreferrer' }, img({ src, alt, height: 20 })),
-        ),
-      ),
+      installLine(),
     ),
     example(),
+  );
+
+/**
+ * The three steps from an element to an embedded widget, each with a plain link where one helps.
+ *
+ * @param router - The router.
+ * @returns The element.
+ */
+const flow = (router: Router) => {
+  const links = [
+    undefined,
+    router.link({ to: '/examples' }, m().live),
+    router.link({ to: '/docs/widgets' }, m().widgetGuide),
+  ];
+  return div(
+    { class: 'flow wrap', 'aria-label': m().flowLabel },
+    m().flow.map(([title, note], index) =>
+      div(strong(title), p(note), links[index] ? p(links[index]) : undefined),
+    ),
+  );
+};
+
+/**
+ * The badges of the project, below the first screen.
+ *
+ * @returns The element.
+ */
+const badgeRow = () =>
+  div(
+    { class: 'badges wrap', role: 'group', 'aria-label': m().badgesLabel },
+    badges.map(([src, alt, href]) =>
+      a({ href, target: '_blank', rel: 'noreferrer' }, img({ src, alt, height: 20 })),
+    ),
   );
 
 /**
@@ -293,6 +311,8 @@ export const home = (router: Router) =>
   main(
     { class: 'home' },
     hero(router),
+    flow(router),
+    badgeRow(),
     facts(),
     featureGrid(router),
     live(),

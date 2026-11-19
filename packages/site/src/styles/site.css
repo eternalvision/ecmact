@@ -291,18 +291,18 @@ pre code {
   background: var(--surface-hover);
 }
 
-.hero {
+.intro {
   display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-  gap: clamp(1.6rem, 3.5vw, 3rem);
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1fr);
+  gap: clamp(26px, 6vw, 96px);
   align-items: center;
-  padding: clamp(2rem, 5vw, 4rem) 0 1.5rem;
+  padding-block: clamp(52px, 9vw, 122px);
+  border-block: 1px solid var(--border);
 }
 
 .hero-copy {
   display: grid;
   justify-items: start;
-  gap: 1.3rem;
   min-width: 0;
 }
 
@@ -311,59 +311,70 @@ pre code {
   min-width: 0;
 }
 
-.hero-copy .actions,
-.hero-copy .badges {
+.hero h1 {
+  max-width: 9ch;
+  margin: 0;
+  font-size: clamp(50px, 7vw, 104px);
+  font-weight: 690;
+  line-height: 0.96;
+  letter-spacing: -0.085em;
+}
+
+.hero .lead {
+  max-width: 43ch;
+  margin-block: 24px;
+  font-size: 18px;
+}
+
+.hero .actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-start;
+  gap: 22px;
+}
+
+.hero .install {
+  margin-top: 14px;
 }
 
 .try {
-  display: grid;
-  gap: 0.6rem;
   min-width: 0;
-  padding: 0.8rem;
+  overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: var(--surface);
-  container-type: inline-size;
+  background: var(--code-bg);
 }
 
-.try-body {
-  display: grid;
-  gap: 0.8rem;
-  min-width: 0;
-}
-
-@container (min-width: 32rem) {
-  .try-body {
-    grid-template-columns: minmax(0, 1fr) 10.5rem;
-  }
+.try .code {
+  border: 0;
+  border-radius: 0;
 }
 
 .try .code pre {
   font-size: 0.8rem;
 }
 
-.try-result {
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-  min-width: 0;
-  padding: 1rem;
-  border: 1px dashed var(--border);
-  border-radius: var(--radius);
-  background: var(--bg);
-}
-
-.try-result .estimate {
+.preview {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.8rem;
+  gap: 14px;
+  padding: 20px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
 }
 
-.try-result button {
+.preview .estimate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.preview button {
   font: inherit;
-  padding: 0.5rem 0.9rem;
+  padding: 8px 12px;
   border: 1px solid var(--primary);
   border-radius: 4px;
   background: var(--bg);
@@ -371,29 +382,51 @@ pre code {
   cursor: pointer;
 }
 
-.try-result button:hover {
+.preview button:hover {
   background: var(--surface-hover);
 }
 
-.try-result output {
+.preview output {
   font-family: var(--mono);
-  font-size: 1.4rem;
-  font-weight: 700;
+  font-size: 1rem;
 }
 
-.try-label,
-.try-sample {
+.try-sample,
+.try-label {
+  margin: 0;
+  padding: 10px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
   color: var(--muted);
   font-size: 0.85rem;
 }
 
-.try-label {
-  font-family: var(--mono);
+.try-sample {
+  border-top: 0;
+  padding-top: 0;
 }
 
-.hero h1 {
-  font-size: clamp(2rem, 4.4vw, 3.4rem);
-  max-width: 18ch;
+.try .try-label {
+  font-family: var(--mono);
+  padding-bottom: 8px;
+  background: var(--code-bg);
+}
+
+.flow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  padding-block: 32px;
+}
+
+.flow > div {
+  padding-top: 14px;
+  border-top: 2px solid var(--text);
+}
+
+.flow p {
+  margin-top: 8px;
+  color: var(--muted);
 }
 
 .lead {
@@ -415,6 +448,11 @@ pre code {
   justify-content: center;
   gap: 0.5rem;
   min-height: 20px;
+}
+
+.flow + .badges {
+  justify-content: flex-start;
+  padding-bottom: 8px;
 }
 
 .badges img {
@@ -735,6 +773,18 @@ pre code {
   outline-offset: -3px;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 .tok-comment {
   font-style: italic;
   color: var(--tok-comment);
@@ -1041,10 +1091,19 @@ tr:last-child td {
   }
 }
 
-@media (max-width: 1100px) {
-  .hero {
+@media (max-width: 960px) {
+  .intro {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+@media (max-width: 780px) {
+  .flow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 1100px) {
   .docs {
     grid-template-columns: 14rem minmax(0, 1fr);
   }

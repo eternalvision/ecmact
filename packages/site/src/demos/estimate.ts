@@ -19,7 +19,7 @@ mount(
     'Add an hour',
   ),
   tags.output(
-    { 'aria-label': 'Sample estimate' },
+    { 'aria-label': 'Sample estimate', 'aria-live': 'polite' },
     estimate,
   ),
 );`;
@@ -41,7 +41,7 @@ export const create = () => {
   mount(
     host,
     tags.button({ type: 'button', onclick: () => hours.value++ }, 'Add an hour'),
-    tags.output({ 'aria-label': 'Sample estimate' }, estimate),
+    tags.output({ 'aria-label': 'Sample estimate', 'aria-live': 'polite' }, estimate),
   );
   return host;
 };

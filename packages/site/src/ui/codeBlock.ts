@@ -44,7 +44,7 @@ export const CodeBlock = ({ code, language, title }: CodeBlockProps) =>
     figcaption(
       { class: 'code-bar' },
       span({ class: 'code-title' }, title ?? language),
-      copyButton(code, 'code-copy'),
+      copyButton(code, 'code-copy', title ?? language),
     ),
     highlighted(code, language),
   );

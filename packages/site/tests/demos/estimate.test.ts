@@ -48,11 +48,13 @@ describe('estimate example', () => {
       button: root.querySelector('button')!.textContent,
     });
     expect(read(shown)).toEqual(read(running));
+    expect(shown.innerHTML).toBe(running.innerHTML);
     [shown, running].forEach((root) => {
       root.querySelector('button')!.click();
       root.querySelector('button')!.click();
     });
     expect(read(shown)).toEqual(read(running));
+    expect(shown.innerHTML).toBe(running.innerHTML);
     expect(read(shown).output).toBe('$147');
   });
 
