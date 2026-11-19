@@ -1,6 +1,7 @@
 import { effect, mount } from 'ecmact';
 import { createSiteRouter } from '@site/app/router';
 import { watchTheme } from '@site/app/theme';
+import { announcer } from '@site/lib/announce';
 import { applyLocale, localeStore, readLocaleParam, type Locale } from '@site/lib/i18n';
 import { applyMeta, metaFor } from '@site/lib/title';
 import { Footer } from '@site/ui/footer';
@@ -18,6 +19,7 @@ export const start = (target: string | Element) => {
   if (forced) localeStore.setState({ locale: forced });
   const root = typeof target === 'string' ? (document.querySelector(target) as Element) : target;
   const router = createSiteRouter();
+  announcer();
 
   /**
    * Builds the interface in a language, replacing what was there.

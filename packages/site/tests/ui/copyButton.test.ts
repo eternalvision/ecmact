@@ -2,7 +2,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { copyButton } from '@site/ui/copyButton';
 import { resetLocale, useLocale } from '@tests/helpers';
 
+const execCommand = document.execCommand;
+
 afterEach(() => {
+  (document as { execCommand?: unknown }).execCommand = execCommand;
   vi.useRealTimers();
   vi.unstubAllGlobals();
   document.body.replaceChildren();
@@ -36,6 +39,27 @@ describe('copyButton', () => {
     inner.click();
     await vi.advanceTimersByTimeAsync(0);
     expect(inner.textContent).toBe('Failed');
+  });
+});
+
+describe('copyButton accessibility', () => {
+  it('has a name that tells what it copies, or the general name without one', () => {
+    expect(copyButton('x', 'c', 'main.ts').getAttribute('aria-label')).toBe(
+      'Copy to the clipboard: main.ts',
+    );
+    expect(copyButton('x', 'c').getAttribute('aria-label')).toBe('Copy to the clipboard');
+  });
+
+  it('announces the result to assistive technology and clears it again', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal('navigator', { clipboard: { writeText: async () => {} } });
+    const button = copyButton('x', 'c');
+    document.body.append(button);
+    button.click();
+    await vi.advanceTimersByTimeAsync(20);
+    expect(document.querySelector('.sr-status')?.textContent).toBe('Copied');
+    await vi.advanceTimersByTimeAsync(1500);
+    expect(document.querySelector('.sr-status')?.textContent).toBe('');
   });
 });
 

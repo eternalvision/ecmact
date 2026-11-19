@@ -291,32 +291,143 @@ pre code {
   background: var(--surface-hover);
 }
 
-.hero {
-  text-align: center;
-  padding: clamp(2.5rem, 7vw, 5rem) 0 1.5rem;
+.intro {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  justify-items: center;
-  gap: 1.4rem;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1fr);
+  gap: clamp(26px, 6vw, 96px);
+  align-items: center;
+  padding-block: clamp(52px, 9vw, 122px);
+  border-bottom: 1px solid var(--border);
 }
 
-.hero > * {
+.hero-copy {
+  display: grid;
+  justify-items: start;
+  min-width: 0;
+}
+
+.hero-copy > * {
   max-width: 100%;
-}
-
-.hero-logo {
-  width: min(26rem, 80%);
-  color: var(--text);
-}
-
-.hero-logo .logo-art {
-  width: 100%;
-  height: auto;
+  min-width: 0;
 }
 
 .hero h1 {
-  font-size: clamp(2rem, 5.2vw, 3.6rem);
-  max-width: 18ch;
+  max-width: 9ch;
+  margin: 0;
+  font-size: clamp(50px, 7vw, 104px);
+  font-weight: 690;
+  line-height: 0.96;
+  letter-spacing: -0.085em;
+}
+
+.hero .lead {
+  max-width: 43ch;
+  margin-block: 24px;
+  font-size: 18px;
+}
+
+.hero .actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 22px;
+}
+
+.hero .install {
+  margin-top: 14px;
+}
+
+.try {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--code-bg);
+}
+
+.try .code {
+  border: 0;
+  border-radius: 0;
+}
+
+.try .code pre {
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.preview .estimate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.preview button {
+  font: inherit;
+  padding: 8px 12px;
+  border: 1px solid var(--primary);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.preview button:hover {
+  background: var(--surface-hover);
+}
+
+.preview output {
+  font-family: var(--mono);
+  font-size: 1rem;
+}
+
+.starter {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 24px;
+  align-items: start;
+  padding-block: 8px 24px;
+}
+
+.starter p {
+  margin-top: 8px;
+  color: var(--muted);
+}
+
+.try-sample {
+  margin: 0;
+  padding: 0 20px 10px;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.flow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  padding-block: 32px;
+}
+
+.flow > div {
+  padding-top: 14px;
+  border-top: 2px solid var(--text);
+}
+
+.flow p {
+  margin-top: 8px;
+  color: var(--muted);
 }
 
 .lead {
@@ -340,6 +451,11 @@ pre code {
   min-height: 20px;
 }
 
+.flow + .badges {
+  justify-content: flex-start;
+  padding-bottom: 8px;
+}
+
 .badges img {
   display: block;
 }
@@ -353,6 +469,7 @@ pre code {
   border-radius: var(--radius);
   background: var(--surface);
   max-width: 100%;
+  min-width: 0;
 }
 
 .install code {
@@ -363,6 +480,14 @@ pre code {
   overflow-x: auto;
   white-space: nowrap;
   min-width: 0;
+}
+
+.hero-copy .install code {
+  font-size: 12px;
+}
+
+.install .code-copy {
+  flex: none;
 }
 
 @media (max-width: 480px) {
@@ -641,6 +766,22 @@ pre code {
   font-size: 0.85rem;
   line-height: 1.6;
   tab-size: 2;
+}
+
+.code pre:focus-visible {
+  outline-offset: -3px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 .tok-comment {
@@ -946,6 +1087,19 @@ tr:last-child td {
 
   .sidebar a {
     padding: 0.08rem 0.6rem;
+  }
+}
+
+@media (max-width: 960px) {
+  .intro {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 780px) {
+  .starter,
+  .flow {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

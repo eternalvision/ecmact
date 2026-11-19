@@ -1,7 +1,8 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CodeBlock, highlighted } from '@site/ui/codeBlock';
 
 afterEach(() => {
+  vi.unstubAllGlobals();
   document.body.replaceChildren();
 });
 
@@ -31,5 +32,51 @@ describe('CodeBlock', () => {
   it('uses the language as the title when there is none', () => {
     const block = CodeBlock({ code: 'a', language: 'ts' });
     expect(block.querySelector('.code-title')?.textContent).toBe('ts');
+  });
+});
+
+describe('CodeBlock content', () => {
+  it('shows markup as text, not as elements', () => {
+    const html = '<div id="app"></div>\n<script type="module" src="/src/main.ts"></script>';
+    const block = CodeBlock({ code: html, language: 'html', title: 'index.html' });
+    document.body.append(block);
+    expect(block.querySelector('pre')?.textContent).toBe(html);
+    expect(block.querySelector('pre #app')).toBeNull();
+    expect(block.querySelector('pre script')).toBeNull();
+    expect(block.querySelector('.tok-tag')?.textContent).toBe('<div');
+  });
+
+  it('keeps a long TypeScript line whole, in a panel that can be focused and scrolled', () => {
+    const line = `const label = \`${'word '.repeat(60)}$\${count}\`;`;
+    const block = CodeBlock({ code: line, language: 'ts', title: 'long.ts' });
+    document.body.append(block);
+    const pre = block.querySelector('pre')!;
+    expect(pre.textContent).toBe(line);
+    expect(pre.textContent).not.toContain('\n');
+    pre.focus();
+    expect(document.activeElement).toBe(pre);
+  });
+
+  it('copies the code exactly, with no line labels or prompt', async () => {
+    const writeText = vi.fn(async () => {});
+    vi.stubGlobal('navigator', { clipboard: { writeText } });
+    const code = "const a = 1;\nconst b = '<b>';";
+    const block = CodeBlock({ code, language: 'ts' });
+    document.body.append(block);
+    block.querySelector<HTMLButtonElement>('.code-copy')!.click();
+    await vi.waitFor(() => expect(writeText).toHaveBeenCalledWith(code));
+  });
+});
+
+describe('CodeBlock copy button', () => {
+  it('is named after the block', () => {
+    const block = CodeBlock({ code: 'a', language: 'ts', title: 'main.ts' });
+    expect(block.querySelector('.code-copy')?.getAttribute('aria-label')).toBe(
+      'Copy to the clipboard: main.ts',
+    );
+    const plain = CodeBlock({ code: 'a', language: 'ts' });
+    expect(plain.querySelector('.code-copy')?.getAttribute('aria-label')).toBe(
+      'Copy to the clipboard: ts',
+    );
   });
 });

@@ -1,14 +1,15 @@
 import { tags, type Router } from 'ecmact';
 import { featuresFor, useCasesFor } from '@site/content/features';
 import { text } from '@site/content/messages';
+import { create, entryName, markup, markupName, source } from '@site/demos/estimate';
 import { findDemo } from '@site/demos/index';
 import { icon } from '@site/lib/dom';
 import { currentLocale } from '@site/lib/i18n';
+import { parseInline } from '@site/lib/inline';
 import { CodeBlock } from '@site/ui/codeBlock';
 import { copyButton } from '@site/ui/copyButton';
 import { DemoFrame } from '@site/ui/demoFrame';
 import { external, outside } from '@site/ui/header';
-import { lockup } from '@site/ui/logo';
 
 const { a, code, div, h1, h2, h3, img, li, main, p, section, span, strong, ul } = tags;
 
@@ -95,34 +96,88 @@ const installLine = () =>
   div(
     { class: 'install' },
     code(span({ class: 'prompt' }, '$'), ` ${install}`),
-    copyButton(install, 'code-copy'),
+    copyButton(install, 'code-copy', m().installName),
   );
 
 /**
- * The hero: logo, promise, install command, calls to action and badges.
+ * The example beside the promise: the entry file, the running result under it labeled as sample data and the markup
+ * the file needs. The displayed source is checked against the running example by its test.
+ *
+ * @returns The element.
+ */
+const example = () =>
+  div(
+    { class: 'try', role: 'group', 'aria-label': m().exampleLabel },
+    CodeBlock({ code: source, language: 'ts', title: entryName }),
+    div({ class: 'preview', role: 'group', 'aria-label': m().exampleResult }, create()),
+    p({ class: 'try-sample' }, m().exampleSample),
+  );
+
+/**
+ * The hero: the promise, the entry points and the install command beside a runnable example.
  *
  * @param router - The router.
  * @returns The section.
  */
 const hero = (router: Router) =>
   section(
-    { class: 'hero wrap' },
-    div({ class: 'hero-logo', role: 'img', 'aria-label': 'ECMact' }, lockup()),
-    h1(m().heroTitle, span({ class: 'accent' }, m().heroAccent)),
-    p({ class: 'lead' }, m().lead),
-    installLine(),
+    { class: 'hero intro wrap' },
     div(
-      { class: 'actions' },
-      router.link({ to: '/docs/getting-started', class: 'button' }, m().start),
-      router.link({ to: '/examples', class: 'button ghost' }, m().live),
-      outside(external.github, 'GitHub', 'button ghost'),
-      outside(external.npm, 'npm', 'button ghost'),
-    ),
-    p(
-      { class: 'badges' },
-      badges.map(([src, alt, href]) =>
-        a({ href, target: '_blank', rel: 'noreferrer' }, img({ src, alt, height: 20 })),
+      { class: 'hero-copy' },
+      h1(m().heroTitle),
+      p({ class: 'lead' }, m().lead),
+      div(
+        { class: 'actions' },
+        router.link({ to: '/docs/getting-started', class: 'button' }, m().start),
+        outside(external.github, 'GitHub'),
       ),
+      installLine(),
+    ),
+    example(),
+  );
+
+/**
+ * The three steps from an element to an embedded widget, each with a plain link where one helps.
+ *
+ * @param router - The router.
+ * @returns The element.
+ */
+const flow = (router: Router) => {
+  const links = [
+    undefined,
+    router.link({ to: '/examples' }, m().live),
+    router.link({ to: '/docs/widgets' }, m().widgetGuide),
+  ];
+  return div(
+    { class: 'flow wrap', role: 'group', 'aria-label': m().flowLabel },
+    m().flow.map(([title, note], index) =>
+      div(strong(title), p(parseInline(note)), links[index] ? p(links[index]) : undefined),
+    ),
+  );
+};
+
+/**
+ * The strip that says how to run the example in a starter: where to paste it and the markup the starter already has.
+ *
+ * @returns The element.
+ */
+const starter = () =>
+  div(
+    { class: 'starter wrap' },
+    div(strong(m().starterTitle), p(m().starterNote)),
+    CodeBlock({ code: markup, language: 'html', title: markupName }),
+  );
+
+/**
+ * The badges of the project, below the first screen.
+ *
+ * @returns The element.
+ */
+const badgeRow = () =>
+  div(
+    { class: 'badges wrap', role: 'group', 'aria-label': m().badgesLabel },
+    badges.map(([src, alt, href]) =>
+      a({ href, target: '_blank', rel: 'noreferrer' }, img({ src, alt, height: 20 })),
     ),
   );
 
@@ -267,6 +322,9 @@ export const home = (router: Router) =>
   main(
     { class: 'home' },
     hero(router),
+    flow(router),
+    starter(),
+    badgeRow(),
     facts(),
     featureGrid(router),
     live(),
