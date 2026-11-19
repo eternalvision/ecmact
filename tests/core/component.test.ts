@@ -322,7 +322,7 @@ describe('Component: form fields', () => {
     const field = em.Field({ field: true, name: 'email', disabled: true }, input);
     expect(field.getAttribute('name')).toBe('email');
     expect(field.hasAttribute('disabled')).toBe(true);
-    expect(setFormValue).toHaveBeenCalledWith('a@b.c');
+    expect(setFormValue).toHaveBeenCalledWith(null);
     expect(setValidity).toHaveBeenCalledWith({}, '', undefined);
   });
 

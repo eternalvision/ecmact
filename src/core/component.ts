@@ -135,6 +135,7 @@ export class Component extends Base {
     if (this.#disabledControl) restoreOwnDisabled(this.#disabledControl);
     this.#disabledControl = next;
     if (next) disableFromField(next);
+    this.#syncField();
   }
 
   /**

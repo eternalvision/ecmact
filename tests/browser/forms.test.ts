@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { em, tags } from '@em';
+import { em, signal, tags } from '@em';
 import { mount } from '@em/utils/mount';
 
 /** Puts a form with the given children into the document, as an application would. */
@@ -30,6 +30,54 @@ describe('form-associated field in a real form', () => {
     expect(new FormData(form).get('email')).toBe('a@b.c');
     type(controlOf(field), 'x@y.z');
     expect(new FormData(form).get('email')).toBe('x@y.z');
+  });
+
+  it('omits an initially disabled control while keeping a same-name control', () => {
+    const field = em.Field(
+      { field: true, name: 'email' },
+      tags.input({ value: 'disabled', disabled: true }),
+    );
+    const form = makeForm(field, tags.input({ name: 'email', value: 'native' }));
+    expect(new FormData(form).getAll('email')).toEqual(['native']);
+  });
+
+  it('updates submission when reactive disabled changes and restores the current bound value', () => {
+    const disabled = signal(false);
+    const value = signal('initial');
+    const field = em.Field({ field: true, name: 'email' }, tags.input({ disabled, bind: value }));
+    const fieldset = tags.fieldset(field);
+    const form = makeForm(fieldset);
+    expect(new FormData(form).get('email')).toBe('initial');
+
+    disabled.value = true;
+    expect(new FormData(form).has('email')).toBe(false);
+    disabled.value = false;
+    expect(new FormData(form).get('email')).toBe('initial');
+
+    fieldset.disabled = true;
+    value.value = 'updated';
+    expect(new FormData(form).has('email')).toBe(false);
+    fieldset.disabled = false;
+    expect(new FormData(form).get('email')).toBe('updated');
+  });
+
+  it('skips validation for a disabled control and resumes it when enabled', () => {
+    const control = tags.input({ value: 'example' });
+    const field = em.Field({ field: true, name: 'email' }, control);
+    const form = makeForm(field);
+    control.setCustomValidity('Invalid email');
+    control.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(form.checkValidity()).toBe(false);
+
+    control.disabled = true;
+    control.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(form.checkValidity()).toBe(true);
+    expect(new FormData(form).has('email')).toBe(false);
+
+    control.disabled = false;
+    control.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(form.checkValidity()).toBe(false);
+    expect(new FormData(form).get('email')).toBe('example');
   });
 
   it('submits the value of a checkbox only while it is checked', () => {

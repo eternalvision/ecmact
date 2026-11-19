@@ -7,8 +7,10 @@
 - CodeQL alerts #7 and #8 were dismissed as false positives. The renderer inserts DOM nodes and writes character data into a Text node. Alert #6 was dismissed as intended behavior under the trusted-markup contract for the html prop. The GitHub alert records contain the individual rationales.
 - [#34](https://github.com/eternalvision/ecmact/issues/34) restores focus after reordering retained keyed rows. The regression tests cover node identity, backward selection, document and shadow roots, removal and focus changes during render. Independent review covered the final diff on feature/34-keyed-focus.
 
-## Next decision
+## Forms and release
 
-[#30](https://github.com/eternalvision/ecmact/issues/30) and [#31](https://github.com/eternalvision/ecmact/issues/31) concern native disabled-control semantics. The proposed patch preserves the inner control's own disabled state when its fieldset is enabled again and omits a disabled inner control from FormData. The latter changes submitted data. The owner reserved this decision when the issues were filed.
+- D34 records the owner's approval for both native disabled-control fixes in a 3.x patch.
+- [#30](https://github.com/eternalvision/ecmact/issues/30) preserves the control's own disabled state across host and fieldset toggles, including overlapping overrides of a control shared by nested fields. [PR #42](https://github.com/eternalvision/ecmact/pull/42).
+- [#31](https://github.com/eternalvision/ecmact/issues/31) omits disabled controls from FormData and validation. Reactive disabled props and fieldset changes sync immediately. After direct DOM changes, dispatch a bubbling change event to sync the field.
 
 The published versions are ecmact 3.0.0 and create-ecmact 0.4.0. The published generator writes ^3.0.0, which includes the proposed library patch. Release tags trigger publication and require the owner's release decision.

@@ -4,7 +4,7 @@ import type { Signal } from '@em/signals/signals';
 /** The native elements that hold a value in a form. */
 type Control = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
-/** The name of the event a bound control dispatches when a signal changed it, so that a field around it can tell its form. */
+/** The name of the event a control dispatches when ECMact changes its bound value or disabled state. */
 export const fieldChangeEvent = 'ecmact:field-change';
 
 /**

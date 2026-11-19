@@ -75,6 +75,12 @@ describe('readFormValue', () => {
     expect(data.getAll('tags')).toEqual(['a', 'c']);
   });
 
+  it('submits nothing for disabled controls', () => {
+    expect(readFormValue(makeInput({ value: 'a', disabled: true }), 'n')).toBeNull();
+    expect(readFormValue(makeArea({ value: 'b', disabled: true }), 'n')).toBeNull();
+    expect(readFormValue(makeSelect({ disabled: true, multiple: true }), 'n')).toBeNull();
+  });
+
   it('submits nothing for other elements', () => {
     expect(readFormValue(makeDiv(), 'n')).toBeNull();
   });
@@ -87,6 +93,12 @@ describe('readValidity', () => {
 
   it('has no flags for something that is not a control', () => {
     expect(readValidity(makeDiv())).toEqual({ flags: {}, message: '' });
+  });
+
+  it('has no flags for a disabled control with a custom error', () => {
+    const input = makeInput({ disabled: true });
+    input.setCustomValidity('Invalid value');
+    expect(readValidity(input)).toEqual({ flags: {}, message: '' });
   });
 
   it('copies the flags and the message of an invalid control', () => {
