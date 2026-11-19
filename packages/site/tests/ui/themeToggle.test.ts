@@ -13,8 +13,10 @@ describe('ThemeToggle', () => {
     const button = ThemeToggle();
     document.body.append(button);
     expect(button.textContent).toBe('◐ Auto');
+    expect(button.getAttribute('aria-label')).toBe('Change the color theme: Auto');
     button.click();
     expect(button.textContent).toBe('☀ Light');
+    expect(button.getAttribute('aria-label')).toBe('Change the color theme: Light');
     button.click();
     expect(button.textContent).toBe('☾ Dark');
     button.click();
@@ -32,6 +34,7 @@ describe('ThemeToggle in Russian', () => {
     expect(button.textContent).toBe('☀ Светлая');
     button.click();
     expect(button.textContent).toBe('☾ Тёмная');
+    expect(button.getAttribute('aria-label')).toBe('Сменить цветовую тему: Тёмная');
     await resetLocale();
   });
 });

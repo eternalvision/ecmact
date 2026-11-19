@@ -10,6 +10,7 @@ export interface Messages {
     starter: string;
     menu: string;
     close: string;
+    label: string;
   };
   /** The buttons of the header. */
   chrome: {
@@ -135,13 +136,14 @@ const en: Messages = {
     starter: 'Starter',
     menu: 'Menu',
     close: 'Close',
+    label: 'Main',
   },
   chrome: {
     home: 'ECMact, home',
     theme: 'Change the color theme',
-    themeAuto: '◐ Auto',
-    themeLight: '☀ Light',
-    themeDark: '☾ Dark',
+    themeAuto: 'Auto',
+    themeLight: 'Light',
+    themeDark: 'Dark',
     language: 'Switch the language',
     languageName: 'RU',
   },
@@ -371,13 +373,14 @@ const ru: Messages = {
     starter: 'Стартер',
     menu: 'Меню',
     close: 'Закрыть',
+    label: 'Основная',
   },
   chrome: {
     home: 'ECMact, главная',
     theme: 'Сменить цветовую тему',
-    themeAuto: '◐ Авто',
-    themeLight: '☀ Светлая',
-    themeDark: '☾ Тёмная',
+    themeAuto: 'Авто',
+    themeLight: 'Светлая',
+    themeDark: 'Тёмная',
     language: 'Сменить язык',
     languageName: 'EN',
   },

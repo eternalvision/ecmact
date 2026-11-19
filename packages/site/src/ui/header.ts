@@ -66,6 +66,7 @@ export const Header = (router: Router) => {
       nav(
         {
           id: 'site-nav',
+          'aria-label': m.label,
           class: 'nav',
           'data-open': state,
           /**

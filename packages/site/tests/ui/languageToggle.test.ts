@@ -15,7 +15,7 @@ describe('LanguageToggle', () => {
     expect(button.localName).toBe('button');
     expect(button.textContent).toBe('RU');
     expect(button.lang).toBe('ru');
-    expect(button.getAttribute('aria-label')).toBe('Switch the language');
+    expect(button.getAttribute('aria-label')).toBe('Switch the language: RU');
     button.click();
     expect(currentLocale()).toBe('ru');
   });
@@ -24,6 +24,6 @@ describe('LanguageToggle', () => {
     await useLocale('ru');
     const toggle = LanguageToggle();
     expect(toggle.textContent).toBe('EN');
-    expect(toggle.getAttribute('aria-label')).toBe('Сменить язык');
+    expect(toggle.getAttribute('aria-label')).toBe('Сменить язык: EN');
   });
 });
