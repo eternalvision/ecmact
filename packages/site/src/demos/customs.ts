@@ -13,7 +13,7 @@ const switchRule = `
     margin: 0;
     border-radius: 999px;
     background: radial-gradient(circle closest-side, #ffffff 74%, transparent 80%) 0 0 / 26px 26px
-      no-repeat #8a90b8;
+      no-repeat #7a80aa;
     box-shadow: inset 0 1px 3px rgba(27, 31, 59, 0.3);
     cursor: pointer;
   }
@@ -209,7 +209,9 @@ const fieldCss = `
     border: 0;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.82);
-    box-shadow: inset 0 1px 3px rgba(27, 31, 59, 0.16);
+    box-shadow:
+      inset 0 0 0 2px #6a70a0,
+      inset 0 1px 3px rgba(27, 31, 59, 0.16);
     color: #1b1f3b;
     font: inherit;
     font-size: 16px;

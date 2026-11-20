@@ -39,7 +39,7 @@ const css = `
     min-width: 0;
     height: 36px;
     padding: 0 10px;
-    border: 0;
+    border: 2px solid #5f7d6b;
     border-radius: 10px;
     background: #eef4f0;
     color: #14321f;
@@ -57,6 +57,10 @@ const css = `
     height: 24px;
     margin: 0;
     accent-color: #0e7a46;
+  }
+  .side input[type='checkbox']:not(:focus-visible) {
+    outline: 2px solid #5f7d6b;
+    outline-offset: -2px;
   }
   .inks {
     display: flex;
