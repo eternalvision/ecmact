@@ -106,7 +106,8 @@ const css = `
   }
   input::placeholder {
     color: #1b3bff;
-    opacity: 0.75;
+    font-style: italic;
+    opacity: 1;
   }
   form button {
     padding: 5px 16px;
