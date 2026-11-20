@@ -369,13 +369,19 @@ const monoLabels = (all: Record<string, string>) =>
   );
 
 /**
- * Reads one template literal, with the ones nested in its interpolations.
+ * Reads one template literal. A `css` or `keyframes` template nested in one of its interpolations is a rule of
+ * its own: it is handed to `emit` and left out of the body.
  *
  * @param source - The text.
  * @param start - The index just after the opening backtick.
+ * @param emit - Receives the rule that each nested `css` or `keyframes` template makes.
  * @returns The body, with each interpolation replaced by `x`, and the index after the closing backtick.
  */
-const readTemplate = (source: string, start: number): { body: string; end: number } => {
+const readTemplate = (
+  source: string,
+  start: number,
+  emit: (tag: string, body: string) => void,
+): { body: string; end: number } => {
   let body = '';
   let at = start;
   while (at < source.length && source[at] !== '`') {
@@ -386,8 +392,12 @@ const readTemplate = (source: string, start: number): { body: string; end: numbe
       let depth = 1;
       at += 2;
       while (depth > 0 && at < source.length) {
-        if (source[at] === '`') at = readTemplate(source, at + 1).end;
-        else {
+        if (source[at] === '`') {
+          const tag = /\b(css|keyframes)$/.exec(source.slice(Math.max(0, at - 10), at))?.[1] ?? '';
+          const inner = readTemplate(source, at + 1, emit);
+          if (tag) emit(tag, inner.body);
+          at = inner.end;
+        } else {
           if (source[at] === '{') depth++;
           if (source[at] === '}') depth--;
           at++;
@@ -401,38 +411,79 @@ const readTemplate = (source: string, start: number): { body: string; end: numbe
 
 /**
  * Turns the styled, `css` and `keyframes` templates of a source into plain CSS: the body of a template is
- * wrapped as one rule, and a `keyframes` body as an `@keyframes` block, so that the scan reads declarations
- * that sit at the root of a template.
+ * wrapped as one rule, a `keyframes` body as an `@keyframes` block, and a `css` or `keyframes` template that
+ * sits in an interpolation as a rule of its own, so that the scan reads declarations at the root of a template.
  *
  * @param source - The source of a piece.
- * @returns The source with each such template replaced by the rule that holds its body.
+ * @returns The source with each such template replaced by the rules that hold its body.
  */
 const wrapTemplates = (source: string) => {
   const tag = /\bstyled(?:\.\w+|\([^)\n]*\))(?:<[^`]*?>)?`|\bcss`|\bkeyframes`/g;
   let out = '';
   let last = 0;
   let count = 0;
+  const wrap = (kind: string, body: string) =>
+    `${kind === 'keyframes' ? '@keyframes x' : `.t${count++}`} {${body}}`;
   for (let match = tag.exec(source); match; match = tag.exec(source)) {
-    const { body, end } = readTemplate(source, match.index + match[0].length);
-    const head = match[0].startsWith('keyframes') ? '@keyframes x' : `.t${count++}`;
-    out += `${source.slice(last, match.index)}${head} {${body}}`;
+    const nested: string[] = [];
+    const { body, end } = readTemplate(source, match.index + match[0].length, (kind, inner) =>
+      nested.push(wrap(kind, inner)),
+    );
+    out += `${source.slice(last, match.index)}${wrap(match[0].startsWith('keyframes') ? 'keyframes' : 'rule', body)}${nested.join('')}`;
     last = end;
     tag.lastIndex = end;
   }
   return out + source.slice(last);
 };
 
-const motion = /\b(animation-name|animation|transition-property|transition)\s*:/;
+const motion = /\b(animation-name|animation|transition-property|transition)\s*:\s*([^;}]*)/g;
+
+/**
+ * Names the motion family of a property: `animation` for `animation` and `animation-name`, `transition` for
+ * `transition` and `transition-property`.
+ *
+ * @param property - The property.
+ * @returns The family.
+ */
+const family = (property: string) =>
+  property.startsWith('animation') ? 'animation' : 'transition';
+
+/**
+ * Lists the motion declarations of a body, every one of them.
+ *
+ * @param body - The declarations of one rule.
+ * @returns Property, family and value of each.
+ */
+const declarations = (body: string) =>
+  [...body.matchAll(motion)].map((match) => ({
+    property: match[1]!,
+    family: family(match[1]!),
+    value: match[2]!.trim(),
+  }));
+
+/**
+ * Names the families that a body switches off: a declaration with the value `none`.
+ *
+ * @param body - The declarations of one rule.
+ * @returns The families, once each.
+ */
+const switchedOffFamilies = (body: string) => [
+  ...new Set(
+    declarations(body)
+      .filter((declaration) => /^none\b/.test(declaration.value))
+      .map((declaration) => declaration.family),
+  ),
+];
 
 /**
  * Cuts the blocks of one media query out of a source.
  *
  * @param source - The source of a piece.
  * @param head - The opening of the media query, up to and including its brace.
- * @param mark - What stays in place of a block that is one declaration nested in a rule.
+ * @param mark - What stays in place of a block that is declarations nested in a rule, from the body.
  * @returns The source without the blocks, and the bodies that were cut.
  */
-const cutBlocks = (source: string, head: string, mark = '') => {
+const cutBlocks = (source: string, head: string, mark: (body: string) => string = () => '') => {
   const cut: string[] = [];
   let text = source;
   for (let at = text.indexOf(head); at !== -1; at = text.indexOf(head)) {
@@ -445,21 +496,20 @@ const cutBlocks = (source: string, head: string, mark = '') => {
     }
     const body = text.slice(at + head.length, end - 1);
     cut.push(body);
-    text =
-      text.slice(0, at) + (!body.includes('{') && motion.test(body) ? mark : '') + text.slice(end);
+    text = text.slice(0, at) + (body.includes('{') ? '' : mark(body)) + text.slice(end);
   }
   return { text, cut };
 };
 
 /**
- * Lists the rules of a source that declare motion, as selector and property. A rule counts by its own
- * declarations: the ones of a rule nested in it belong to that rule.
+ * Splits a source into its rules, each with its own declarations: those of a rule nested in it belong to that
+ * nested rule.
  *
  * @param source - The source, or a part of it.
- * @returns One entry for each rule that declares motion.
+ * @returns The selector and the own declarations of each rule.
  */
-const motionRules = (source: string) => {
-  const found: { selector: string; property: string }[] = [];
+const parseRules = (source: string) => {
+  const rules: { selector: string; own: string }[] = [];
   const stack: { selector: string; own: string }[] = [{ selector: '', own: '' }];
   let text = '';
   for (const char of source.replace(/\$\{[^{}]*\}/g, 'x')) {
@@ -471,19 +521,37 @@ const motionRules = (source: string) => {
       text = '';
     } else if (char === '}' && stack.length > 1) {
       const rule = stack.pop()!;
-      const body = rule.own + text;
-      const property = motion.exec(body)?.[1];
-      if (property && !body.includes('/*off*/'))
-        found.push({ selector: rule.selector, property: `${property}:` });
+      rules.push({ selector: rule.selector, own: rule.own + text });
       text = '';
     } else text += char;
   }
-  return found;
+  return rules;
 };
 
 /**
+ * Lists the motion that the rules of a source declare, one entry for each declaration, unless the rule marks
+ * its family as switched off by a nested block for `reduce`.
+ *
+ * @param source - The source, or a part of it.
+ * @returns Selector, property and family of each declaration.
+ */
+const motionRules = (source: string) =>
+  parseRules(source).flatMap((rule) => {
+    const off = [...rule.own.matchAll(/\/\*off:(\w+)\*\//g)].map((match) => match[1]);
+    return declarations(rule.own)
+      .filter((declaration) => !off.includes(declaration.family))
+      .map((declaration) => ({
+        selector: rule.selector,
+        property: `${declaration.property}:`,
+        family: declaration.family,
+      }));
+  });
+
+/**
  * Finds motion in a source that no media query on the visitor's preference holds back: it is neither inside
- * a block for `no-preference` nor switched off in a block for `reduce` on the same selector.
+ * a block for `no-preference` nor switched off, with the value `none`, in a block for `reduce` for the same
+ * selector and the same family (`animation` or `transition`); a rule that is switched off for one family still
+ * runs the other.
  *
  * A `keyframes` block alone runs nothing, so it counts only when the source has no `reduce` block at all;
  * what plays it is an `animation` declaration, and that one is scanned like the others.
@@ -494,11 +562,21 @@ const motionRules = (source: string) => {
 const runsAlways = (text: string) => {
   const source = wrapTemplates(text);
   const free = cutBlocks(source, '@media (prefers-reduced-motion: no-preference) {');
-  const reduced = cutBlocks(free.text, '@media (prefers-reduced-motion: reduce) {', '/*off*/');
-  const switchedOff = new Set(reduced.cut.flatMap(motionRules).map((rule) => rule.selector));
+  const reduced = cutBlocks(free.text, '@media (prefers-reduced-motion: reduce) {', (body) =>
+    switchedOffFamilies(body)
+      .map((name) => `/*off:${name}*/`)
+      .join(''),
+  );
+  const off = new Set(
+    reduced.cut.flatMap((body) =>
+      parseRules(body).flatMap((rule) =>
+        switchedOffFamilies(rule.own).map((name) => `${rule.selector}|${name}`),
+      ),
+    ),
+  );
   return [
     ...motionRules(reduced.text)
-      .filter((rule) => !switchedOff.has(rule.selector))
+      .filter((rule) => !off.has(`${rule.selector}|${rule.family}`))
       .map((rule) => rule.property),
     ...(reduced.cut.length === 0 ? (reduced.text.match(/@keyframes/g) ?? []) : []),
   ];
@@ -670,6 +748,78 @@ describe('motion in the examples', () => {
     expect(runsAlways('@keyframes x { to { top: 0; } }')).toEqual(['@keyframes']);
   });
 
+  it('switches off a property of a selector, not the selector', () => {
+    // a rule that is switched off for one family still runs the other
+    expect(
+      runsAlways(
+        'a { animation: x 1s; transition: color 1s; } @media (prefers-reduced-motion: reduce) { a { animation: none; } }',
+      ),
+    ).toEqual(['transition:']);
+    expect(
+      runsAlways(
+        'a { animation: x 1s; } @media (prefers-reduced-motion: reduce) { a { transition: none; } }',
+      ),
+    ).toEqual(['animation:']);
+    expect(
+      runsAlways(
+        'a { animation: x 1s; transition: color 1s; } @media (prefers-reduced-motion: reduce) { a { animation: none; transition: none; } }',
+      ),
+    ).toEqual([]);
+    // every motion property of a rule counts, not only the first
+    expect(runsAlways('a { animation: x 1s; transition: color 1s; }')).toEqual([
+      'animation:',
+      'transition:',
+    ]);
+    // the value that switches off is `none`
+    expect(
+      runsAlways(
+        'a { animation: x 1s; } @media (prefers-reduced-motion: reduce) { a { animation: y 1s; } }',
+      ),
+    ).toEqual(['animation:']);
+    expect(
+      runsAlways(
+        'a { animation-name: x; } @media (prefers-reduced-motion: reduce) { a { animation: none; } }',
+      ),
+    ).toEqual([]);
+    expect(
+      runsAlways(
+        'a { animation: x 1s; transition: color 1s; @media (prefers-reduced-motion: reduce) { animation: none; } }',
+      ),
+    ).toEqual(['transition:']);
+  });
+
+  it('finds the motion that sits next to a switched-off animation, in a styled template', () => {
+    const poster = (extra: string, reduce: string) =>
+      `const k = keyframes\`to { top: 0; }\`;\nconst P = styled.div\`animation: \${(p) => (p.on ? k : 'none')} 1s;${extra}\n  @media (prefers-reduced-motion: reduce) { ${reduce} }\`;`;
+    expect(runsAlways(poster('', 'animation: none;'))).toEqual([]);
+    expect(runsAlways(poster(' transition: color 1s;', 'animation: none;'))).toEqual([
+      'transition:',
+    ]);
+    expect(runsAlways(poster('', 'transition: none;'))).toEqual(['animation:']);
+    expect(
+      runsAlways(poster(' transition: color 1s;', 'animation: none; transition: none;')),
+    ).toEqual([]);
+  });
+
+  it('reads a css template inside an interpolation as a rule of its own', () => {
+    const swatch =
+      'const S = styled.button`color: red; ${(p) => p.$on && css`transition: transform 1s;`}`;';
+    expect(runsAlways(swatch)).toEqual(['transition:']);
+    expect(
+      runsAlways('const S = styled.button`color: red; ${(p) => p.$on && css`color: blue;`}`;'),
+    ).toEqual([]);
+    expect(
+      runsAlways(
+        'const S = styled.button`color: ${(p) => (p.$on ? `red` : `blue`)};`;\nconst k = keyframes`to { top: 0; }`;',
+      ),
+    ).toEqual(['@keyframes']);
+    expect(
+      runsAlways(
+        'const S = styled.button`${(p) => p.$on && css`animation: ${k} 1s;`}`;\nconst k = keyframes`to { top: 0; }`;',
+      ),
+    ).toEqual(['animation:', '@keyframes']);
+  });
+
   it('reads the templates of styled, css and keyframes as rules', () => {
     const swatch =
       'const S = styled.button<{ $on: boolean }>`\n  color: ${(p) => p.x};\n  transition: color 1s;\n`;';
@@ -740,7 +890,11 @@ describe('focus and the states of the examples', () => {
     expect(rule, "a rule for button[aria-disabled='true']").not.toBeNull();
     expect(rule![1]).toContain('background: transparent;');
     expect(rule![1]).toMatch(/(?:^|[\s;])color:\s*#[0-9a-f]{3,8};/i);
-    expect(rule![1]).not.toMatch(/outline:\s*none/);
+    const all = [...sources.darkroom!.matchAll(/([^{}]*aria-disabled[^{}]*)\{([^}]*)\}/g)];
+    expect(all.length).toBeGreaterThan(0);
+    all.forEach((match) =>
+      expect(match[2], match[1]!.trim()).not.toMatch(/outline:\s*(?:none|0)\b/),
+    );
     expect(rule![1]).not.toContain('opacity');
     expect(sources.darkroom).not.toContain('opacity: 0.45');
   });
