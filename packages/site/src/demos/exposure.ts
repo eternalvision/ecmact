@@ -5,89 +5,155 @@ const { b, button, div, em: emphasis, output, small, span } = tags;
 const css = `
   :host {
     display: block;
-    color-scheme: dark;
-    padding: 18px;
-    background: #1f2224;
-    color: #1c2a1a;
-    font-family: ui-monospace, Menlo, Consolas, monospace;
+    color-scheme: light;
+    padding: 20px;
+    background: #e6eaf0;
+    color: #1f2933;
+    font-family: ui-rounded, 'SF Pro Rounded', 'Arial Rounded MT Bold', 'Hiragino Maru Gothic ProN', Quicksand, Comfortaa, Manjari, Calibri, sans-serif;
   }
   .glass {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
-    padding: 12px;
-    border-radius: 4px;
-    background: linear-gradient(#b9c6a8, #a9b796);
-    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.45);
+    gap: 14px;
+  }
+  .glass > div:not(.ev) {
+    position: relative;
+    padding: 14px 6px 12px;
+    border-radius: 22px;
+    text-align: center;
+    background: #e6eaf0;
+    box-shadow: 6px 6px 14px #c3cad5, -6px -6px 14px #ffffff;
   }
   small {
     display: block;
-    font-size: 10px;
-    letter-spacing: 0.14em;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #52606d;
+    text-transform: lowercase;
+  }
+  small::first-letter {
+    text-transform: capitalize;
+  }
+  .glass > div:nth-child(3) small {
+    text-transform: none;
   }
   b, output {
     display: block;
-    font: italic 700 clamp(20px, 6vw, 30px) / 1.1 ui-monospace, Menlo, monospace;
-    letter-spacing: 0.02em;
+    font-weight: 800;
+    font-size: clamp(20px, 6.4vw, 25px);
+    letter-spacing: -0.02em;
+    line-height: 1.25;
   }
   em {
+    position: absolute;
+    top: -7px;
+    right: -5px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: #fff;
+    color: #b83a00;
     font-style: normal;
-    font-size: 10px;
-    opacity: 0.8;
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: 2px 2px 5px #c3cad5;
   }
   .ev {
     grid-column: 1 / -1;
+    position: relative;
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     justify-content: space-between;
-    align-items: baseline;
-    gap: 4px 12px;
-    padding-top: 8px;
-    border-top: 1px solid rgba(28, 42, 26, 0.5);
+    gap: 2px 12px;
+    padding: 12px 20px;
+    border-radius: 24px;
+    box-shadow: inset 5px 5px 10px #c3cad5, inset -5px -5px 10px #ffffff;
+  }
+  .ev output {
+    font-size: clamp(26px, 8vw, 34px);
+    color: #b83a00;
+  }
+  .ev em {
+    position: static;
   }
   .tape {
     flex-basis: 100%;
-    font-size: 11px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #52606d;
+    text-transform: lowercase;
+    overflow-wrap: anywhere;
   }
   .keys {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
-    margin-top: 12px;
+    gap: 14px;
+    margin-top: 18px;
   }
   .pair {
     display: flex;
-    gap: 4px;
+    border-radius: 999px;
+    box-shadow: 5px 5px 12px #c3cad5, -5px -5px 12px #ffffff;
   }
-  button {
+  .pair button {
     flex: 1;
-    min-height: 34px;
-    padding: 7px 0;
+    min-height: 44px;
+    padding: 0;
     border: 0;
-    border-radius: 3px;
-    background: linear-gradient(#4a4f53, #2c3033);
-    box-shadow: 0 2px 0 #000;
-    color: #e6e6e6;
+    background: transparent;
+    color: #1f2933;
     font: inherit;
-    font-size: 13px;
+    font-size: 22px;
+    font-weight: 800;
     cursor: pointer;
   }
-  button:active {
-    transform: translateY(1px);
-    box-shadow: 0 1px 0 #000;
+  .pair button:first-child {
+    border-radius: 999px 0 0 999px;
   }
-  button:focus-visible {
-    outline: 3px solid #ffd54a;
-    outline-offset: 2px;
+  .pair button:last-child {
+    border-radius: 0 999px 999px 0;
+    box-shadow: inset 2px 0 0 #d3d9e2;
+  }
+  .pair button:active {
+    box-shadow: inset 4px 4px 8px #c3cad5, inset -4px -4px 8px #ffffff;
   }
   .lock {
     grid-column: 1 / -1;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 50px;
+    padding: 0 10px 0 20px;
+    border: 0;
+    border-radius: 999px;
+    background: #e6eaf0;
+    box-shadow: 5px 5px 12px #c3cad5, -5px -5px 12px #ffffff;
+    color: #1f2933;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
   }
-  .lock[aria-pressed='true'] {
-    background: linear-gradient(#e6b422, #b98a10);
-    color: #1b1400;
+  .lock::after {
+    content: '';
+    width: 54px;
+    height: 30px;
+    border-radius: 999px;
+    background: radial-gradient(circle closest-side, #fff 76%, transparent 82%) 0 0 / 30px 30px no-repeat #aeb7c4;
+    box-shadow: inset 2px 2px 4px rgba(31, 41, 51, 0.28);
+  }
+  .lock[aria-pressed='true']::after {
+    background-position: 24px 0;
+    background-color: #ff5b14;
+  }
+  :focus-visible {
+    outline: 3px solid #1f2933;
+    outline-offset: 3px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .lock::after {
+      transition: background-position 0.2s;
+    }
   }
 `;
 

@@ -29,6 +29,120 @@ export const groups = ['state', 'interface', 'requests', 'lifecycle'] as const;
 /** One of the tasks of the gallery. */
 export type DemoGroup = (typeof groups)[number];
 
+/**
+ * The closed sets of values of the six axes that describe the look of a piece (the style matrix of the
+ * documentation redesign). Every example and every widget has one value on each axis, and no two pieces share more
+ * than two.
+ */
+export const styleAxes = {
+  shape: [
+    'sharp',
+    'radius-sm',
+    'radius-md',
+    'pill',
+    'squircle',
+    'circle',
+    'blob',
+    'wobble',
+    'arch',
+    'leaf',
+    'concentric',
+    'zigzag',
+    'notch',
+  ],
+  palette: [
+    'mono-accent light',
+    'mono-accent dark',
+    'saturated',
+    'pastel',
+    'candy',
+    'duotone',
+    'gradient light',
+    'neon dark',
+    'night dark',
+  ],
+  type: [
+    'grotesk',
+    'thin',
+    'humanist',
+    'flare',
+    'geometric',
+    'rounded',
+    'condensed display',
+    'din',
+    'slab',
+    'clarendon',
+    'old-style italic',
+    'didone',
+    'transitional serif',
+    'hand',
+    'mono',
+  ],
+  surface: [
+    'flat',
+    'neumorphic',
+    'sticker',
+    'paper',
+    'glow',
+    'glass',
+    'pattern',
+    'layered',
+    'gradient mesh',
+    'glossy',
+    'clay',
+  ],
+  control: [
+    'stepper',
+    'round icon buttons',
+    'swatches',
+    'tally rows',
+    'lamp buttons',
+    'toggle switch',
+    'search field',
+    'segmented',
+    'action bar',
+    'chips',
+    'inspector fields',
+    'map pins',
+    'radio cards',
+    'dial',
+    'slider',
+    'big round button',
+    'underline tabs',
+    'hold key',
+    'tap grid',
+    'letter cells',
+  ],
+  motion: [
+    'key sinks',
+    'card lifts',
+    'press squash',
+    'write in',
+    'ring pulse',
+    'stamp thud',
+    'focus grow',
+    'shimmer',
+    'develop fade',
+    'colour cross-fade',
+    'flap tilt',
+    'radar ping',
+    'odometer',
+    'terminator sweep',
+    'blob rise',
+    'spring bounce',
+    'breathing lamp',
+    'tape slide',
+    'stagger pop',
+    'flip wave',
+  ],
+} as const;
+
+/** One of the six axes of the look of a piece. */
+export type StyleAxis = keyof typeof styleAxes;
+
+/** The look of a piece: one value on each axis. */
+export type DemoStyle = { [axis in StyleAxis]: (typeof styleAxes)[axis][number] };
+
 /** A file of an example, as shown on the page. */
 export interface DemoFile {
   /** The name on the tab and above the code. */
@@ -57,6 +171,8 @@ export interface Demo {
   create: () => Node;
   /** The files of the demo, as shown on the page: one tab each. The first is the entry. */
   files: DemoFile[];
+  /** The look of the demo: its row of the style matrix. */
+  style: DemoStyle;
 }
 
 /**
@@ -91,6 +207,14 @@ export const demos: Demo[] = [
     answers: ['counter'],
     create: exposure.create,
     files: single('exposure', exposureSource),
+    style: {
+      shape: 'pill',
+      palette: 'mono-accent light',
+      type: 'rounded',
+      surface: 'neumorphic',
+      control: 'stepper',
+      motion: 'key sinks',
+    },
   },
   {
     id: 'setlist',
@@ -101,6 +225,14 @@ export const demos: Demo[] = [
     answers: ['todo'],
     create: setlist.create,
     files: single('setlist', setlistSource),
+    style: {
+      shape: 'radius-md',
+      palette: 'saturated',
+      type: 'grotesk',
+      surface: 'sticker',
+      control: 'round icon buttons',
+      motion: 'card lifts',
+    },
   },
   {
     id: 'fieldbook',
@@ -111,6 +243,14 @@ export const demos: Demo[] = [
     answers: ['store'],
     create: fieldbook.create,
     files: single('fieldbook', fieldbookSource),
+    style: {
+      shape: 'wobble',
+      palette: 'pastel',
+      type: 'hand',
+      surface: 'paper',
+      control: 'tally rows',
+      motion: 'write in',
+    },
   },
   {
     id: 'typecase',
@@ -121,6 +261,14 @@ export const demos: Demo[] = [
     answers: ['styled'],
     create: typecase.create,
     files: single('typecase', typecaseSource),
+    style: {
+      shape: 'sharp',
+      palette: 'duotone',
+      type: 'condensed display',
+      surface: 'flat',
+      control: 'swatches',
+      motion: 'press squash',
+    },
   },
   {
     id: 'customs',
@@ -131,6 +279,14 @@ export const demos: Demo[] = [
     answers: ['form'],
     create: customs.create,
     files: single('customs', customsSource),
+    style: {
+      shape: 'squircle',
+      palette: 'gradient light',
+      type: 'grotesk',
+      surface: 'glass',
+      control: 'toggle switch',
+      motion: 'stamp thud',
+    },
   },
   {
     id: 'gels',
@@ -141,6 +297,14 @@ export const demos: Demo[] = [
     answers: ['context'],
     create: gels.create,
     files: single('gels', gelsSource),
+    style: {
+      shape: 'concentric',
+      palette: 'neon dark',
+      type: 'geometric',
+      surface: 'glow',
+      control: 'chips',
+      motion: 'colour cross-fade',
+    },
   },
   {
     id: 'switchboard',
@@ -151,6 +315,14 @@ export const demos: Demo[] = [
     answers: ['http'],
     create: switchboard.create,
     files: single('switchboard', switchboardSource),
+    style: {
+      shape: 'arch',
+      palette: 'pastel',
+      type: 'humanist',
+      surface: 'glow',
+      control: 'lamp buttons',
+      motion: 'ring pulse',
+    },
   },
   {
     id: 'catalog',
@@ -161,6 +333,14 @@ export const demos: Demo[] = [
     answers: ['github', 'posts'],
     create: catalog.create,
     files: single('catalog', catalogSource),
+    style: {
+      shape: 'leaf',
+      palette: 'candy',
+      type: 'flare',
+      surface: 'flat',
+      control: 'search field',
+      motion: 'focus grow',
+    },
   },
   {
     id: 'departures',
@@ -171,6 +351,14 @@ export const demos: Demo[] = [
     answers: ['weather'],
     create: departures.create,
     files: single('departures', departuresSource),
+    style: {
+      shape: 'pill',
+      palette: 'saturated',
+      type: 'din',
+      surface: 'flat',
+      control: 'segmented',
+      motion: 'shimmer',
+    },
   },
   {
     id: 'darkroom',
@@ -182,6 +370,14 @@ export const demos: Demo[] = [
     answers: ['lifecycle'],
     create: darkroom.create,
     files: single('darkroom', darkroomSource),
+    style: {
+      shape: 'squircle',
+      palette: 'mono-accent dark',
+      type: 'thin',
+      surface: 'neumorphic',
+      control: 'action bar',
+      motion: 'develop fade',
+    },
   },
   {
     id: 'seedpacket',
@@ -193,6 +389,14 @@ export const demos: Demo[] = [
     answers: ['widget'],
     create: seedpacket.create,
     files: single('seedpacket', seedpacketSource),
+    style: {
+      shape: 'zigzag',
+      palette: 'pastel',
+      type: 'clarendon',
+      surface: 'pattern',
+      control: 'inspector fields',
+      motion: 'flap tilt',
+    },
   },
   {
     id: 'atlas',
@@ -204,6 +408,14 @@ export const demos: Demo[] = [
     open: '/examples/atlas',
     create: atlas.create,
     files: single('atlas', atlasSource),
+    style: {
+      shape: 'blob',
+      palette: 'candy',
+      type: 'humanist',
+      surface: 'layered',
+      control: 'map pins',
+      motion: 'radar ping',
+    },
   },
 ];
 

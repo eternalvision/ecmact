@@ -27,29 +27,29 @@ const open = () => {
 };
 
 describe('typecase example', () => {
-  it('sets a poster in black ink on cream stock', () => {
+  it('sets a poster in blue ink on mint stock', () => {
     const { demo, rule, poster } = open();
     expect(demo.querySelector('input')?.value).toBe('Grand opening');
     expect(demo.textContent).toContain('One night only');
     expect(demo.textContent).toContain('Doors at eight');
-    expect(demo.textContent).toContain('Set in Black ink on Cream stock.');
-    expect(rule(poster)).toContain('border: 3px double #1a1a1a');
+    expect(demo.textContent).toContain('Set in Blue ink on Mint stock.');
+    expect(rule(poster)).toContain('background: #2b2bff');
   });
 
   it('restyles every styled element when one theme signal changes', () => {
     const { demo, swatch, styled, rule } = open();
     const before = styled().map((element) => element.className);
     swatch('Red ink').click();
-    swatch('Kraft stock').click();
+    swatch('Lemon stock').click();
     const after = styled().map((element) => element.className);
     expect(after).toHaveLength(before.length);
     expect(after.filter((name, index) => name !== before[index]).length).toBeGreaterThanOrEqual(5);
     const bench = styled()[0]!;
-    expect(rule(bench)).toContain('#d2b48c');
-    expect(rule(bench)).toContain('color: #b3261e');
-    expect(demo.textContent).toContain('Set in Red ink on Kraft stock.');
+    expect(rule(bench)).toContain('#fff27a');
+    expect(rule(bench)).toContain('color: #c4161c');
+    expect(demo.textContent).toContain('Set in Red ink on Lemon stock.');
     expect(swatch('Red ink').getAttribute('aria-pressed')).toBe('true');
-    expect(swatch('Black ink').getAttribute('aria-pressed')).toBe('false');
+    expect(swatch('Blue ink').getAttribute('aria-pressed')).toBe('false');
   });
 
   it('pulls a proof with the keyframes of the press, and ends it when the animation ends', () => {

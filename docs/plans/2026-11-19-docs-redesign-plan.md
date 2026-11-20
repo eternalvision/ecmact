@@ -310,9 +310,9 @@ Not verified in this update: every item listed as not verified in section 8 of t
 
 ## Style v2 for the examples and widgets: plan update 1.3 (approved by the owner on 19 November 2026)
 
-Version 0.1 · F2 update · **draft for comments, not approved** · 19 November 2026
+Version 0.1 · F2 update · approved by the owner as drawn (D63) · 19 November 2026
 
-Proposed update of the delivery plan `docs/plans/2026-11-19-docs-redesign-plan.md` (version 1.2) and, in section 2, of the specification addendum 1.3 in `docs/plans/2026-11-19-docs-redesign-spec.md`. Tracker: milestone "Documentation redesign" of `eternalvision/ecmact`, issues #55, #56, #57, #47 and one new issue. Materials in this folder: `concepts-v2.html` (the twenty mocks), `concepts-v2-1280.png` and `concepts-v2-390.png` (captures), `style-matrix.md` (the table, the checks, the devices that must not return), `build/` (the scripts that produced and checked them).
+Proposed update of the delivery plan `docs/plans/2026-11-19-docs-redesign-plan.md` (version 1.2) and, in section 2, of the specification addendum 1.3 in `docs/plans/2026-11-19-docs-redesign-spec.md`. Tracker: milestone "Documentation redesign" of `eternalvision/ecmact`, issues #55, #56, #57, #47 and one new issue. Materials in [`docs/sessions/19112026-DocsRedesign/`](../sessions/19112026-DocsRedesign/): [`concepts-v2.html`](../sessions/19112026-DocsRedesign/concepts-v2.html) (the twenty mocks), `concepts-v2-1280.png` and `concepts-v2-390.png` (captures), [`style-matrix.md`](../sessions/19112026-DocsRedesign/style-matrix.md) (the table, the checks, the devices that must not return), and the scripts that produced and checked them (`build/`), which are not in the repository; see D64.
 
 The owner approved the v2 looks as drawn on 19 November 2026 and the recommended answers to Q11-Q20 apply. Issue: #65 (US8); #56 and #57 updated; #47 depends on #65.
 
@@ -362,7 +362,7 @@ AC-09 of R09 changes in one word: the "style direction" a widget records is its 
 | Story               | What it delivers                                                                             | Estimate | Depends on                                       | Requirements            |
 | ------------------- | -------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------ | ----------------------- |
 | US4c (#55)          | Unchanged. It merges with the looks it has; the restyle does not reopen its review.          | L        | US4b                                             | R10                     |
-| US8 (new)           | The twelve examples in their v2 looks; the style rule as a test; the v2 materials in `docs/` | L        | US4c merged                                      | R13, R10, R06, R07      |
+| US8 (#65)           | The twelve examples in their v2 looks; the style rule as a test; the v2 materials in `docs/` | L        | US4c merged                                      | R13, R10, R06, R07      |
 | US4d (#56, updated) | The five successor widgets and the four hosts, built in the v2 looks from the start          | L        | US4c; after US8 by the recommended answer to Q20 | R09, R13, R02, R06, R07 |
 | US4e (#57, updated) | Three more widgets in the v2 looks, the reference, the measured bundle                       | M        | US4d                                             | R09, R13, R06, R08      |
 | US4a (#47)          | Unchanged in scope; gains a dependency on US8, because the guides describe what is rendered  | M        | US8, US4e, US6                                   | as before               |
@@ -382,7 +382,7 @@ All rules of plan 1.2 keep applying (gate before a commit, alias imports, named 
 
 ### 5. Stories
 
-#### US8. See twelve examples that share nothing but the library
+#### US8 (#65). See twelve examples that share nothing but the library
 
 A developer scrolls the examples and sees twelve different things. Each still works as before and still shows the file that runs. Estimate L. Depends on US4c merged. Requirements R13, R10, R06, R07. Mocks E1 to E12 of `concepts-v2.html`.
 
@@ -513,7 +513,7 @@ To create or change only after the owner says "create". Milestone "Documentation
 
 | Action | Issue      | Title                                                                         | Labels          | Estimate | Depends on                  | Change                                                                                |
 | ------ | ---------- | ----------------------------------------------------------------------------- | --------------- | -------- | --------------------------- | ------------------------------------------------------------------------------------- |
-| create | new · US8  | Give each of the twelve examples its own look                                 | `documentation` | L        | #55                         | Story text of US8, AC-01 to AC-08, the table of files                                 |
+| create | #65 · US8  | Give each of the twelve examples its own look                                 | `documentation` | L        | #55                         | Story text of US8, AC-01 to AC-08, the table of files                                 |
 | change | #56 · US4d | Replace the five gallery widgets and rewrite the four hosts (title unchanged) | `documentation` | L        | #55; the new issue if Q20 a | Mocks W1 to W5 of `concepts-v2.html`; AC-01 and AC-02 as amended; new AC-06 and AC-07 |
 | change | #57 · US4e | Add three widgets and measure the gallery bundle (title unchanged)            | `documentation` | M        | #56                         | Mocks W6 to W8 of `concepts-v2.html`; AC-01 and AC-03 as amended                      |
 | change | #47 · US4a | Rewrite the bilingual guides around tasks (title unchanged)                   | `documentation` | M        | adds the new issue          | One line: depends on the restyle, because the guides describe what is rendered        |

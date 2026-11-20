@@ -5,127 +5,174 @@ const { button, div, form, input, li, ol, p, span } = tags;
 const css = `
   :host {
     display: block;
-    color-scheme: dark;
+    color-scheme: light;
     padding: 18px;
-    background:
-      radial-gradient(rgba(255, 255, 255, 0.05) 0.7px, transparent 1px) 0 0 / 5px 5px,
-      #131313;
-    color: #171717;
-    font-family: 'Marker Felt', 'Bradley Hand', 'Segoe Print', 'Comic Sans MS', cursive;
+    background: #ff5ca8;
+    color: #111111;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   }
   ol {
+    display: grid;
+    gap: 10px;
     margin: 0;
     padding: 0;
     list-style: none;
     counter-reset: song;
   }
   li {
-    counter-increment: song;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 2px 8px;
-    margin: 0 0 9px;
-    padding: 7px 12px;
-    background: #f1efe6;
-    clip-path: polygon(0 6%, 2% 0, 98% 3%, 100% 0, 99% 94%, 100% 100%, 3% 97%, 0 100%);
-    font-size: 19px;
+    gap: 6px 8px;
+    padding: 7px 8px 7px 10px;
+    border: 3px solid #111111;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 4px 4px 0 #111111;
+    font-size: 16px;
+    font-weight: 800;
   }
-  li:nth-child(even) {
-    background: #ecd94a;
+  li:hover,
+  li:focus-within {
+    transform: translate(-2px, -2px);
+    box-shadow: 7px 7px 0 #111111;
   }
   li::before {
-    content: counter(song) '.';
+    counter-increment: song;
+    content: counter(song);
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #111111;
+    color: #ffffff;
+    font-size: 13px;
   }
   li.empty {
-    counter-increment: none;
     justify-content: center;
     padding: 14px 12px;
-    transform: rotate(-0.8deg);
+    text-align: center;
   }
   li.empty::before {
-    content: none;
+    display: none;
   }
   .title {
-    flex: 1 1 8ch;
-    min-width: 8ch;
-    overflow-wrap: break-word;
+    flex: 1 1 96px;
+    min-width: 0;
+    letter-spacing: -0.01em;
+    overflow-wrap: anywhere;
+  }
+  li > span:nth-child(2) {
+    padding: 1px 8px;
+    border: 2px solid #111111;
+    border-radius: 999px;
+    background: #c6ff3d;
+    font-size: 13px;
   }
   .controls {
     display: flex;
+    gap: 4px;
     margin-left: auto;
+  }
+  button {
+    min-width: 32px;
+    min-height: 32px;
+    padding: 0;
+    border: 2px solid #111111;
+    border-radius: 50%;
+    background: #ffe14a;
+    color: #111111;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 900;
+    cursor: pointer;
+  }
+  .controls button[aria-pressed='true'] {
+    background: #111111;
+    color: #c6ff3d;
+  }
+  li.played {
+    background: #ffe1ef;
+    box-shadow: 2px 2px 0 #111111;
   }
   .played .title {
     text-decoration: line-through;
     text-decoration-thickness: 3px;
-    opacity: 0.55;
-  }
-  button {
-    min-width: 30px;
-    min-height: 30px;
-    border: 0;
-    background: none;
-    color: inherit;
-    font: inherit;
-    font-size: 17px;
-    cursor: pointer;
-  }
-  li button:hover {
-    background: rgba(0, 0, 0, 0.12);
-  }
-  button:focus-visible,
-  input:focus-visible {
-    outline: 3px solid #ffd54a;
-    outline-offset: 2px;
   }
   form {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin: 14px 0 0;
+    margin: 16px 0 0;
   }
   input {
     min-width: 0;
-    padding: 6px 8px;
-    border: 0;
-    border-bottom: 3px solid #f1efe6;
-    background: #232323;
-    color: #f1efe6;
+    padding: 8px 10px;
+    border: 3px solid #111111;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #111111;
     font: inherit;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  input::placeholder {
+    color: #595959;
+    opacity: 1;
   }
   input[name='title'] {
     flex: 1 1 9rem;
   }
   input[name='minutes'] {
-    width: 4.5rem;
+    width: 58px;
   }
-  form button,
-  .curfew button {
-    padding: 4px 12px;
-    background: #f1efe6;
-    color: #171717;
+  form button {
+    padding: 8px 16px;
+    border-radius: 12px;
+    background: #c6ff3d;
+    box-shadow: 3px 3px 0 #111111;
+    font-weight: 900;
   }
   .sum {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: space-between;
     gap: 6px 10px;
     margin: 14px 0 0;
-    color: #f1efe6;
+    padding: 7px 8px 7px 16px;
+    border-radius: 26px;
+    background: #111111;
+    color: #ffffff;
     font-size: 15px;
-    letter-spacing: 0.04em;
+    font-weight: 800;
   }
   .sum.over .total {
-    color: #ff7a6b;
+    color: #ff9fa0;
   }
   .curfew {
-    display: inline-flex;
+    display: flex;
     gap: 4px;
   }
   .curfew button {
-    min-width: 0;
-    padding: 0 10px;
-    font-size: 15px;
+    min-width: 40px;
+    padding: 0 8px;
+    border-color: #ffffff;
+    border-radius: 999px;
+    font-size: 13px;
+  }
+  :focus-visible {
+    outline: 3px solid #111111;
+    outline-offset: 3px;
+  }
+  .sum :focus-visible {
+    outline-color: #ffffff;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    li {
+      transition: transform 0.12s, box-shadow 0.12s;
+    }
   }
 `;
 

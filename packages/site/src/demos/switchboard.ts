@@ -6,110 +6,139 @@ const css = `
   :host {
     display: block;
     color-scheme: light;
-    padding: 20px;
-    background: linear-gradient(#ece5d0, #ddd4b9);
-    box-shadow: inset 0 0 0 6px #c9bf9f;
-    color: #2b2a26;
-    font: 11px/1.4 'Gill Sans', 'Trebuchet MS', Arial, sans-serif;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    padding: 22px 16px 18px;
+    background: #ece7ff;
+    color: #241b4b;
+    font-family: Seravek, 'Gill Sans Nova', 'Gill Sans', Ubuntu, Calibri, 'DejaVu Sans', sans-serif;
   }
   .jacks {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
-    text-align: center;
+    gap: 10px;
+  }
+  .line {
+    position: relative;
+    padding: 8px 8px 12px;
+    border-radius: 999px 999px 22px 22px;
+    background: #ffffff;
   }
   .lamp {
     display: block;
-    width: 16px;
-    height: 16px;
-    margin: 0 auto 8px;
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    aspect-ratio: 1;
     border-radius: 50%;
-    background: #8d8672;
-    box-shadow: inset 0 -2px 3px rgba(0, 0, 0, 0.4);
-  }
-  .ringing .lamp {
-    background: #ffb52e;
-    box-shadow: 0 0 10px #ffb52e;
-  }
-  .ok .lamp {
-    background: #5fd16a;
-    box-shadow: 0 0 10px #5fd16a;
-  }
-  .bad .lamp {
-    background: #ef4b3c;
-    box-shadow: 0 0 10px #ef4b3c;
-  }
-  .cut .lamp {
-    background: #5b5648;
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .ringing .lamp {
-      animation: ring 0.8s ease-in-out infinite alternate;
-    }
-    @keyframes ring {
-      to {
-        opacity: 0.45;
-      }
-    }
+    background: #d9d2f5;
   }
   .jack {
-    display: block;
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 10px;
     width: 100%;
     margin: 0;
     padding: 0;
     border: 0;
+    border-radius: 999px 999px 16px 16px;
     background: none;
     color: inherit;
     font: inherit;
-    letter-spacing: inherit;
-    text-transform: inherit;
+    font-size: 14.5px;
+    font-weight: 600;
     cursor: pointer;
   }
   .disc {
-    display: block;
-    width: 44px;
-    height: 44px;
-    margin: 0 auto 6px;
-    border: 5px solid #9b9482;
+    width: calc(100% - 14px);
+    aspect-ratio: 1;
+    margin-top: 7px;
     border-radius: 50%;
-    background: radial-gradient(#000 38%, #3b3a36 40%);
-    box-shadow: 0 2px 0 #fff8;
-  }
-  .jack[aria-pressed='true'] .disc {
-    border-color: #2b2a26;
-    transform: translateY(2px);
-  }
-  .jack:focus-visible {
-    outline: 3px solid #2b2a26;
-    outline-offset: 3px;
+    background: radial-gradient(circle, #1b1340 0 24%, #5b3df5 26%);
   }
   .name {
-    display: block;
     overflow-wrap: anywhere;
   }
+  .ringing {
+    background: #fff1d6;
+  }
+  .ringing .lamp {
+    background: #ffb020;
+    box-shadow: 0 0 18px 4px rgba(255, 176, 32, 0.75);
+  }
+  .ringing .disc {
+    background: radial-gradient(circle, #ffb020 0 24%, #1b1340 26% 40%, #5b3df5 42%);
+  }
+  .ok {
+    background: #e3fbef;
+  }
+  .ok .lamp {
+    background: #19c37d;
+    box-shadow: 0 0 16px 3px rgba(25, 195, 125, 0.6);
+  }
+  .bad {
+    background: #ffe4e4;
+  }
+  .bad .lamp {
+    background: #ff4d4f;
+    box-shadow: 0 0 16px 3px rgba(255, 77, 79, 0.6);
+  }
+  .cut {
+    background: #f1eff7;
+  }
+  .cut .lamp {
+    background: #bdb6d9;
+  }
+  .cut .disc {
+    background: radial-gradient(circle, #1b1340 0 24%, #8d84b8 26%);
+  }
   .strip {
-    margin-top: 14px;
-    padding: 8px 10px;
-    min-height: 54px;
-    background: #fffdf4;
-    border: 1px solid #b9b095;
-    font: 12px/1.5 ui-monospace, Menlo, monospace;
-    letter-spacing: 0;
-    text-transform: none;
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-radius: 20px 20px 20px 4px;
+    background: #ffffff;
+    font-size: 15.5px;
+    line-height: 1.4;
+    min-height: 3.4em;
+    overflow-wrap: anywhere;
   }
   .strip p {
     margin: 0 0 4px;
-    overflow-wrap: anywhere;
+  }
+  :focus-visible {
+    outline: 3px solid #241b4b;
+    outline-offset: 3px;
   }
   @media (max-width: 480px) {
     :host {
-      padding: 14px 12px;
-      letter-spacing: 0.06em;
+      padding: 20px 12px 16px;
     }
     .jacks {
-      gap: 4px;
+      gap: 6px;
+    }
+    .line {
+      padding: 6px 4px 10px;
+    }
+    .lamp {
+      top: 6px;
+      left: 4px;
+      right: 4px;
+    }
+    .jack {
+      font-size: 13px;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .ringing .lamp {
+      animation: ring 1.4s ease-out infinite;
+    }
+    @keyframes ring {
+      from {
+        box-shadow: 0 0 0 0 rgba(255, 176, 32, 0.9);
+      }
+      to {
+        box-shadow: 0 0 0 14px rgba(255, 176, 32, 0);
+      }
     }
   }
 `;

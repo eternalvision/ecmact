@@ -4,85 +4,150 @@ const { button, div, form, input, p, s, span } = tags;
 
 const css = `
   :host {
+    position: relative;
     display: block;
     color-scheme: light;
-    padding: 10px 18px 14px 46px;
-    background:
-      linear-gradient(90deg, transparent 34px, #e8a2a2 34px 35px, transparent 35px),
-      repeating-linear-gradient(#fbf8ec 0 27px, #b9cfe6 27px 28px);
-    color: #3d3d3d;
-    font: 19px/28px 'Bradley Hand', 'Segoe Print', 'Marker Felt', 'Comic Sans MS', cursive;
+    padding: 38px 22px 20px;
+    background: #fff27a;
+    color: #1b3bff;
+    font-family: 'Bradley Hand', 'Segoe Print', 'Chalkboard SE', 'Comic Sans MS', 'Comic Neue', cursive;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  :host::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    width: 108px;
+    height: 24px;
+    transform: translateX(-50%) rotate(-2deg);
+    background: rgba(255, 255, 255, 0.55);
+    box-shadow: 0 1px 2px rgba(60, 50, 0, 0.18);
+  }
+  :host::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 34px;
+    height: 34px;
+    background: linear-gradient(135deg, #e9d84e 50%, #f4f4f4 50%);
+    box-shadow: -2px -2px 4px rgba(60, 50, 0, 0.14);
   }
   p {
     margin: 0;
   }
   .heading {
-    text-decoration: underline;
-    text-decoration-style: wavy;
+    margin: 0 0 6px;
+    font-size: 26px;
+    text-decoration: underline wavy #c81e4a 2px;
+    text-underline-offset: 6px;
   }
   .row {
     display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0 10px;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    border-bottom: 2px solid rgba(27, 59, 255, 0.22);
   }
   .name {
-    min-width: 4.2em;
+    flex: 0 0 4.6em;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
   .tally {
     flex: 1;
     min-width: 0;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.16em;
     overflow-wrap: anywhere;
   }
-  s {
-    text-decoration-thickness: 2px;
-    margin-right: 6px;
+  .tally s {
+    margin-right: 0.4em;
+    text-decoration-thickness: 2.5px;
   }
   button {
-    margin: 0 8px 0 0;
-    padding: 0 8px;
-    border: 1.5px solid #3d3d3d;
-    border-radius: 12px 9px 13px 8px;
-    background: none;
-    color: inherit;
+    border: 2.5px solid #1b3bff;
+    background: transparent;
+    color: #1b3bff;
     font: inherit;
-    font-size: 16px;
-    line-height: 24px;
     cursor: pointer;
   }
-  button:hover {
-    background: rgba(61, 61, 61, 0.08);
+  .row:nth-of-type(even) button {
+    border-radius: 58% 42% 55% 45% / 44% 58% 42% 56%;
+    transform: rotate(-4deg);
   }
-  button:focus-visible,
-  input:focus-visible {
-    outline: 3px solid #1f3a5f;
-    outline-offset: 2px;
-  }
-  .tear {
-    border-style: dashed;
+  .row button {
+    width: 34px;
+    height: 32px;
+    padding: 0;
+    border-radius: 46% 54% 42% 58% / 56% 44% 58% 42%;
+    font-size: 20px;
+    line-height: 1;
   }
   form {
     display: flex;
     flex-wrap: wrap;
-    gap: 0 8px;
+    align-items: center;
+    gap: 10px 12px;
+    margin-top: 16px;
   }
   input {
-    width: 9em;
+    flex: 1 1 100%;
     min-width: 0;
+    padding: 4px 2px;
     border: 0;
-    border-bottom: 1.5px solid #3d3d3d;
+    border-bottom: 2.5px dashed #1b3bff;
+    border-radius: 2px;
     background: transparent;
-    color: inherit;
+    color: #1b3bff;
     font: inherit;
-    font-size: 16px;
+  }
+  input::placeholder {
+    color: #1b3bff;
+    font-style: italic;
+    opacity: 1;
+  }
+  form button {
+    padding: 5px 16px;
+    border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+    background: #1b3bff;
+    color: #fff27a;
+    font-size: 17px;
+  }
+  form .tear {
+    border-style: dashed;
+    border-color: #a8103a;
+    border-radius: 15px 225px 15px 255px / 255px 15px 225px 15px;
+    background: transparent;
+    color: #a8103a;
   }
   .status {
-    font-size: 16px;
+    margin: 14px 28px 0 0;
+    font-size: 16.5px;
   }
   .status.lost {
-    color: #9b1c1c;
-    font-weight: 700;
+    color: #a8103a;
+    font-weight: 800;
+    text-decoration: underline wavy;
+    text-underline-offset: 4px;
+  }
+  :focus-visible {
+    outline: 3px solid #1b3bff;
+    outline-offset: 3px;
+  }
+  .tear:focus-visible {
+    outline-color: #a8103a;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .row {
+      animation: write 0.45s ease-out;
+    }
+    @keyframes write {
+      from { clip-path: inset(0 100% 0 0); }
+      to { clip-path: inset(0 0 0 0); }
+    }
   }
 `;
 

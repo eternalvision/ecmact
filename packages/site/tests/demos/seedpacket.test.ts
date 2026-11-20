@@ -78,9 +78,9 @@ describe('seedpacket example', () => {
 
   it('dresses the packet with a custom property that the page sets', async () => {
     const { packet, root } = await open();
-    expect(packet.style.getPropertyValue('--packet-ink')).toBe('#2f5d3a');
+    expect(packet.style.getPropertyValue('--packet-ink')).toBe('#0e7a46');
     root.querySelector<HTMLButtonElement>('[data-ink="Rust"]')!.click();
-    expect(packet.style.getPropertyValue('--packet-ink')).toBe('#9a3b1d');
+    expect(packet.style.getPropertyValue('--packet-ink')).toBe('#c92a1e');
     expect(root.querySelector('[data-ink="Rust"]')?.getAttribute('aria-pressed')).toBe('true');
     expect(root.querySelector('[data-ink="Green"]')?.getAttribute('aria-pressed')).toBe('false');
   });

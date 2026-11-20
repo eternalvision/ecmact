@@ -73,8 +73,8 @@ describe('setlist example', () => {
     expect(root.activeElement).toBe(root.querySelector('input[name="title"]'));
   });
 
-  it('declares a dark color scheme for its stage', () => {
-    expect(source).toContain('color-scheme: dark');
+  it('declares a light color scheme for its stage', () => {
+    expect(source).toContain('color-scheme: light');
   });
 
   it('does not move the first row up or the last row down', () => {

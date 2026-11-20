@@ -14,97 +14,114 @@ const { b, button, div, input, p, small, span } = tags;
 
 const css = `
   :host {
-    display: block;
+    display: grid;
+    gap: 14px;
     color-scheme: light;
     padding: 18px;
-    background: linear-gradient(#6f5340, #4e3828);
-    color: #2a2118;
-    font: 13px/1.45 'American Typewriter', 'Courier New', Courier, monospace;
+    background: #ffffff;
+    color: #18181b;
+    font-family: Optima, Candara, 'Noto Sans', 'Segoe UI', sans-serif;
   }
   .find {
     box-sizing: border-box;
     width: 100%;
-    padding: 7px 10px;
+    padding: 13px 20px;
     border: 0;
-    border-radius: 2px;
-    background: #f6efdc;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+    border-radius: 999px;
+    background: #f1f1f4;
+    box-shadow: 0 0 0 3px #18181b;
     color: inherit;
     font: inherit;
+    font-size: 17px;
   }
-  .find:focus-visible,
-  button:focus-visible {
-    outline: 3px solid #ffd479;
-    outline-offset: 2px;
+  .find::placeholder {
+    color: #52525b;
   }
   .list {
-    max-height: 300px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    align-content: start;
+    gap: 22px 12px;
+    max-height: 340px;
+    padding: 18px 6px 6px;
     overflow-y: auto;
   }
-  .list:focus-visible {
-    outline: 3px solid #ffd479;
-    outline-offset: 2px;
-  }
   .card {
+    --spine: #ff5a36;
+    --tint: #ffede8;
     position: relative;
-    margin-top: 9px;
-    padding: 12px 74px 9px 12px;
-    background: #f4ecd6;
-    border-top: 2px solid #b3261e;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    display: grid;
+    align-content: start;
+    gap: 4px;
+    padding: 14px 12px 12px 14px;
+    border-left: 10px solid var(--spine);
+    border-radius: 4px 20px 20px 4px;
+    background: var(--tint);
+  }
+  .card:nth-of-type(4n + 2) {
+    --spine: #2f5bff;
+    --tint: #e9eeff;
+  }
+  .card:nth-of-type(4n + 3) {
+    --spine: #0fa968;
+    --tint: #e3f7ee;
+  }
+  .card:nth-of-type(4n + 4) {
+    --spine: #ffb800;
+    --tint: #fff5d6;
   }
   .card b {
-    display: block;
+    font-size: 17.5px;
+    line-height: 1.15;
+    font-weight: 700;
     overflow-wrap: anywhere;
   }
   .card small {
-    display: block;
-    font-size: 11px;
+    font-size: 13.5px;
+    color: #52525b;
   }
   .card button {
-    margin-top: 6px;
-    padding: 2px 9px;
-    border: 1px solid #2a2118;
-    border-radius: 0;
-    background: none;
-    color: inherit;
+    justify-self: start;
+    min-height: 34px;
+    margin-top: 8px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 999px;
+    background: #18181b;
+    color: #ffffff;
     font: inherit;
-    font-size: 11px;
+    font-size: 14.5px;
+    font-weight: 700;
     cursor: pointer;
-  }
-  .card button:hover {
-    background: #2a2118;
-    color: #f4ecd6;
-  }
-  .card button:focus-visible {
-    outline-color: #2a2118;
   }
   .due {
     position: absolute;
+    top: -13px;
     right: 10px;
-    top: 12px;
-    padding: 1px 6px;
-    border: 2px solid #b3261e;
-    color: #b3261e;
-    font-size: 10px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: #18181b;
+    color: #ffffff;
+    font-size: 12.5px;
     font-weight: 700;
-    letter-spacing: 0.12em;
-    transform: rotate(6deg);
+    text-transform: lowercase;
+    transform: rotate(4deg);
   }
   .due[hidden] {
     display: none;
   }
   .none {
-    margin: 12px 0 0;
-    color: #f4ecd6;
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: 15px;
   }
   .notice {
-    margin: 10px 0 0;
-    padding: 6px 10px;
-    background: #f4ecd6;
-    border-left: 4px solid #b3261e;
+    margin: 0;
+    padding: 10px 14px;
+    border-radius: 16px;
+    background: #ffede8;
     color: #8a1c14;
-    font-size: 12px;
+    font-size: 15px;
   }
   .notice:empty {
     display: none;
@@ -114,26 +131,46 @@ const css = `
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 6px 12px;
-    margin: 12px 0 0;
-    color: #f4ecd6;
-    font-size: 11px;
+    gap: 8px;
+    margin: 0;
+    font-size: 14.5px;
   }
-  .foot button {
-    padding: 2px 9px;
-    border: 1px solid #f4ecd6;
-    border-radius: 0;
-    background: none;
-    color: inherit;
+  .desk {
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: #f1f1f4;
+  }
+  .desk.wait {
+    background: #ffedb3;
+    font-weight: 700;
+  }
+  .open {
+    min-height: 34px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 999px;
+    background: #f1f1f4;
+    color: #18181b;
     font: inherit;
+    font-size: 14.5px;
+    font-weight: 700;
     cursor: pointer;
   }
-  .foot button:hover {
-    background: #f4ecd6;
-    color: #2a2118;
+  :focus-visible {
+    outline: 3px solid #18181b;
+    outline-offset: 3px;
   }
-  .foot .wait {
-    color: #ffb4a8;
+  .find:focus-visible {
+    outline-color: #2f5bff;
+    outline-offset: 6px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .find {
+      transition: box-shadow 0.18s;
+    }
+    .find:focus-visible {
+      box-shadow: 0 0 0 6px #18181b;
+    }
   }
 `;
 

@@ -17,24 +17,39 @@ const press = keyframes`
   100% { opacity: 1; transform: none; }
 `;
 
-const slab = css`
-  font-family: Rockwell, 'Roboto Slab', 'Courier New', Georgia, serif;
+const display = css`
+  font-family:
+    Impact, Haettenschweiler, 'Franklin Gothic Bold', 'Arial Narrow Bold', 'Arial Black', sans-serif;
 `;
 
 const Bench = styled.div`
-  ${slab}
   color-scheme: light;
-  padding: 18px;
-  background:
-    radial-gradient(rgba(90, 60, 20, 0.1) 0.7px, transparent 1px) 0 0 / 4px 4px,
-    ${(props) => String(props.theme.stock)};
+  padding: 22px 26px 18px 18px;
+  background: ${(props) => String(props.theme.stock)};
   color: ${(props) => String(props.theme.ink)};
-  text-align: center;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    sans-serif;
 `;
 
 const Poster = styled.div<{ $pressing: boolean }>`
-  padding: 10px 8px 14px;
-  border: 3px double ${(props) => String(props.theme.ink)};
+  ${display}
+  padding: 18px 14px 20px;
+  background: ${(props) => String(props.theme.ink)};
+  color: ${(props) => String(props.theme.stock)};
+  box-shadow: 10px 10px 0
+    color-mix(
+      in srgb,
+      ${(props) => String(props.theme.ink)} 30%,
+      ${(props) => String(props.theme.stock)}
+    );
+  text-align: center;
+  text-transform: uppercase;
   animation: ${(props) => (props.$pressing ? press : 'none')} 0.5s ease-out;
 
   @media (prefers-reduced-motion: reduce) {
@@ -43,39 +58,34 @@ const Poster = styled.div<{ $pressing: boolean }>`
 `;
 
 const Small = styled.div`
-  font-size: 11px;
-  letter-spacing: 0.34em;
-  text-transform: uppercase;
+  font-size: 16px;
+  letter-spacing: 0.14em;
 `;
 
 const Headline = styled.div`
-  margin: 0.4em 0 0.35em;
-  font-size: clamp(30px, 9vw, 58px);
-  font-weight: 900;
-  line-height: 0.95;
-  text-transform: uppercase;
+  margin: 6px 0 4px;
+  font-size: clamp(46px, 16vw, 70px);
+  line-height: 0.92;
   overflow-wrap: anywhere;
-  transform: scaleY(1.25);
-  opacity: 0.92;
 `;
 
 const Tools = styled.div`
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
   align-items: center;
-  gap: 8px;
-  margin-top: 14px;
+  gap: 10px 14px;
+  margin-top: 24px;
 `;
 
 const Swatch = styled.button<{ $color: string; $on: boolean }>`
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   padding: 0;
-  border: 2px solid ${(props) => String(props.theme.ink)};
-  border-radius: 50%;
+  border: 3px solid ${(props) => String(props.theme.ink)};
+  border-radius: 0;
   background: ${(props) => props.$color};
-  box-shadow: ${(props) => (props.$on ? `0 0 0 3px ${String(props.theme.stock)}, 0 0 0 5px ${String(props.theme.ink)}` : 'none')};
+  box-shadow: ${(props) => (props.$on ? `4px 4px 0 ${String(props.theme.ink)}` : 'none')};
+  transform: ${(props) => (props.$on ? 'translate(-2px, -2px)' : 'none')};
   cursor: pointer;
 
   &:focus-visible {
@@ -85,13 +95,15 @@ const Swatch = styled.button<{ $color: string; $on: boolean }>`
 `;
 
 const Pull = styled.button`
-  ${slab}
-  padding: 6px 14px;
-  border: 2px solid ${(props) => String(props.theme.ink)};
+  ${display}
+  margin-left: auto;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 0;
   background: ${(props) => String(props.theme.ink)};
   color: ${(props) => String(props.theme.stock)};
-  font-size: 11px;
-  letter-spacing: 0.2em;
+  font-size: 18px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   cursor: pointer;
 
@@ -102,47 +114,54 @@ const Pull = styled.button`
 `;
 
 const Field = styled.label`
-  display: inline-flex;
+  display: flex;
+  flex: 1 1 100%;
+  min-width: 0;
   align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 700;
 
   input {
-    width: 11rem;
-    max-width: 100%;
-    padding: 4px 6px;
+    flex: 1;
+    min-width: 0;
+    padding: 8px 10px;
     border: 0;
-    border-bottom: 2px solid ${(props) => String(props.theme.ink)};
-    background: transparent;
-    color: inherit;
+    border-bottom: 4px solid ${(props) => String(props.theme.ink)};
+    border-radius: 0;
+    background: color-mix(
+      in srgb,
+      ${(props) => String(props.theme.ink)} 5%,
+      ${(props) => String(props.theme.stock)}
+    );
+    color: ${(props) => String(props.theme.ink)};
     font: inherit;
-    letter-spacing: 0.08em;
+    font-size: 16px;
+    font-weight: 700;
   }
 
   input:focus-visible {
     outline: 3px solid ${(props) => String(props.theme.ink)};
-    outline-offset: 2px;
+    outline-offset: 3px;
   }
 `;
 
 const Colophon = styled.p`
-  margin: 12px 0 0;
-  font-size: 11px;
-  letter-spacing: 0.08em;
+  margin: 14px 0 0;
+  font-size: 13.5px;
+  font-weight: 600;
 `;
 
 const inks = [
-  { name: 'Black', color: '#1a1a1a' },
-  { name: 'Red', color: '#b3261e' },
-  { name: 'Blue', color: '#1f3a5f' },
+  { name: 'Black', color: '#111111' },
+  { name: 'Red', color: '#c4161c' },
+  { name: 'Blue', color: '#2b2bff' },
 ];
 
 const stocks = [
-  { name: 'Cream', color: '#eee3c9' },
-  { name: 'White', color: '#fbfaf5' },
-  { name: 'Kraft', color: '#d2b48c' },
+  { name: 'Mint', color: '#c8f7dc' },
+  { name: 'White', color: '#ffffff' },
+  { name: 'Lemon', color: '#fff27a' },
 ];
 
 /**
@@ -153,10 +172,10 @@ const stocks = [
  */
 export const create = () => {
   const theme = signal<Theme>({
-    ink: '#1a1a1a',
-    inkName: 'Black',
-    stock: '#eee3c9',
-    stockName: 'Cream',
+    ink: '#2b2bff',
+    inkName: 'Blue',
+    stock: '#c8f7dc',
+    stockName: 'Mint',
   });
   const headline = signal('Grand opening');
   const pressing = signal(false);

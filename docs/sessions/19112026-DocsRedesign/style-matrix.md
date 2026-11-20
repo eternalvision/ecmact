@@ -1,8 +1,8 @@
 # Style matrix v2: twelve examples and eight widgets
 
-Version 0.1 · draft for comments (not approved) · 19 November 2026 · belongs to the documentation redesign, requirements R09 and R10 of addendum 1.3 (`docs/plans/2026-11-19-docs-redesign-spec.md` in the repository) · mocks: `concepts-v2.html` in this folder · how to apply it: `restyle-plan.md`.
+Version 0.1 · approved by the owner as drawn (D63) · 19 November 2026 · belongs to the documentation redesign, requirements R09 and R10 of addendum 1.3 (`docs/plans/2026-11-19-docs-redesign-spec.md` in the repository) · mocks: `concepts-v2.html` in this folder.
 
-The table is generated from `build/matrix.py`, the same data that labels the mocks. The functions, names, interactions and ECMact coverage of the approved concept sheet (D50) do not change; only the look does.
+The scripts and captures that produced the numbers below are not kept in the repository (D64). The functions, names, interactions and ECMact coverage of the approved concept sheet (D50) do not change; only the look does.
 
 ## 1. The rule
 
@@ -217,7 +217,7 @@ Six axes describe a piece: shape language, palette, type, surface, primary contr
 
 ## 4. Checks
 
-Pairwise, computed by `build/matrix.py` over all 190 pairs: 140 pairs share no axis value, 48 share one, 2 share two, none shares three or more.
+Pairwise, computed over all 190 pairs: 140 pairs share no axis value, 48 share one, 2 share two, none shares three or more.
 
 Pairs that share two values, the allowed maximum:
 
@@ -242,7 +242,7 @@ How often a value is used (values used once are not listed):
 
 The five saturated fields are five different hues: pink (`setlist`), orange (`departures`), cobalt (`print-quote`), teal (`row-counter`), violet (`morse-key`).
 
-Contrast, two ways. Declared colours: 100 pairs of text and background from the palettes above, lowest 4.69:1 (`build/matrix.py`). Rendered page: every text node of every mock against the pixels behind it in Chromium, 286 boxes at 1280 px and 287 at 390 px, lowest 4.69:1 (`build/contrast.mjs`, `build/contrast.py`). Two ornaments marked `aria-hidden` are left out: the flower of `seedpacket` and the compass star of `atlas` (the star is 3.09:1).
+Contrast, two ways. Declared colours: 100 pairs of text and background from the palettes above, lowest 4.69:1 (not kept, D64). Rendered page: every text node of every mock against the pixels behind it in Chromium, 286 boxes at 1280 px and 287 at 390 px, lowest 4.69:1 (not kept, D64). Two ornaments marked `aria-hidden` are left out: the flower of `seedpacket` and the compass star of `atlas` (the star is 3.09:1).
 
 Lowest measured ratio per piece at 1280 px: `exposure` 4.73, `setlist` 14.50, `typecase` 5.31, `fieldbook` 4.87, `switchboard` 10.61, `customs` 5.04, `catalog` 6.68, `departures` 7.33, `darkroom` 4.88, `gels` 7.72, `seedpacket` 5.40, `atlas` 6.07, `print-quote` 4.88, `moon-dial` 8.97, `proof-clock` 4.69, `row-counter` 5.58, `feed-lamp` 6.05, `morse-key` 5.50, `fret-map` 5.07, `clue-box` 6.91.
 
@@ -274,7 +274,7 @@ Not verified: how each stack resolves on Windows, Android and Linux, and in Fire
 
 ## 6. Anti-patterns: devices of the first build that must not come back
 
-Seen in the captures of the built examples (`scratchpad/us4b/shots/compare-*-1280.png`, `scratchpad/us4c/shots/compare-*-1280.png`) and counted in the twelve sources `packages/site/src/demos/*.ts` on `feature/55-examples-requests-routes` (2465f22):
+Seen in the captures of the built examples (not kept, D64) and counted in the twelve sources `packages/site/src/demos/*.ts` on `feature/55-examples-requests-routes` (2465f22):
 
 - A 1 px outlined rectangular button with no radius ("Borrow", "Reset"). `1px solid` is in 8 of the 12 sources and `border-radius: 0` in 6 of them, 10 times. A button is filled, or it carries the shape language of its piece.
 - Small uppercase letter-spaced monospace labels above a value ("APERTURE", "PASSPORT, TWO LETTERS AND SIX DIGITS", "TAPE 10"). `text-transform: uppercase` is in 8 of the 12 sources and `letter-spacing` in 11. Labels are sentence case in the type of the piece, 12.5 px or more.
@@ -287,6 +287,7 @@ Seen in the captures of the built examples (`scratchpad/us4b/shots/compare-*-128
 - A retro object as the whole idea of a look (LCD, enamel panel, index card, carbon paper, blueprint, e-ink, brass). The object may stay in the name; the look is a current interface.
 - The same stage padding everywhere: `padding: 18px` is in 10 of the 12 sources. Spacing and radius belong to the shape language of the piece.
 - Zero radius by default. Sharp corners appear in one piece, where the sheet of a poster is the subject.
+- Allowed and not counted as monospace: a `code` element rendered in the UA monospace to show code (the `.tag` of `seedpacket`).
 
 ## 7. Not verified
 
