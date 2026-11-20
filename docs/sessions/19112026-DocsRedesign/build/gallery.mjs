@@ -185,8 +185,15 @@ for (const eng of engines) {
       // feed-lamp: End and the arrows move the tabs, and the feed follows
       const kids = frameOf('kids');
       await focusIn(kids, 'feed-lamp', '[role=tab][aria-selected="true"]');
+      const before = await read(kids, 'feed-lamp', '.state');
       await page.keyboard.press('End');
-      await page.waitForTimeout(900);
+      await kids.waitForFunction(
+        (previous) =>
+          document.querySelector('feed-lamp').shadowRoot.querySelector('.state').textContent !==
+          previous,
+        before,
+        { timeout: 5000 },
+      );
       const last = await read(kids, 'feed-lamp', '.state');
       await page.keyboard.press('ArrowLeft');
       const selected = await kids.evaluate(() =>
