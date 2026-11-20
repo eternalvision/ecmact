@@ -27,7 +27,7 @@ const engines = (process.env.ENGINES ?? 'chromium').split(',');
 const only = process.env.ONLY ? process.env.ONLY.split(',') : null;
 const here = path.dirname(fileURLToPath(import.meta.url));
 const MOCK = process.env.MOCK ?? path.resolve(here, '../concepts-v2.html');
-const tags = ['print-quote', 'moon-dial', 'proof-clock', 'row-counter', 'feed-lamp'];
+export const tags = ['print-quote', 'moon-dial', 'proof-clock', 'row-counter', 'feed-lamp'];
 
 /** Runs `fn` on the widget in the page, with a helper that finds elements inside its shadow root. */
 const ev = (page, fn, arg) =>
@@ -72,7 +72,7 @@ const sequence =
   };
 
 /** The widgets, each with the markup that puts it on the page and the states to measure. */
-const widgets = {
+export const widgets = {
   'print-quote': {
     html: '<print-quote heading="Flyers" base="1.84"></print-quote>',
     states: [
@@ -286,6 +286,24 @@ const sheets = async () => {
   );
   await out.waitForTimeout(100);
   await out.screenshot({ path: path.join(OUT, 'widgets-five.png'), fullPage: true });
+  // the five beside the twelve examples, on one sheet, at the same scale
+  const examplesPage = await ctx.newPage();
+  await examplesPage.goto(`${BASE}/examples`);
+  await examplesPage.waitForSelector('.stage');
+  await examplesPage.waitForTimeout(800);
+  const stages = examplesPage.locator('section.demo .stage');
+  const shots = [];
+  for (let n = 0; n < (await stages.count()); n++) {
+    await stages.nth(n).scrollIntoViewIfNeeded();
+    await examplesPage.waitForTimeout(150);
+    const title = await examplesPage.locator('section.demo').nth(n).getAttribute('aria-label');
+    shots.push([title, await stages.nth(n).screenshot({ animations: 'disabled' })]);
+  }
+  await out.setContent(
+    `<style>body{margin:0;padding:16px;background:#888;font:13px system-ui;color:#fff}h2{margin:8px 0;font-size:15px}.row{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-bottom:18px}figure{margin:0;width:300px}img{display:block;width:100%;height:auto}figcaption{padding:4px 0}</style><h2>The twelve examples</h2><div class="row">${shots.map(([title, buf]) => `<figure><img src="${data(buf)}"><figcaption>${title}</figcaption></figure>`).join('')}</div><h2>The five widgets</h2><div class="row">${tags.map((tag) => `<figure><img src="${data(built[tag])}"><figcaption>${tag}</figcaption></figure>`).join('')}</div>`,
+  );
+  await out.waitForTimeout(200);
+  await out.screenshot({ path: path.join(OUT, 'widgets-and-examples.png'), fullPage: true });
   await browser.close();
   console.log('sheets in', OUT);
 };
