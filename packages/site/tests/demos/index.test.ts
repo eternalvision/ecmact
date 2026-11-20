@@ -337,24 +337,32 @@ const overLimits = (looks: Record<string, DemoStyle>, dark: string[]) => {
  */
 const forbidden = (id: string, source: string) => {
   const found: string[] = [];
-  if (id !== 'typecase' && /border-radius:\s*0\s*[;}\n]/.test(source))
+  if (
+    id !== 'typecase' &&
+    /border(?:-(?:top|bottom)-(?:left|right))?-radius:\s*0(?:px|r?em)?\s*[;}\n]/.test(source)
+  )
     found.push('border-radius: 0');
   if (id !== 'typecase' && /text-transform:\s*uppercase/.test(source))
     found.push('text-transform: uppercase');
-  if (/monospace|Courier|Menlo|Consolas/.test(source)) found.push('a monospace stack');
+  if (/monospace|Courier|Menlo|Consolas|Monaco|SF Mono|Liberation Mono/.test(source))
+    found.push('a monospace stack');
   if (/\b1px solid/.test(source)) found.push('1px solid');
   if (/@font-face|\burl\(/.test(source)) found.push('a font or an image by address');
   return found;
 };
 
+const motion = /\b(animation-name|animation|transition-property|transition)\s*:/;
+
 /**
- * Removes the blocks that run only without a request for less motion.
+ * Cuts the blocks of one media query out of a source.
  *
  * @param source - The source of a piece.
- * @returns The source without them.
+ * @param head - The opening of the media query, up to and including its brace.
+ * @param mark - What stays in place of a block that is one declaration nested in a rule.
+ * @returns The source without the blocks, and the bodies that were cut.
  */
-const unguarded = (source: string) => {
-  const head = '@media (prefers-reduced-motion: no-preference) {';
+const cutBlocks = (source: string, head: string, mark = '') => {
+  const cut: string[] = [];
   let text = source;
   for (let at = text.indexOf(head); at !== -1; at = text.indexOf(head)) {
     let depth = 1;
@@ -364,21 +372,46 @@ const unguarded = (source: string) => {
       if (char === '{') depth++;
       if (char === '}') depth--;
     }
-    text = text.slice(0, at) + text.slice(end);
+    const body = text.slice(at + head.length, end - 1);
+    cut.push(body);
+    text =
+      text.slice(0, at) + (!body.includes('{') && motion.test(body) ? mark : '') + text.slice(end);
   }
-  return text;
+  return { text, cut };
 };
 
 /**
- * Finds motion in a source that no media query on the visitor's preference holds back.
+ * Lists the rules of a source that declare motion, as selector and property.
+ *
+ * @param source - The source, or a part of it.
+ * @returns One entry for each rule that declares motion.
+ */
+const motionRules = (source: string) =>
+  [...source.replace(/\$\{[^{}]*\}/g, 'x').matchAll(/([^{}]+)\{([^{}]*)\}/g)].flatMap((rule) => {
+    const property = motion.exec(rule[2]!)?.[1];
+    return property && !rule[2]!.includes('/*off*/')
+      ? [{ selector: rule[1]!.trim(), property: `${property}:` }]
+      : [];
+  });
+
+/**
+ * Finds motion in a source that no media query on the visitor's preference holds back: it is neither inside
+ * a block for `no-preference` nor switched off in a block for `reduce` on the same selector.
  *
  * @param source - The source of a piece.
  * @returns The motion that runs for everyone.
  */
-const runsAlways = (source: string) =>
-  source.includes('(prefers-reduced-motion: reduce)')
-    ? []
-    : (unguarded(source).match(/\b(animation|transition)\s*:|@keyframes/g) ?? []);
+const runsAlways = (source: string) => {
+  const free = cutBlocks(source, '@media (prefers-reduced-motion: no-preference) {');
+  const reduced = cutBlocks(free.text, '@media (prefers-reduced-motion: reduce) {', '/*off*/');
+  const switchedOff = new Set(reduced.cut.flatMap(motionRules).map((rule) => rule.selector));
+  return [
+    ...motionRules(reduced.text)
+      .filter((rule) => !switchedOff.has(rule.selector))
+      .map((rule) => rule.property),
+    ...(reduced.text.match(/@keyframes/g) ?? []),
+  ];
+};
 
 const looks = Object.fromEntries(demos.map((demo) => [demo.id, demo.style]));
 const sources = Object.fromEntries(
@@ -446,6 +479,17 @@ describe('the sources of the examples keep out the devices of the first build', 
     );
     expect(forbidden('atlas', 'a { border-radius: 0; }')).toEqual(['border-radius: 0']);
     expect(forbidden('atlas', 'a { border-radius: 0.5em; }')).toEqual([]);
+    ['0', '0px', '0em', '0rem', '0 ', '0;'].forEach((zero) =>
+      expect(forbidden('atlas', `a { border-radius: ${zero}; }`), zero).toEqual([
+        'border-radius: 0',
+      ]),
+    );
+    expect(forbidden('atlas', 'a { border-top-left-radius: 0; }')).toEqual(['border-radius: 0']);
+    expect(forbidden('atlas', 'a { border-bottom-right-radius: 0px; }')).toEqual([
+      'border-radius: 0',
+    ]);
+    expect(forbidden('atlas', 'a { border-radius: 0 8px 8px 0; }')).toEqual([]);
+    expect(forbidden('atlas', 'a { border-radius: 10px; }')).toEqual([]);
     expect(forbidden('typecase', 'a { border-radius: 0; text-transform: uppercase; }')).toEqual([]);
     expect(forbidden('atlas', 'a { text-transform: uppercase; }')).toEqual([
       'text-transform: uppercase',
@@ -453,6 +497,19 @@ describe('the sources of the examples keep out the devices of the first build', 
     expect(forbidden('atlas', 'a { font: 12px ui-monospace, monospace; }')).toEqual([
       'a monospace stack',
     ]);
+    [
+      "'SF Mono'",
+      'Monaco',
+      "'Liberation Mono'",
+      'Menlo',
+      'Consolas',
+      'ui-monospace',
+      'monospace',
+    ].forEach((face) =>
+      expect(forbidden('atlas', `a { font-family: ${face}, serif; }`), face).toEqual([
+        'a monospace stack',
+      ]),
+    );
     expect(forbidden('atlas', 'a { border: 1px solid #000; }')).toEqual(['1px solid']);
     expect(forbidden('atlas', "a { background: url('x.png'); }")).toEqual([
       'a font or an image by address',
@@ -480,6 +537,26 @@ describe('motion in the examples', () => {
         'a { animation: x 1s; } @media (prefers-reduced-motion: reduce) { a { animation: none; } }',
       ),
     ).toEqual([]);
+    expect(
+      runsAlways(
+        'a { animation: x 1s; } @media (prefers-reduced-motion: reduce) { a { animation: none; } } b { transition: color 1s; }',
+      ),
+    ).toEqual(['transition:']);
+    expect(
+      runsAlways(
+        'a { transition: x 1s; } @media (prefers-reduced-motion: reduce) { b { transition: none; } }',
+      ),
+    ).toEqual(['transition:']);
+    expect(
+      runsAlways(
+        'a { animation: x 1s; @media (prefers-reduced-motion: reduce) { animation: none; } } b { transition: x 1s; }',
+      ),
+    ).toEqual(['transition:']);
+    expect(runsAlways('a { transition-property: color; } b { animation-name: x; }')).toEqual([
+      'transition-property:',
+      'animation-name:',
+    ]);
+    expect(runsAlways('@keyframes x { to { top: 0; } }')).toEqual(['@keyframes']);
   });
 
   it('has an animated example for each of the ones that name a motion', () => {
