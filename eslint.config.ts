@@ -5,7 +5,7 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig([
-  globalIgnores(['**/dist', '**/coverage', 'packages/*/template']),
+  globalIgnores(['**/dist', '**/coverage', 'packages/*/template', 'docs/sessions/*/build']),
   js.configs.recommended,
   tseslint.configs.strict,
   tseslint.configs.stylistic,
