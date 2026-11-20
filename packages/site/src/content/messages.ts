@@ -317,7 +317,7 @@ const en: Messages = {
       title: 'Setlist for tonight',
       description: "A band's running order: reorder the songs and keep an eye on the curfew.",
       hint: 'move a song',
-      note: 'A moved row keeps its focus from the next 3.0.x patch (#34). In 3.0.0 the focus is lost.',
+      note: 'A moved row keeps its focus from 3.0.1 (#34). In 3.0.0 the focus is lost.',
     },
     fieldbook: {
       title: 'Field notebook',
@@ -333,7 +333,7 @@ const en: Messages = {
       title: 'Customs declaration',
       description: 'Shadow DOM fields that a native form validates, submits and resets.',
       hint: 'leave a field wrong',
-      note: 'A field whose own input is disabled, like the arrival date while in transit, is left out of FormData from the next 3.0.x patch (#31). In 3.0.0 it is still sent.',
+      note: 'A field whose own input is disabled, like the arrival date while in transit, is left out of FormData from 3.0.1 (#31). In 3.0.0 it is still sent.',
     },
     gels: {
       title: 'Lighting plot',
@@ -613,7 +613,7 @@ const ru: Messages = {
       description:
         'Порядок выступления группы: переставляйте песни и следите за комендантским часом.',
       hint: 'переставьте песню',
-      note: 'Переставленная строка сохраняет фокус со следующего патча 3.0.x (#34). В 3.0.0 фокус теряется.',
+      note: 'Переставленная строка сохраняет фокус с версии 3.0.1 (#34). В 3.0.0 фокус теряется.',
     },
     fieldbook: {
       title: 'Полевой блокнот',
@@ -629,7 +629,7 @@ const ru: Messages = {
       title: 'Таможенная декларация',
       description: 'Поля в Shadow DOM, которые нативная форма проверяет, отправляет и сбрасывает.',
       hint: 'оставьте поле неверным',
-      note: 'Поле, чей собственный input отключён, как дата прибытия при пересадке, исключается из FormData со следующего патча 3.0.x (#31). В 3.0.0 оно всё ещё отправляется.',
+      note: 'Поле, чей собственный input отключён, как дата прибытия при пересадке, исключается из FormData с версии 3.0.1 (#31). В 3.0.0 оно всё ещё отправляется.',
     },
     gels: {
       title: 'Световая схема',

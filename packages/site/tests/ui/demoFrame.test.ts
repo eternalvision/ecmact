@@ -74,11 +74,11 @@ describe('DemoFrame', () => {
     expect(exposure.files[0]!.source.startsWith('import {')).toBe(true);
   });
 
-  it('shows the note of an example that depends on a patch that is not released', () => {
+  it('shows the note of an example that depends on the 3.0.1 patch', () => {
     const frame = DemoFrame(findDemo('setlist')!);
-    expect(frame.querySelector('.demo-since')?.textContent).toContain('next 3.0.x patch');
+    expect(frame.querySelector('.demo-since')?.textContent).toContain('3.0.1');
     expect(DemoFrame(findDemo('customs')!).querySelector('.demo-since')?.textContent).toContain(
-      'next 3.0.x patch',
+      '3.0.1',
     );
   });
 
