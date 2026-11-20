@@ -56,24 +56,48 @@ const numberFormat = (options: Intl.NumberFormatOptions) => {
  *
  * @param amount - The amount.
  * @param currency - An ISO 4217 code such as `EUR`.
+ * @param digits - How many decimals to show.
  * @returns The formatted amount.
  */
-export const money = (amount: number, currency: string) => {
+export const money = (amount: number, currency: string, digits = 0) => {
   try {
-    return numberFormat({ style: 'currency', currency, maximumFractionDigits: 0 }).format(amount);
+    return numberFormat({
+      style: 'currency',
+      currency,
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    }).format(amount);
   } catch {
-    return `${Math.round(amount)} ${currency}`;
+    return `${amount.toFixed(digits)} ${currency}`;
   }
 };
 
 /**
- * Formats a count in a short form: 1234 as `1.2K` and 1000000 as `1M`.
+ * Formats a plain number the way the language of the page writes it, with no unit.
  *
- * @param value - The count.
- * @returns The short text.
+ * @param value - The number.
+ * @param digits - How many decimals to show.
+ * @returns The text.
  */
-export const compact = (value: number) =>
-  numberFormat({ notation: 'compact', maximumFractionDigits: 1 }).format(value);
+export const plain = (value: number, digits = 0) =>
+  numberFormat({ minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value);
+
+/**
+ * Chooses the item that an arrow key, Home or End moves to in a group of radios, tabs or other items that take
+ * turns: the next and the previous wrap around.
+ *
+ * @param key - The `key` of the keyboard event.
+ * @param index - The current item.
+ * @param count - How many items there are.
+ * @returns The new index, or `undefined` for a key that moves nothing.
+ */
+export const moveIndex = (key: string, index: number, count: number) => {
+  if (key === 'ArrowRight' || key === 'ArrowDown') return (index + 1) % count;
+  if (key === 'ArrowLeft' || key === 'ArrowUp') return (index + count - 1) % count;
+  if (key === 'Home') return 0;
+  if (key === 'End') return count - 1;
+  return undefined;
+};
 
 /**
  * Reads a number from an attribute. An absent, empty or malformed value gives the fallback.

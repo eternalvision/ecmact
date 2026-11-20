@@ -1,8 +1,8 @@
-import { defineCountdownTimer } from '@site/widgets/countdownTimer';
-import { definePollWidget } from '@site/widgets/pollWidget';
-import { definePriceCalculator } from '@site/widgets/priceCalculator';
-import { defineRepoCard } from '@site/widgets/repoCard';
-import { defineWeatherNow } from '@site/widgets/weatherNow';
+import { defineFeedLamp } from '@site/widgets/feedLamp';
+import { defineMoonDial } from '@site/widgets/moonDial';
+import { definePrintQuote } from '@site/widgets/printQuote';
+import { defineProofClock } from '@site/widgets/proofClock';
+import { defineRowCounter } from '@site/widgets/rowCounter';
 
 /**
  * Registers every widget of the gallery, each once. The script that host pages load calls it; calling it again
@@ -10,11 +10,11 @@ import { defineWeatherNow } from '@site/widgets/weatherNow';
  */
 export const defineAll = () => {
   const widgets: [string, () => unknown][] = [
-    ['price-calculator', definePriceCalculator],
-    ['weather-now', defineWeatherNow],
-    ['repo-card', defineRepoCard],
-    ['poll-widget', definePollWidget],
-    ['countdown-timer', defineCountdownTimer],
+    ['print-quote', definePrintQuote],
+    ['moon-dial', defineMoonDial],
+    ['proof-clock', defineProofClock],
+    ['row-counter', defineRowCounter],
+    ['feed-lamp', defineFeedLamp],
   ];
   widgets.forEach(([name, define]) => {
     if (!customElements.get(name)) define();

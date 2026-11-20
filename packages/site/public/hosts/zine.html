@@ -3,144 +3,175 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LOUD ZINE issue 12</title>
+    <title>Offcut - issue 13</title>
     <style>
-      * {
+      *,
+      *::before,
+      *::after {
         box-sizing: border-box;
       }
       body {
         margin: 0;
-        background: #ffe600;
-        color: #000;
-        font-family: 'Courier New', Courier, monospace;
-        font-weight: 700;
-        line-height: 1.5;
+      }
+      body {
+        background: #fbfbf9;
+        color: #151515;
+        font-family: Georgia, 'Times New Roman', serif;
+        line-height: 1.65;
       }
       header {
-        padding: 1rem 1.2rem;
-        background: #000;
-        color: #ffe600;
-        border-bottom: 6px solid #000;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 6px 24px;
+        padding: 18px 40px;
+        border-bottom: 3px solid #151515;
       }
-      header h1 {
-        margin: 0;
-        font-family: Impact, 'Arial Black', sans-serif;
-        font-size: clamp(2.4rem, 9vw, 5rem);
-        line-height: 0.95;
+      header b {
+        font-size: 34px;
+        letter-spacing: -0.04em;
+      }
+      header span {
+        color: #5c5c5c;
+        font-size: 14px;
+      }
+      .wrap {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
+        gap: 44px;
+        padding: 36px 40px 56px;
+      }
+      .kicker {
+        margin: 0 0 8px;
+        color: #e11d2e;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
         text-transform: uppercase;
-        transform: rotate(-1.5deg);
       }
-      main {
-        max-width: 58rem;
-        margin: 0 auto;
-        padding: 1.4rem 1.2rem 3rem;
+      h1 {
+        margin: 0 0 16px;
+        font-size: clamp(38px, 6.2vw, 78px);
+        line-height: 0.98;
+        letter-spacing: -0.035em;
       }
-      h2 {
-        display: inline-block;
-        margin: 1.6rem 0 0.8rem;
-        padding: 0.2rem 0.6rem;
-        background: #000;
-        color: #ffe600;
-        font-family: Impact, 'Arial Black', sans-serif;
-        font-size: 1.4rem;
-        text-transform: uppercase;
-        transform: rotate(1deg);
+      .by {
+        margin: 0 0 22px;
+        color: #5c5c5c;
+        font-size: 15px;
       }
-      p {
-        margin: 0 0 1rem;
+      article p {
+        max-width: 62ch;
+        margin: 0 0 16px;
+        font-size: 19px;
+      }
+      article p.lede::first-letter {
+        float: left;
+        padding: 4px 10px 0 0;
+        font-size: 72px;
+        line-height: 0.8;
+        font-weight: 700;
+        color: #e11d2e;
+      }
+      blockquote {
+        margin: 24px 0;
+        padding: 0 0 0 20px;
+        border-left: 4px solid #e11d2e;
+        font-size: 26px;
+        font-style: italic;
+        line-height: 1.3;
+      }
+      aside h2 {
+        margin: 0 0 4px;
+        font-size: 20px;
+      }
+      aside p {
+        margin: 0 0 14px;
+        color: #5c5c5c;
+        font-size: 15px;
+      }
+      aside > div {
+        margin-bottom: 30px;
       }
       button {
-        padding: 0.7rem 1.2rem;
-        border: 4px solid #000;
-        background: #ff2d2d;
-        color: #fff;
+        padding: 10px 18px;
+        border: 2px solid #151515;
+        border-radius: 0;
+        background: #151515;
+        color: #ffffff;
         font: inherit;
-        text-transform: uppercase;
-        box-shadow: 5px 5px 0 #000;
+        font-weight: 700;
         cursor: pointer;
       }
-      button:hover {
-        transform: translate(2px, 2px);
-        box-shadow: 3px 3px 0 #000;
+      print-quote {
+        --w-bg: #151515;
+        --w-fg: #ffffff;
+        --w-accent: #ff4a57;
+        --w-on-accent: #170205;
+        --w-radius: 4px;
+        --w-font: Georgia, 'Times New Roman', serif;
+        --w-display: Georgia, 'Times New Roman', serif;
       }
-      input,
-      b,
+      proof-clock {
+        --w-bg: #fde4e6;
+        --w-fg: #2a0a0d;
+        --w-accent: #c91626;
+        --w-on-accent: #ffffff;
+        --w-accent-text: #a50f1c;
+        --w-font: Georgia, 'Times New Roman', serif;
+      }
+      p,
       span,
       div,
-      label {
-        font-family: 'Courier New', Courier, monospace !important;
+      input {
+        font-family: Georgia, 'Times New Roman', serif !important;
       }
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
-        gap: 1.4rem;
-        align-items: start;
-      }
-      .note {
-        padding: 0.8rem 1rem;
-        border: 4px solid #000;
-        background: #fff;
-        box-shadow: 6px 6px 0 #000;
-      }
-      price-calculator,
-      countdown-timer,
-      poll-widget {
-        --w-font: 'Courier New', Courier, monospace;
-        --w-bg: #fff;
-        --w-fg: #000;
-        --w-muted: #333;
-        --w-accent: #d40000;
-        --w-border: #000;
-        --w-radius: 0;
-      }
-      countdown-timer {
-        --w-bg: #000;
-        --w-fg: #ffe600;
-        --w-muted: #ffe600;
-        --w-border: #000;
-      }
-      poll-widget {
-        --w-accent: #0066cc;
+      @media (max-width: 760px) {
+        .wrap {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 24px;
+          padding: 24px 20px 40px;
+        }
+        header {
+          padding: 14px 20px;
+        }
       }
     </style>
   </head>
   <body>
-    <header>
-      <h1>Loud Zine<br />issue 12</h1>
-    </header>
-    <main>
-      <p class="note">
-        Brutalist on purpose: thick borders, no radius, Impact and Courier, and a rule that forces
-        <code>Courier New !important</code> on <code>input</code>, <code>b</code>,
-        <code>span</code> and <code>div</code>. The widgets below still come out intact: the rule
-        stops at their Shadow DOM, and the colors and the square corners are the page's custom
-        properties.
-      </p>
-      <h2>Subscribe</h2>
-      <div class="grid">
-        <price-calculator
-          currency="USD"
-          base="6"
-          heading="Print subscription, per reader"
-        ></price-calculator>
-        <countdown-timer label="Issue 13 drops in"></countdown-timer>
-      </div>
-      <h2>Vote</h2>
-      <div class="grid">
-        <poll-widget
-          poll="zine-cover"
-          question="Cover of issue 13?"
-          options="Photocopy collage, Neon silkscreen, Plain black"
-          seed="12, 8, 3"
-        ></poll-widget>
-        <p><button type="button">Buy the issue</button></p>
-      </div>
-    </main>
-    <script>
-      document
-        .querySelector('countdown-timer')
-        .setAttribute('to', new Date(Date.now() + 70 * 86400000).toISOString());
-    </script>
+    <header><b>Offcut</b><span>Issue 13 · Printing, paper and the people who do both</span></header>
+    <div class="wrap">
+      <article>
+        <p class="kicker">Making things</p>
+        <h1>The last small press on Cobble Street</h1>
+        <p class="by">Words by Ines Varga · photographs by Tomas Hale · 9 minute read</p>
+        <p class="lede">
+          The shop opens at seven, when the first sheets are still warm from the dryer. Marta feeds
+          the old machine by hand, the way she has for thirty years, and the whole room smells of
+          ink and toast.
+        </p>
+        <blockquote>"A good run is one you can still afford to be wrong about."</blockquote>
+        <p>
+          Orders that used to be five thousand are now fifty. She has not raised her prices; she has
+          learned to quote them honestly, down to the stock and the second ink.
+        </p>
+      </article>
+      <aside>
+        <div>
+          <h2>Price a run of your own</h2>
+          <p>Flyers, posters or a zine. Sample prices, not an offer.</p>
+          <print-quote heading="Your zine" currency="EUR" base="1.2"></print-quote>
+        </div>
+        <div>
+          <h2>The bread schedule</h2>
+          <p>Marta's lunch loaf, worked back from the oven.</p>
+          <proof-clock label="Lunch loaf"></proof-clock>
+        </div>
+        <button type="button">Subscribe to Offcut</button>
+      </aside>
+    </div>
+
     <script src="../embed/ecmact-widgets.js"></script>
   </body>
 </html>

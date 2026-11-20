@@ -3,110 +3,234 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dev.local - status</title>
+    <title>Kiln Control - overview</title>
     <style>
-      * {
+      *,
+      *::before,
+      *::after {
         box-sizing: border-box;
-        font-family: 'SF Mono', 'Courier New', monospace;
       }
       body {
         margin: 0;
-        background: #020a05;
-        color: #33ff66;
-        line-height: 1.6;
-        text-shadow: 0 0 6px rgba(51, 255, 102, 0.55);
       }
-      body::after {
-        content: '';
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        background: repeating-linear-gradient(transparent 0 2px, rgba(0, 0, 0, 0.28) 2px 3px);
+      body {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 220px minmax(0, 1fr);
+        background: #0e1116;
+        color: #e6edf3;
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          'Helvetica Neue',
+          Arial,
+          sans-serif;
+      }
+      aside {
+        padding: 20px 14px;
+        background: #12161d;
+        border-right: 1px solid #232a35;
+      }
+      aside b {
+        display: block;
+        padding: 0 10px 16px;
+        font-size: 17px;
+        letter-spacing: -0.01em;
+      }
+      aside a {
+        display: block;
+        padding: 9px 10px;
+        border-radius: 8px;
+        color: #a9b4c4;
+        text-decoration: none;
+        font-size: 14px;
+      }
+      aside a.on {
+        background: #1c2330;
+        color: #ffffff;
       }
       main {
-        max-width: 56rem;
-        margin: 0 auto;
-        padding: 1.4rem 1.2rem 3rem;
+        min-width: 0;
+        padding: 20px 28px 36px;
       }
-      pre {
-        margin: 0 0 1rem;
-        font-size: 0.8rem;
-        color: #1f9a46;
-        white-space: pre-wrap;
+      .top {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 20px;
       }
-      h1,
-      h2 {
-        margin: 1.4rem 0 0.4rem;
-        font-size: 1rem;
-        font-weight: 400;
+      .top h1 {
+        margin: 0 auto 0 0;
+        font-size: 22px;
+        letter-spacing: -0.01em;
       }
-      h1::before,
-      h2::before {
-        content: '$ ';
-        color: #1f9a46;
-      }
-      p {
-        margin: 0 0 0.8rem;
-        color: #2bd75b;
+      input {
+        width: 240px;
+        max-width: 100%;
+        padding: 9px 12px;
+        border: 1px solid #2b3442;
+        border-radius: 8px;
+        background: #0b0e13;
+        color: #e6edf3;
+        font: inherit;
       }
       button {
-        padding: 0.3rem 0.9rem;
-        border: 1px solid #33ff66;
-        background: #000;
-        color: #33ff66;
-        text-transform: uppercase;
+        padding: 9px 16px;
+        border: 0;
+        border-radius: 8px;
+        background: #6366f1;
+        color: #ffffff;
+        font: inherit;
+        font-weight: 600;
         cursor: pointer;
       }
-      a {
-        color: #7dffa0;
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+      .chips span {
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: #1c2330;
+        color: #c2ccdb;
+        font-size: 13px;
       }
       .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
-        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+        gap: 20px;
         align-items: start;
       }
-      repo-card,
-      weather-now,
-      poll-widget {
-        --w-font: 'SF Mono', 'Courier New', monospace;
-        --w-bg: #021209;
-        --w-fg: #33ff66;
-        --w-muted: #1f9a46;
-        --w-accent: #7dffa0;
-        --w-border: #0f6a2e;
-        --w-radius: 0;
+      .card {
+        padding: 16px;
+        border: 1px solid #232a35;
+        border-radius: 12px;
+        background: #141922;
       }
-      weather-now {
-        --w-bg: #04210f;
+      .card h2 {
+        margin: 0 0 4px;
+        font-size: 15px;
+      }
+      .card p {
+        margin: 0 0 12px;
+        color: #8d99ab;
+        font-size: 13px;
+      }
+      table {
+        width: 100%;
+        margin-top: 24px;
+        border-collapse: collapse;
+        font-size: 13.5px;
+      }
+      td,
+      th {
+        padding: 9px 10px;
+        border-bottom: 1px solid #232a35;
+        text-align: left;
+        color: #c2ccdb;
+      }
+      th {
+        color: #8d99ab;
+        font-weight: 600;
+      }
+      feed-lamp {
+        --w-bg: #1b2230;
+        --w-fg: #e9eef7;
+        --w-radius: 14px;
+      }
+      moon-dial {
+        --w-bg: #0f1330;
+        --w-fg: #e0e7ff;
+        --w-accent: #a5b4fc;
+        --w-on-accent: #0f1330;
+        --w-font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      }
+      span,
+      div {
+        color: #e6edf3;
+      }
+      @media (max-width: 760px) {
+        body {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        aside {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px;
+          border-right: 0;
+          border-bottom: 1px solid #232a35;
+        }
+        aside b {
+          width: 100%;
+          padding-bottom: 8px;
+        }
+        main {
+          padding: 16px;
+        }
       }
     </style>
   </head>
   <body>
+    <aside>
+      <b>Kiln Control</b>
+      <a class="on" href="#terminal">Overview</a><a href="#terminal">Kilns</a
+      ><a href="#terminal">Schedules</a><a href="#terminal">Alerts</a
+      ><a href="#terminal">Settings</a>
+    </aside>
     <main>
-      <pre>dev.local  //  status board  //  uptime 417d</pre>
-      <p>
-        A terminal-themed dashboard. The page paints a scanline over everything and styles every
-        <code>button</code>, <code>p</code> and <code>a</code>. Each card below is an ECMact widget
-        with its own Shadow DOM, fed by a public API, and recolored only through custom properties.
-      </p>
-      <h1>repos --watch</h1>
-      <div class="grid">
-        <repo-card repo="vitejs/vite"></repo-card>
-        <repo-card repo="eternalvision/ecmact"></repo-card>
+      <div class="top">
+        <h1>Overview</h1>
+        <input type="search" placeholder="Search kilns" aria-label="Search kilns" />
+        <button type="button">New firing</button>
       </div>
-      <h2>weather --server-room</h2>
-      <div class="grid">
-        <weather-now city="Reykjavik" unit="c"></weather-now>
-        <poll-widget
-          poll="term-tabs"
-          question="Tabs or spaces?"
-          options="Tabs, Spaces, Whatever prettier says"
-          seed="7, 11, 31"
-        ></poll-widget>
+      <div class="chips">
+        <span>3 kilns online</span><span>Next firing 06:00</span><span>Studio B</span>
       </div>
-      <p><button type="button">reload</button></p>
+      <div class="grid">
+        <div class="card">
+          <h2>Kiln 2 feed</h2>
+          <p>Reads the status file the kiln writes; every failure has its own state.</p>
+          <feed-lamp src="data/kiln.json"></feed-lamp>
+        </div>
+        <div class="card">
+          <h2>Firing calendar</h2>
+          <p>Glaze firings follow the lunar month in this studio. Approximate.</p>
+          <moon-dial hemisphere="north"></moon-dial>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Kiln</th>
+            <th>Event</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>14:20</td>
+            <td>Kiln 2</td>
+            <td>Firing done, cooling</td>
+          </tr>
+          <tr>
+            <td>11:05</td>
+            <td>Kiln 1</td>
+            <td>Door opened</td>
+          </tr>
+          <tr>
+            <td>06:00</td>
+            <td>Kiln 2</td>
+            <td>Firing started</td>
+          </tr>
+        </tbody>
+      </table>
     </main>
+
     <script src="../embed/ecmact-widgets.js"></script>
   </body>
 </html>

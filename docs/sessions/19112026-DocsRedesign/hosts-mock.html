@@ -1,0 +1,1040 @@
+<!doctype html>
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The four host pages of the gallery: mock sheet</title>
+    <style>
+      /* The sheet itself: a neutral frame around four pages that are not ours. */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #8a8f98;
+        color: #fff;
+        font:
+          15px/1.5 system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          'Helvetica Neue',
+          Arial,
+          sans-serif;
+      }
+      .sheet-head {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 24px 16px 8px;
+      }
+      .sheet-head h1 {
+        margin: 0 0 6px;
+        font-size: 22px;
+      }
+      .sheet-head p {
+        margin: 0;
+        max-width: 70ch;
+      }
+      .frame {
+        max-width: 1280px;
+        margin: 24px auto;
+      }
+      .frame > .bar {
+        display: flex;
+        gap: 12px;
+        align-items: baseline;
+        padding: 0 16px 6px;
+        font-size: 13px;
+      }
+      .frame > .bar b {
+        font-size: 15px;
+      }
+      .page {
+        overflow: hidden;
+        border-radius: 6px;
+      }
+
+      /* ============ cafe: Pan &amp; Co., a neighbourhood bakery: sage green and white ============ */
+      .h-cafe {
+        background: #ffffff;
+        color: #1b2b25;
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          'Helvetica Neue',
+          Arial,
+          sans-serif;
+        line-height: 1.6;
+      }
+      .h-cafe nav {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 22px;
+        padding: 16px 32px;
+        background: #2f5d50;
+        color: #f2f7f3;
+      }
+      .h-cafe nav b {
+        margin-right: auto;
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+      }
+      .h-cafe nav a {
+        color: #f2f7f3;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .h-cafe button {
+        padding: 12px 24px;
+        border: 0;
+        border-radius: 999px;
+        background: #c8512a;
+        color: #ffffff;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .h-cafe .hero {
+        padding: 56px 32px 40px;
+        background: linear-gradient(#e6f0e8, #ffffff);
+      }
+      .h-cafe .hero h1 {
+        max-width: 14ch;
+        margin: 0 0 12px;
+        font-size: clamp(34px, 6vw, 64px);
+        line-height: 1.02;
+        letter-spacing: -0.03em;
+        color: #1f4a3d;
+      }
+      .h-cafe .hero p {
+        max-width: 46ch;
+        margin: 0 0 22px;
+        font-size: 19px;
+      }
+      .h-cafe .row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+        gap: 28px;
+        align-items: start;
+        padding: 12px 32px 48px;
+      }
+      .h-cafe .cell h2 {
+        margin: 0 0 4px;
+        font-size: 22px;
+        color: #1f4a3d;
+      }
+      .h-cafe .cell p {
+        margin: 0 0 14px;
+        color: #3c4f47;
+      }
+      .h-cafe footer {
+        padding: 22px 32px;
+        background: #f1f5f2;
+        color: #3c4f47;
+        font-size: 14px;
+      }
+      .h-cafe proof-clock {
+        --w-bg: #dcebe0;
+        --w-fg: #17372c;
+        --w-accent: #2f6b57;
+        --w-on-accent: #ffffff;
+        --w-accent-text: #1f5443;
+        --w-font: Georgia, 'Times New Roman', serif;
+      }
+      .h-cafe row-counter {
+        --w-bg: #9fd1b4;
+        --w-fg: #0d2c20;
+        --w-accent: #c8512a;
+      }
+      .h-cafe moon-dial {
+        --w-bg: #12261f;
+        --w-fg: #eaf4ee;
+        --w-accent: #f2c14e;
+        --w-on-accent: #12261f;
+      }
+
+      /* ============ terminal: Kiln Control, an ops dashboard: dark slate and indigo ============ */
+      .h-terminal {
+        display: grid;
+        grid-template-columns: 220px minmax(0, 1fr);
+        background: #0e1116;
+        color: #e6edf3;
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          'Helvetica Neue',
+          Arial,
+          sans-serif;
+      }
+      .h-terminal aside {
+        padding: 20px 14px;
+        background: #12161d;
+        border-right: 1px solid #232a35;
+      }
+      .h-terminal aside b {
+        display: block;
+        padding: 0 10px 16px;
+        font-size: 17px;
+        letter-spacing: -0.01em;
+      }
+      .h-terminal aside a {
+        display: block;
+        padding: 9px 10px;
+        border-radius: 8px;
+        color: #a9b4c4;
+        text-decoration: none;
+        font-size: 14px;
+      }
+      .h-terminal aside a.on {
+        background: #1c2330;
+        color: #ffffff;
+      }
+      .h-terminal main {
+        min-width: 0;
+        padding: 20px 28px 36px;
+      }
+      .h-terminal .top {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .h-terminal .top h1 {
+        margin: 0 auto 0 0;
+        font-size: 22px;
+        letter-spacing: -0.01em;
+      }
+      .h-terminal input {
+        width: 240px;
+        max-width: 100%;
+        padding: 9px 12px;
+        border: 1px solid #2b3442;
+        border-radius: 8px;
+        background: #0b0e13;
+        color: #e6edf3;
+        font: inherit;
+      }
+      .h-terminal button {
+        padding: 9px 16px;
+        border: 0;
+        border-radius: 8px;
+        background: #6366f1;
+        color: #ffffff;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .h-terminal .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+      .h-terminal .chips span {
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: #1c2330;
+        color: #c2ccdb;
+        font-size: 13px;
+      }
+      .h-terminal .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+        gap: 20px;
+        align-items: start;
+      }
+      .h-terminal .card {
+        padding: 16px;
+        border: 1px solid #232a35;
+        border-radius: 12px;
+        background: #141922;
+      }
+      .h-terminal .card h2 {
+        margin: 0 0 4px;
+        font-size: 15px;
+      }
+      .h-terminal .card p {
+        margin: 0 0 12px;
+        color: #8d99ab;
+        font-size: 13px;
+      }
+      .h-terminal table {
+        width: 100%;
+        margin-top: 24px;
+        border-collapse: collapse;
+        font-size: 13.5px;
+      }
+      .h-terminal td,
+      .h-terminal th {
+        padding: 9px 10px;
+        border-bottom: 1px solid #232a35;
+        text-align: left;
+        color: #c2ccdb;
+      }
+      .h-terminal th {
+        color: #8d99ab;
+        font-weight: 600;
+      }
+      .h-terminal feed-lamp {
+        --w-bg: #1b2230;
+        --w-fg: #e9eef7;
+        --w-radius: 14px;
+      }
+      .h-terminal moon-dial {
+        --w-bg: #0f1330;
+        --w-fg: #e0e7ff;
+        --w-accent: #a5b4fc;
+        --w-on-accent: #0f1330;
+        --w-font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      }
+
+      /* ============ zine: Offcut, an independent magazine: black type and one red ============ */
+      .h-zine {
+        background: #fbfbf9;
+        color: #151515;
+        font-family: Georgia, 'Times New Roman', serif;
+        line-height: 1.65;
+      }
+      .h-zine header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 6px 24px;
+        padding: 18px 40px;
+        border-bottom: 3px solid #151515;
+      }
+      .h-zine header b {
+        font-size: 34px;
+        letter-spacing: -0.04em;
+      }
+      .h-zine header span {
+        color: #5c5c5c;
+        font-size: 14px;
+      }
+      .h-zine .wrap {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
+        gap: 44px;
+        padding: 36px 40px 56px;
+      }
+      .h-zine .kicker {
+        margin: 0 0 8px;
+        color: #e11d2e;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .h-zine h1 {
+        margin: 0 0 16px;
+        font-size: clamp(38px, 6.2vw, 78px);
+        line-height: 0.98;
+        letter-spacing: -0.035em;
+      }
+      .h-zine .by {
+        margin: 0 0 22px;
+        color: #5c5c5c;
+        font-size: 15px;
+      }
+      .h-zine article p {
+        max-width: 62ch;
+        margin: 0 0 16px;
+        font-size: 19px;
+      }
+      .h-zine article p.lede::first-letter {
+        float: left;
+        padding: 4px 10px 0 0;
+        font-size: 72px;
+        line-height: 0.8;
+        font-weight: 700;
+        color: #e11d2e;
+      }
+      .h-zine blockquote {
+        margin: 24px 0;
+        padding: 0 0 0 20px;
+        border-left: 4px solid #e11d2e;
+        font-size: 26px;
+        font-style: italic;
+        line-height: 1.3;
+      }
+      .h-zine aside h2 {
+        margin: 0 0 4px;
+        font-size: 20px;
+      }
+      .h-zine aside p {
+        margin: 0 0 14px;
+        color: #5c5c5c;
+        font-size: 15px;
+      }
+      .h-zine aside > div {
+        margin-bottom: 30px;
+      }
+      .h-zine button {
+        padding: 10px 18px;
+        border: 2px solid #151515;
+        border-radius: 0;
+        background: #151515;
+        color: #ffffff;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .h-zine print-quote {
+        --w-bg: #151515;
+        --w-fg: #ffffff;
+        --w-accent: #ff4a57;
+        --w-on-accent: #170205;
+        --w-radius: 4px;
+        --w-font: Georgia, 'Times New Roman', serif;
+        --w-display: Georgia, 'Times New Roman', serif;
+      }
+      .h-zine proof-clock {
+        --w-bg: #fde4e6;
+        --w-fg: #2a0a0d;
+        --w-accent: #c91626;
+        --w-on-accent: #ffffff;
+        --w-accent-text: #a50f1c;
+        --w-font: Georgia, 'Times New Roman', serif;
+      }
+
+      /* ============ kids: Tinker Lab, a children's museum: sky blue and sunshine ============ */
+      .h-kids {
+        background: #bfe5ff;
+        color: #12234a;
+        font-family:
+          ui-rounded, 'SF Pro Rounded', 'Arial Rounded MT Bold', 'Hiragino Maru Gothic ProN',
+          Quicksand, Calibri, sans-serif;
+        line-height: 1.5;
+      }
+      .h-kids nav {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px 14px;
+        padding: 18px 28px;
+      }
+      .h-kids nav b {
+        margin-right: auto;
+        padding: 6px 18px;
+        border-radius: 999px;
+        background: #ffd23f;
+        font-size: 24px;
+        font-weight: 900;
+      }
+      .h-kids nav a {
+        padding: 8px 16px;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #12234a;
+        font-weight: 800;
+        text-decoration: none;
+      }
+      .h-kids .hero {
+        padding: 20px 28px 36px;
+      }
+      .h-kids .hero h1 {
+        max-width: 13ch;
+        margin: 0 0 12px;
+        font-size: clamp(38px, 6.4vw, 76px);
+        line-height: 1;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+      }
+      .h-kids .hero p {
+        max-width: 40ch;
+        margin: 0 0 20px;
+        font-size: 20px;
+        font-weight: 600;
+      }
+      .h-kids button {
+        padding: 16px 30px;
+        border: 0;
+        border-radius: 999px;
+        background: #ff5d8f;
+        color: #ffffff;
+        font: inherit;
+        font-size: 18px;
+        font-weight: 900;
+        box-shadow: 0 6px 0 #c2325f;
+        cursor: pointer;
+      }
+      .h-kids .row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+        gap: 22px;
+        align-items: start;
+        padding: 28px 28px 44px;
+        border-radius: 48px 48px 0 0;
+        background: #fff6d6;
+      }
+      .h-kids .cell h2 {
+        margin: 0 0 4px;
+        font-size: 24px;
+        font-weight: 900;
+      }
+      .h-kids .cell p {
+        margin: 0 0 14px;
+        font-weight: 600;
+      }
+      .h-kids row-counter {
+        --w-bg: #ff7a59;
+        --w-fg: #2a0d04;
+        --w-accent: #7b2cff;
+      }
+      .h-kids feed-lamp {
+        --w-bg: #ffffff;
+        --w-fg: #12234a;
+        --w-radius: 30px;
+        --w-font: ui-rounded, 'SF Pro Rounded', 'Arial Rounded MT Bold', Calibri, sans-serif;
+      }
+      .h-kids print-quote {
+        --w-bg: #7b2cff;
+        --w-fg: #ffffff;
+        --w-accent: #ffd23f;
+        --w-on-accent: #2b0a66;
+        --w-radius: 36px;
+        --w-font: ui-rounded, 'SF Pro Rounded', 'Arial Rounded MT Bold', Calibri, sans-serif;
+      }
+
+      @media (max-width: 760px) {
+        .h-terminal {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .h-terminal aside {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px;
+          border-right: 0;
+          border-bottom: 1px solid #232a35;
+        }
+        .h-terminal aside b {
+          width: 100%;
+          padding-bottom: 8px;
+        }
+        .h-terminal main {
+          padding: 16px;
+        }
+        .h-zine .wrap {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 24px;
+          padding: 24px 20px 40px;
+        }
+        .h-zine header {
+          padding: 14px 20px;
+        }
+        .h-cafe nav,
+        .h-cafe .hero,
+        .h-cafe .row,
+        .h-cafe footer {
+          padding-left: 20px;
+          padding-right: 20px;
+        }
+        .h-kids nav,
+        .h-kids .hero,
+        .h-kids .row {
+          padding-left: 18px;
+          padding-right: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sheet-head">
+      <h1>The four host pages: mock sheet</h1>
+      <p>
+        Four pages that are not ours, each with its own look and its own stylesheet, each framing
+        the widgets it embeds with its own custom-property values. The widgets in the frames are the
+        built ones, frozen as they render. Nothing here is a page of the gallery yet.
+      </p>
+    </div>
+
+    <section class="frame" id="cafe">
+      <div class="bar">
+        <b>cafe</b><span>Pan &amp; Co., a neighbourhood bakery · sage green and white · proof-clock, row-counter,
+          moon-dial</span>
+      </div>
+      <div class="page h-cafe">
+        <nav>
+          <b>Pan &amp; Co.</b><a href="#cafe">Menu</a><a href="#cafe">Visit</a><a href="#cafe">Order ahead</a>
+        </nav>
+        <div class="hero">
+          <h1>Bread that takes its time.</h1>
+          <p>
+            Sourdough, rye and the odd cardamom bun, baked on Marsh Street since 2009. Pick up warm,
+            or order ahead.
+          </p>
+          <button type="button">Order ahead</button>
+        </div>
+        <div class="row">
+          <div class="cell">
+            <h2>Today's loaf</h2>
+            <p>The big country loaf is proofing. Here is where it stands.</p>
+            <proof-clock label="Country loaf" to="2026-11-21T01:03:00"><template shadowrootmode="open"><style>:host { all: initial; }
+:host([hidden]) { display: none; }
+[hidden] { display: none !important; }
+:host { display: block; max-width: 24rem; font-family: var(--w-font, Rockwell, 'Rockwell Nova', 'Roboto Slab', 'DejaVu Serif', 'Sitka Small', serif); }
+.dough { position: relative; box-sizing: border-box; padding: 18px 18px 20px; border-radius: 32px; background: var(--w-bg, #ffd9cf); color: var(--w-fg, #3a0d2e); overflow: hidden; }
+.yolk { position: absolute; top: -24px; right: -30px; width: 150px; height: 140px; border-radius: 42% 58% 60% 40% / 55% 45%; background: rgb(255, 201, 60); }
+.name { position: relative; margin: 0px 0px 6px; font-size: 14px; font-weight: 700; }
+.blob { position: relative; display: grid; place-content: center; width: 86%; min-height: 150px; box-sizing: border-box; margin: 4px 0px 0px; padding: 18px; border-radius: 62% 38% 46% 54% / 55% 48% 52% 45%; background: var(--w-accent, #d81b60); color: var(--w-on-accent, #fff8ec); text-align: center; }
+.blob small { font-size: 16px; font-weight: 700; }
+.blob b { font-size: 40px; line-height: 1.05; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.blob span { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 13.5px; font-weight: 600; }
+ol { position: relative; display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0px 0px; padding: 0px; list-style: none; font-size: 14.5px; font-weight: 700; }
+li { padding: 6px 12px; background: rgb(255, 255, 255); border-radius: 48% 52% 55% 45% / 60% 44% 56% 40%; }
+li:nth-child(2n) { border-radius: 55% 45% 42% 58% / 46% 58% 42% 54%; }
+li.done { background: var(--w-fg, #3a0d2e); color: var(--w-on-accent, #fff8ec); }
+li.now { background: var(--w-accent, #d81b60); color: var(--w-on-accent, #fff8ec); }
+.temp { position: relative; display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 6px 10px; margin-top: 18px; font-size: 16px; font-weight: 700; }
+.temp b { font-size: 22px; color: var(--w-accent-text, #a3134a); }
+input[type="range"] { grid-column: 1 / -1; appearance: none; width: 100%; height: 30px; margin: 0px; background: none; }
+input[type="range"]::-webkit-slider-runnable-track { height: 14px; border-radius: 999px; background: linear-gradient(90deg, var(--w-accent, #d81b60) 0 var(--fill, 60%), #ffffff var(--fill, 60%)); }
+input[type="range"]::-webkit-slider-thumb { appearance: none; width: 32px; height: 30px; margin-top: -8px; box-sizing: border-box; border: 5px solid rgb(255, 255, 255); border-radius: 58% 42% 50% 50% / 50% 46% 54% 50%; background: var(--w-fg, #3a0d2e); }
+input:focus-visible { outline: 3px solid var(--w-fg, #3a0d2e); outline-offset: 3px; }
+@media (prefers-reduced-motion: no-preference) {
+  .blob { scale: calc(1 + var(--rise, 0) * 0.015); transition: scale 0.8s; animation: 5s ease-in-out 0s infinite alternate none running rise; }
+  @keyframes rise { 
+  100% { border-radius: 48% 52% 58% 42% / 46% 58% 42% 54%; transform: scale(1.03); }
+}
+  li { transition: background 0.4s, color 0.4s; }
+}</style><div class="dough"><div class="yolk" aria-hidden="true"></div><div class="name">Country loaf</div><div class="blob" style="--rise: 1;"><small>Bulk</small><b role="timer">03:59:30</b><span>loaf out at 01:03 AM</span></div><ol aria-label="Stages"><li class="done">Autolyse</li><li class="now" aria-current="step">Bulk</li><li>Shape</li><li>Proof</li><li>Bake</li></ol><label class="temp"><span>Kitchen</span><b>24 °C</b><input type="range" min="16" max="30" aria-label="Kitchen temperature" style="--fill: 57.14285714285714%;"></label></div></template></proof-clock>
+          </div>
+          <div class="cell">
+            <h2>Knitting circle</h2>
+            <p>Thursdays at six, over the last bake. Count your rows on the house counter.</p>
+            <row-counter pattern="Raglan sleeve" repeat="6"><template shadowrootmode="open"><style>:host { all: initial; }
+:host([hidden]) { display: none; }
+[hidden] { display: none !important; }
+:host { display: block; max-width: 20rem; font-family: var(--w-font, ui-rounded, 'SF Pro Rounded', 'Arial Rounded MT Bold', 'Hiragino Maru Gothic ProN', Quicksand, Comfortaa, Manjari, Calibri, sans-serif); }
+.rows { --k: rgba(255, 255, 255, 0.16); --lip: color-mix(in srgb, var(--w-fg, #06302c) 55%, var(--w-bg, #12b5a6)); box-sizing: border-box; padding: 16px 18px 20px; border-radius: 30px; background: linear-gradient(135deg, var(--k) 25%, transparent 25%) -10px 0 / 20px 20px,
+      linear-gradient(225deg, var(--k) 25%, transparent 25%) -10px 0 / 20px 20px,
+      linear-gradient(315deg, var(--k) 25%, transparent 25%) 0 0 / 20px 20px,
+      linear-gradient(45deg, var(--k) 25%, transparent 25%) 0 0 / 20px 20px,
+      var(--w-bg, #12b5a6); color: var(--w-fg, #06302c); text-align: center; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 15.5px; font-weight: 800; text-align: start; }
+.undo { flex: 0 0 auto; width: 44px; height: 44px; padding: 0px; border: 0px; border-radius: 50%; background: rgb(255, 249, 238); color: var(--w-fg, #06302c); font-style: inherit; font-variant: inherit; font-stretch: inherit; line-height: inherit; font-family: inherit; font-optical-sizing: inherit; font-size-adjust: inherit; font-kerning: inherit; font-feature-settings: inherit; font-variation-settings: inherit; font-language-override: inherit; font-size: 22px; font-weight: 900; box-shadow: 0 4px 0 var(--lip); cursor: pointer; }
+.big { position: relative; display: grid; place-content: center; width: min(172px, 100%); aspect-ratio: 1 / 1; margin: 6px auto 0px; padding: 0px; border: 0px; border-radius: 50%; background: rgb(255, 249, 238); color: var(--w-fg, #06302c); font: inherit; cursor: pointer; box-shadow: 0 10px 0 var(--lip), 0 22px 26px rgba(4, 60, 54, 0.4); }
+.big::before { content: ""; position: absolute; inset: 10px; border: 3px dashed var(--w-accent, #ff6b57); border-radius: 50%; }
+.big b { font-size: 76px; font-weight: 900; line-height: 0.95; letter-spacing: -0.03em; }
+.big span { font-size: 16px; font-weight: 800; }
+.repeat { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 28px 0px 8px; }
+.repeat i { box-sizing: border-box; width: 20px; height: 20px; border-radius: 50%; background: rgba(255, 249, 238, 0.5); }
+.repeat i.on { background: rgb(255, 249, 238); box-shadow: inset 0 0 0 5px var(--w-accent, #ff6b57); }
+.next { font-size: 16px; font-weight: 800; }
+button:focus-visible { outline: 3px solid var(--w-fg, #06302c); outline-offset: 4px; }
+@media (prefers-reduced-motion: no-preference) {
+  .big { transition: transform 0.35s cubic-bezier(0.34, 1.9, 0.5, 1), box-shadow 0.35s cubic-bezier(0.34, 1.9, 0.5, 1); }
+  .big:active { transform: translateY(8px); box-shadow: 0 2px 0 var(--lip), 0 8px 12px rgba(4, 60, 54, 0.4); }
+}</style><div class="rows"><div class="top"><span>Raglan sleeve</span><button type="button" class="undo" aria-label="Undo one row">↩</button></div><button type="button" class="big" aria-label="Add a row, now row 27"><b>27</b><span>tap for a row</span></button><div class="repeat" role="img" aria-label="Row 3 of a repeat of 6"><!----><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><!----></div><div class="next">Repeat 5 · next starts at row 31</div><!----></div></template></row-counter>
+          </div>
+          <div class="cell">
+            <h2>Baking by the moon</h2>
+            <p>Our rye starter likes a full moon. The calendar is on the shop wall and here.</p>
+            <moon-dial date="2026-11-17"><template shadowrootmode="open"><style>:host { all: initial; }
+:host([hidden]) { display: none; }
+[hidden] { display: none !important; }
+:host { display: block; max-width: 22rem; font-family: var(--w-font, 'Iowan Old Style', 'Palatino Linotype', Palatino, 'URW Palladio L', P052, 'Book Antiqua', serif); }
+.sky { box-sizing: border-box; padding: 20px 18px 18px; border-radius: 36px; background: radial-gradient(80% 60% at 20% 0, #3b1e73 0, transparent 70%),
+      radial-gradient(70% 55% at 100% 100%, #1b2a6b 0, transparent 70%),
+      radial-gradient(1.2px 1.2px at 12% 22%, #fff 99%, transparent),
+      radial-gradient(1.4px 1.4px at 84% 14%, #fff 99%, transparent),
+      radial-gradient(1px 1px at 68% 42%, #fff 99%, transparent),
+      radial-gradient(1.3px 1.3px at 24% 62%, #fff 99%, transparent),
+      radial-gradient(1px 1px at 92% 58%, #fff 99%, transparent),
+      radial-gradient(1.2px 1.2px at 42% 8%, #fff 99%, transparent),
+      var(--w-bg, #0b1030); color: var(--w-fg, #e9e6ff); text-align: center; }
+.dial { position: relative; width: min(214px, 100%); aspect-ratio: 1 / 1; margin: 0px auto; border-radius: 50%; touch-action: none; cursor: pointer; }
+.ticks, .past, .ring { position: absolute; inset: 0px; border-radius: 50%; }
+.ring { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--w-fg, #e9e6ff) 55%, transparent); }
+@supports ((mask: radial-gradient(closest-side, transparent 88%, #000 89%)) or (-webkit-mask: radial-gradient(closest-side, transparent 88%, #000 89%))) {
+  .ring { display: none; }
+  .ticks { background: repeating-conic-gradient(from -1.2deg, color-mix(in srgb, var(--w-fg, #e9e6ff) 70%, transparent) 0 2.4deg, transparent 2.4deg 12.4138deg); mask: radial-gradient(closest-side, transparent 88%, rgb(0, 0, 0) 89%); }
+  .past { background: conic-gradient(var(--w-accent, #ffc857) 0 var(--turn, 0deg), transparent var(--turn, 0deg)); mask: radial-gradient(closest-side, transparent 93%, rgb(0, 0, 0) 94%); }
+}
+.hand { position: absolute; inset: 0px; transform: rotate(var(--turn, 0deg)); }
+.hand::before { content: ""; position: absolute; top: -5px; left: 50%; width: 24px; height: 24px; margin-left: -12px; border-radius: 50%; background: var(--w-accent, #ffc857); box-shadow: 0 0 0 4px var(--w-bg, #0b1030), 0 0 18px var(--w-accent, #ffc857); }
+.disc { position: absolute; inset: 16%; border-radius: 50%; overflow: hidden; background: linear-gradient(90deg, var(--left, #171a45) 50%, var(--right, #fff4cf) 50%); box-shadow: rgba(255, 244, 207, 0.45) 0px 0px 44px; }
+.disc::before { content: ""; position: absolute; inset: 0 var(--inset, 20%); border-radius: 50%; background: var(--ellipse, #fff4cf); }
+.disc::after { content: ""; position: absolute; inset: 0px; border-radius: 50%; background: radial-gradient(circle at 30% 28%, rgba(170, 145, 80, 0.4) 0px, rgba(170, 145, 80, 0.4) 7%, transparent 8%), radial-gradient(circle at 48% 64%, rgba(170, 145, 80, 0.32) 0px, rgba(170, 145, 80, 0.32) 10%, transparent 11%), radial-gradient(circle at 22% 60%, rgba(170, 145, 80, 0.28) 0px, rgba(170, 145, 80, 0.28) 5%, transparent 6%), radial-gradient(circle at 56% 30%, rgba(170, 145, 80, 0.25) 0px, rgba(170, 145, 80, 0.25) 4%, transparent 5%), radial-gradient(circle at 30% 26%, rgba(255, 255, 255, 0.55), transparent 55%); }
+.name { margin-top: 12px; font-size: 28px; font-style: italic; line-height: 1.1; }
+.day { margin-top: 2px; font-size: 16px; font-style: italic; color: color-mix(in srgb, var(--w-fg, #e9e6ff) 86%, var(--w-bg, #0b1030)); }
+.row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 14px; }
+.row button { min-width: 44px; height: 44px; padding: 0px; border: 0px; border-radius: 50%; background: color-mix(in srgb, var(--w-fg, #e9e6ff) 16%, transparent); color: var(--w-fg, #e9e6ff); font-style: inherit; font-variant: inherit; font-weight: inherit; font-stretch: inherit; line-height: inherit; font-family: inherit; font-optical-sizing: inherit; font-size-adjust: inherit; font-kerning: inherit; font-feature-settings: inherit; font-variation-settings: inherit; font-language-override: inherit; font-size: 22px; cursor: pointer; }
+.row .today { padding: 0px 20px; border-radius: 999px; background: var(--w-accent, #ffc857); color: var(--w-on-accent, #0b1030); font-size: 17px; font-style: italic; font-weight: 700; }
+.row .hemi { font-size: 15px; font-style: italic; font-weight: 700; }
+.dial:focus-visible, button:focus-visible { outline: 3px solid var(--w-accent, #ffc857); outline-offset: 3px; }
+@media (prefers-reduced-motion: no-preference) {
+  .disc::before { transition: inset 0.5s, background 0.5s; }
+  .hand { transition: transform 0.3s; }
+  .disc { transition: background 0.5s; }
+}</style><div class="sky"><div class="dial" role="slider" tabindex="0" aria-label="Day of the lunar month" aria-valuemin="1" aria-valuemax="29" aria-valuenow="8" aria-valuetext="First quarter, day 8 of 29" style="--turn: 86.89655172413794deg;"><div class="ticks"></div><div class="past"></div><div class="ring"></div><div class="disc" style="--left: #171a45; --right: #fff4cf; --inset: 48.29323824724733%; --ellipse: #fff4cf;"></div><div class="hand"></div></div><div class="name">First quarter</div><div class="day">day 8 of 29 · 52% lit · approximate</div><div class="row"><button type="button" aria-label="Previous day">‹</button><button type="button" class="today">Today</button><button type="button" aria-label="Next day">›</button><button type="button" class="hemi" aria-label="Hemisphere, now northern">N</button></div></div></template></moon-dial>
+          </div>
+        </div>
+        <footer>Pan &amp; Co. · 14 Marsh Street · open Tue to Sun, 7 to 15</footer>
+      </div>
+    </section>
+
+    <section class="frame" id="terminal">
+      <div class="bar">
+        <b>terminal</b><span>Kiln Control, an ops dashboard · dark slate and indigo · feed-lamp, moon-dial</span>
+      </div>
+      <div class="page h-terminal">
+        <aside>
+          <b>Kiln Control</b>
+          <a class="on" href="#terminal">Overview</a><a href="#terminal">Kilns</a><a href="#terminal">Schedules</a><a href="#terminal">Alerts</a><a href="#terminal">Settings</a>
+        </aside>
+        <main>
+          <div class="top">
+            <h1>Overview</h1>
+            <input type="search" placeholder="Search kilns" aria-label="Search kilns">
+            <button type="button">New firing</button>
+          </div>
+          <div class="chips">
+            <span>3 kilns online</span><span>Next firing 06:00</span><span>Studio B</span>
+          </div>
+          <div class="grid">
+            <div class="card">
+              <h2>Kiln 2 feed</h2>
+              <p>Reads the status file the kiln writes; every failure has its own state.</p>
+              <feed-lamp src="data/kiln.json"><template shadowrootmode="open"><style>:host { all: initial; }
+:host([hidden]) { display: none; }
+[hidden] { display: none !important; }
+:host { display: block; max-width: 24rem; font-family: var(--w-font, ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace); }
+.plate { position: relative; box-sizing: border-box; padding: 18px 16px 6px; border-radius: var(--w-radius, 10px); background: radial-gradient(circle at 10px 10px, #9ca3af 0 2.5px, #e5e7eb 3px 4.5px, transparent 5px),
+      radial-gradient(circle at calc(100% - 10px) 10px, #9ca3af 0 2.5px, #e5e7eb 3px 4.5px, transparent 5px),
+      radial-gradient(150px 120px at 64px 74px, color-mix(in srgb, var(--l) 34%, transparent), transparent 70%),
+      linear-gradient(var(--w-bg, #ffffff), color-mix(in srgb, var(--w-bg, #ffffff) 92%, #9ca3af) 45%, color-mix(in srgb, var(--w-bg, #ffffff) 86%, #9ca3af)); box-shadow: rgb(255, 255, 255) 0px 1px 0px inset, rgb(209, 213, 219) 0px -2px 0px inset, rgba(17, 24, 39, 0.14) 0px 8px 20px; color: var(--w-fg, #111827); }
+.plate[data-lamp="ok"] { --l: #19c37d; --hi: #9bffcb; --lo: #0a8a55; }
+.plate[data-lamp="wait"] { --l: #ffb020; --hi: #ffe2a3; --lo: #b36b00; }
+.plate[data-lamp="fail"] { --l: #ff4d4f; --hi: #ffb3b4; --lo: #b01618; }
+.plate[data-lamp="odd"] { --l: #c026d3; --hi: #f0abfc; --lo: #86198f; }
+.plate[data-lamp="idle"] { --l: #9ca3af; --hi: #e5e7eb; --lo: #6b7280; }
+.body { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 18px; padding: 8px 6px 14px; }
+.lamp { width: 92px; height: 92px; border-radius: 50%; background: radial-gradient(circle at 34% 28%, #ffffff 0 5%, rgba(255, 255, 255, 0) 22%), radial-gradient(circle at 50% 42%, var(--hi), var(--l) 48%, var(--lo)); box-shadow: 0 0 0 6px #d1d5db, 0 0 0 8px #ffffff, 0 2px 0 9px #b6bbc4, 0 14px 30px color-mix(in srgb, var(--l) 70%, transparent), inset 0 -10px 14px rgba(0, 0, 0, 0.22); }
+.state { padding-inline-end: 44px; font-size: 17px; font-weight: 700; line-height: 1.2; }
+.meta { margin-top: 6px; font-size: 12.5px; line-height: 1.5; color: color-mix(in srgb, var(--w-fg, #111827) 75%, var(--w-bg, #ffffff)); overflow-wrap: anywhere; }
+.tabs { display: flex; align-items: flex-end; gap: 2px; border-top: 2px solid rgb(209, 213, 219); }
+.tabs button { flex: 1 1 0%; min-width: 0px; min-height: 44px; margin-top: -2px; padding: 0px 2px; border-width: 4px 0px 0px; border-style: solid none none; border-color: transparent currentcolor currentcolor; border-image: none; background: none; color: color-mix(in srgb, var(--w-fg, #111827) 75%, var(--w-bg, #ffffff)); font-style: inherit; font-variant: inherit; font-stretch: inherit; line-height: inherit; font-family: inherit; font-optical-sizing: inherit; font-size-adjust: inherit; font-kerning: inherit; font-feature-settings: inherit; font-variation-settings: inherit; font-language-override: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.tabs button[aria-selected="true"] { border-top-color: var(--l); color: var(--w-fg, #111827); font-weight: 700; }
+.refresh { position: absolute; top: 14px; inset-inline-end: 26px; width: 40px; height: 40px; padding: 0px; border: 0px; border-radius: 50%; background: linear-gradient(color-mix(in srgb, var(--w-fg, #111827) 4%, var(--w-bg, #ffffff)), color-mix(in srgb, var(--w-fg, #111827) 14%, var(--w-bg, #ffffff))); box-shadow: 0 2px 5px rgba(17, 24, 39, 0.25), inset 0 1px 0 color-mix(in srgb, var(--w-fg, #111827) 6%, var(--w-bg, #ffffff)); color: var(--w-fg, #111827); font-style: inherit; font-variant: inherit; font-weight: inherit; font-stretch: inherit; line-height: inherit; font-family: inherit; font-optical-sizing: inherit; font-size-adjust: inherit; font-kerning: inherit; font-feature-settings: inherit; font-variation-settings: inherit; font-language-override: inherit; font-size: 19px; cursor: pointer; }
+button:focus-visible { outline: 3px solid var(--w-fg, #111827); outline-offset: 2px; }
+@media (prefers-reduced-motion: no-preference) {
+  .plate[data-lamp="wait"] .lamp { animation: 2.4s ease-in-out 0s infinite normal none running breathe; }
+  @keyframes breathe { 
+  50% { filter: brightness(0.8) saturate(0.8); }
+}
+}</style><div class="plate" data-lamp="ok"><button type="button" class="refresh" aria-label="Refresh">↻</button><div class="body" id="panel" role="tabpanel"><div class="lamp" role="img" aria-label="Lamp: green"></div><div><div class="state" role="status">Kiln is done</div><div class="meta">fired at 14:20 · 200 · attempt 1 of 3</div></div></div></div></template></feed-lamp>
+            </div>
+            <div class="card">
+              <h2>Firing calendar</h2>
+              <p>Glaze firings follow the lunar month in this studio. Approximate.</p>
+              <moon-dial date="2026-11-24" hemisphere="north"><template shadowrootmode="open"><style>:host { all: initial; }
+:host([hidden]) { display: none; }
+[hidden] { display: none !important; }
+:host { display: block; max-width: 22rem; font-family: var(--w-font, 'Iowan Old Style', 'Palatino Linotype', Palatino, 'URW Palladio L', P052, 'Book Antiqua', serif); }
+.sky { box-sizing: border-box; padding: 20px 18px 18px; border-radius: 36px; background: radial-gradient(80% 60% at 20% 0, #3b1e73 0, transparent 70%),
+      radial-gradient(70% 55% at 100% 100%, #1b2a6b 0, transparent 70%),
+      radial-gradient(1.2px 1.2px at 12% 22%, #fff 99%, transparent),
+      radial-gradient(1.4px 1.4px at 84% 14%, #fff 99%, transparent),
+      radial-gradient(1px 1px at 68% 42%, #fff 99%, transparent),
+      radial-gradient(1.3px 1.3px at 24% 62%, #fff 99%, transparent),
+      radial-gradient(1px 1px at 92% 58%, #fff 99%, transparent),
+      radial-gradient(1.2px 1.2px at 42% 8%, #fff 99%, transparent),
+      var(--w-bg, #0b1030); color: var(--w-fg, #e9e6ff); text-align: center; }
+.dial { position: relative; width: min(214px, 100%); aspect-ratio: 1 / 1; margin: 0px auto; border-radius: 50%; touch-action: none; cursor: pointer; }
+.ticks, .past, .ring { position: absolute; inset: 0px; border-radius: 50%; }
+.ring { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--w-fg, #e9e6ff) 55%, transparent); }
+@supports ((mask: radial-gradient(closest-side, transparent 88%, #000 89%)) or (-webkit-mask: radial-gradient(closest-side, transparent 88%, #000 89%))) {
+  .ring { display: none; }
+  .ticks { background: repeating-conic-gradient(from -1.2deg, color-mix(in srgb, var(--w-fg, #e9e6ff) 70%, transparent) 0 2.4deg, transparent 2.4deg 12.4138deg); mask: radial-gradient(closest-side, transparent 88%, rgb(0, 0, 0) 89%); }
+  .past { background: conic-gradient(var(--w-accent, #ffc857) 0 var(--turn, 0deg), transparent var(--turn, 0deg)); mask: radial-gradient(closest-side, transparent 93%, rgb(0, 0, 0) 94%); }
+}
+.hand { position: absolute; inset: 0px; transform: rotate(var(--turn, 0deg)); }
+.hand::before { content: ""; position: absolute; top: -5px; left: 50%; width: 24px; height: 24px; margin-left: -12px; border-radius: 50%; background: var(--w-accent, #ffc857); box-shadow: 0 0 0 4px var(--w-bg, #0b1030), 0 0 18px var(--w-accent, #ffc857); }
+.disc { position: absolute; inset: 16%; border-radius: 50%; overflow: hidden; background: linear-gradient(90deg, var(--left, #171a45) 50%, var(--right, #fff4cf) 50%); box-shadow: rgba(255, 244, 207, 0.45) 0px 0px 44px; }
+.disc::before { content: ""; position: absolute; inset: 0 var(--inset, 20%); border-radius: 50%; background: var(--ellipse, #fff4cf); }
+.disc::after { content: ""; position: absolute; inset: 0px; border-radius: 50%; background: radial-gradient(circle at 30% 28%, rgba(170, 145, 80, 0.4) 0px, rgba(170, 145, 80, 0.4) 7%, transparent 8%), radial-gradient(circle at 48% 64%, rgba(170, 145, 80, 0.32) 0px, rgba(170, 145, 80, 0.32) 10%, transparent 11%), radial-gradient(circle at 22% 60%, rgba(170, 145, 80, 0.28) 0px, rgba(170, 145, 80, 0.28) 5%, transparent 6%), radial-gradient(circle at 56% 30%, rgba(170, 145, 80, 0.25) 0px, rgba(170, 145, 80, 0.25) 4%, transparent 5%), radial-gradient(circle at 30% 26%, rgba(255, 255, 255, 0.55), transparent 55%); }
+.name { margin-top: 12px; font-size: 28px; font-style: italic; line-height: 1.1; }
+.day { margin-top: 2px; font-size: 16px; font-style: italic; color: color-mix(in srgb, var(--w-fg, #e9e6ff) 86%, var(--w-bg, #0b1030)); }
+.row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 14px; }
+.row button { min-width: 44px; height: 44px; padding: 0px; border: 0px; border-radius: 50%; background: color-mix(in srgb, var(--w-fg, #e9e6ff) 16%, transparent); color: var(--w-fg, #e9e6ff); font-style: inherit; font-variant: inherit; font-weight: inherit; font-stretch: inherit; line-height: inherit; font-family: inherit; font-optical-sizing: inherit; font-size-adjust: inherit; font-kerning: inherit; font-feature-settings: inherit; font-variation-settings: inherit; font-language-override: inherit; font-size: 22px; cursor: pointer; }
+.row .today { padding: 0px 20px; border-radius: 999px; background: var(--w-accent, #ffc857); color: var(--w-on-accent, #0b1030); font-size: 17px; font-style: italic; font-weight: 700; }
+.row .hemi { font-size: 15px; font-style: italic; font-weight: 700; }
+.dial:focus-visible, button:focus-visible { outline: 3px solid var(--w-accent, #ffc857); outline-offset: 3px; }
+@media (prefers-reduced-motion: no-preference) {
+  .disc::before { transition: inset 0.5s, background 0.5s; }
+  .hand { transition: transform 0.3s; }
+  .disc { transition: background 0.5s; }
+}</style><div class="sky"><div class="dial" role="slider" tabindex="0" aria-label="Day of the lunar month" aria-valuemin="1" aria-valuemax="29" aria-valuenow="15" aria-valuetext="Full moon, day 15 of 29" style="--turn: 173.79310344827587deg;"><div class="ticks"></div><div class="past"></div><div class="ring"></div><div class="disc" style="--left: #171a45; --right: #fff4cf; --inset: 0.05585915903563721%; --ellipse: #fff4cf;"></div><div class="hand"></div></div><div class="name">Full moon</div><div class="day">day 15 of 29 · 100% lit · approximate</div><div class="row"><button type="button" aria-label="Previous day">‹</button><button type="button" class="today">Today</button><button type="button" aria-label="Next day">›</button><button type="button" class="hemi" aria-label="Hemisphere, now northern">N</button></div></div></template></moon-dial>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Kiln</th>
+                <th>Event</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>14:20</td>
+                <td>Kiln 2</td>
+                <td>Firing done, cooling</td>
+              </tr>
+              <tr>
+                <td>11:05</td>
+                <td>Kiln 1</td>
+                <td>Door opened</td>
+              </tr>
+              <tr>
+                <td>06:00</td>
+                <td>Kiln 2</td>
+                <td>Firing started</td>
+              </tr>
+            </tbody>
+          </table>
+        </main>
+      </div>
+    </section>
+
+    <section class="frame" id="zine">
+      <div class="bar">
+        <b>zine</b><span>Offcut, an independent magazine · black type and one red · print-quote, proof-clock</span>
+      </div>
+      <div class="page h-zine">
+        <header>
+          <b>Offcut</b><span>Issue 13 · Printing, paper and the people who do both</span>
+        </header>
+        <div class="wrap">
+          <article>
+            <p class="kicker">Making things</p>
+            <h1>The last small press on Cobble Street</h1>
+            <p class="by">Words by Ines Varga · photographs by Tomas Hale · 9 minute read</p>
+            <p class="lede">
+              The shop opens at seven, when the first sheets are still warm from the dryer. Marta
+              feeds the old machine by hand, the way she has for thirty years, and the whole room
+              smells of ink and toast.
+            </p>
+            <blockquote>"A good run is one you can still afford to be wrong about."</blockquote>
+            <p>
+              Orders that used to be five thousand are now fifty. She has not raised her prices; she
+              has learned to quote them honestly, down to the stock and the second ink.
+            </p>
+          </article>
+          <aside>
+            <div>
+              <h2>Price a run of your own</h2>
+              <p>Flyers, posters or a zine. Sample prices, not an offer.</p>
+              <print-quote heading="Your zine" currency="EUR" base="1.2"><template shadowrootmode="open"><style>:host { all: initial; }
+:host([hidden]) { display: none; }
+[hidden] { display: none !important; }
+:host { display: block; max-width: 24rem; font-family: var(--w-font, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif); }
+.ticket { --y: calc(100% - 78px); --on: var(--w-on-accent, #0a1466); --soft: color-mix(in srgb, var(--w-fg, #ffffff) 86%, var(--w-bg, #1e3bff)); box-sizing: border-box; padding: 20px 20px 0px; border-radius: var(--w-radius, 22px); background: var(--w-bg, #1e3bff); color: var(--w-fg, #ffffff); box-shadow: inset 0 0 0 3px var(--w-fg, #ffffff); }
+@supports ((mask: radial-gradient(13px at 0 0, #0000 97%, #000)) or (-webkit-mask: radial-gradient(13px at 0 0, #0000 97%, #000))) {
+  .ticket { box-shadow: none; mask-image: ; -webkit-mask-position-x: ; -webkit-mask-position-y: ; mask-size: ; mask-repeat: ; mask-origin: ; mask-clip: ; mask-mode: ; mask-composite: intersect; }
+}
+.top { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 600; }
+.top span:last-child { color: var(--soft); font-weight: 500; }
+.price { display: flex; align-items: flex-start; justify-content: center; gap: 6px; margin: 2px 0px -6px; font-family: var(--w-display, Didot, 'Bodoni MT', 'Bodoni 72', 'Noto Serif Display', 'URW Palladio L', Sylfaen, serif); font-size: 112px; line-height: 1; letter-spacing: -0.02em; }
+.price sup { margin-top: 22px; font-family: inherit; font-size: 15px; font-weight: 700; letter-spacing: 0.02em; }
+.price sup { font-family: var(--w-font, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif); }
+.digits { display: flex; overflow: hidden; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.per { text-align: center; font-size: 14px; color: var(--soft); }
+.breaks { display: grid; grid-template-columns: repeat(4, minmax(0px, 1fr)); gap: 6px; margin-top: 14px; }
+.breaks button { display: grid; gap: 1px; padding: 9px 2px 8px; border: 0px; border-radius: 14px; background: var(--w-fg, #ffffff); color: var(--w-bg, #1e3bff); font: inherit; cursor: pointer; }
+.breaks b { font-family: var(--w-display, Didot, 'Bodoni MT', 'Bodoni 72', 'Noto Serif Display', 'URW Palladio L', Sylfaen, serif); font-size: 24px; font-weight: 400; line-height: 1; }
+.breaks span { font-size: 12px; font-weight: 600; }
+.breaks button[aria-checked="true"] { background: var(--w-accent, #ffe94a); color: var(--on); transform: translateY(-4px); }
+.opts { display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; align-items: center; margin: 14px 0px 16px; font-size: 14.5px; font-weight: 600; }
+.dots { display: flex; align-items: center; gap: 6px; }
+.dots button { box-sizing: border-box; width: 24px; height: 24px; padding: 0px; border: 0px; border-radius: 50% 50% 50% 4px; background: color-mix(in srgb, var(--w-fg, #ffffff) 30%, transparent); transform: rotate(-45deg); cursor: pointer; }
+.dots button.on { background: var(--w-fg, #ffffff); }
+.dots button.on.hot { background: var(--w-accent, #ffe94a); }
+.dots span { margin-inline-start: 4px; font-weight: 500; color: var(--soft); }
+.opts select { justify-self: start; box-sizing: border-box; height: 36px; padding: 0px 12px; border: 0px; border-radius: 999px; background: var(--w-fg, #ffffff); color: var(--w-bg, #1e3bff); font-style: inherit; font-variant: inherit; font-stretch: inherit; line-height: inherit; font-family: inherit; font-optical-sizing: inherit; font-size-adjust: inherit; font-kerning: inherit; font-feature-settings: inherit; font-variation-settings: inherit; font-language-override: inherit; font-size: 14px; font-weight: 600; }
+.stub { display: flex; align-items: center; height: 78px; margin: 0px -20px; padding: 0px 26px; border-top: 3px dashed var(--soft); }
+.stub button { flex: 1 1 0%; min-height: 46px; border: 0px; border-radius: 999px; background: var(--w-accent, #ffe94a); color: var(--on); font-style: inherit; font-variant: inherit; font-stretch: inherit; line-height: inherit; font-family: inherit; font-optical-sizing: inherit; font-size-adjust: inherit; font-kerning: inherit; font-feature-settings: inherit; font-variation-settings: inherit; font-language-override: inherit; font-size: 16px; font-weight: 800; cursor: pointer; }
+button:focus-visible, select:focus-visible { outline: 3px solid var(--w-fg, #ffffff); outline-offset: 3px; }
+.breaks button:focus-visible, .opts select:focus-visible { outline-color: var(--w-accent, #ffe94a); }
+@media (prefers-reduced-motion: no-preference) {
+  .d { animation: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) 0s 1 normal both running roll; }
+  .breaks button { transition: transform 0.2s, background 0.2s; }
+  @keyframes roll { 
+  0% { transform: translateY(-0.6em); opacity: 0; }
+}
+}</style><div class="ticket"><div class="top"><span>Your zine</span><span>Print-run quote</span></div><div class="price"><sup>EUR</sup><span class="digits" aria-hidden="true"><!----><span class="d" style="--i: 0;">1</span><span class="d" style="--i: 1;">2</span><span class="d" style="--i: 2;">0</span><!----></span><span class="sr">€120.00</span></div><div class="per">€1.20 a copy · two inks · 120 g</div><div class="breaks" role="radiogroup" aria-label="Copies"><button type="button" role="radio" aria-checked="false" tabindex="-1"><b>50</b><span>1.56</span></button><button type="button" role="radio" aria-checked="true" tabindex="0"><b>100</b><span>1.20</span></button><button type="button" role="radio" aria-checked="false" tabindex="-1"><b>250</b><span>0.72</span></button><button type="button" role="radio" aria-checked="false" tabindex="-1"><b>500</b><span>0.56</span></button></div><div class="opts"><span>Inks</span><div class="dots" role="radiogroup" aria-label="Inks"><button type="button" role="radio" aria-label="One ink" aria-checked="false" tabindex="-1" class="on"></button><button type="button" role="radio" aria-label="Two inks" aria-checked="true" tabindex="0" class="on hot"></button><button type="button" role="radio" aria-label="Three inks" aria-checked="false" tabindex="-1"></button><span>two inks</span></div><span>Stock</span><select aria-label="Stock"><option value="0">90 g uncoated</option><option value="1" selected="">120 g uncoated</option><option value="2">170 g coated</option></select></div><div class="stub"><button type="button">Request quote</button></div></div></template></print-quote>
+            </div>
+            <div>
+              <h2>The bread schedule</h2>
+              <p>Marta's lunch loaf, worked back from the oven.</p>
+              <proof-clock label="Lunch loaf" to="2026-11-21T00:03:00"><template shadowrootmode="open"><style>:host { all: initial; }
+:host([hidden]) { display: none; }
+[hidden] { display: none !important; }
+:host { display: block; max-width: 24rem; font-family: var(--w-font, Rockwell, 'Rockwell Nova', 'Roboto Slab', 'DejaVu Serif', 'Sitka Small', serif); }
+.dough { position: relative; box-sizing: border-box; padding: 18px 18px 20px; border-radius: 32px; background: var(--w-bg, #ffd9cf); color: var(--w-fg, #3a0d2e); overflow: hidden; }
+.yolk { position: absolute; top: -24px; right: -30px; width: 150px; height: 140px; border-radius: 42% 58% 60% 40% / 55% 45%; background: rgb(255, 201, 60); }
+.name { position: relative; margin: 0px 0px 6px; font-size: 14px; font-weight: 700; }
+.blob { position: relative; display: grid; place-content: center; width: 86%; min-height: 150px; box-sizing: border-box; margin: 4px 0px 0px; padding: 18px; border-radius: 62% 38% 46% 54% / 55% 48% 52% 45%; background: var(--w-accent, #d81b60); color: var(--w-on-accent, #fff8ec); text-align: center; }
+.blob small { font-size: 16px; font-weight: 700; }
+.blob b { font-size: 40px; line-height: 1.05; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.blob span { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 13.5px; font-weight: 600; }
+ol { position: relative; display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0px 0px; padding: 0px; list-style: none; font-size: 14.5px; font-weight: 700; }
+li { padding: 6px 12px; background: rgb(255, 255, 255); border-radius: 48% 52% 55% 45% / 60% 44% 56% 40%; }
+li:nth-child(2n) { border-radius: 55% 45% 42% 58% / 46% 58% 42% 54%; }
+li.done { background: var(--w-fg, #3a0d2e); color: var(--w-on-accent, #fff8ec); }
+li.now { background: var(--w-accent, #d81b60); color: var(--w-on-accent, #fff8ec); }
+.temp { position: relative; display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 6px 10px; margin-top: 18px; font-size: 16px; font-weight: 700; }
+.temp b { font-size: 22px; color: var(--w-accent-text, #a3134a); }
+input[type="range"] { grid-column: 1 / -1; appearance: none; width: 100%; height: 30px; margin: 0px; background: none; }
+input[type="range"]::-webkit-slider-runnable-track { height: 14px; border-radius: 999px; background: linear-gradient(90deg, var(--w-accent, #d81b60) 0 var(--fill, 60%), #ffffff var(--fill, 60%)); }
+input[type="range"]::-webkit-slider-thumb { appearance: none; width: 32px; height: 30px; margin-top: -8px; box-sizing: border-box; border: 5px solid rgb(255, 255, 255); border-radius: 58% 42% 50% 50% / 50% 46% 54% 50%; background: var(--w-fg, #3a0d2e); }
+input:focus-visible { outline: 3px solid var(--w-fg, #3a0d2e); outline-offset: 3px; }
+@media (prefers-reduced-motion: no-preference) {
+  .blob { scale: calc(1 + var(--rise, 0) * 0.015); transition: scale 0.8s; animation: 5s ease-in-out 0s infinite alternate none running rise; }
+  @keyframes rise { 
+  100% { border-radius: 48% 52% 58% 42% / 46% 58% 42% 54%; transform: scale(1.03); }
+}
+  li { transition: background 0.4s, color 0.4s; }
+}</style><div class="dough"><div class="yolk" aria-hidden="true"></div><div class="name">Lunch loaf</div><div class="blob" style="--rise: 1;"><small>Bulk</small><b role="timer">02:59:30</b><span>loaf out at 12:03 AM</span></div><ol aria-label="Stages"><li class="done">Autolyse</li><li class="now" aria-current="step">Bulk</li><li>Shape</li><li>Proof</li><li>Bake</li></ol><label class="temp"><span>Kitchen</span><b>24 °C</b><input type="range" min="16" max="30" aria-label="Kitchen temperature" style="--fill: 57.14285714285714%;"></label></div></template></proof-clock>
+            </div>
+            <button type="button">Subscribe to Offcut</button>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="frame" id="kids">
+      <div class="bar">
+        <b>kids</b><span>Tinker Lab, a children's museum · sky blue and sunshine · row-counter, feed-lamp,
+          print-quote</span>
+      </div>
+      <div class="page h-kids">
+        <nav>
+          <b>Tinker Lab</b><a href="#kids">Visit</a><a href="#kids">Exhibits</a><a href="#kids">Birthdays</a>
+        </nav>
+        <div class="hero">
+          <h1>Touch everything!</h1>
+          <p>Gears, robots and a very tall slide. Open every day, for every size of explorer.</p>
+          <button type="button">Plan your visit</button>
+        </div>
+        <div class="row">
+          <div class="cell">
+            <h2>Stairs climbed</h2>
+            <p>Tap once for every step of the Giant Staircase. Your count stays for next time.</p>
+            <row-counter pattern="Giant staircase" repeat="10"><template shadowrootmode="open"><style>:host { all: initial; }
+:host([hidden]) { display: none; }
+[hidden] { display: none !important; }
+:host { display: block; max-width: 20rem; font-family: var(--w-font, ui-rounded, 'SF Pro Rounded', 'Arial Rounded MT Bold', 'Hiragino Maru Gothic ProN', Quicksand, Comfortaa, Manjari, Calibri, sans-serif); }
+.rows { --k: rgba(255, 255, 255, 0.16); --lip: color-mix(in srgb, var(--w-fg, #06302c) 55%, var(--w-bg, #12b5a6)); box-sizing: border-box; padding: 16px 18px 20px; border-radius: 30px; background: linear-gradient(135deg, var(--k) 25%, transparent 25%) -10px 0 / 20px 20px,
+      linear-gradient(225deg, var(--k) 25%, transparent 25%) -10px 0 / 20px 20px,
+      linear-gradient(315deg, var(--k) 25%, transparent 25%) 0 0 / 20px 20px,
+      linear-gradient(45deg, var(--k) 25%, transparent 25%) 0 0 / 20px 20px,
+      var(--w-bg, #12b5a6); color: var(--w-fg, #06302c); text-align: center; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 15.5px; font-weight: 800; text-align: start; }
+.undo { flex: 0 0 auto; width: 44px; height: 44px; padding: 0px; border: 0px; border-radius: 50%; background: rgb(255, 249, 238); color: var(--w-fg, #06302c); font-style: inherit; font-variant: inherit; font-stretch: inherit; line-height: inherit; font-family: inherit; font-optical-sizing: inherit; font-size-adjust: inherit; font-kerning: inherit; font-feature-settings: inherit; font-variation-settings: inherit; font-language-override: inherit; font-size: 22px; font-weight: 900; box-shadow: 0 4px 0 var(--lip); cursor: pointer; }
+.big { position: relative; display: grid; place-content: center; width: min(172px, 100%); aspect-ratio: 1 / 1; margin: 6px auto 0px; padding: 0px; border: 0px; border-radius: 50%; background: rgb(255, 249, 238); color: var(--w-fg, #06302c); font: inherit; cursor: pointer; box-shadow: 0 10px 0 var(--lip), 0 22px 26px rgba(4, 60, 54, 0.4); }
+.big::before { content: ""; position: absolute; inset: 10px; border: 3px dashed var(--w-accent, #ff6b57); border-radius: 50%; }
+.big b { font-size: 76px; font-weight: 900; line-height: 0.95; letter-spacing: -0.03em; }
+.big span { font-size: 16px; font-weight: 800; }
+.repeat { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 28px 0px 8px; }
+.repeat i { box-sizing: border-box; width: 20px; height: 20px; border-radius: 50%; background: rgba(255, 249, 238, 0.5); }
+.repeat i.on { background: rgb(255, 249, 238); box-shadow: inset 0 0 0 5px var(--w-accent, #ff6b57); }
+.next { font-size: 16px; font-weight: 800; }
+button:focus-visible { outline: 3px solid var(--w-fg, #06302c); outline-offset: 4px; }
+@media (prefers-reduced-motion: no-preference) {
+  .big { transition: transform 0.35s cubic-bezier(0.34, 1.9, 0.5, 1), box-shadow 0.35s cubic-bezier(0.34, 1.9, 0.5, 1); }
+  .big:active { transform: translateY(8px); box-shadow: 0 2px 0 var(--lip), 0 8px 12px rgba(4, 60, 54, 0.4); }
+}</style><div class="rows"><div class="top"><span>Giant staircase</span><button type="button" class="undo" aria-label="Undo one row">↩</button></div><button type="button" class="big" aria-label="Add a row, now row 14"><b>14</b><span>tap for a row</span></button><div class="repeat" role="img" aria-label="Row 4 of a repeat of 10"><!----><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><!----></div><div class="next">Repeat 2 · next starts at row 21</div><!----></div></template></row-counter>
+          </div>
+          <div class="cell">
+            <h2>Is the robot awake?</h2>
+            <p>Our robot posts how it feels. Try the four sample feeds.</p>
+            <feed-lamp feeds="ok=data/kiln.json, slow=data/kiln.json#lag=3000, missing=data/none.json, malformed=data/broken.txt"><template shadowrootmode="open"><style>:host { all: initial; }
+:host([hidden]) { display: none; }
+[hidden] { display: none !important; }
+:host { display: block; max-width: 24rem; font-family: var(--w-font, ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace); }
+.plate { position: relative; box-sizing: border-box; padding: 18px 16px 6px; border-radius: var(--w-radius, 10px); background: radial-gradient(circle at 10px 10px, #9ca3af 0 2.5px, #e5e7eb 3px 4.5px, transparent 5px),
+      radial-gradient(circle at calc(100% - 10px) 10px, #9ca3af 0 2.5px, #e5e7eb 3px 4.5px, transparent 5px),
+      radial-gradient(150px 120px at 64px 74px, color-mix(in srgb, var(--l) 34%, transparent), transparent 70%),
+      linear-gradient(var(--w-bg, #ffffff), color-mix(in srgb, var(--w-bg, #ffffff) 92%, #9ca3af) 45%, color-mix(in srgb, var(--w-bg, #ffffff) 86%, #9ca3af)); box-shadow: rgb(255, 255, 255) 0px 1px 0px inset, rgb(209, 213, 219) 0px -2px 0px inset, rgba(17, 24, 39, 0.14) 0px 8px 20px; color: var(--w-fg, #111827); }
+.plate[data-lamp="ok"] { --l: #19c37d; --hi: #9bffcb; --lo: #0a8a55; }
+.plate[data-lamp="wait"] { --l: #ffb020; --hi: #ffe2a3; --lo: #b36b00; }
+.plate[data-lamp="fail"] { --l: #ff4d4f; --hi: #ffb3b4; --lo: #b01618; }
+.plate[data-lamp="odd"] { --l: #c026d3; --hi: #f0abfc; --lo: #86198f; }
+.plate[data-lamp="idle"] { --l: #9ca3af; --hi: #e5e7eb; --lo: #6b7280; }
+.body { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 18px; padding: 8px 6px 14px; }
+.lamp { width: 92px; height: 92px; border-radius: 50%; background: radial-gradient(circle at 34% 28%, #ffffff 0 5%, rgba(255, 255, 255, 0) 22%), radial-gradient(circle at 50% 42%, var(--hi), var(--l) 48%, var(--lo)); box-shadow: 0 0 0 6px #d1d5db, 0 0 0 8px #ffffff, 0 2px 0 9px #b6bbc4, 0 14px 30px color-mix(in srgb, var(--l) 70%, transparent), inset 0 -10px 14px rgba(0, 0, 0, 0.22); }
+.state { padding-inline-end: 44px; font-size: 17px; font-weight: 700; line-height: 1.2; }
+.meta { margin-top: 6px; font-size: 12.5px; line-height: 1.5; color: color-mix(in srgb, var(--w-fg, #111827) 75%, var(--w-bg, #ffffff)); overflow-wrap: anywhere; }
+.tabs { display: flex; align-items: flex-end; gap: 2px; border-top: 2px solid rgb(209, 213, 219); }
+.tabs button { flex: 1 1 0%; min-width: 0px; min-height: 44px; margin-top: -2px; padding: 0px 2px; border-width: 4px 0px 0px; border-style: solid none none; border-color: transparent currentcolor currentcolor; border-image: none; background: none; color: color-mix(in srgb, var(--w-fg, #111827) 75%, var(--w-bg, #ffffff)); font-style: inherit; font-variant: inherit; font-stretch: inherit; line-height: inherit; font-family: inherit; font-optical-sizing: inherit; font-size-adjust: inherit; font-kerning: inherit; font-feature-settings: inherit; font-variation-settings: inherit; font-language-override: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.tabs button[aria-selected="true"] { border-top-color: var(--l); color: var(--w-fg, #111827); font-weight: 700; }
+.refresh { position: absolute; top: 14px; inset-inline-end: 26px; width: 40px; height: 40px; padding: 0px; border: 0px; border-radius: 50%; background: linear-gradient(color-mix(in srgb, var(--w-fg, #111827) 4%, var(--w-bg, #ffffff)), color-mix(in srgb, var(--w-fg, #111827) 14%, var(--w-bg, #ffffff))); box-shadow: 0 2px 5px rgba(17, 24, 39, 0.25), inset 0 1px 0 color-mix(in srgb, var(--w-fg, #111827) 6%, var(--w-bg, #ffffff)); color: var(--w-fg, #111827); font-style: inherit; font-variant: inherit; font-weight: inherit; font-stretch: inherit; line-height: inherit; font-family: inherit; font-optical-sizing: inherit; font-size-adjust: inherit; font-kerning: inherit; font-feature-settings: inherit; font-variation-settings: inherit; font-language-override: inherit; font-size: 19px; cursor: pointer; }
+button:focus-visible { outline: 3px solid var(--w-fg, #111827); outline-offset: 2px; }
+@media (prefers-reduced-motion: no-preference) {
+  .plate[data-lamp="wait"] .lamp { animation: 2.4s ease-in-out 0s infinite normal none running breathe; }
+  @keyframes breathe { 
+  50% { filter: brightness(0.8) saturate(0.8); }
+}
+}</style><div class="plate" data-lamp="ok"><button type="button" class="refresh" aria-label="Refresh">↻</button><div class="body" id="panel" role="tabpanel"><div class="lamp" role="img" aria-label="Lamp: green"></div><div><div class="state" role="status">Kiln is done</div><div class="meta">fired at 14:20 · 200 · attempt 1 of 3</div></div></div><div class="tabs" role="tablist" aria-label="Feed"><button type="button" role="tab" aria-selected="true" aria-controls="panel" tabindex="0">ok</button><button type="button" role="tab" aria-selected="false" aria-controls="panel" tabindex="-1">slow</button><button type="button" role="tab" aria-selected="false" aria-controls="panel" tabindex="-1">missing</button><button type="button" role="tab" aria-selected="false" aria-controls="panel" tabindex="-1">malformed</button></div><!----></div></template></feed-lamp>
+          </div>
+          <div class="cell">
+            <h2>Print a class poster</h2>
+            <p>School trip posters at cost. Sample prices, pick a stack.</p>
+            <print-quote heading="Class poster" currency="EUR" base="0.9"><template shadowrootmode="open"><style>:host { all: initial; }
+:host([hidden]) { display: none; }
+[hidden] { display: none !important; }
+:host { display: block; max-width: 24rem; font-family: var(--w-font, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif); }
+.ticket { --y: calc(100% - 78px); --on: var(--w-on-accent, #0a1466); --soft: color-mix(in srgb, var(--w-fg, #ffffff) 86%, var(--w-bg, #1e3bff)); box-sizing: border-box; padding: 20px 20px 0px; border-radius: var(--w-radius, 22px); background: var(--w-bg, #1e3bff); color: var(--w-fg, #ffffff); box-shadow: inset 0 0 0 3px var(--w-fg, #ffffff); }
+@supports ((mask: radial-gradient(13px at 0 0, #0000 97%, #000)) or (-webkit-mask: radial-gradient(13px at 0 0, #0000 97%, #000))) {
+  .ticket { box-shadow: none; mask-image: ; -webkit-mask-position-x: ; -webkit-mask-position-y: ; mask-size: ; mask-repeat: ; mask-origin: ; mask-clip: ; mask-mode: ; mask-composite: intersect; }
+}
+.top { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 600; }
+.top span:last-child { color: var(--soft); font-weight: 500; }
+.price { display: flex; align-items: flex-start; justify-content: center; gap: 6px; margin: 2px 0px -6px; font-family: var(--w-display, Didot, 'Bodoni MT', 'Bodoni 72', 'Noto Serif Display', 'URW Palladio L', Sylfaen, serif); font-size: 112px; line-height: 1; letter-spacing: -0.02em; }
+.price sup { margin-top: 22px; font-family: inherit; font-size: 15px; font-weight: 700; letter-spacing: 0.02em; }
+.price sup { font-family: var(--w-font, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif); }
+.digits { display: flex; overflow: hidden; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.per { text-align: center; font-size: 14px; color: var(--soft); }
+.breaks { display: grid; grid-template-columns: repeat(4, minmax(0px, 1fr)); gap: 6px; margin-top: 14px; }
+.breaks button { display: grid; gap: 1px; padding: 9px 2px 8px; border: 0px; border-radius: 14px; background: var(--w-fg, #ffffff); color: var(--w-bg, #1e3bff); font: inherit; cursor: pointer; }
+.breaks b { font-family: var(--w-display, Didot, 'Bodoni MT', 'Bodoni 72', 'Noto Serif Display', 'URW Palladio L', Sylfaen, serif); font-size: 24px; font-weight: 400; line-height: 1; }
+.breaks span { font-size: 12px; font-weight: 600; }
+.breaks button[aria-checked="true"] { background: var(--w-accent, #ffe94a); color: var(--on); transform: translateY(-4px); }
+.opts { display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; align-items: center; margin: 14px 0px 16px; font-size: 14.5px; font-weight: 600; }
+.dots { display: flex; align-items: center; gap: 6px; }
+.dots button { box-sizing: border-box; width: 24px; height: 24px; padding: 0px; border: 0px; border-radius: 50% 50% 50% 4px; background: color-mix(in srgb, var(--w-fg, #ffffff) 30%, transparent); transform: rotate(-45deg); cursor: pointer; }
+.dots button.on { background: var(--w-fg, #ffffff); }
+.dots button.on.hot { background: var(--w-accent, #ffe94a); }
+.dots span { margin-inline-start: 4px; font-weight: 500; color: var(--soft); }
+.opts select { justify-self: start; box-sizing: border-box; height: 36px; padding: 0px 12px; border: 0px; border-radius: 999px; background: var(--w-fg, #ffffff); color: var(--w-bg, #1e3bff); font-style: inherit; font-variant: inherit; font-stretch: inherit; line-height: inherit; font-family: inherit; font-optical-sizing: inherit; font-size-adjust: inherit; font-kerning: inherit; font-feature-settings: inherit; font-variation-settings: inherit; font-language-override: inherit; font-size: 14px; font-weight: 600; }
+.stub { display: flex; align-items: center; height: 78px; margin: 0px -20px; padding: 0px 26px; border-top: 3px dashed var(--soft); }
+.stub button { flex: 1 1 0%; min-height: 46px; border: 0px; border-radius: 999px; background: var(--w-accent, #ffe94a); color: var(--on); font-style: inherit; font-variant: inherit; font-stretch: inherit; line-height: inherit; font-family: inherit; font-optical-sizing: inherit; font-size-adjust: inherit; font-kerning: inherit; font-feature-settings: inherit; font-variation-settings: inherit; font-language-override: inherit; font-size: 16px; font-weight: 800; cursor: pointer; }
+button:focus-visible, select:focus-visible { outline: 3px solid var(--w-fg, #ffffff); outline-offset: 3px; }
+.breaks button:focus-visible, .opts select:focus-visible { outline-color: var(--w-accent, #ffe94a); }
+@media (prefers-reduced-motion: no-preference) {
+  .d { animation: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) 0s 1 normal both running roll; }
+  .breaks button { transition: transform 0.2s, background 0.2s; }
+  @keyframes roll { 
+  0% { transform: translateY(-0.6em); opacity: 0; }
+}
+}</style><div class="ticket"><div class="top"><span>Class poster</span><span>Print-run quote</span></div><div class="price"><sup>EUR</sup><span class="digits" aria-hidden="true"><!----><span class="d" style="--i: 0;">9</span><span class="d" style="--i: 1;">0</span><!----></span><span class="sr">€90.00</span></div><div class="per">€0.90 a copy · two inks · 120 g</div><div class="breaks" role="radiogroup" aria-label="Copies"><button type="button" role="radio" aria-checked="false" tabindex="-1"><b>50</b><span>1.17</span></button><button type="button" role="radio" aria-checked="true" tabindex="0"><b>100</b><span>0.90</span></button><button type="button" role="radio" aria-checked="false" tabindex="-1"><b>250</b><span>0.54</span></button><button type="button" role="radio" aria-checked="false" tabindex="-1"><b>500</b><span>0.42</span></button></div><div class="opts"><span>Inks</span><div class="dots" role="radiogroup" aria-label="Inks"><button type="button" role="radio" aria-label="One ink" aria-checked="false" tabindex="-1" class="on"></button><button type="button" role="radio" aria-label="Two inks" aria-checked="true" tabindex="0" class="on hot"></button><button type="button" role="radio" aria-label="Three inks" aria-checked="false" tabindex="-1"></button><span>two inks</span></div><span>Stock</span><select aria-label="Stock"><option value="0">90 g uncoated</option><option value="1" selected="">120 g uncoated</option><option value="2">170 g coated</option></select></div><div class="stub"><button type="button">Request quote</button></div></div></template></print-quote>
+          </div>
+        </div>
+      </div>
+    </section>
+  
+
+</body></html>

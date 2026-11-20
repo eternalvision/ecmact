@@ -81,6 +81,17 @@ describe('scrollToHash', () => {
     expect(document.activeElement).toBe(target);
   });
 
+  it('passes the way to scroll on, and leaves the default alone when none is given', () => {
+    const target = document.createElement('h2');
+    target.id = 'way';
+    document.body.append(target);
+    const scroll = vi.spyOn(target, 'scrollIntoView');
+    scrollToHash('/x#way', 'instant');
+    expect(scroll).toHaveBeenLastCalledWith({ behavior: 'instant' });
+    scrollToHash('/x#way');
+    expect(scroll).toHaveBeenLastCalledWith(undefined);
+  });
+
   it('does nothing for an address without a hash, with an empty one or with an unknown one', () => {
     const scroll = vi.spyOn(Element.prototype, 'scrollIntoView');
     expect(scrollToHash('/docs/signals')).toBe(false);
