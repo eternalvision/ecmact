@@ -40,6 +40,30 @@ const fitted = (address: string, title: string) =>
 const code = (value: string, empty: string) => (value === '' ? empty : `\`${value}\``);
 
 /**
+ * Keeps the section that the address names in view while the page settles. The host frames above the reference grow
+ * when their pages have loaded, which would push the section down after the first scroll to it; the page scrolls
+ * to it again whenever it changes height, until the visitor scrolls or presses a key, or five seconds have passed.
+ *
+ * @param page - The page.
+ */
+const holdHash = (page: HTMLElement) => {
+  const release = new AbortController();
+  const observer = new ResizeObserver(() => {
+    scrollToHash(window.location.hash);
+  });
+  observer.observe(page);
+  /** Stops watching: the visitor has taken over, or the time is up. */
+  const stop = () => {
+    observer.disconnect();
+    release.abort();
+  };
+  ['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach((type) =>
+    window.addEventListener(type, stop, { once: true, passive: true, signal: release.signal }),
+  );
+  setTimeout(stop, 5000);
+};
+
+/**
  * The gallery of widgets: four unrelated pages that embed the widgets, each in an iframe, and the reference of
  * attributes, events and custom properties of each widget. An address with the old tag of a widget as its hash
  * opens on the widget that replaced it.
@@ -51,9 +75,15 @@ export const widgetsPage = () => {
   return main(
     {
       class: 'wrap page-simple',
-      /** Scrolls to the section that the address names, once the page is in place. */
-      ref: () => {
-        setTimeout(() => scrollToHash(window.location.hash));
+      /**
+       * Scrolls to the section that the address names, once the page is in place, and keeps it in view.
+       *
+       * @param page - The page.
+       */
+      ref: (page: HTMLElement) => {
+        setTimeout(() => {
+          if (scrollToHash(window.location.hash)) holdHash(page);
+        });
       },
     },
     h1(m.title),

@@ -3,133 +3,163 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pip &amp; Pop - a club for curious kids</title>
+    <title>Tinker Lab - a children&rsquo;s museum</title>
     <style>
-      * {
+      *,
+      *::before,
+      *::after {
         box-sizing: border-box;
       }
       body {
         margin: 0;
-        background: linear-gradient(160deg, #ffe0f0, #d9ecff 55%, #e5ffe0);
-        color: #5b3b8c;
-        font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', cursive;
-        line-height: 1.6;
       }
-      header {
-        padding: 1.6rem 1rem 0.4rem;
-        text-align: center;
+      body {
+        background: #bfe5ff;
+        color: #12234a;
+        font-family:
+          ui-rounded, 'SF Pro Rounded', 'Arial Rounded MT Bold', 'Hiragino Maru Gothic ProN',
+          Quicksand, Calibri, sans-serif;
+        line-height: 1.5;
       }
-      header h1 {
-        margin: 0;
-        font-size: clamp(2rem, 8vw, 3.4rem);
-        color: #ff4fa3;
-        text-shadow:
-          3px 3px 0 #fff,
-          6px 6px 0 #ffd23f;
+      nav {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px 14px;
+        padding: 18px 28px;
       }
-      main {
-        max-width: 56rem;
-        margin: 0 auto;
-        padding: 1rem 1rem 3rem;
-      }
-      h2 {
-        margin: 1.6rem 0 0.6rem;
-        font-size: 1.5rem;
-        color: #3a8fe8;
-      }
-      p {
-        margin: 0 0 1rem;
-      }
-      button {
-        padding: 0.7rem 1.6rem;
-        border: 0;
+      nav b {
+        margin-right: auto;
+        padding: 6px 18px;
         border-radius: 999px;
         background: #ffd23f;
-        color: #5b3b8c;
+        font-size: 24px;
+        font-weight: 900;
+      }
+      nav a {
+        padding: 8px 16px;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #12234a;
+        font-weight: 800;
+        text-decoration: none;
+      }
+      .hero {
+        padding: 20px 28px 36px;
+      }
+      .hero h1 {
+        max-width: 13ch;
+        margin: 0 0 12px;
+        font-size: clamp(38px, 6.4vw, 76px);
+        line-height: 1;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+      }
+      .hero p {
+        max-width: 40ch;
+        margin: 0 0 20px;
+        font-size: 20px;
+        font-weight: 600;
+      }
+      button {
+        padding: 16px 30px;
+        border: 0;
+        border-radius: 999px;
+        background: #ff5d8f;
+        color: #ffffff;
         font: inherit;
-        font-weight: 700;
-        box-shadow: 0 5px 0 #e0a800;
+        font-size: 18px;
+        font-weight: 900;
+        box-shadow: 0 6px 0 #c2325f;
         cursor: pointer;
       }
-      button:active {
-        transform: translateY(3px);
-        box-shadow: 0 2px 0 #e0a800;
-      }
-      span,
-      b,
-      div,
-      input,
-      label {
-        color: #5b3b8c !important;
-      }
-      .grid {
+      .row {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
-        gap: 1.4rem;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+        gap: 22px;
         align-items: start;
+        padding: 28px 28px 44px;
+        border-radius: 48px 48px 0 0;
+        background: #fff6d6;
       }
-      .note {
-        padding: 0.8rem 1.1rem;
-        border-radius: 22px;
-        background: #fff;
-        border: 3px dashed #ff4fa3;
-        font-size: 0.95rem;
+      .cell h2 {
+        margin: 0 0 4px;
+        font-size: 24px;
+        font-weight: 900;
       }
-      feed-lamp,
-      row-counter,
-      print-quote {
-        --w-font: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', cursive;
-        --w-radius: 36px;
-        --w-accent: #c2185b;
-        --w-fg: #5b3b8c;
-        --w-bg: #fff;
-        --w-muted: #6d4fa0;
-        --w-border: #ff4fa3;
+      .cell p {
+        margin: 0 0 14px;
+        font-weight: 600;
+      }
+      row-counter {
+        --w-bg: #ff7a59;
+        --w-fg: #2a0d04;
+        --w-accent: #7b2cff;
       }
       feed-lamp {
-        --w-fg: #3b1d6a;
-        --w-muted: #3b1d6a;
-        --w-accent: #3b1d6a;
-        --w-border: #3b1d6a;
-        --w-bg: linear-gradient(160deg, #ff8ccb, #ffb86b);
+        --w-bg: #ffffff;
+        --w-fg: #12234a;
+        --w-radius: 30px;
+        --w-font: ui-rounded, 'SF Pro Rounded', 'Arial Rounded MT Bold', Calibri, sans-serif;
       }
       print-quote {
-        --w-bg: #1f5fbf;
-        --w-fg: #fff;
-        --w-muted: #e6f1ff;
-        --w-border: #fff;
+        --w-bg: #7b2cff;
+        --w-fg: #ffffff;
         --w-accent: #ffd23f;
+        --w-on-accent: #2b0a66;
+        --w-radius: 36px;
+        --w-font: ui-rounded, 'SF Pro Rounded', 'Arial Rounded MT Bold', Calibri, sans-serif;
+      }
+      span,
+      div {
+        color: #12234a !important;
+      }
+      input {
+        padding: 12px 18px;
+        border: 3px solid #12234a;
+        border-radius: 999px;
+        font: inherit;
+      }
+      @media (max-width: 760px) {
+        nav,
+        .hero,
+        .row {
+          padding-left: 18px;
+          padding-right: 18px;
+        }
       }
     </style>
   </head>
   <body>
-    <header>
-      <h1>Pip &amp; Pop</h1>
-      <p>The club for curious kids</p>
-    </header>
-    <main>
-      <p class="note">
-        A playful page with a hostile stylesheet: it paints <code>span</code>, <code>b</code>,
-        <code>div</code> and <code>input</code> purple with <code>!important</code>, and rounds
-        every button into a pill. The weather, the poll and the countdown are ECMact widgets: they
-        ignore it, and wear this page's pink and its rounded corners through custom properties.
-      </p>
-      <h2>Today at the club</h2>
-      <div class="grid">
-        <feed-lamp src="data/kiln.json"></feed-lamp>
-        <print-quote heading="Summer posters"></print-quote>
+    <nav>
+      <b>Tinker Lab</b><a href="#kids">Visit</a><a href="#kids">Exhibits</a
+      ><a href="#kids">Birthdays</a>
+    </nav>
+    <div class="hero">
+      <h1>Touch everything!</h1>
+      <p>Gears, robots and a very tall slide. Open every day, for every size of explorer.</p>
+      <button type="button">Plan your visit</button>
+    </div>
+    <div class="row">
+      <div class="cell">
+        <h2>Stairs climbed</h2>
+        <p>Tap once for every step of the Giant Staircase. Your count stays for next time.</p>
+        <row-counter pattern="Giant staircase" repeat="10"></row-counter>
       </div>
-      <h2>Vote for the mascot</h2>
-      <div class="grid">
-        <row-counter pattern="Camp scarf" repeat="6"></row-counter>
-        <p><button type="button">Join the club</button></p>
+      <div class="cell">
+        <h2>Is the robot awake?</h2>
+        <p>Our robot posts how it feels. Try the four sample feeds.</p>
+        <feed-lamp
+          feeds="ok=data/kiln.json, slow=data/kiln.json#lag=3000, missing=data/none.json, malformed=data/broken.txt"
+        ></feed-lamp>
       </div>
-    </main>
-    <script>
-      document
-        .querySelector('countdown-timer')
-        .setAttribute('to', new Date(Date.now() + 118 * 86400000).toISOString());
-    </script>
+      <div class="cell">
+        <h2>Print a class poster</h2>
+        <p>School trip posters at cost. Sample prices, pick a stack.</p>
+        <print-quote heading="Class poster" currency="EUR" base="0.9"></print-quote>
+      </div>
+    </div>
+
     <script src="../embed/ecmact-widgets.js"></script>
   </body>
 </html>

@@ -3,135 +3,170 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Maison Aurélie - a bistro</title>
+    <title>Pan &amp; Co. - a neighbourhood bakery</title>
     <style>
-      * {
+      *,
+      *::before,
+      *::after {
         box-sizing: border-box;
       }
       body {
         margin: 0;
-        background: #f6efe0;
-        color: #3a2c1a;
-        font-family: Georgia, 'Times New Roman', serif;
-        line-height: 1.7;
       }
-      header {
-        padding: 2.2rem 1.5rem 1rem;
-        text-align: center;
-        border-bottom: 1px solid #d9c9a3;
+      body {
+        background: #ffffff;
+        color: #1b2b25;
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          'Helvetica Neue',
+          Arial,
+          sans-serif;
+        line-height: 1.6;
       }
-      header h1 {
-        margin: 0;
-        font-size: 2.2rem;
-        font-weight: 400;
-        letter-spacing: 0.35em;
-        text-transform: uppercase;
-        color: #8c6a2b;
+      nav {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 22px;
+        padding: 16px 32px;
+        background: #2f5d50;
+        color: #f2f7f3;
       }
-      header p {
-        margin: 0.3rem 0 0;
-        font-style: italic;
-        color: #8a7658;
+      nav b {
+        margin-right: auto;
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
       }
-      main {
-        max-width: 56rem;
-        margin: 0 auto;
-        padding: 1.6rem 1.5rem 3rem;
-      }
-      h2 {
-        margin: 2rem 0 0.5rem;
-        font-weight: 400;
-        font-size: 1.25rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: #8c6a2b;
-        border-bottom: 1px solid #d9c9a3;
-        padding-bottom: 0.3rem;
-      }
-      p {
-        margin: 0 0 1rem;
+      nav a {
+        color: #f2f7f3;
+        font-weight: 600;
+        text-decoration: none;
       }
       button {
-        padding: 0.6rem 1.6rem;
-        border: 1px solid #8c6a2b;
-        background: transparent;
-        color: #8c6a2b;
+        padding: 12px 24px;
+        border: 0;
+        border-radius: 999px;
+        background: #c8512a;
+        color: #ffffff;
         font: inherit;
-        letter-spacing: 0.15em;
-        text-transform: uppercase;
+        font-weight: 700;
         cursor: pointer;
       }
-      button:hover {
-        background: #8c6a2b;
-        color: #fff;
+      .hero {
+        padding: 56px 32px 40px;
+        background: linear-gradient(#e6f0e8, #ffffff);
+      }
+      .hero h1 {
+        max-width: 14ch;
+        margin: 0 0 12px;
+        font-size: clamp(34px, 6vw, 64px);
+        line-height: 1.02;
+        letter-spacing: -0.03em;
+        color: #1f4a3d;
+      }
+      .hero p {
+        max-width: 46ch;
+        margin: 0 0 22px;
+        font-size: 19px;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+        gap: 28px;
+        align-items: start;
+        padding: 12px 32px 48px;
+      }
+      .cell h2 {
+        margin: 0 0 4px;
+        font-size: 22px;
+        color: #1f4a3d;
+      }
+      .cell p {
+        margin: 0 0 14px;
+        color: #3c4f47;
+      }
+      footer {
+        padding: 22px 32px;
+        background: #f1f5f2;
+        color: #3c4f47;
+        font-size: 14px;
+      }
+      proof-clock {
+        --w-bg: #dcebe0;
+        --w-fg: #17372c;
+        --w-accent: #2f6b57;
+        --w-on-accent: #ffffff;
+        --w-accent-text: #1f5443;
+        --w-font: Georgia, 'Times New Roman', serif;
+      }
+      row-counter {
+        --w-bg: #9fd1b4;
+        --w-fg: #0d2c20;
+        --w-accent: #c8512a;
+      }
+      moon-dial {
+        --w-bg: #12261f;
+        --w-fg: #eaf4ee;
+        --w-accent: #f2c14e;
+        --w-on-accent: #12261f;
       }
       input {
+        padding: 10px 14px;
+        border: 2px solid #2f5d50;
+        border-radius: 999px;
         font: inherit;
-        padding: 0.4rem;
-        border: 0;
-        border-bottom: 2px solid #8c6a2b;
-        background: #fffaf0;
       }
-      b,
       span,
       div {
-        color: #3a2c1a;
+        color: #1b2b25;
       }
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
-        gap: 1.4rem;
-        align-items: start;
-      }
-      .note {
-        padding: 0.8rem 1rem;
-        border-left: 3px solid #b8893b;
-        background: #fffaf0;
-        font-size: 0.92rem;
-        color: #6c5a3c;
-      }
-      moon-dial,
-      proof-clock,
-      row-counter {
-        --w-font: Georgia, 'Times New Roman', serif;
-        --w-fg: #3a2c1a;
-        --w-bg: #fffaf0;
-        --w-muted: #6f5d3f;
-        --w-accent: #8a6420;
-        --w-border: #d9c9a3;
-        --w-radius: 2px;
+      @media (max-width: 760px) {
+        nav,
+        .hero,
+        .row,
+        footer {
+          padding-left: 20px;
+          padding-right: 20px;
+        }
       }
     </style>
   </head>
   <body>
-    <header>
-      <h1>Maison Aurélie</h1>
-      <p>Bistro and caterer, since 1987</p>
-    </header>
-    <main>
-      <p class="note">
-        This page styles every <code>button</code>, <code>input</code>, <code>b</code>,
-        <code>span</code> and <code>div</code> globally, in serif and gold. The three widgets below
-        are ECMact components loaded with one script tag. They keep their own markup and take only
-        the colors and the font that this page hands them as CSS custom properties.
+    <nav>
+      <b>Pan &amp; Co.</b><a href="#cafe">Menu</a><a href="#cafe">Visit</a
+      ><a href="#cafe">Order ahead</a>
+    </nav>
+    <div class="hero">
+      <h1>Bread that takes its time.</h1>
+      <p>
+        Sourdough, rye and the odd cardamom bun, baked on Marsh Street since 2009. Pick up warm, or
+        order ahead.
       </p>
-      <h2>Spring menu</h2>
-      <p>Our chefs are finishing the spring tasting menu. Reservations open soon.</p>
-      <div class="grid">
-        <proof-clock label="Reservations open in"></proof-clock>
-        <button type="button">Book a table</button>
+      <button type="button">Order ahead</button>
+    </div>
+    <div class="row">
+      <div class="cell">
+        <h2>Today's loaf</h2>
+        <p>The big country loaf is proofing. Here is where it stands.</p>
+        <proof-clock label="Country loaf"></proof-clock>
       </div>
-      <h2>Catering for your event</h2>
-      <div class="grid">
+      <div class="cell">
+        <h2>Knitting circle</h2>
+        <p>Thursdays at six, over the last bake. Count your rows on the house counter.</p>
+        <row-counter pattern="Raglan sleeve" repeat="6"></row-counter>
+      </div>
+      <div class="cell">
+        <h2>Baking by the moon</h2>
+        <p>Our rye starter likes a full moon. The calendar is on the shop wall and here.</p>
         <moon-dial></moon-dial>
-        <row-counter pattern="Spring menu" repeat="6"></row-counter>
       </div>
-    </main>
-    <script>
-      document
-        .querySelector('countdown-timer')
-        .setAttribute('to', new Date(Date.now() + 64 * 86400000).toISOString());
-    </script>
+    </div>
+    <footer>Pan &amp; Co. · 14 Marsh Street · open Tue to Sun, 7 to 15</footer>
+
     <script src="../embed/ecmact-widgets.js"></script>
   </body>
 </html>

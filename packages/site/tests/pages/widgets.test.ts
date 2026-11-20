@@ -84,6 +84,14 @@ describe('widgets page', () => {
     );
   });
 
+  it('says that a custom property that breaks the contrast is the choice of the page, in both languages', async () => {
+    expect(widgetsPage().textContent).toContain("the page's choice");
+    expect(widgetsPage().textContent).toContain('4.5:1');
+    await useLocale('ru');
+    expect(widgetsPage().textContent).toContain('выбор страницы');
+    expect(widgetsPage().textContent).toContain('4.5:1');
+  });
+
   it('keeps an anchor for each former tag, and it lands on the widget that replaced it', () => {
     const page = widgetsPage();
     mount(document.body, page);
@@ -97,17 +105,89 @@ describe('widgets page', () => {
     });
   });
 
-  it('scrolls to the anchor of a former tag when the address has it', async () => {
-    vi.useFakeTimers();
-    const scroll = vi
-      .spyOn(Element.prototype, 'scrollIntoView')
-      .mockImplementation(() => undefined);
-    window.history.replaceState(null, '', '/widgets#price-calculator');
-    mount(document.body, widgetsPage());
-    await vi.advanceTimersByTimeAsync(0);
-    expect(scroll.mock.contexts).toContain(document.getElementById('price-calculator'));
-    window.history.replaceState(null, '', '/');
-    vi.useRealTimers();
+  /** Replaces ResizeObserver with one that records what it observes and lets the test notify it. */
+  const stubObserver = () => {
+    const log = { targets: [] as unknown[], disconnected: 0, notify: () => {} };
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(callback: () => void) {
+          log.notify = callback;
+        }
+        observe(target: unknown) {
+          log.targets.push(target);
+        }
+        disconnect() {
+          log.disconnected++;
+        }
+      },
+    );
+    return log;
+  };
+
+  describe('an address with a hash', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      window.history.replaceState(null, '', '/');
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
+    });
+
+    it('scrolls to the anchor of a former tag once the page is in place', async () => {
+      stubObserver();
+      const scroll = vi
+        .spyOn(Element.prototype, 'scrollIntoView')
+        .mockImplementation(() => undefined);
+      window.history.replaceState(null, '', '/widgets#price-calculator');
+      mount(document.body, widgetsPage());
+      await vi.advanceTimersByTimeAsync(0);
+      expect(scroll.mock.contexts).toContain(document.getElementById('price-calculator'));
+    });
+
+    it('scrolls again when the page changes height, until the visitor scrolls', async () => {
+      const log = stubObserver();
+      const scroll = vi
+        .spyOn(Element.prototype, 'scrollIntoView')
+        .mockImplementation(() => undefined);
+      window.history.replaceState(null, '', '/widgets#repo-card');
+      mount(document.body, widgetsPage());
+      await vi.advanceTimersByTimeAsync(0);
+      expect(log.targets.filter((target) => (target as Element).localName === 'main')).toHaveLength(
+        1,
+      );
+      const closed = log.disconnected;
+      const first = scroll.mock.calls.length;
+      log.notify();
+      expect(scroll.mock.calls.length).toBe(first + 1);
+      window.dispatchEvent(new Event('wheel'));
+      expect(log.disconnected).toBe(closed + 1);
+      window.dispatchEvent(new Event('keydown'));
+      expect(log.disconnected).toBe(closed + 1);
+    });
+
+    it('lets go after five seconds', async () => {
+      const log = stubObserver();
+      vi.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(() => undefined);
+      window.history.replaceState(null, '', '/widgets#poll-widget');
+      mount(document.body, widgetsPage());
+      await vi.advanceTimersByTimeAsync(4900);
+      const closed = log.disconnected;
+      await vi.advanceTimersByTimeAsync(200);
+      expect(log.disconnected).toBe(closed + 1);
+    });
+
+    it('does not watch the page when the address names nothing on it', async () => {
+      const log = stubObserver();
+      window.history.replaceState(null, '', '/widgets#nothing-here');
+      mount(document.body, widgetsPage());
+      await vi.advanceTimersByTimeAsync(0);
+      expect(log.targets.filter((target) => (target as Element).localName === 'main')).toHaveLength(
+        0,
+      );
+    });
   });
 
   it('is in Russian when asked, with the same anchors and no English left in the headers and captions', async () => {
@@ -141,6 +221,26 @@ describe('host pages', () => {
     expect(used.length).toBeGreaterThan(0);
     used.forEach((name) => expect(known).toContain(name));
     host.widgets.forEach((name) => expect(html).toContain(`<${name}`));
+  });
+
+  it.each(hosts)('$id embeds exactly the widgets of its row, and no other tag', (host) => {
+    const html = readFileSync(join(directory, `${host.id}.html`), 'utf8');
+    const used = new Set([...html.matchAll(/<([a-z]+-[a-z-]+)[\s>]/g)].map((match) => match[1]));
+    expect([...used].sort()).toEqual([...host.widgets].sort());
+  });
+
+  it('gives every widget its own custom-property values in each host that embeds it', () => {
+    const rule = (html: string, tag: string) =>
+      [...html.matchAll(new RegExp(`\\n\\s*${tag}\\s*\\{([^}]*)\\}`, 'g'))]
+        .map((match) => match[1]!.replace(/\s+/g, ' ').trim())
+        .join(' ');
+    widgets.forEach((widget) => {
+      const values = hosts
+        .filter((host) => host.widgets.includes(widget.tag))
+        .map((host) => rule(readFileSync(join(directory, `${host.id}.html`), 'utf8'), widget.tag));
+      values.forEach((text) => expect(text, widget.tag).toContain('--w-'));
+      expect(new Set(values).size, widget.tag).toBe(values.length);
+    });
   });
 
   it('keeps the feeds that the status lamps read beside the pages', () => {

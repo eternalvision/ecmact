@@ -25,6 +25,7 @@ const css = `
       var(--w-bg, #0b1030);
     color: var(--w-fg, #e9e6ff);
     text-align: center;
+    overflow: clip;
   }
   .dial { position: relative; width: min(214px, 100%); aspect-ratio: 1; margin: 0 auto; border-radius: 50%; touch-action: none; cursor: pointer; }
   .ticks, .past, .ring { position: absolute; inset: 0; border-radius: 50%; }

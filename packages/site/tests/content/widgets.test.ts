@@ -50,6 +50,10 @@ describe('widgets content', () => {
         Object.values(texts[group]).forEach((value) => expect(value).toBeTruthy());
       });
       expect(texts.former).toContain('{tag}');
+      expect(
+        texts.themeLead,
+        `${locale} says that a colour that breaks 4.5:1 is the page's choice`,
+      ).toContain('4.5:1');
     });
   });
 
