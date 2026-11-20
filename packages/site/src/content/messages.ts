@@ -264,30 +264,30 @@ const en: Messages = {
   },
   widgets: {
     title: 'Widgets',
-    lead: 'Five widgets, each with its own job and its own look, embedded into four unrelated sites. Every page below is a separate document with its own stylesheet, and every stylesheet is hostile: it restyles buttons, inputs and text globally. The widgets keep their own markup and take only what the page hands them as CSS custom properties.',
+    lead: 'Eight widgets, each with its own job and its own look, embedded into four unrelated sites. Every page below is a separate document with its own stylesheet, and every stylesheet is hostile: it restyles buttons, inputs and text globally. The widgets keep their own markup and take only what the page hands them as CSS custom properties.',
     openFull: 'Open the page on its own',
     hosts: {
       cafe: {
         title: 'A bakery: sage green and white',
-        text: 'The sourdough schedule, a row counter for the knitting circle and a moon dial for the baking calendar, recoloured to sage and terracotta. The page restyles every button and input.',
+        text: 'The sourdough schedule, a row counter for the knitting circle, the crossword clue of the day and a moon dial for the baking calendar, recoloured to sage and terracotta. The page restyles every button and input.',
       },
       terminal: {
         title: 'An ops dashboard: dark slate and indigo',
-        text: 'A status lamp that reads the kiln feed, and a moon dial, on a dashboard that sets its own button, input and span styles.',
+        text: 'A status lamp that reads the kiln feed, a telegraph key for the shift signal, a fretboard map for the studio guitar and a moon dial, on a dashboard that sets its own button, input and span styles.',
       },
       zine: {
         title: 'A magazine: black type and one red',
-        text: 'A print quote and the bread schedule in a magazine that forces its own type on every paragraph and span with !important.',
+        text: 'A print quote, the bread schedule, a crossword clue and a telegraph key in a magazine that forces its own type on every paragraph and span with !important.',
       },
       kids: {
         title: "A children's museum: sky blue and sunshine",
-        text: 'A row counter, a status lamp and a print quote on a page of big rounded shapes that paints every span and div with !important.',
+        text: 'A row counter, a fretboard map, a status lamp and a print quote on a page of big rounded shapes that paints every span and div with !important.',
       },
     },
     embedTitle: 'What every host page does',
     embedCaption: 'any page',
     embedLead: 'The same two lines, whatever the page looks like:',
-    referenceTitle: 'The five widgets',
+    referenceTitle: 'The eight widgets',
     referenceLead:
       'Attributes configure a widget, events carry results out, custom properties dress it. Each widget lists its own; a widget that replaced one of the first gallery keeps the anchor of the old tag.',
     former: 'Replaces <{tag}>, a widget of the first gallery.',
@@ -310,6 +310,12 @@ const en: Messages = {
         'One big round button that counts the rows of a knitting pattern and remembers them.',
       'feed-lamp':
         'A lamp that shows the state of a JSON feed, with every failure in its own words.',
+      'morse-key':
+        'A telegraph key: hold it with the pointer or the Space key, a short press is a dot, a long one a dash, and a pause turns the marks into a letter.',
+      'fret-map':
+        'A guitar fretboard that marks the notes of a key and a scale, with the root in another colour, key chips and a list of scales.',
+      'clue-box':
+        'One crossword clue with a cell for each letter: type, move with the arrows, check without being told the answer, or reveal it.',
     },
     attributes: {
       'print-quote.currency':
@@ -338,6 +344,18 @@ const en: Messages = {
         'Milliseconds until the lamp says the answer is slow. A malformed value counts as the default.',
       'feed-lamp.timeout':
         'Milliseconds until an attempt is given up. A malformed value counts as the default.',
+      'morse-key.wpm':
+        'The speed in words a minute, from 1 to 40; a unit is 1200 divided by it, a press of two units is a dash and a pause of three ends a letter. A malformed value counts as 12.',
+      'fret-map.key':
+        'The key: a letter from A to G with an optional `#` or `b`, in either case. An unknown value counts as `A`.',
+      'fret-map.scale':
+        '`major`, `minor`, `pentatonic` (minor pentatonic) or `blues`. An unknown value counts as `pentatonic`.',
+      'fret-map.tuning': '`standard`, `drop-d` or `dadgad`. An unknown value counts as `standard`.',
+      'fret-map.preset':
+        'A key and a scale together: `a-minor-pentatonic`, `e-blues`, `c-major` or `d-minor`. It wins over `key` and `scale`; an unknown name is ignored. A change of any attribute takes back what the visitor chose.',
+      'clue-box.clue': 'The text of the clue. The count of letters is added after it.',
+      'clue-box.answer':
+        'The answer: its letters only, in any script, up to twelve; spaces, digits and marks are dropped. A value with no letter counts as `PEAR`. A change starts again.',
     },
     events: {
       'print-quote.quote':
@@ -347,6 +365,12 @@ const en: Messages = {
         'When the loaf is out. Again if `to` moves to a later moment and that passes too.',
       'row-counter.row': '`{ pattern, count }`, when the count changes.',
       'feed-lamp.loaded': '`{ src, title }`, when a feed has been read.',
+      'morse-key.letter':
+        '`{ pattern, letter, message }`, when a letter is done; `letter` is `?` for a pattern that is no letter, and `message` keeps the last twelve.',
+      'fret-map.change':
+        '`{ key, scale, tuning, notes }`, when the visitor chooses another key or scale.',
+      'clue-box.solved':
+        '`{ answer }`, when the typed word becomes the answer. Again only if it stops being right and becomes right again; Reveal does not fire it.',
     },
     properties: {
       'print-quote.--w-bg': 'The colour of the ticket.',
@@ -377,6 +401,25 @@ const en: Messages = {
         'The text colour. The lamp keeps its own colours: green, amber, red and magenta.',
       'feed-lamp.--w-font': 'The font family.',
       'feed-lamp.--w-radius': 'The roundness of the plate.',
+      'morse-key.--w-bg': 'The colour of the field.',
+      'morse-key.--w-fg': 'The text colour, the caret and the focus ring.',
+      'morse-key.--w-key': 'The colour of the key and of the tape.',
+      'morse-key.--w-on-key': 'The text on the key and the marks on the tape.',
+      'morse-key.--w-accent': 'The mark that is being held.',
+      'morse-key.--w-font': 'The font family.',
+      'fret-map.--w-bg': 'The colour of the card.',
+      'fret-map.--w-fg': 'The text colour, the nut and the focus ring.',
+      'fret-map.--w-accent': 'The notes of the scale and the chosen key.',
+      'fret-map.--w-on-accent': 'The text on the notes and on the chosen key.',
+      'fret-map.--w-root': 'The root note.',
+      'fret-map.--w-font': 'The font family.',
+      'clue-box.--w-bg': 'The colour of the box.',
+      'clue-box.--w-fg': 'The text colour.',
+      'clue-box.--w-accent': 'A right letter, the Check button and the focus ring.',
+      'clue-box.--w-on-accent': 'The text on a right letter and on the Check button.',
+      'clue-box.--w-cell': 'The colour of an empty or typed cell.',
+      'clue-box.--w-wrong': 'A wrong letter: its text and its ring.',
+      'clue-box.--w-font': 'The font family.',
     },
     themeTitle: 'Custom properties',
     themeLead:
@@ -623,30 +666,30 @@ const ru: Messages = {
   },
   widgets: {
     title: 'Виджеты',
-    lead: 'Пять виджетов, у каждого своя задача и свой облик, встроенных в четыре никак не связанных сайта. Каждая страница ниже - отдельный документ со своей таблицей стилей, и каждая таблица враждебна: она глобально перекрашивает кнопки, поля ввода и текст. Виджеты сохраняют свою разметку и берут только то, что страница отдаёт им через CSS custom properties.',
+    lead: 'Восемь виджетов, у каждого своя задача и свой облик, встроенных в четыре никак не связанных сайта. Каждая страница ниже - отдельный документ со своей таблицей стилей, и каждая таблица враждебна: она глобально перекрашивает кнопки, поля ввода и текст. Виджеты сохраняют свою разметку и берут только то, что страница отдаёт им через CSS custom properties.',
     openFull: 'Открыть страницу отдельно',
     hosts: {
       cafe: {
         title: 'Пекарня: шалфейно-зелёный и белый',
-        text: 'Расписание закваски, счётчик рядов для вязального кружка и лунный круг для календаря выпечки, перекрашенные в шалфей и терракоту. Страница перекрашивает все кнопки и поля.',
+        text: 'Расписание закваски, счётчик рядов для вязального кружка, кроссворд дня и лунный круг для календаря выпечки, перекрашенные в шалфей и терракоту. Страница перекрашивает все кнопки и поля.',
       },
       terminal: {
         title: 'Операционная панель: тёмный сланец и индиго',
-        text: 'Индикатор состояния, читающий ленту печи, и лунный круг на панели, которая задаёт свои стили для кнопок, полей и span.',
+        text: 'Индикатор состояния, читающий ленту печи, телеграфный ключ для сигнала смены, карта грифа для студийной гитары и лунный круг на панели, которая задаёт свои стили для кнопок, полей и span.',
       },
       zine: {
         title: 'Журнал: чёрный шрифт и один красный',
-        text: 'Расчёт тиража и расписание хлеба в журнале, который принудительно ставит свой шрифт на каждый абзац и span через !important.',
+        text: 'Расчёт тиража, расписание хлеба, подсказка кроссворда и телеграфный ключ в журнале, который принудительно ставит свой шрифт на каждый абзац и span через !important.',
       },
       kids: {
         title: 'Детский музей: небесно-голубой и солнечный',
-        text: 'Счётчик рядов, индикатор состояния и расчёт тиража на странице из больших округлых форм, которая красит каждый span и div через !important.',
+        text: 'Счётчик рядов, карта грифа, индикатор состояния и расчёт тиража на странице из больших округлых форм, которая красит каждый span и div через !important.',
       },
     },
     embedTitle: 'Что делает каждая хост-страница',
     embedCaption: 'любая страница',
     embedLead: 'Те же две строки, как бы страница ни выглядела:',
-    referenceTitle: 'Пять виджетов',
+    referenceTitle: 'Восемь виджетов',
     referenceLead:
       'Атрибуты настраивают виджет, события выносят результаты наружу, custom properties его одевают. У каждого виджета свои; виджет, заменивший виджет первой галереи, хранит якорь старого тега.',
     former: 'Заменяет <{tag}>, виджет первой галереи.',
@@ -666,6 +709,12 @@ const ru: Messages = {
         'Расписание хлеба на закваске, рассчитанное назад от момента, когда он выйдет из печи, с ползунком для кухни.',
       'row-counter': 'Одна большая круглая кнопка считает ряды вязального узора и помнит их.',
       'feed-lamp': 'Лампа показывает состояние JSON-ленты, каждый сбой - своими словами.',
+      'morse-key':
+        'Телеграфный ключ: зажмите его указателем или пробелом, короткое нажатие - точка, долгое - тире, а пауза превращает знаки в букву.',
+      'fret-map':
+        'Гриф гитары отмечает ноты тональности и лада, тоника другого цвета, плашки тональностей и список ладов.',
+      'clue-box':
+        'Одна подсказка кроссворда с клеткой на каждую букву: печатайте, ходите стрелками, проверяйте, не узнавая ответа, или откройте его.',
     },
     attributes: {
       'print-quote.currency':
@@ -695,6 +744,19 @@ const ru: Messages = {
         'Через сколько миллисекунд лампа скажет, что ответ медленный. Неверное значение считается значением по умолчанию.',
       'feed-lamp.timeout':
         'Через сколько миллисекунд попытка считается неудачной. Неверное значение считается значением по умолчанию.',
+      'morse-key.wpm':
+        'Скорость в словах в минуту, от 1 до 40; единица - 1200 делить на неё, нажатие в две единицы - тире, пауза в три заканчивает букву. Неверное значение считается равным 12.',
+      'fret-map.key':
+        'Тональность: буква от A до G с необязательным `#` или `b`, в любом регистре. Неизвестное значение считается `A`.',
+      'fret-map.scale':
+        '`major`, `minor`, `pentatonic` (минорная пентатоника) или `blues`. Неизвестное значение считается `pentatonic`.',
+      'fret-map.tuning':
+        '`standard`, `drop-d` или `dadgad`. Неизвестное значение считается `standard`.',
+      'fret-map.preset':
+        'Тональность и лад вместе: `a-minor-pentatonic`, `e-blues`, `c-major` или `d-minor`. Он сильнее `key` и `scale`; неизвестное имя игнорируется. Смена любого атрибута отменяет выбор посетителя.',
+      'clue-box.clue': 'Текст подсказки. После него добавляется число букв.',
+      'clue-box.answer':
+        'Ответ: только его буквы, любого письма, до двенадцати; пробелы, цифры и знаки отбрасываются. Значение без букв считается `PEAR`. Смена начинает заново.',
     },
     events: {
       'print-quote.quote':
@@ -704,6 +766,12 @@ const ru: Messages = {
         'Когда хлеб готов. Снова, если `to` сдвинули на более поздний момент и он тоже прошёл.',
       'row-counter.row': '`{ pattern, count }`, когда счёт меняется.',
       'feed-lamp.loaded': '`{ src, title }`, когда лента прочитана.',
+      'morse-key.letter':
+        '`{ pattern, letter, message }`, когда буква готова; `letter` - `?` для знаков, которые не буква, а `message` хранит последние двенадцать.',
+      'fret-map.change':
+        '`{ key, scale, tuning, notes }`, когда посетитель выбирает другую тональность или лад.',
+      'clue-box.solved':
+        '`{ answer }`, когда набранное слово становится ответом. Снова - только если оно перестало быть верным и стало верным опять; «Reveal» его не вызывает.',
     },
     properties: {
       'print-quote.--w-bg': 'Цвет билета.',
@@ -734,6 +802,25 @@ const ru: Messages = {
         'Цвет текста. Лампа сохраняет свои цвета: зелёный, янтарный, красный и пурпурный.',
       'feed-lamp.--w-font': 'Семейство шрифтов.',
       'feed-lamp.--w-radius': 'Скругление панели.',
+      'morse-key.--w-bg': 'Цвет поля.',
+      'morse-key.--w-fg': 'Цвет текста, курсора и рамки фокуса.',
+      'morse-key.--w-key': 'Цвет ключа и ленты.',
+      'morse-key.--w-on-key': 'Текст на ключе и знаки на ленте.',
+      'morse-key.--w-accent': 'Знак, который сейчас удерживается.',
+      'morse-key.--w-font': 'Семейство шрифтов.',
+      'fret-map.--w-bg': 'Цвет карточки.',
+      'fret-map.--w-fg': 'Цвет текста, порожка и рамки фокуса.',
+      'fret-map.--w-accent': 'Ноты лада и выбранная тональность.',
+      'fret-map.--w-on-accent': 'Текст на нотах и на выбранной тональности.',
+      'fret-map.--w-root': 'Нота-тоника.',
+      'fret-map.--w-font': 'Семейство шрифтов.',
+      'clue-box.--w-bg': 'Цвет коробки.',
+      'clue-box.--w-fg': 'Цвет текста.',
+      'clue-box.--w-accent': 'Верная буква, кнопка «Check» и рамка фокуса.',
+      'clue-box.--w-on-accent': 'Текст на верной букве и на кнопке «Check».',
+      'clue-box.--w-cell': 'Цвет пустой или заполненной клетки.',
+      'clue-box.--w-wrong': 'Неверная буква: её текст и кольцо.',
+      'clue-box.--w-font': 'Семейство шрифтов.',
     },
     themeTitle: 'Custom properties',
     themeLead:

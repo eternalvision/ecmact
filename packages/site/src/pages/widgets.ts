@@ -132,9 +132,9 @@ export const widgetsPage = () => {
     widgets.map((widget) =>
       section(
         { class: 'widget-reference' },
-        span({ id: widget.former, class: 'anchor', 'aria-hidden': 'true' }),
+        widget.former && span({ id: widget.former, class: 'anchor', 'aria-hidden': 'true' }),
         h3({ id: widget.tag, tabindex: -1 }, tags.code(`<${widget.tag}>`)),
-        p({ class: 'muted' }, m.former.replace('{tag}', widget.former)),
+        widget.former && p({ class: 'muted' }, m.former.replace('{tag}', widget.former)),
         p(m.descriptions[widget.tag]),
         renderTable({
           type: 'table',

@@ -24,8 +24,8 @@ export interface WidgetInfo {
   kind: string;
   /** The look of the widget: its row of the style matrix. */
   style: DemoStyle;
-  /** The tag of the widget of the first gallery that this one replaced; the reference keeps an anchor for it. */
-  former: string;
+  /** The tag of the widget of the first gallery that this one replaced; the reference keeps an anchor for it. A new widget has none. */
+  former?: string;
   /** The attributes it reads, in the order the element observes them. */
   attributes: AttributeInfo[];
   /** The events it fires. */
@@ -36,13 +36,13 @@ export interface WidgetInfo {
 
 /** The pages of the gallery. Every widget is in at least two of them. */
 export const hosts: Host[] = [
-  { id: 'cafe', widgets: ['proof-clock', 'row-counter', 'moon-dial'] },
-  { id: 'terminal', widgets: ['feed-lamp', 'moon-dial'] },
-  { id: 'zine', widgets: ['print-quote', 'proof-clock'] },
-  { id: 'kids', widgets: ['row-counter', 'feed-lamp', 'print-quote'] },
+  { id: 'cafe', widgets: ['proof-clock', 'row-counter', 'clue-box', 'moon-dial'] },
+  { id: 'terminal', widgets: ['feed-lamp', 'morse-key', 'fret-map', 'moon-dial'] },
+  { id: 'zine', widgets: ['print-quote', 'proof-clock', 'clue-box', 'morse-key'] },
+  { id: 'kids', widgets: ['row-counter', 'fret-map', 'feed-lamp', 'print-quote'] },
 ];
 
-/** The five widgets. */
+/** The eight widgets. */
 export const widgets: WidgetInfo[] = [
   {
     tag: 'print-quote',
@@ -150,5 +150,66 @@ export const widgets: WidgetInfo[] = [
     ],
     events: ['loaded'],
     properties: ['--w-bg', '--w-fg', '--w-font', '--w-radius'],
+  },
+  {
+    tag: 'morse-key',
+    kind: 'signal',
+    style: {
+      shape: 'pill',
+      palette: 'saturated',
+      type: 'mono',
+      surface: 'clay',
+      control: 'hold key',
+      motion: 'tape slide',
+    },
+    attributes: [{ name: 'wpm', default: '12' }],
+    events: ['letter'],
+    properties: ['--w-bg', '--w-fg', '--w-key', '--w-on-key', '--w-accent', '--w-font'],
+  },
+  {
+    tag: 'fret-map',
+    kind: 'chart',
+    style: {
+      shape: 'radius-md',
+      palette: 'duotone',
+      type: 'geometric',
+      surface: 'layered',
+      control: 'tap grid',
+      motion: 'stagger pop',
+    },
+    attributes: [
+      { name: 'key', default: 'A' },
+      { name: 'scale', default: 'pentatonic' },
+      { name: 'tuning', default: 'standard' },
+      { name: 'preset', default: '' },
+    ],
+    events: ['change'],
+    properties: ['--w-bg', '--w-fg', '--w-accent', '--w-on-accent', '--w-root', '--w-font'],
+  },
+  {
+    tag: 'clue-box',
+    kind: 'puzzle',
+    style: {
+      shape: 'radius-sm',
+      palette: 'mono-accent dark',
+      type: 'transitional serif',
+      surface: 'flat',
+      control: 'letter cells',
+      motion: 'flip wave',
+    },
+    attributes: [
+      { name: 'clue', default: 'Fruit that sounds like a couple' },
+      { name: 'answer', default: 'PEAR' },
+    ],
+    events: ['solved'],
+    properties: [
+      '--w-bg',
+      '--w-fg',
+      '--w-accent',
+      '--w-on-accent',
+      '--w-cell',
+      '--w-wrong',
+      '--w-font',
+    ],
   },
 ];

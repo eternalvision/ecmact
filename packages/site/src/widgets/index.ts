@@ -1,4 +1,7 @@
+import { defineClueBox } from '@site/widgets/clueBox';
 import { defineFeedLamp } from '@site/widgets/feedLamp';
+import { defineFretMap } from '@site/widgets/fretMap';
+import { defineMorseKey } from '@site/widgets/morseKey';
 import { defineMoonDial } from '@site/widgets/moonDial';
 import { definePrintQuote } from '@site/widgets/printQuote';
 import { defineProofClock } from '@site/widgets/proofClock';
@@ -15,6 +18,9 @@ export const defineAll = () => {
     ['proof-clock', defineProofClock],
     ['row-counter', defineRowCounter],
     ['feed-lamp', defineFeedLamp],
+    ['morse-key', defineMorseKey],
+    ['fret-map', defineFretMap],
+    ['clue-box', defineClueBox],
   ];
   widgets.forEach(([name, define]) => {
     if (!customElements.get(name)) define();
