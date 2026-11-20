@@ -310,7 +310,7 @@ Not verified in this update: every item listed as not verified in section 8 of t
 
 ## Style v2 for the examples and widgets: plan update 1.3 (approved by the owner on 19 November 2026)
 
-Version 0.1 · F2 update · **draft for comments, not approved** · 19 November 2026
+Version 0.1 · F2 update · approved by the owner as drawn (D63) · 19 November 2026
 
 Proposed update of the delivery plan `docs/plans/2026-11-19-docs-redesign-plan.md` (version 1.2) and, in section 2, of the specification addendum 1.3 in `docs/plans/2026-11-19-docs-redesign-spec.md`. Tracker: milestone "Documentation redesign" of `eternalvision/ecmact`, issues #55, #56, #57, #47 and one new issue. Materials in [`docs/sessions/19112026-DocsRedesign/`](../sessions/19112026-DocsRedesign/): [`concepts-v2.html`](../sessions/19112026-DocsRedesign/concepts-v2.html) (the twenty mocks), `concepts-v2-1280.png` and `concepts-v2-390.png` (captures), [`style-matrix.md`](../sessions/19112026-DocsRedesign/style-matrix.md) (the table, the checks, the devices that must not return), and the scripts that produced and checked them (`build/`), which are not in the repository; see D64.
 
