@@ -1,6 +1,6 @@
 {
   "name": "ecmact",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Build embeddable widgets in plain TypeScript: isolated styles, typed attributes, one script tag. No dependencies, no compiler.",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
