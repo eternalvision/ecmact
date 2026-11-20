@@ -45,7 +45,7 @@ const ratio = (a, b) => {
 };
 
 /** Runs in the page: gathers boxes. */
-const gather = (hostSel) => {
+export const gather = (hostSel) => {
   const stage = document.querySelector(hostSel.stage);
   const host = stage.firstElementChild;
   const sr = stage.getBoundingClientRect();
@@ -88,7 +88,29 @@ const gather = (hostSel) => {
     if (!visible(el)) continue;
     const r = el.getBoundingClientRect();
     const cs = getComputedStyle(el);
-    if (cs.position !== 'fixed' && (r.left < sr.left - 1 || r.right > sr.right + 1))
+    // an element that an ancestor clips (a decoration that bleeds out of a card with overflow hidden) does not overflow
+    let clippedByAncestor = false;
+    for (
+      let a = el.parentElement || el.getRootNode().host;
+      a && a !== stage;
+      a = a.parentElement || a.getRootNode().host
+    ) {
+      const o = getComputedStyle(a);
+      const ar = a.getBoundingClientRect();
+      if (
+        /(auto|scroll|hidden|clip)/.test(o.overflowX) &&
+        ar.left >= sr.left - 1 &&
+        ar.right <= sr.right + 1
+      ) {
+        clippedByAncestor = true;
+        break;
+      }
+    }
+    if (
+      !clippedByAncestor &&
+      cs.position !== 'fixed' &&
+      (r.left < sr.left - 1 || r.right > sr.right + 1)
+    )
       overflow.push({
         tag: el.tagName + '.' + (el.className?.baseVal ?? el.className),
         l: Math.round(r.left - sr.left),
@@ -118,8 +140,11 @@ const gather = (hostSel) => {
           h: +box.height.toFixed(1),
         });
     }
+    // text that is visually hidden (a box of a pixel that clips itself) is for screen readers and is not measured
+    const hiddenSelf =
+      /(hidden|clip)/.test(cs.overflowX + cs.overflowY) && (r.width < 2 || r.height < 2);
     // text nodes
-    for (const n of el.childNodes) {
+    for (const n of hiddenSelf ? [] : el.childNodes) {
       if (n.nodeType === 3 && n.textContent.trim() && !el.closest('[aria-hidden="true"]')) {
         const range = document.createRange();
         range.selectNodeContents(n);
@@ -257,9 +282,9 @@ const gather = (hostSel) => {
   };
 };
 
-const CONTROLS =
+export const CONTROLS =
   'input:not([type=hidden]):not([type=range]),select,textarea,button[aria-pressed],[role=switch],[role=checkbox]';
-const SWITCHES =
+export const SWITCHES =
   'button[aria-pressed],[role=switch],[role=checkbox],input[type=checkbox],input[type=radio]';
 const hide = (on) => {
   const css =
@@ -456,7 +481,7 @@ export const contrast = async (page, stageSel, data) => {
 };
 
 /** Focus stops: the outline of each one, and its colour against the pixels outside it and in its gap. */
-const focusStops = async (page, stageSel, eng) => {
+export const focusStops = async (page, stageSel, eng) => {
   const stops = [];
   await page.evaluate((s) => {
     const st = document.querySelector(s);

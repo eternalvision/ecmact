@@ -96,6 +96,8 @@ export default defineConfig([
         getComputedStyle: 'readonly',
         NodeFilter: 'readonly',
         Event: 'readonly',
+        KeyboardEvent: 'readonly',
+        setTimeout: 'readonly',
         DOMException: 'readonly',
       },
     },
