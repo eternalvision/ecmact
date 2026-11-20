@@ -113,6 +113,23 @@
         --w-font: Georgia, 'Times New Roman', serif;
         --w-display: Georgia, 'Times New Roman', serif;
       }
+      clue-box {
+        --w-bg: #151515;
+        --w-fg: #ffffff;
+        --w-accent: #ff4a57;
+        --w-on-accent: #170205;
+        --w-cell: #2b2b2b;
+        --w-wrong: #ffb3b8;
+        --w-font: Georgia, 'Times New Roman', serif;
+      }
+      morse-key {
+        --w-bg: #e11d2e;
+        --w-fg: #ffffff;
+        --w-key: #ffffff;
+        --w-on-key: #151515;
+        --w-accent: #e11d2e;
+        --w-font: Georgia, 'Times New Roman', serif;
+      }
       proof-clock {
         --w-bg: #fde4e6;
         --w-fg: #2a0a0d;
@@ -167,6 +184,16 @@
           <h2>The bread schedule</h2>
           <p>Marta's lunch loaf, worked back from the oven.</p>
           <proof-clock label="Lunch loaf"></proof-clock>
+        </div>
+        <div>
+          <h2>Spot the typo</h2>
+          <p>Marta's proof reader sets one clue an issue.</p>
+          <clue-box clue="A slip of the finger in a proof" answer="typo"></clue-box>
+        </div>
+        <div>
+          <h2>Tap it out</h2>
+          <p>How the press room signalled before the phone: hold for a dash.</p>
+          <morse-key wpm="10"></morse-key>
         </div>
         <button type="button">Subscribe to Offcut</button>
       </aside>

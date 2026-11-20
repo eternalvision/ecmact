@@ -143,6 +143,21 @@
         --w-fg: #e9eef7;
         --w-radius: 14px;
       }
+      morse-key {
+        --w-bg: #3730a3;
+        --w-fg: #ffffff;
+        --w-key: #e0e7ff;
+        --w-on-key: #1e1b4b;
+        --w-accent: #fbbf24;
+      }
+      fret-map {
+        --w-bg: #1b2230;
+        --w-fg: #e9eef7;
+        --w-accent: #a5b4fc;
+        --w-on-accent: #0f1330;
+        --w-root: #f9a8d4;
+        --w-font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      }
       moon-dial {
         --w-bg: #0f1330;
         --w-fg: #e0e7ff;
@@ -196,6 +211,16 @@
           <h2>Kiln 2 feed</h2>
           <p>Reads the status file the kiln writes; every failure has its own state.</p>
           <feed-lamp src="data/kiln.json"></feed-lamp>
+        </div>
+        <div class="card">
+          <h2>Shift signal</h2>
+          <p>Tap out a letter for the next shift on the studio key. Hold for a dash.</p>
+          <morse-key></morse-key>
+        </div>
+        <div class="card">
+          <h2>Studio guitar</h2>
+          <p>The scale for the Friday jam, in drop D.</p>
+          <fret-map preset="e-blues" tuning="drop-d"></fret-map>
         </div>
         <div class="card">
           <h2>Firing calendar</h2>

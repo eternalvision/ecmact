@@ -96,6 +96,13 @@
         --w-fg: #2a0d04;
         --w-accent: #7b2cff;
       }
+      fret-map {
+        --w-bg: #ffffff;
+        --w-fg: #12234a;
+        --w-accent: #7b2cff;
+        --w-root: #ff5d8f;
+        --w-font: ui-rounded, 'SF Pro Rounded', 'Arial Rounded MT Bold', Calibri, sans-serif;
+      }
       feed-lamp {
         --w-bg: #ffffff;
         --w-fg: #12234a;
@@ -145,6 +152,11 @@
         <h2>Stairs climbed</h2>
         <p>Tap once for every step of the Giant Staircase. Your count stays for next time.</p>
         <row-counter pattern="Giant staircase" repeat="10"></row-counter>
+      </div>
+      <div class="cell">
+        <h2>Play the robot guitar</h2>
+        <p>These are the notes it plays today. Tap a letter to move them.</p>
+        <fret-map preset="c-major"></fret-map>
       </div>
       <div class="cell">
         <h2>Is the robot awake?</h2>

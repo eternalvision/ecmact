@@ -36,7 +36,7 @@ Object.assign(globalThis, { ecmact });
 const entries = [
   ['a counter widget', hello],
   ['the widget of the starter template', 'packages/create-ecmact/template/widget/src/widget.ts'],
-  ['the five widgets of the site gallery', 'packages/site/src/widgets/bundle.ts'],
+  ['the eight widgets of the site gallery', 'packages/site/src/widgets/bundle.ts'],
   ['the whole library', everything],
 ];
 

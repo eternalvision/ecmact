@@ -18,12 +18,19 @@ describe('widgets content', () => {
   });
 
   it('lists each widget once, with a kind of its own and the former tag of the first gallery', () => {
-    expect(widgets).toHaveLength(5);
-    expect(new Set(widgets.map((widget) => widget.tag)).size).toBe(5);
-    expect(new Set(widgets.map((widget) => widget.kind)).size).toBe(5);
-    expect(Object.fromEntries(widgets.map((widget) => [widget.former, widget.tag]))).toEqual(
-      inventory.widgetTags,
-    );
+    expect(widgets).toHaveLength(8);
+    expect(new Set(widgets.map((widget) => widget.tag)).size).toBe(8);
+    expect(new Set(widgets.map((widget) => widget.kind)).size).toBe(8);
+    expect(
+      Object.fromEntries(
+        widgets.flatMap((widget) => (widget.former ? [[widget.former, widget.tag]] : [])),
+      ),
+    ).toEqual(inventory.widgetTags);
+    expect(widgets.filter((widget) => !widget.former).map((widget) => widget.tag)).toEqual([
+      'morse-key',
+      'fret-map',
+      'clue-box',
+    ]);
   });
 
   it('has texts in both languages for every host, widget, attribute, event and custom property', () => {
@@ -61,6 +68,22 @@ describe('widgets content', () => {
         `${locale} says that a colour that breaks 4.5:1 is the page's choice`,
       ).toContain('4.5:1');
     });
+  });
+
+  it('puts each widget in exactly the hosts of the host table of the plan', () => {
+    expect(Object.fromEntries(hosts.map((host) => [host.id, [...host.widgets].sort()]))).toEqual({
+      cafe: ['clue-box', 'moon-dial', 'proof-clock', 'row-counter'],
+      terminal: ['feed-lamp', 'fret-map', 'moon-dial', 'morse-key'],
+      zine: ['clue-box', 'morse-key', 'print-quote', 'proof-clock'],
+      kids: ['feed-lamp', 'fret-map', 'print-quote', 'row-counter'],
+    });
+  });
+
+  it('says in both languages that there are eight widgets', () => {
+    expect(messages.en.widgets.lead).toMatch(/^Eight widgets/);
+    expect(messages.en.widgets.referenceTitle).toBe('The eight widgets');
+    expect(messages.ru.widgets.lead).toMatch(/^Восемь виджетов/);
+    expect(messages.ru.widgets.referenceTitle).toBe('Восемь виджетов');
   });
 
   it('names every custom property with the --w- prefix', () => {
@@ -134,12 +157,15 @@ describe('the looks of the widgets', () => {
         'proof-clock': 'slider',
         'row-counter': 'big round button',
         'feed-lamp': 'underline tabs',
+        'morse-key': 'hold key',
+        'fret-map': 'tap grid',
+        'clue-box': 'letter cells',
       },
     );
   });
 
   it('share at most two values with any other widget or example: the pairwise check of AC-24', () => {
-    expect(Object.keys(looks)).toHaveLength(17);
+    expect(Object.keys(looks)).toHaveLength(20);
     expect(tooAlike(looks)).toEqual([]);
   });
 
@@ -157,7 +183,7 @@ describe('the looks of the widgets', () => {
       ),
       ...widgets.flatMap((widget) => (widget.style.palette.includes('dark') ? [widget.tag] : [])),
     ];
-    expect(dark.sort()).toEqual(['darkroom', 'gels', 'moon-dial']);
+    expect(dark.sort()).toEqual(['clue-box', 'darkroom', 'gels', 'moon-dial']);
     expect(overLimits(looks, dark)).toEqual([]);
   });
 });
@@ -178,12 +204,12 @@ describe('the sources of the widgets keep out the devices of the first build', (
     });
   });
 
-  it('use a monospace stack only in feed-lamp', () => {
+  it('use a monospace stack only in feed-lamp and morse-key, the two pieces with a monospace main type', () => {
     expect(
       Object.entries(sources)
         .filter(([, source]) => monospace.test(source))
         .map(([tag]) => tag),
-    ).toEqual(['feed-lamp']);
+    ).toEqual(['feed-lamp', 'morse-key']);
   });
 
   it('name no address on another origin and ask for nothing outside the site', () => {
