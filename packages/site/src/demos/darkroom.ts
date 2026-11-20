@@ -101,6 +101,7 @@ const css = `
     }
     .tray {
       padding: 12px 6px 10px;
+      font-size: 14px;
     }
   }
 `;
