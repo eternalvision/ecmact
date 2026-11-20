@@ -4,21 +4,6 @@ const ev = (page, sel, fn, arg) =>
   page.evaluate(
     `(async () => { const host = document.querySelector('${sel}').firstElementChild; const all = ${deepAll}; return (${fn.toString()})(host, all, ${JSON.stringify(arg ?? null)}); })()`,
   );
-const click =
-  (label, sel, nth = 0) =>
-  async (page, s) =>
-    ev(
-      page,
-      s,
-      (h, all, a) => {
-        const els = all(h, a.sel).filter(
-          (e) =>
-            !a.text || e.textContent.trim() === a.text || e.getAttribute('aria-label') === a.text,
-        );
-        els[a.nth]?.click();
-      },
-      { sel, text: label, nth },
-    );
 const seq =
   (...steps) =>
   async (page, s) => {
@@ -86,7 +71,7 @@ for (let n = 1; n <= 5; n++)
     },
   });
 const blocked = `Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('x', 'SecurityError'); } });`;
-export default {
+export const states = {
   exposure: [{ name: 'locked', go: clickText('EV lock: off') }],
   setlist: [
     { name: 'over', go: times(20, clickAria('Curfew 5 minutes earlier')) },
@@ -139,13 +124,11 @@ export default {
       go: async (page, s) => {
         await ev(page, s, (h, all) => {
           const f = all(h, 'form')[0];
-          const em = all(h, 'em-field, [name="passport"]')[0];
           const inp = all(h, 'input')[0];
           inp.value = 'zz';
           inp.dispatchEvent(new Event('input', { bubbles: true }));
-          f.requestSubmit
-            ? f.requestSubmit()
-            : f.dispatchEvent(new Event('submit', { cancelable: true }));
+          if (f.requestSubmit) f.requestSubmit();
+          else f.dispatchEvent(new Event('submit', { cancelable: true }));
         });
       },
     },
@@ -196,9 +179,8 @@ export default {
           const inp = all(h, 'input')[0];
           inp.value = 'ab123456';
           inp.dispatchEvent(new Event('input', { bubbles: true }));
-          f.requestSubmit
-            ? f.requestSubmit()
-            : f.dispatchEvent(new Event('submit', { cancelable: true }));
+          if (f.requestSubmit) f.requestSubmit();
+          else f.dispatchEvent(new Event('submit', { cancelable: true }));
         });
       },
       wait: 1200,

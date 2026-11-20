@@ -63,6 +63,7 @@ for (const id of ids) cards[id] = await mock.locator(`figure.piece#${id} .stage`
 await mockCtx.close();
 
 const built = { light: {}, dark: {} };
+const locked = { light: {}, dark: {} };
 for (const theme of ['light', 'dark']) {
   const ctx = await browser.newContext({
     viewport: { width: WIDTH, height: 900 },
@@ -82,6 +83,23 @@ for (const theme of ['light', 'dark']) {
     await section.scrollIntoViewIfNeeded();
     await page.waitForTimeout(300);
     built[theme][id] = await section.locator('.stage').screenshot({ animations: 'disabled' });
+    if (id === 'exposure') {
+      // the start state shows the off track of the lock; the second capture shows it switched on
+      await section.locator('.stage').evaluate((stage) => {
+        const walk = (root) => {
+          for (const element of root.querySelectorAll('*')) {
+            if (element.matches('button.lock')) return element;
+            const found = element.shadowRoot && walk(element.shadowRoot);
+            if (found) return found;
+          }
+          return null;
+        };
+        const host = stage.firstElementChild;
+        walk(host.shadowRoot ?? host)?.click();
+      });
+      await page.waitForTimeout(400);
+      locked[theme][id] = await section.locator('.stage').screenshot({ animations: 'disabled' });
+    }
   }
   await ctx.close();
 }
@@ -93,7 +111,7 @@ const sheet = await browser.newContext({
 const out = await sheet.newPage();
 for (const [n, id] of ids.entries()) {
   const row = (theme) =>
-    `<div class="row"><figure><img src="${shot(cards[id])}"><figcaption>E${n + 1} ${id} - card of the mock</figcaption></figure><figure><img src="${shot(built[theme][id])}"><figcaption>built, frame ${theme}</figcaption></figure></div>`;
+    `<div class="row"><figure><img src="${shot(cards[id])}"><figcaption>E${n + 1} ${id} - card of the mock</figcaption></figure><figure><img src="${shot(built[theme][id])}"><figcaption>built, frame ${theme}</figcaption></figure>${locked[theme][id] ? `<figure><img src="${shot(locked[theme][id])}"><figcaption>built, frame ${theme}, lock on</figcaption></figure>` : ''}</div>`;
   await out.setContent(
     `<style>body{margin:0;padding:16px;background:#888;font:13px system-ui;color:#fff}.row{display:flex;gap:16px;align-items:flex-start;margin-bottom:16px}figure{margin:0;flex:1 1 0;min-width:0}img{display:block;max-width:100%;height:auto}figcaption{padding:4px 0}</style>${row('light')}${row('dark')}`,
   );

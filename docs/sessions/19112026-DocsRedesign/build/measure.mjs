@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import { PNG } from 'pngjs';
 import pw from 'playwright';
+import { states } from './states.mjs';
 
 /*
  * Measures the examples of the site in a browser: overflow, target size, text contrast, focus and the
@@ -29,7 +30,6 @@ const BASE = process.env.BASE ?? 'http://localhost:5173/ecmact';
 const OUT = process.env.OUT ?? './out';
 const engines = (process.env.ENGINES ?? 'chromium').split(',');
 const only = process.env.ONLY ? process.env.ONLY.split(',') : null;
-const states = (await import('./states.mjs')).default;
 
 const lum = ([r, g, b]) => {
   const f = (v) => {
@@ -84,7 +84,6 @@ const gather = (hostSel) => {
   const overflow = [];
   const small = [];
   const texts = [];
-  const focusables = [];
   for (const el of all) {
     if (!visible(el)) continue;
     const r = el.getBoundingClientRect();
@@ -291,7 +290,7 @@ const parseColor = (s) => {
   const m = s.match(/rgba?\(([^)]+)\)/);
   if (!m) return null;
   const v = m[1]
-    .split(/[ ,\/]+/)
+    .split(/[ ,/]+/)
     .filter(Boolean)
     .map(Number);
   return { rgb: v.slice(0, 3), a: v[3] ?? 1 };
@@ -544,7 +543,6 @@ const focusStops = async (page, stageSel, eng) => {
   await page.evaluate(() => document.getElementById('__pre')?.remove());
   return stops;
 };
-const sheetsOf = {};
 export const run = async () => {
   fs.mkdirSync(OUT, { recursive: true });
   const report = {};
@@ -589,7 +587,6 @@ export const run = async () => {
         for (let i = 0; i < ids.length; i++) {
           const id = map[ids[i]];
           if (only && !only.includes(id)) continue;
-          const sel = `section.demo:nth-of-type(${1}) `; // replaced below
 
           const stageSel = '.stage[data-m]';
           const stateList = process.env.ROUTE

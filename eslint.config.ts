@@ -5,7 +5,7 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig([
-  globalIgnores(['**/dist', '**/coverage', 'packages/*/template', 'docs/sessions/*/build']),
+  globalIgnores(['**/dist', '**/coverage', 'packages/*/template']),
   js.configs.recommended,
   tseslint.configs.strict,
   tseslint.configs.stylistic,
@@ -82,6 +82,24 @@ export default defineConfig([
   {
     files: ['scripts/**/*.mjs', 'packages/*/bin/*.mjs'],
     languageOptions: { globals: { console: 'readonly', process: 'readonly', URL: 'readonly' } },
+  },
+  {
+    // measuring and capture scripts of a session: they run in Node and hand functions to the page of a browser
+    files: ['docs/sessions/*/build/*.mjs'],
+    languageOptions: {
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        URL: 'readonly',
+        document: 'readonly',
+        window: 'readonly',
+        getComputedStyle: 'readonly',
+        NodeFilter: 'readonly',
+        Event: 'readonly',
+        DOMException: 'readonly',
+      },
+    },
+    rules: { '@typescript-eslint/no-empty-function': 'off' },
   },
   {
     files: ['src/**/*.ts', 'tests/**/*.ts', 'packages/*/src/**/*.ts', 'packages/*/tests/**/*.ts'],
