@@ -1,5 +1,5 @@
 import { computed, defineWidget, effect, signal, tags, untracked } from 'ecmact';
-import { loadFeed, type Feed, type FeedError } from '@site/widgets/api';
+import { loadFeed, type FeedError } from '@site/widgets/api';
 import { moveIndex, readNumber, widgetCss } from '@site/widgets/kit';
 
 const { button, div } = tags;
@@ -116,7 +116,7 @@ export const defineFeedLamp = () =>
         note: 'Set the src attribute.',
       });
       const refresh = signal(0);
-      let good: Feed | undefined;
+      let good: { address: string; title: string } | undefined;
       /**
        * Lists the sample feeds.
        *
@@ -165,6 +165,7 @@ export const defineFeedLamp = () =>
             reading.value = { lamp: 'idle', state: 'No feed', note: 'Set the src attribute.' };
             return undefined;
           }
+          const shown = address.split('#')[0] as string;
           const controller = new AbortController();
           let attempt = 1;
           let slow = false;
@@ -175,7 +176,7 @@ export const defineFeedLamp = () =>
             reading.value = {
               lamp: 'wait',
               state: slow ? 'Slow answer' : 'Waiting',
-              note: `${address.split('#')[0]} · attempt ${attempt} of ${tries + 1}`,
+              note: `${shown} · attempt ${attempt} of ${tries + 1}`,
             };
           };
           waiting();
@@ -198,13 +199,14 @@ export const defineFeedLamp = () =>
             },
           })
             .then((feed) => {
-              good = feed;
+              if (controller.signal.aborted) return;
+              good = { address: shown, title: feed.title };
               reading.value = {
                 lamp: 'ok',
                 state: feed.title,
                 note: `${feed.detail ? `${feed.detail} · ` : ''}${feed.status} · attempt ${attempt} of ${tries + 1}`,
               };
-              emit('loaded', { src: address.split('#')[0], title: feed.title });
+              emit('loaded', { src: shown, title: feed.title });
             })
             .catch((error: unknown) => {
               if (controller.signal.aborted) return;
@@ -221,7 +223,7 @@ export const defineFeedLamp = () =>
               reading.value = {
                 lamp,
                 state,
-                note: `${address.split('#')[0]}${failure.status ? ` · ${failure.status}` : ''}${good ? ` · last good: ${good.title}` : ''}`,
+                note: `${shown}${failure.status ? ` · ${failure.status}` : ''}${good?.address === shown ? ` · last good: ${good.title}` : ''}`,
               };
             })
             .finally(() => clearTimeout(timer));
@@ -262,7 +264,7 @@ export const defineFeedLamp = () =>
        * @param event - The key press.
        */
       const steer = (event: KeyboardEvent) => {
-        const next = moveIndex(event.key, selected(), samples().length);
+        const next = moveIndex(event.key, Math.max(0, selected()), samples().length);
         if (next === undefined) return;
         event.preventDefault();
         pick(next);
@@ -284,7 +286,9 @@ export const defineFeedLamp = () =>
             role: 'tab',
             'aria-selected': computed(() => String(selected() === index)),
             'aria-controls': 'panel',
-            tabindex: computed(() => (selected() === index ? 0 : -1)),
+            tabindex: computed(() =>
+              selected() === index || (selected() < 0 && index === 0) ? 0 : -1,
+            ),
             onclick: chooser(index),
           },
           sample.name,

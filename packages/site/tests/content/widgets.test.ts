@@ -49,6 +49,12 @@ describe('widgets content', () => {
         );
         Object.values(texts[group]).forEach((value) => expect(value).toBeTruthy());
       });
+      expect(texts.attributes['print-quote.base'], `${locale} says what base means now`).toContain(
+        'price-calculator',
+      );
+      expect(texts.attributes['print-quote.base']).toContain('100');
+      expect(texts.events['print-quote.quote']).toContain('perCopy');
+      expect(texts.events['print-quote.quote']).toContain('seats');
       expect(texts.former).toContain('{tag}');
       expect(
         texts.themeLead,
@@ -89,19 +95,19 @@ const looks = {
  * Cuts the balanced blocks that start with a head out of a source.
  *
  * @param source - The source.
- * @param head - The opening of the block, up to and including its brace.
+ * @param head - The opening of the block: its start, up to or including its brace.
  * @returns The source without the blocks.
  */
 const without = (source: string, head: string) => {
   let text = source;
   for (let at = text.indexOf(head); at !== -1; at = text.indexOf(head)) {
-    let depth = 1;
-    let end = at + head.length;
-    while (depth > 0 && end < text.length) {
+    let depth = 0;
+    let end = text.indexOf('{', at);
+    do {
       const char = text[end++];
       if (char === '{') depth++;
       if (char === '}') depth--;
-    }
+    } while (depth > 0 && end < text.length);
     text = text.slice(0, at) + text.slice(end);
   }
   return text;
@@ -212,6 +218,12 @@ describe('the sources of the widgets keep out the devices of the first build', (
         '@media (prefers-reduced-motion: no-preference) {',
       ),
     ).not.toContain('transition');
+  });
+
+  it('cut a block that starts with a head without a brace, and keep what follows it', () => {
+    expect(without('@supports (x) { a { mask: x } } b { mask: y }', '@supports (')).toBe(
+      ' b { mask: y }',
+    );
   });
 
   it('draw masks only inside @supports, so that a browser without them shows a plain card and a plain ring', () => {

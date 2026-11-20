@@ -42,25 +42,49 @@ const code = (value: string, empty: string) => (value === '' ? empty : `\`${valu
 /**
  * Keeps the section that the address names in view while the page settles. The host frames above the reference grow
  * when their pages have loaded, which would push the section down after the first scroll to it; the page scrolls
- * to it again whenever it changes height, until the visitor scrolls or presses a key, or five seconds have passed.
+ * to it again whenever it changes height. It lets go when the visitor takes over: a wheel, touch, key or pointer on
+ * the page, or any scroll that is not ours (a drag of the scrollbar, a wheel over a frame), or after five seconds.
+ * A scroll counts as ours until 200 ms after the last one that follows our own scroll to the section.
  *
  * @param page - The page.
  */
 const holdHash = (page: HTMLElement) => {
   const release = new AbortController();
-  const observer = new ResizeObserver(() => {
+  let ours = false;
+  let quiet: ReturnType<typeof setTimeout> | undefined;
+  /** Marks the scrolling that follows as ours, until it has been quiet for a moment. */
+  const mine = () => {
+    ours = true;
+    clearTimeout(quiet);
+    quiet = setTimeout(() => {
+      ours = false;
+    }, 200);
+  };
+  /** Scrolls to the section again, as ours. */
+  const again = () => {
+    mine();
     scrollToHash(window.location.hash);
-  });
-  observer.observe(page);
+  };
+  const observer = new ResizeObserver(again);
+  const limit = setTimeout(() => stop(), 5000);
   /** Stops watching: the visitor has taken over, or the time is up. */
   const stop = () => {
     observer.disconnect();
     release.abort();
+    clearTimeout(quiet);
+    clearTimeout(limit);
   };
+  /** Follows a scroll: one that is ours moves the end of our scrolling on, any other hands the page back. */
+  const scrolled = () => {
+    if (ours) mine();
+    else stop();
+  };
+  observer.observe(page);
   ['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach((type) =>
     window.addEventListener(type, stop, { once: true, passive: true, signal: release.signal }),
   );
-  setTimeout(stop, 5000);
+  window.addEventListener('scroll', scrolled, { passive: true, signal: release.signal });
+  mine();
 };
 
 /**

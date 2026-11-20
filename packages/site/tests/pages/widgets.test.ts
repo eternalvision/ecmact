@@ -168,6 +168,24 @@ describe('widgets page', () => {
       expect(log.disconnected).toBe(closed + 1);
     });
 
+    it('lets go at a scroll that is not ours, such as a drag of the scrollbar, and clears its timers', async () => {
+      const log = stubObserver();
+      vi.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(() => undefined);
+      window.history.replaceState(null, '', '/widgets#repo-card');
+      mount(document.body, widgetsPage());
+      await vi.advanceTimersByTimeAsync(0);
+      const timers = vi.getTimerCount();
+      const closed = log.disconnected;
+      window.dispatchEvent(new Event('scroll'));
+      await vi.advanceTimersByTimeAsync(100);
+      window.dispatchEvent(new Event('scroll'));
+      expect(log.disconnected).toBe(closed);
+      await vi.advanceTimersByTimeAsync(400);
+      window.dispatchEvent(new Event('scroll'));
+      expect(log.disconnected).toBe(closed + 1);
+      expect(vi.getTimerCount()).toBe(timers - 2);
+    });
+
     it('lets go after five seconds', async () => {
       const log = stubObserver();
       vi.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(() => undefined);

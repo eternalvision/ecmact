@@ -315,7 +315,7 @@ const en: Messages = {
       'print-quote.currency':
         'The ISO 4217 code of the money. An empty value counts as the default; a code the browser does not know is shown as typed.',
       'print-quote.base':
-        'The price of a copy at the break of 100. An empty or malformed value counts as the default.',
+        'The price of a copy at the break of 100, not a price per seat per month as in `price-calculator`, which this widget replaced. An empty or malformed value counts as the default.',
       'print-quote.heading':
         'The title of the ticket. It is not `title`, which would show a tooltip over the whole widget.',
       'moon-dial.date': 'The day to start from, as `2026-11-20`. Today when missing or malformed.',
@@ -341,7 +341,7 @@ const en: Messages = {
     },
     events: {
       'print-quote.quote':
-        '`{ copies, inks, stock, perCopy, total, currency }`, when the visitor asks for the quote.',
+        '`{ copies, inks, stock, perCopy, total, currency }`, when the visitor asks for the quote; it replaces the detail `{ seats, yearly, total, currency }` of `price-calculator`.',
       'moon-dial.change': '`{ date, day, phase }`, when the visitor moves to another day.',
       'proof-clock.done':
         'When the loaf is out. Again if `to` moves to a later moment and that passes too.',
@@ -671,7 +671,7 @@ const ru: Messages = {
       'print-quote.currency':
         'Код денег по ISO 4217. Пустое значение считается значением по умолчанию; код, которого браузер не знает, показывается как написан.',
       'print-quote.base':
-        'Цена экземпляра на ступени 100. Пустое или неверное значение считается значением по умолчанию.',
+        'Цена экземпляра на ступени 100, а не цена места в месяц, как в `price-calculator`, который этот виджет заменил. Пустое или неверное значение считается значением по умолчанию.',
       'print-quote.heading':
         'Заголовок билета. Это не `title`, который показал бы подсказку над всем виджетом.',
       'moon-dial.date':
@@ -698,7 +698,7 @@ const ru: Messages = {
     },
     events: {
       'print-quote.quote':
-        '`{ copies, inks, stock, perCopy, total, currency }`, когда посетитель просит расчёт.',
+        '`{ copies, inks, stock, perCopy, total, currency }`, когда посетитель просит расчёт; оно заменяет детали `{ seats, yearly, total, currency }` виджета `price-calculator`.',
       'moon-dial.change': '`{ date, day, phase }`, когда посетитель переходит на другой день.',
       'proof-clock.done':
         'Когда хлеб готов. Снова, если `to` сдвинули на более поздний момент и он тоже прошёл.',

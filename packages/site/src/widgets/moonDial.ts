@@ -167,7 +167,9 @@ const shift = (date: Date, by: number) =>
  * @returns The text.
  */
 const iso = (date: Date) =>
-  `${date.getFullYear()}-${plain(date.getMonth() + 1).padStart(2, '0')}-${plain(date.getDate()).padStart(2, '0')}`;
+  [date.getFullYear(), date.getMonth() + 1, date.getDate()]
+    .map((part) => String(part).padStart(2, '0'))
+    .join('-');
 
 /**
  * Registers `<moon-dial>`: the phase of the moon on a day, a ring of the 29 days of the month and buttons for the

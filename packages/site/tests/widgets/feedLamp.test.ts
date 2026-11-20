@@ -359,7 +359,7 @@ describe('feed-lamp', () => {
       feeds: 'a=data/kiln.json, b=data/none.json',
     });
     press(tabs(root)[0]!, 'ArrowRight');
-    expect(tabs(root).map((tab) => tab.getAttribute('aria-selected'))).toEqual(['true', 'false']);
+    expect(tabs(root).map((tab) => tab.getAttribute('aria-selected'))).toEqual(['false', 'true']);
   });
 
   it('reads the feed again with the refresh button, a native button', async () => {
@@ -372,6 +372,87 @@ describe('feed-lamp', () => {
     refresh.click();
     await settle();
     expect(mock).toHaveBeenCalledTimes(2);
+  });
+
+  it('gives the first tab the tab stop when src and feeds are both set and no tab is chosen', async () => {
+    answers({
+      'data/kiln.json': [200, feed],
+      'data/none.json': [404, 'x'],
+      'data/odd.json': [200, '{}'],
+    });
+    const { root } = await mountWidget('feed-lamp', {
+      src: 'data/kiln.json',
+      feeds: 'a=data/none.json, b=data/odd.json, c=data/kiln.json',
+    });
+    await settle();
+    expect(tabs(root).map((tab) => tab.getAttribute('aria-selected'))).toEqual([
+      'false',
+      'false',
+      'false',
+    ]);
+    expect(tabs(root).map((tab) => tab.tabIndex)).toEqual([0, -1, -1]);
+    expect(tabs(root).filter((tab) => tab.tabIndex === 0)).toHaveLength(1);
+    tabs(root)[0]!.focus();
+    expect(root.activeElement).toBe(tabs(root)[0]);
+    press(tabs(root)[0]!, 'ArrowLeft');
+    expect(tabs(root).map((tab) => tab.getAttribute('aria-selected'))).toEqual([
+      'false',
+      'false',
+      'true',
+    ]);
+    expect(tabs(root).map((tab) => tab.tabIndex)).toEqual([-1, -1, 0]);
+  });
+
+  it('stops the pause between two attempts when the widget leaves the page', async () => {
+    const mock = answers({ 'data/down.json': [500, 'busy'] });
+    const { element } = await mountWidget('feed-lamp', { src: 'data/down.json', retries: '2' });
+    expect(mock).toHaveBeenCalledTimes(1);
+    element.remove();
+    await settle();
+    expect(vi.getTimerCount()).toBe(0);
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(mock).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a last good reading only for the address that gave it', async () => {
+    let body: [number, string] = [200, feed];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(body[1], { status: body[0] })),
+    );
+    const { element, root } = await mountWidget('feed-lamp', { src: 'data/a.json' });
+    await settle();
+    body = [404, 'gone'];
+    element.setAttribute('src', 'data/b.json');
+    await settle();
+    expect(state(root)).toBe('Not found');
+    expect(meta(root)).toBe('data/b.json · 404');
+    element.setAttribute('src', 'data/a.json');
+    await settle();
+    expect(meta(root)).toBe('data/a.json · 404 · last good: Kiln is done');
+    element.setAttribute('src', 'data/c.json');
+    await settle();
+    expect(meta(root)).toBe('data/c.json · 404');
+  });
+
+  it('ignores an answer that arrives after its request was cancelled', async () => {
+    const waiting: ((response: Response) => void)[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise<Response>((resolve) => waiting.push(resolve))),
+    );
+    const loaded = vi.fn();
+    const { element, root } = await mountWidget('feed-lamp', { src: 'data/a.json' }, { loaded });
+    element.setAttribute('src', 'data/b.json');
+    await settle();
+    waiting[0]!(new Response('{"title":"Old"}'));
+    await settle();
+    expect(state(root)).toBe('Waiting');
+    expect(loaded).not.toHaveBeenCalled();
+    waiting[1]!(new Response('{"title":"New"}'));
+    await settle();
+    expect(state(root)).toBe('New');
+    expect(loaded).toHaveBeenCalledTimes(1);
   });
 
   it('breathes only where motion is allowed', async () => {

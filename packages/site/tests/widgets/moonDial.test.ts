@@ -117,6 +117,19 @@ describe('moon-dial', () => {
     expect(name(root)).toBe(today.phase);
   });
 
+  it('writes the date of the event with ASCII digits whatever the language of the page', async () => {
+    document.documentElement.lang = 'ar-EG';
+    const changes: { date: string }[] = [];
+    const { root } = await mountWidget(
+      'moon-dial',
+      { date: '2026-11-17' },
+      { change: (event) => changes.push(event.detail) },
+    );
+    button(root, 'Next day').click();
+    document.documentElement.lang = '';
+    expect(changes.at(-1)?.date).toBe('2026-11-18');
+  });
+
   it('ignores a key that moves nothing', async () => {
     const changes: unknown[] = [];
     const { root } = await mountWidget(

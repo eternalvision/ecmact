@@ -97,10 +97,22 @@ const describeFailure = (error: unknown) => {
 };
 
 /**
+ * Tells whether a failure is worth another attempt: no answer, a timeout, or a 5xx status.
+ *
+ * @param failure - The failure.
+ * @returns `true` to try again.
+ */
+const worthAnother = (failure: FeedError) =>
+  failure.failure === 'offline' ||
+  failure.failure === 'timeout' ||
+  (failure.failure === 'server' && (failure.status as number) >= 500);
+
+/**
  * Reads a feed from an address of this site (or any address that allows it). A `#lag=1500` at the end of the
  * address makes the widget wait that many milliseconds before it asks, so that a static file can show a slow
  * answer; the fragment is never sent. A network failure, a timeout and a 5xx status are tried again as many times
- * as `retries` says; a 404 and a body that is not a feed are not.
+ * as `retries` says, with a pause between the attempts that a cancel ends at once; a 404, any other 4xx status and a
+ * body that is not a feed are not.
  *
  * @param src - The address, relative to the page.
  * @param options - Retries, timeout, cancellation and a report of the attempts.
@@ -112,26 +124,17 @@ export const loadFeed = async (src: string, options: FeedOptions): Promise<Feed>
   const address = cut === -1 ? src : src.slice(0, cut);
   const wait = Number(new URLSearchParams(cut === -1 ? '' : src.slice(cut + 1)).get('lag'));
   if (wait > 0) await lag(wait, options.signal);
-  const http = createHttp({
-    timeout: options.timeout,
-    retry: {
-      retries: options.retries,
-      /**
-       * Reports the attempt that follows a failure and waits a little longer each time.
-       *
-       * @param failed - The number of the attempt that failed, from 0.
-       * @returns The milliseconds to wait.
-       */
-      delay: (failed) => {
-        options.onAttempt(failed + 2);
-        return 300 * 2 ** failed;
-      },
-    },
-  });
-  try {
-    const response = await http.get<unknown>(address, { signal: options.signal });
-    return readFeed(response.data, response.status);
-  } catch (error) {
-    throw describeFailure(error);
+  const http = createHttp({ timeout: options.timeout });
+  for (let failed = 0; ; failed++) {
+    try {
+      const response = await http.get<unknown>(address, { signal: options.signal });
+      return readFeed(response.data, response.status);
+    } catch (error) {
+      const failure = describeFailure(error);
+      if (!(failure instanceof FeedError) || failed >= options.retries || !worthAnother(failure))
+        throw failure;
+    }
+    options.onAttempt(failed + 2);
+    await lag(300 * 2 ** failed, options.signal);
   }
 };
