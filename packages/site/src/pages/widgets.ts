@@ -42,28 +42,22 @@ const code = (value: string, empty: string) => (value === '' ? empty : `\`${valu
 /**
  * Keeps the section that the address names in view while the page settles. The host frames above the reference grow
  * when their pages have loaded, which would push the section down after the first scroll to it; the page scrolls
- * to it again whenever it changes height. It lets go when the visitor takes over: a wheel, touch, key or pointer on
- * the page, or any scroll that is not ours (a drag of the scrollbar, a wheel over a frame), or after five seconds.
- * A scroll counts as ours until 200 ms after the last one that follows our own scroll to the section.
+ * to it again whenever it changes height. Every scroll of ours is instant (the style sheet makes the others smooth),
+ * so each one is a single `scroll` event with the section at the place we put it. It lets go when the visitor takes
+ * over: a wheel, touch, key or pointer on the page, or any scroll that leaves the section more than 2 px from that
+ * place (a drag of the scrollbar, a wheel over a frame), or after five seconds.
  *
  * @param page - The page.
  */
 const holdHash = (page: HTMLElement) => {
+  const target = document.getElementById(window.location.hash.slice(1));
+  if (!target) return;
   const release = new AbortController();
-  let ours = false;
-  let quiet: ReturnType<typeof setTimeout> | undefined;
-  /** Marks the scrolling that follows as ours, until it has been quiet for a moment. */
-  const mine = () => {
-    ours = true;
-    clearTimeout(quiet);
-    quiet = setTimeout(() => {
-      ours = false;
-    }, 200);
-  };
-  /** Scrolls to the section again, as ours. */
+  let home = 0;
+  /** Scrolls to the section, instantly, and notes where it stands. */
   const again = () => {
-    mine();
-    scrollToHash(window.location.hash);
+    scrollToHash(window.location.hash, 'instant');
+    home = target.getBoundingClientRect().top;
   };
   const observer = new ResizeObserver(again);
   const limit = setTimeout(() => stop(), 5000);
@@ -71,20 +65,18 @@ const holdHash = (page: HTMLElement) => {
   const stop = () => {
     observer.disconnect();
     release.abort();
-    clearTimeout(quiet);
     clearTimeout(limit);
   };
-  /** Follows a scroll: one that is ours moves the end of our scrolling on, any other hands the page back. */
+  /** Hands the page back when a scroll has moved the section from where we put it. */
   const scrolled = () => {
-    if (ours) mine();
-    else stop();
+    if (Math.abs(target.getBoundingClientRect().top - home) > 2) stop();
   };
+  again();
   observer.observe(page);
   ['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach((type) =>
     window.addEventListener(type, stop, { once: true, passive: true, signal: release.signal }),
   );
   window.addEventListener('scroll', scrolled, { passive: true, signal: release.signal });
-  mine();
 };
 
 /**
@@ -105,9 +97,7 @@ export const widgetsPage = () => {
        * @param page - The page.
        */
       ref: (page: HTMLElement) => {
-        setTimeout(() => {
-          if (scrollToHash(window.location.hash)) holdHash(page);
-        });
+        setTimeout(() => holdHash(page));
       },
     },
     h1(m.title),

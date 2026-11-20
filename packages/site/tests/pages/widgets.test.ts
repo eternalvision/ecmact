@@ -147,17 +147,35 @@ describe('widgets page', () => {
       expect(scroll.mock.contexts).toContain(document.getElementById('price-calculator'));
     });
 
-    it('scrolls again when the page changes height, until the visitor scrolls', async () => {
+    /**
+     * Mounts the page on a hash, with a section whose top the test moves and a scroll that puts it back to 0.
+     *
+     * @param id - The id of the section.
+     * @param rest - Where the top of the section stands after a scroll to it, as under a sticky header.
+     * @returns What the test needs to play the page.
+     */
+    const open = async (id: string, rest = 0) => {
       const log = stubObserver();
-      const scroll = vi
-        .spyOn(Element.prototype, 'scrollIntoView')
-        .mockImplementation(() => undefined);
-      window.history.replaceState(null, '', '/widgets#repo-card');
+      const state = { top: rest };
+      const scroll = vi.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(() => {
+        state.top = rest;
+      });
+      window.history.replaceState(null, '', `/widgets#${id}`);
       mount(document.body, widgetsPage());
+      const target = document.getElementById(id)!;
+      vi.spyOn(target, 'getBoundingClientRect').mockImplementation(
+        () => ({ top: state.top }) as DOMRect,
+      );
       await vi.advanceTimersByTimeAsync(0);
+      return { log, state, scroll };
+    };
+
+    it('scrolls again, instantly, when the page changes height, until the visitor takes over', async () => {
+      const { log, scroll } = await open('repo-card');
       expect(log.targets.filter((target) => (target as Element).localName === 'main')).toHaveLength(
         1,
       );
+      expect(scroll).toHaveBeenLastCalledWith({ behavior: 'instant' });
       const closed = log.disconnected;
       const first = scroll.mock.calls.length;
       log.notify();
@@ -168,22 +186,54 @@ describe('widgets page', () => {
       expect(log.disconnected).toBe(closed + 1);
     });
 
-    it('lets go at a scroll that is not ours, such as a drag of the scrollbar, and clears its timers', async () => {
-      const log = stubObserver();
-      vi.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(() => undefined);
-      window.history.replaceState(null, '', '/widgets#repo-card');
-      mount(document.body, widgetsPage());
-      await vi.advanceTimersByTimeAsync(0);
+    it('does not let go at a scroll of ours, however many there are, as the page grows and scrolls back', async () => {
+      const { log, state } = await open('repo-card');
+      const closed = log.disconnected;
+      for (const grown of [400, 900, 1500]) {
+        state.top = grown;
+        log.notify();
+        window.dispatchEvent(new Event('scroll'));
+        state.top = 1;
+        window.dispatchEvent(new Event('scroll'));
+      }
+      expect(log.disconnected).toBe(closed);
+    });
+
+    it('lets go at a scroll that is not ours, such as a drag of the scrollbar, at once, and clears its timers', async () => {
+      const { log, state } = await open('repo-card');
       const timers = vi.getTimerCount();
       const closed = log.disconnected;
-      window.dispatchEvent(new Event('scroll'));
-      await vi.advanceTimersByTimeAsync(100);
-      window.dispatchEvent(new Event('scroll'));
-      expect(log.disconnected).toBe(closed);
-      await vi.advanceTimersByTimeAsync(400);
+      state.top = 3;
       window.dispatchEvent(new Event('scroll'));
       expect(log.disconnected).toBe(closed + 1);
-      expect(vi.getTimerCount()).toBe(timers - 2);
+      expect(vi.getTimerCount()).toBe(timers - 1);
+      state.top = 0;
+      window.dispatchEvent(new Event('scroll'));
+      expect(log.disconnected).toBe(closed + 1);
+    });
+
+    it('measures from where the section rests after our scroll, not from the top of the window', async () => {
+      const { log, state } = await open('repo-card', 80);
+      const closed = log.disconnected;
+      log.notify();
+      window.dispatchEvent(new Event('scroll'));
+      state.top = 81;
+      window.dispatchEvent(new Event('scroll'));
+      expect(log.disconnected).toBe(closed);
+      state.top = 84;
+      window.dispatchEvent(new Event('scroll'));
+      expect(log.disconnected).toBe(closed + 1);
+    });
+
+    it('lets go at a scroll that is not ours even right after one of ours', async () => {
+      const { log, state } = await open('repo-card');
+      const closed = log.disconnected;
+      log.notify();
+      window.dispatchEvent(new Event('scroll'));
+      expect(log.disconnected).toBe(closed);
+      state.top = -250;
+      window.dispatchEvent(new Event('scroll'));
+      expect(log.disconnected).toBe(closed + 1);
     });
 
     it('lets go after five seconds', async () => {

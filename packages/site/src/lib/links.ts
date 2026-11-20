@@ -6,12 +6,13 @@ import type { Router } from 'ecmact';
  * the page has it, so a link to a section of another page needs this.
  *
  * @param address - An address, with or without a hash. Ids on the site are plain ASCII, so the hash is used as it is.
+ * @param behavior - How to scroll; the style sheet of the site makes the default smooth.
  * @returns Whether an element was found.
  */
-export const scrollToHash = (address: string) => {
+export const scrollToHash = (address: string, behavior?: ScrollBehavior) => {
   const hash = address.includes('#') ? address.slice(address.indexOf('#') + 1) : '';
   const target = hash ? document.getElementById(hash) : null;
-  target?.scrollIntoView();
+  target?.scrollIntoView(behavior ? { behavior } : undefined);
   target?.focus({ preventScroll: true });
   return target !== null;
 };
