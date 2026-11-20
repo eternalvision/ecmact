@@ -48,11 +48,11 @@ describe('messages', () => {
     });
   });
 
-  it('name the version of the unreleased behavior an example shows', () => {
+  it('name the version that brought the behavior an example shows', () => {
     ['en', 'ru'].forEach((locale) => {
       const { setlist, customs } = messages[locale as 'en' | 'ru'].demos;
-      expect(setlist?.note, locale).toContain('3.0.x');
-      expect(customs?.note, locale).toContain('3.0.x');
+      expect(setlist?.note, locale).toContain('3.0.1');
+      expect(customs?.note, locale).toContain('3.0.1');
     });
   });
 
