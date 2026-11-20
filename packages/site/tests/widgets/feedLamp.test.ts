@@ -352,7 +352,7 @@ describe('feed-lamp', () => {
     expect(selected()).toBe(2);
   });
 
-  it('moves from no tab to the first or last with an arrow key', async () => {
+  it('moves on from the tab stop with an arrow key when no tab is chosen', async () => {
     answers({ 'data/kiln.json': [200, feed], 'data/none.json': [404, 'x'] });
     const { root } = await mountWidget('feed-lamp', {
       src: 'data/kiln.json',

@@ -134,6 +134,34 @@ describe('loadFeed', () => {
     expect(mock).toHaveBeenCalledTimes(2);
   });
 
+  it('tries again after a lost connection', async () => {
+    const mock = vi.fn(async () => {
+      throw new TypeError('Failed to fetch');
+    });
+    vi.stubGlobal('fetch', mock);
+    expect(await failure(loadFeed('data/kiln.json', options({ retries: 1 })))).toMatchObject({
+      failure: 'offline',
+    });
+    expect(mock).toHaveBeenCalledTimes(2);
+  });
+
+  it('tries again after a timeout', async () => {
+    hang();
+    expect(
+      await failure(loadFeed('data/kiln.json', options({ timeout: 500, retries: 1 }))),
+    ).toMatchObject({ failure: 'timeout' });
+    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not try again after a 4xx status other than 404', async () => {
+    const mock = stubFetch(() => 403);
+    expect(await failure(loadFeed('data/kiln.json', options({ retries: 3 })))).toMatchObject({
+      failure: 'server',
+      status: 403,
+    });
+    expect(mock).toHaveBeenCalledTimes(1);
+  });
+
   it('does not try again after a 404 or a body that is not a feed', async () => {
     const missing = stubFetch(() => 404);
     await failure(loadFeed('data/none.json', options({ retries: 3 })));
@@ -170,6 +198,53 @@ describe('loadFeed', () => {
     controller.abort();
     expect(await feed).toBe(controller.signal.reason);
     expect(mock).not.toHaveBeenCalled();
+  });
+
+  it('does not wait at all for a lag when the signal has aborted already', async () => {
+    const controller = new AbortController();
+    controller.abort();
+    const mock = stubFetch(() => ({ title: 'Late' }));
+    const timers = vi.getTimerCount();
+    const feed = loadFeed('data/kiln.json#lag=3000', options({ signal: controller.signal }));
+    expect(vi.getTimerCount()).toBe(timers);
+    expect(
+      await feed.then(
+        () => undefined,
+        (error: unknown) => error,
+      ),
+    ).toBe(controller.signal.reason);
+    expect(mock).not.toHaveBeenCalled();
+  });
+
+  it('does not wait for the pause between attempts, nor ask again, when the signal has aborted by then', async () => {
+    const controller = new AbortController();
+    const attempts: number[] = [];
+    const mock = vi.fn(async () => {
+      queueMicrotask(() => controller.abort());
+      return new Response('{}', { status: 500 });
+    });
+    vi.stubGlobal('fetch', mock);
+    const outcome = await failure(
+      loadFeed(
+        'data/kiln.json',
+        options({ retries: 2, signal: controller.signal, onAttempt: (n) => attempts.push(n) }),
+      ),
+    );
+    expect(outcome).toBe(controller.signal.reason);
+    expect(attempts).toEqual([]);
+    expect(mock).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('takes its abort listener off the signal once the pause is over', async () => {
+    const controller = new AbortController();
+    const add = vi.spyOn(controller.signal, 'addEventListener');
+    const remove = vi.spyOn(controller.signal, 'removeEventListener');
+    stubFetch(() => ({ title: 'Late' }));
+    const feed = loadFeed('data/kiln.json#lag=100', options({ signal: controller.signal }));
+    await vi.advanceTimersByTimeAsync(100);
+    await feed;
+    expect(remove).toHaveBeenCalledWith('abort', add.mock.calls[0]?.[1]);
   });
 
   it('hands back a cancelled request as it is, not as a failure of the feed', async () => {

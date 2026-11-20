@@ -103,6 +103,7 @@ const without = (source: string, head: string) => {
   for (let at = text.indexOf(head); at !== -1; at = text.indexOf(head)) {
     let depth = 0;
     let end = text.indexOf('{', at);
+    if (end === -1) throw new Error(`no block after head: ${head}`);
     do {
       const char = text[end++];
       if (char === '{') depth++;
@@ -218,6 +219,10 @@ describe('the sources of the widgets keep out the devices of the first build', (
         '@media (prefers-reduced-motion: no-preference) {',
       ),
     ).not.toContain('transition');
+  });
+
+  it('refuse a head that has no block after it, instead of looping for ever', () => {
+    expect(() => without('a { x: y } @supports (', '@supports (')).toThrow('no block after head');
   });
 
   it('cut a block that starts with a head without a brace, and keep what follows it', () => {

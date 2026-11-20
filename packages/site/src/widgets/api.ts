@@ -54,15 +54,20 @@ export interface FeedOptions {
  */
 const lag = (ms: number, signal: AbortSignal): Promise<void> =>
   new Promise((resolve, reject) => {
-    const timer = setTimeout(resolve, ms);
-    signal.addEventListener(
-      'abort',
-      () => {
-        clearTimeout(timer);
-        reject(signal.reason);
-      },
-      { once: true },
-    );
+    if (signal.aborted) {
+      reject(signal.reason);
+      return;
+    }
+    /** Ends the wait when the signal aborts. */
+    const abort = () => {
+      clearTimeout(timer);
+      reject(signal.reason);
+    };
+    const timer = setTimeout(() => {
+      signal.removeEventListener('abort', abort);
+      resolve();
+    }, ms);
+    signal.addEventListener('abort', abort, { once: true });
   });
 
 /**
@@ -112,7 +117,8 @@ const worthAnother = (failure: FeedError) =>
  * address makes the widget wait that many milliseconds before it asks, so that a static file can show a slow
  * answer; the fragment is never sent. A network failure, a timeout and a 5xx status are tried again as many times
  * as `retries` says, with a pause between the attempts that a cancel ends at once; a 404, any other 4xx status and a
- * body that is not a feed are not.
+ * body that is not a feed are not. The library retry of `createHttp` is not used because it keeps waiting after a
+ * cancel (library issue #74); once #74 is fixed this loop can go back to the library retry.
  *
  * @param src - The address, relative to the page.
  * @param options - Retries, timeout, cancellation and a report of the attempts.
@@ -134,6 +140,7 @@ export const loadFeed = async (src: string, options: FeedOptions): Promise<Feed>
       if (!(failure instanceof FeedError) || failed >= options.retries || !worthAnother(failure))
         throw failure;
     }
+    options.signal.throwIfAborted();
     options.onAttempt(failed + 2);
     await lag(300 * 2 ** failed, options.signal);
   }
