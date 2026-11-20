@@ -1,0 +1,750 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The four host pages of the gallery: mock sheet</title>
+    <style>
+      /* The sheet itself: a neutral frame around four pages that are not ours. */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #8a8f98;
+        color: #fff;
+        font:
+          15px/1.5 system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          'Helvetica Neue',
+          Arial,
+          sans-serif;
+      }
+      .sheet-head {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 24px 16px 8px;
+      }
+      .sheet-head h1 {
+        margin: 0 0 6px;
+        font-size: 22px;
+      }
+      .sheet-head p {
+        margin: 0;
+        max-width: 70ch;
+      }
+      .frame {
+        max-width: 1280px;
+        margin: 24px auto;
+      }
+      .frame > .bar {
+        display: flex;
+        gap: 12px;
+        align-items: baseline;
+        padding: 0 16px 6px;
+        font-size: 13px;
+      }
+      .frame > .bar b {
+        font-size: 15px;
+      }
+      .page {
+        overflow: hidden;
+        border-radius: 6px;
+      }
+
+      /* ============ cafe: Pan &amp; Co., a neighbourhood bakery: sage green and white ============ */
+      .h-cafe {
+        background: #ffffff;
+        color: #1b2b25;
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          'Helvetica Neue',
+          Arial,
+          sans-serif;
+        line-height: 1.6;
+      }
+      .h-cafe nav {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 22px;
+        padding: 16px 32px;
+        background: #2f5d50;
+        color: #f2f7f3;
+      }
+      .h-cafe nav b {
+        margin-right: auto;
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+      }
+      .h-cafe nav a {
+        color: #f2f7f3;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .h-cafe button {
+        padding: 12px 24px;
+        border: 0;
+        border-radius: 999px;
+        background: #c8512a;
+        color: #ffffff;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .h-cafe .hero {
+        padding: 56px 32px 40px;
+        background: linear-gradient(#e6f0e8, #ffffff);
+      }
+      .h-cafe .hero h1 {
+        max-width: 14ch;
+        margin: 0 0 12px;
+        font-size: clamp(34px, 6vw, 64px);
+        line-height: 1.02;
+        letter-spacing: -0.03em;
+        color: #1f4a3d;
+      }
+      .h-cafe .hero p {
+        max-width: 46ch;
+        margin: 0 0 22px;
+        font-size: 19px;
+      }
+      .h-cafe .row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+        gap: 28px;
+        align-items: start;
+        padding: 12px 32px 48px;
+      }
+      .h-cafe .cell h2 {
+        margin: 0 0 4px;
+        font-size: 22px;
+        color: #1f4a3d;
+      }
+      .h-cafe .cell p {
+        margin: 0 0 14px;
+        color: #3c4f47;
+      }
+      .h-cafe footer {
+        padding: 22px 32px;
+        background: #f1f5f2;
+        color: #3c4f47;
+        font-size: 14px;
+      }
+      .h-cafe proof-clock {
+        --w-bg: #dcebe0;
+        --w-fg: #17372c;
+        --w-accent: #2f6b57;
+        --w-on-accent: #ffffff;
+        --w-accent-text: #1f5443;
+        --w-font: Georgia, 'Times New Roman', serif;
+      }
+      .h-cafe row-counter {
+        --w-bg: #9fd1b4;
+        --w-fg: #0d2c20;
+        --w-accent: #c8512a;
+      }
+      .h-cafe moon-dial {
+        --w-bg: #12261f;
+        --w-fg: #eaf4ee;
+        --w-accent: #f2c14e;
+        --w-on-accent: #12261f;
+      }
+
+      /* ============ terminal: Kiln Control, an ops dashboard: dark slate and indigo ============ */
+      .h-terminal {
+        display: grid;
+        grid-template-columns: 220px minmax(0, 1fr);
+        background: #0e1116;
+        color: #e6edf3;
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          'Helvetica Neue',
+          Arial,
+          sans-serif;
+      }
+      .h-terminal aside {
+        padding: 20px 14px;
+        background: #12161d;
+        border-right: 1px solid #232a35;
+      }
+      .h-terminal aside b {
+        display: block;
+        padding: 0 10px 16px;
+        font-size: 17px;
+        letter-spacing: -0.01em;
+      }
+      .h-terminal aside a {
+        display: block;
+        padding: 9px 10px;
+        border-radius: 8px;
+        color: #a9b4c4;
+        text-decoration: none;
+        font-size: 14px;
+      }
+      .h-terminal aside a.on {
+        background: #1c2330;
+        color: #ffffff;
+      }
+      .h-terminal main {
+        min-width: 0;
+        padding: 20px 28px 36px;
+      }
+      .h-terminal .top {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .h-terminal .top h1 {
+        margin: 0 auto 0 0;
+        font-size: 22px;
+        letter-spacing: -0.01em;
+      }
+      .h-terminal input {
+        width: 240px;
+        max-width: 100%;
+        padding: 9px 12px;
+        border: 1px solid #2b3442;
+        border-radius: 8px;
+        background: #0b0e13;
+        color: #e6edf3;
+        font: inherit;
+      }
+      .h-terminal button {
+        padding: 9px 16px;
+        border: 0;
+        border-radius: 8px;
+        background: #6366f1;
+        color: #ffffff;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .h-terminal .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+      .h-terminal .chips span {
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: #1c2330;
+        color: #c2ccdb;
+        font-size: 13px;
+      }
+      .h-terminal .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+        gap: 20px;
+        align-items: start;
+      }
+      .h-terminal .card {
+        padding: 16px;
+        border: 1px solid #232a35;
+        border-radius: 12px;
+        background: #141922;
+      }
+      .h-terminal .card h2 {
+        margin: 0 0 4px;
+        font-size: 15px;
+      }
+      .h-terminal .card p {
+        margin: 0 0 12px;
+        color: #8d99ab;
+        font-size: 13px;
+      }
+      .h-terminal table {
+        width: 100%;
+        margin-top: 24px;
+        border-collapse: collapse;
+        font-size: 13.5px;
+      }
+      .h-terminal td,
+      .h-terminal th {
+        padding: 9px 10px;
+        border-bottom: 1px solid #232a35;
+        text-align: left;
+        color: #c2ccdb;
+      }
+      .h-terminal th {
+        color: #8d99ab;
+        font-weight: 600;
+      }
+      .h-terminal feed-lamp {
+        --w-bg: #1b2230;
+        --w-fg: #e9eef7;
+        --w-radius: 14px;
+      }
+      .h-terminal moon-dial {
+        --w-bg: #0f1330;
+        --w-fg: #e0e7ff;
+        --w-accent: #a5b4fc;
+        --w-on-accent: #0f1330;
+        --w-font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      }
+
+      /* ============ zine: Offcut, an independent magazine: black type and one red ============ */
+      .h-zine {
+        background: #fbfbf9;
+        color: #151515;
+        font-family: Georgia, 'Times New Roman', serif;
+        line-height: 1.65;
+      }
+      .h-zine header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 6px 24px;
+        padding: 18px 40px;
+        border-bottom: 3px solid #151515;
+      }
+      .h-zine header b {
+        font-size: 34px;
+        letter-spacing: -0.04em;
+      }
+      .h-zine header span {
+        color: #5c5c5c;
+        font-size: 14px;
+      }
+      .h-zine .wrap {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
+        gap: 44px;
+        padding: 36px 40px 56px;
+      }
+      .h-zine .kicker {
+        margin: 0 0 8px;
+        color: #e11d2e;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .h-zine h1 {
+        margin: 0 0 16px;
+        font-size: clamp(38px, 6.2vw, 78px);
+        line-height: 0.98;
+        letter-spacing: -0.035em;
+      }
+      .h-zine .by {
+        margin: 0 0 22px;
+        color: #5c5c5c;
+        font-size: 15px;
+      }
+      .h-zine article p {
+        max-width: 62ch;
+        margin: 0 0 16px;
+        font-size: 19px;
+      }
+      .h-zine article p.lede::first-letter {
+        float: left;
+        padding: 4px 10px 0 0;
+        font-size: 72px;
+        line-height: 0.8;
+        font-weight: 700;
+        color: #e11d2e;
+      }
+      .h-zine blockquote {
+        margin: 24px 0;
+        padding: 0 0 0 20px;
+        border-left: 4px solid #e11d2e;
+        font-size: 26px;
+        font-style: italic;
+        line-height: 1.3;
+      }
+      .h-zine aside h2 {
+        margin: 0 0 4px;
+        font-size: 20px;
+      }
+      .h-zine aside p {
+        margin: 0 0 14px;
+        color: #5c5c5c;
+        font-size: 15px;
+      }
+      .h-zine aside > div {
+        margin-bottom: 30px;
+      }
+      .h-zine button {
+        padding: 10px 18px;
+        border: 2px solid #151515;
+        border-radius: 0;
+        background: #151515;
+        color: #ffffff;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .h-zine print-quote {
+        --w-bg: #151515;
+        --w-fg: #ffffff;
+        --w-accent: #ff4a57;
+        --w-on-accent: #170205;
+        --w-radius: 4px;
+        --w-font: Georgia, 'Times New Roman', serif;
+        --w-display: Georgia, 'Times New Roman', serif;
+      }
+      .h-zine proof-clock {
+        --w-bg: #fde4e6;
+        --w-fg: #2a0a0d;
+        --w-accent: #c91626;
+        --w-on-accent: #ffffff;
+        --w-accent-text: #a50f1c;
+        --w-font: Georgia, 'Times New Roman', serif;
+      }
+
+      /* ============ kids: Tinker Lab, a children's museum: sky blue and sunshine ============ */
+      .h-kids {
+        background: #bfe5ff;
+        color: #12234a;
+        font-family:
+          ui-rounded, 'SF Pro Rounded', 'Arial Rounded MT Bold', 'Hiragino Maru Gothic ProN',
+          Quicksand, Calibri, sans-serif;
+        line-height: 1.5;
+      }
+      .h-kids nav {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px 14px;
+        padding: 18px 28px;
+      }
+      .h-kids nav b {
+        margin-right: auto;
+        padding: 6px 18px;
+        border-radius: 999px;
+        background: #ffd23f;
+        font-size: 24px;
+        font-weight: 900;
+      }
+      .h-kids nav a {
+        padding: 8px 16px;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #12234a;
+        font-weight: 800;
+        text-decoration: none;
+      }
+      .h-kids .hero {
+        padding: 20px 28px 36px;
+      }
+      .h-kids .hero h1 {
+        max-width: 13ch;
+        margin: 0 0 12px;
+        font-size: clamp(38px, 6.4vw, 76px);
+        line-height: 1;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+      }
+      .h-kids .hero p {
+        max-width: 40ch;
+        margin: 0 0 20px;
+        font-size: 20px;
+        font-weight: 600;
+      }
+      .h-kids button {
+        padding: 16px 30px;
+        border: 0;
+        border-radius: 999px;
+        background: #ff5d8f;
+        color: #ffffff;
+        font: inherit;
+        font-size: 18px;
+        font-weight: 900;
+        box-shadow: 0 6px 0 #c2325f;
+        cursor: pointer;
+      }
+      .h-kids .row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+        gap: 22px;
+        align-items: start;
+        padding: 28px 28px 44px;
+        border-radius: 48px 48px 0 0;
+        background: #fff6d6;
+      }
+      .h-kids .cell h2 {
+        margin: 0 0 4px;
+        font-size: 24px;
+        font-weight: 900;
+      }
+      .h-kids .cell p {
+        margin: 0 0 14px;
+        font-weight: 600;
+      }
+      .h-kids row-counter {
+        --w-bg: #ff7a59;
+        --w-fg: #2a0d04;
+        --w-accent: #7b2cff;
+      }
+      .h-kids feed-lamp {
+        --w-bg: #ffffff;
+        --w-fg: #12234a;
+        --w-radius: 30px;
+        --w-font: ui-rounded, 'SF Pro Rounded', 'Arial Rounded MT Bold', Calibri, sans-serif;
+      }
+      .h-kids print-quote {
+        --w-bg: #7b2cff;
+        --w-fg: #ffffff;
+        --w-accent: #ffd23f;
+        --w-on-accent: #2b0a66;
+        --w-radius: 36px;
+        --w-font: ui-rounded, 'SF Pro Rounded', 'Arial Rounded MT Bold', Calibri, sans-serif;
+      }
+
+      @media (max-width: 760px) {
+        .h-terminal {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .h-terminal aside {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px;
+          border-right: 0;
+          border-bottom: 1px solid #232a35;
+        }
+        .h-terminal aside b {
+          width: 100%;
+          padding-bottom: 8px;
+        }
+        .h-terminal main {
+          padding: 16px;
+        }
+        .h-zine .wrap {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 24px;
+          padding: 24px 20px 40px;
+        }
+        .h-zine header {
+          padding: 14px 20px;
+        }
+        .h-cafe nav,
+        .h-cafe .hero,
+        .h-cafe .row,
+        .h-cafe footer {
+          padding-left: 20px;
+          padding-right: 20px;
+        }
+        .h-kids nav,
+        .h-kids .hero,
+        .h-kids .row {
+          padding-left: 18px;
+          padding-right: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sheet-head">
+      <h1>The four host pages: mock sheet</h1>
+      <p>
+        Four pages that are not ours, each with its own look and its own stylesheet, each framing
+        the widgets it embeds with its own custom-property values. The widgets in the frames are the
+        built ones, frozen as they render. Nothing here is a page of the gallery yet.
+      </p>
+    </div>
+
+    <section class="frame" id="cafe">
+      <div class="bar">
+        <b>cafe</b
+        ><span
+          >Pan &amp; Co., a neighbourhood bakery · sage green and white · proof-clock, row-counter,
+          moon-dial</span
+        >
+      </div>
+      <div class="page h-cafe">
+        <nav>
+          <b>Pan &amp; Co.</b><a href="#cafe">Menu</a><a href="#cafe">Visit</a
+          ><a href="#cafe">Order ahead</a>
+        </nav>
+        <div class="hero">
+          <h1>Bread that takes its time.</h1>
+          <p>
+            Sourdough, rye and the odd cardamom bun, baked on Marsh Street since 2009. Pick up warm,
+            or order ahead.
+          </p>
+          <button type="button">Order ahead</button>
+        </div>
+        <div class="row">
+          <div class="cell">
+            <h2>Today's loaf</h2>
+            <p>The big country loaf is proofing. Here is where it stands.</p>
+            <proof-clock label="Country loaf" to="@proof-7h"></proof-clock>
+          </div>
+          <div class="cell">
+            <h2>Knitting circle</h2>
+            <p>Thursdays at six, over the last bake. Count your rows on the house counter.</p>
+            <row-counter pattern="Raglan sleeve" repeat="6" data-rows="27"></row-counter>
+          </div>
+          <div class="cell">
+            <h2>Baking by the moon</h2>
+            <p>Our rye starter likes a full moon. The calendar is on the shop wall and here.</p>
+            <moon-dial date="2026-11-17"></moon-dial>
+          </div>
+        </div>
+        <footer>Pan &amp; Co. · 14 Marsh Street · open Tue to Sun, 7 to 15</footer>
+      </div>
+    </section>
+
+    <section class="frame" id="terminal">
+      <div class="bar">
+        <b>terminal</b
+        ><span>Kiln Control, an ops dashboard · dark slate and indigo · feed-lamp, moon-dial</span>
+      </div>
+      <div class="page h-terminal">
+        <aside>
+          <b>Kiln Control</b>
+          <a class="on" href="#terminal">Overview</a><a href="#terminal">Kilns</a
+          ><a href="#terminal">Schedules</a><a href="#terminal">Alerts</a
+          ><a href="#terminal">Settings</a>
+        </aside>
+        <main>
+          <div class="top">
+            <h1>Overview</h1>
+            <input type="search" placeholder="Search kilns" aria-label="Search kilns" />
+            <button type="button">New firing</button>
+          </div>
+          <div class="chips">
+            <span>3 kilns online</span><span>Next firing 06:00</span><span>Studio B</span>
+          </div>
+          <div class="grid">
+            <div class="card">
+              <h2>Kiln 2 feed</h2>
+              <p>Reads the status file the kiln writes; every failure has its own state.</p>
+              <feed-lamp src="data/kiln.json"></feed-lamp>
+            </div>
+            <div class="card">
+              <h2>Firing calendar</h2>
+              <p>Glaze firings follow the lunar month in this studio. Approximate.</p>
+              <moon-dial date="2026-11-24" hemisphere="north"></moon-dial>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Kiln</th>
+                <th>Event</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>14:20</td>
+                <td>Kiln 2</td>
+                <td>Firing done, cooling</td>
+              </tr>
+              <tr>
+                <td>11:05</td>
+                <td>Kiln 1</td>
+                <td>Door opened</td>
+              </tr>
+              <tr>
+                <td>06:00</td>
+                <td>Kiln 2</td>
+                <td>Firing started</td>
+              </tr>
+            </tbody>
+          </table>
+        </main>
+      </div>
+    </section>
+
+    <section class="frame" id="zine">
+      <div class="bar">
+        <b>zine</b
+        ><span
+          >Offcut, an independent magazine · black type and one red · print-quote, proof-clock</span
+        >
+      </div>
+      <div class="page h-zine">
+        <header>
+          <b>Offcut</b><span>Issue 13 · Printing, paper and the people who do both</span>
+        </header>
+        <div class="wrap">
+          <article>
+            <p class="kicker">Making things</p>
+            <h1>The last small press on Cobble Street</h1>
+            <p class="by">Words by Ines Varga · photographs by Tomas Hale · 9 minute read</p>
+            <p class="lede">
+              The shop opens at seven, when the first sheets are still warm from the dryer. Marta
+              feeds the old machine by hand, the way she has for thirty years, and the whole room
+              smells of ink and toast.
+            </p>
+            <blockquote>"A good run is one you can still afford to be wrong about."</blockquote>
+            <p>
+              Orders that used to be five thousand are now fifty. She has not raised her prices; she
+              has learned to quote them honestly, down to the stock and the second ink.
+            </p>
+          </article>
+          <aside>
+            <div>
+              <h2>Price a run of your own</h2>
+              <p>Flyers, posters or a zine. Sample prices, not an offer.</p>
+              <print-quote heading="Your zine" currency="EUR" base="1.2"></print-quote>
+            </div>
+            <div>
+              <h2>The bread schedule</h2>
+              <p>Marta's lunch loaf, worked back from the oven.</p>
+              <proof-clock label="Lunch loaf" to="@proof-6h"></proof-clock>
+            </div>
+            <button type="button">Subscribe to Offcut</button>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="frame" id="kids">
+      <div class="bar">
+        <b>kids</b
+        ><span
+          >Tinker Lab, a children's museum · sky blue and sunshine · row-counter, feed-lamp,
+          print-quote</span
+        >
+      </div>
+      <div class="page h-kids">
+        <nav>
+          <b>Tinker Lab</b><a href="#kids">Visit</a><a href="#kids">Exhibits</a
+          ><a href="#kids">Birthdays</a>
+        </nav>
+        <div class="hero">
+          <h1>Touch everything!</h1>
+          <p>Gears, robots and a very tall slide. Open every day, for every size of explorer.</p>
+          <button type="button">Plan your visit</button>
+        </div>
+        <div class="row">
+          <div class="cell">
+            <h2>Stairs climbed</h2>
+            <p>Tap once for every step of the Giant Staircase. Your count stays for next time.</p>
+            <row-counter pattern="Giant staircase" repeat="10" data-rows="14"></row-counter>
+          </div>
+          <div class="cell">
+            <h2>Is the robot awake?</h2>
+            <p>Our robot posts how it feels. Try the four sample feeds.</p>
+            <feed-lamp
+              feeds="ok=data/kiln.json, slow=data/kiln.json#lag=3000, missing=data/none.json, malformed=data/broken.txt"
+            ></feed-lamp>
+          </div>
+          <div class="cell">
+            <h2>Print a class poster</h2>
+            <p>School trip posters at cost. Sample prices, pick a stack.</p>
+            <print-quote heading="Class poster" currency="EUR" base="0.9"></print-quote>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>
