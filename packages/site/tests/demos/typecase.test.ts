@@ -27,7 +27,7 @@ const open = () => {
 };
 
 describe('typecase example', () => {
-  it('sets a poster in black ink on cream stock', () => {
+  it('sets a poster in blue ink on mint stock', () => {
     const { demo, rule, poster } = open();
     expect(demo.querySelector('input')?.value).toBe('Grand opening');
     expect(demo.textContent).toContain('One night only');
@@ -49,7 +49,7 @@ describe('typecase example', () => {
     expect(rule(bench)).toContain('color: #c4161c');
     expect(demo.textContent).toContain('Set in Red ink on Lemon stock.');
     expect(swatch('Red ink').getAttribute('aria-pressed')).toBe('true');
-    expect(swatch('Black ink').getAttribute('aria-pressed')).toBe('false');
+    expect(swatch('Blue ink').getAttribute('aria-pressed')).toBe('false');
   });
 
   it('pulls a proof with the keyframes of the press, and ends it when the animation ends', () => {
