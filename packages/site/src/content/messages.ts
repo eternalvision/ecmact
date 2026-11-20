@@ -87,15 +87,26 @@ export interface Messages {
     embedLead: string;
     referenceTitle: string;
     referenceLead: string;
+    /** The note under the title of a widget that replaced one of the first gallery; `{tag}` is the old tag. */
+    former: string;
     columns: {
-      widget: string;
-      property: string;
-      attributes: string;
-      events: string;
+      kind: string;
+      name: string;
+      default: string;
       description: string;
     };
-    properties: Record<string, string>;
+    /** The words for the three kinds of row of a reference table. */
+    kinds: { attribute: string; event: string; property: string };
+    /** What the table shows for an attribute whose default is empty. */
+    empty: string;
+    /** What each widget is, by tag. */
     descriptions: Record<string, string>;
+    /** What each attribute does, by `tag.attribute`. */
+    attributes: Record<string, string>;
+    /** What each event carries, by `tag.event`. */
+    events: Record<string, string>;
+    /** What each custom property does in each widget, by `tag.--w-name`. */
+    properties: Record<string, string>;
     themeTitle: string;
     themeLead: string;
   };
@@ -253,24 +264,24 @@ const en: Messages = {
   },
   widgets: {
     title: 'Widgets',
-    lead: 'Five widgets, built once, embedded into four unrelated sites. Every page below is a separate document with its own stylesheet, and every stylesheet is hostile: it restyles buttons, inputs and text globally. The widgets keep their own markup and take only what the page hands them as CSS custom properties.',
+    lead: 'Five widgets, each with its own job and its own look, embedded into four unrelated sites. Every page below is a separate document with its own stylesheet, and every stylesheet is hostile: it restyles buttons, inputs and text globally. The widgets keep their own markup and take only what the page hands them as CSS custom properties.',
     openFull: 'Open the page on its own',
     hosts: {
       cafe: {
-        title: 'A bistro: serif, cream and gold',
-        text: 'Countdown, catering calculator and a dessert poll, recolored to gold with square corners. The page styles every button and input in serif.',
+        title: 'A bakery: sage green and white',
+        text: 'The sourdough schedule, a row counter for the knitting circle and a moon dial for the baking calendar, recoloured to sage and terracotta. The page restyles every button and input.',
       },
       terminal: {
-        title: 'A dev dashboard: phosphor green',
-        text: 'Two GitHub repository cards, a weather card and a poll, in monochrome green with a scanline over everything. The cards are fed by public APIs.',
+        title: 'An ops dashboard: dark slate and indigo',
+        text: 'A status lamp that reads the kiln feed, and a moon dial, on a dashboard that sets its own button, input and span styles.',
       },
       zine: {
-        title: 'A zine: brutalist yellow and black',
-        text: 'Price calculator, countdown and poll with thick borders and no radius, on a page that forces Courier with !important.',
+        title: 'A magazine: black type and one red',
+        text: 'A print quote and the bread schedule in a magazine that forces its own type on every paragraph and span with !important.',
       },
       kids: {
-        title: 'A kids club: pastel and playful',
-        text: 'Weather, countdown and poll with 36px corners and a pink accent, on a page that paints every span and div purple with !important.',
+        title: "A children's museum: sky blue and sunshine",
+        text: 'A row counter, a status lamp and a print quote on a page of big rounded shapes that paints every span and div with !important.',
       },
     },
     embedTitle: 'What every host page does',
@@ -278,33 +289,98 @@ const en: Messages = {
     embedLead: 'The same two lines, whatever the page looks like:',
     referenceTitle: 'The five widgets',
     referenceLead:
-      'Attributes configure a widget, events carry results out, custom properties dress it. Every widget understands the same custom properties.',
+      'Attributes configure a widget, events carry results out, custom properties dress it. Each widget lists its own; a widget that replaced one of the first gallery keeps the anchor of the old tag.',
+    former: 'Replaces <{tag}>, a widget of the first gallery.',
     columns: {
-      widget: 'Widget',
-      property: 'Property',
-      attributes: 'Attributes',
-      events: 'Events',
+      kind: 'Kind',
+      name: 'Name',
+      default: 'Default',
       description: 'What it does',
     },
+    kinds: { attribute: 'attribute', event: 'event', property: 'custom property' },
+    empty: 'empty',
     descriptions: {
-      'price-calculator': 'A seat slider with a monthly and a yearly price and a quote button.',
-      'weather-now': 'The current weather of a city, from the open-meteo.com API.',
-      'repo-card': 'The numbers of a public GitHub repository, from the GitHub API.',
-      'poll-widget': 'A one-question poll whose votes stay in the browser.',
-      'countdown-timer': 'A flip-clock countdown to a moment.',
+      'print-quote':
+        'A print-run quote: price breaks as radio cards, inks, paper and a quote button.',
+      'moon-dial':
+        'The phase of the moon on a day, with a ring of the 29 days of the month and buttons to move.',
+      'proof-clock':
+        'The schedule of a sourdough loaf, worked back from the moment it comes out, with a slider for the kitchen.',
+      'row-counter':
+        'One big round button that counts the rows of a knitting pattern and remembers them.',
+      'feed-lamp':
+        'A lamp that shows the state of a JSON feed, with every failure in its own words.',
+    },
+    attributes: {
+      'print-quote.currency':
+        'The ISO 4217 code of the money. An empty value counts as the default; a code the browser does not know is shown as typed.',
+      'print-quote.base':
+        'The price of a copy at the break of 100. An empty or malformed value counts as the default.',
+      'print-quote.heading':
+        'The title of the ticket. It is not `title`, which would show a tooltip over the whole widget.',
+      'moon-dial.date': 'The day to start from, as `2026-11-20`. Today when missing or malformed.',
+      'moon-dial.hemisphere':
+        '`north`, or `south` to mirror the moon. Anything else counts as `north`.',
+      'proof-clock.to':
+        'When the loaf comes out: `2027-01-01`, `2027-01-01T18:00:00` or a moment with an offset. Ten hours from now when missing or malformed; a moment in the past shows the loaf as out.',
+      'proof-clock.label': 'The title above the clock.',
+      'row-counter.pattern':
+        'The name of the pattern. The count is kept in the browser under it, so a reload goes on from it.',
+      'row-counter.repeat':
+        'How many rows make a repeat, up to 24. `0`, a negative or a malformed value shows no repeat.',
+      'feed-lamp.src':
+        'The address of the feed, which decides what is shown. `#lag=1500` at the end waits that many milliseconds before asking, to show a slow answer on a static file.',
+      'feed-lamp.feeds':
+        'Sample feeds as tabs, `ok=a.json, missing=b.json`. The first is shown when `src` is empty; a change of `src` takes the tab off.',
+      'feed-lamp.retries':
+        'How many more attempts a network failure, a timeout or a 5xx status gets, at most 5. A malformed value counts as the default.',
+      'feed-lamp.slow':
+        'Milliseconds until the lamp says the answer is slow. A malformed value counts as the default.',
+      'feed-lamp.timeout':
+        'Milliseconds until an attempt is given up. A malformed value counts as the default.',
+    },
+    events: {
+      'print-quote.quote':
+        '`{ copies, inks, stock, perCopy, total, currency }`, when the visitor asks for the quote.',
+      'moon-dial.change': '`{ date, day, phase }`, when the visitor moves to another day.',
+      'proof-clock.done':
+        'When the loaf is out. Again if `to` moves to a later moment and that passes too.',
+      'row-counter.row': '`{ pattern, count }`, when the count changes.',
+      'feed-lamp.loaded': '`{ src, title }`, when a feed has been read.',
     },
     properties: {
-      '--w-accent': 'The color of buttons, bars and highlights.',
-      '--w-bg': 'The background of the card: a color or any CSS background.',
-      '--w-fg': 'The text color.',
-      '--w-muted': 'The color of secondary text.',
-      '--w-border': 'The color of borders and dividers.',
-      '--w-radius': 'The roundness of the corners.',
-      '--w-font': 'The font family.',
+      'print-quote.--w-bg': 'The colour of the ticket.',
+      'print-quote.--w-fg': 'The text colour, and the colour of the price-break cards.',
+      'print-quote.--w-accent': 'The chosen price break and the button.',
+      'print-quote.--w-on-accent': 'The text on the chosen card and on the button.',
+      'print-quote.--w-font': 'The font family of the text.',
+      'print-quote.--w-display': 'The font family of the price and the numbers on the cards.',
+      'print-quote.--w-radius': 'The roundness of the ticket.',
+      'moon-dial.--w-bg': 'The base colour of the night sky.',
+      'moon-dial.--w-fg': 'The text colour, the ticks and the ring.',
+      'moon-dial.--w-accent': 'The handle, the elapsed part of the ring and the Today button.',
+      'moon-dial.--w-on-accent': 'The text of the Today button.',
+      'moon-dial.--w-font': 'The font family.',
+      'proof-clock.--w-bg': 'The colour of the card.',
+      'proof-clock.--w-fg': 'The text colour, the finished stages and the slider handle.',
+      'proof-clock.--w-accent': 'The big shape, the stage that is running and the slider fill.',
+      'proof-clock.--w-on-accent': 'The text on the big shape and on the stages.',
+      'proof-clock.--w-accent-text':
+        'The temperature, which sits on the card: a darker form of the accent.',
+      'proof-clock.--w-font': 'The font family.',
+      'row-counter.--w-bg': 'The colour of the field under the knit pattern.',
+      'row-counter.--w-fg': 'The text colour and the lip of the buttons.',
+      'row-counter.--w-accent': 'The dashed ring and the dots of the repeat.',
+      'row-counter.--w-font': 'The font family.',
+      'feed-lamp.--w-bg': 'The colour of the plate.',
+      'feed-lamp.--w-fg':
+        'The text colour. The lamp keeps its own colours: green, amber, red and magenta.',
+      'feed-lamp.--w-font': 'The font family.',
+      'feed-lamp.--w-radius': 'The roundness of the plate.',
     },
     themeTitle: 'Custom properties',
     themeLead:
-      'Set them on the widget element or on any ancestor. A widget reads them with its own defaults, so setting none gives its original look. The flip cards of countdown-timer are painted from --w-bg too, so if --w-bg is a gradient, also set --w-tile to a plain color for them.',
+      "Set them on the widget element or on any ancestor. A widget reads them with its own defaults, so setting none gives its original look. A colour that makes text hard to read is the page's choice: the widget keeps 4.5:1 only with its own colours or with values that do.",
   },
   demos: {
     exposure: {
@@ -547,24 +623,24 @@ const ru: Messages = {
   },
   widgets: {
     title: 'Виджеты',
-    lead: 'Пять виджетов, написанных один раз и встроенных в четыре никак не связанных сайта. Каждая страница ниже - отдельный документ со своей таблицей стилей, и каждая таблица враждебна: она глобально перекрашивает кнопки, поля ввода и текст. Виджеты сохраняют свою разметку и берут только то, что страница отдаёт им через CSS custom properties.',
+    lead: 'Пять виджетов, у каждого своя задача и свой облик, встроенных в четыре никак не связанных сайта. Каждая страница ниже - отдельный документ со своей таблицей стилей, и каждая таблица враждебна: она глобально перекрашивает кнопки, поля ввода и текст. Виджеты сохраняют свою разметку и берут только то, что страница отдаёт им через CSS custom properties.',
     openFull: 'Открыть страницу отдельно',
     hosts: {
       cafe: {
-        title: 'Бистро: засечки, крем и золото',
-        text: 'Обратный отсчёт, калькулятор кейтеринга и опрос о десертах, перекрашенные в золото с квадратными углами. Страница стилизует все кнопки и поля шрифтом с засечками.',
+        title: 'Пекарня: шалфейно-зелёный и белый',
+        text: 'Расписание закваски, счётчик рядов для вязального кружка и лунный круг для календаря выпечки, перекрашенные в шалфей и терракоту. Страница перекрашивает все кнопки и поля.',
       },
       terminal: {
-        title: 'Дашборд разработчика: зелёный люминофор',
-        text: 'Две карточки репозиториев GitHub, карточка погоды и опрос в монохромном зелёном со строчной сеткой поверх всего. Карточки питаются от публичных API.',
+        title: 'Операционная панель: тёмный сланец и индиго',
+        text: 'Индикатор состояния, читающий ленту печи, и лунный круг на панели, которая задаёт свои стили для кнопок, полей и span.',
       },
       zine: {
-        title: 'Зин: брутализм, жёлтое и чёрное',
-        text: 'Калькулятор цены, отсчёт и опрос с толстыми рамками и без скруглений на странице, которая принудительно ставит Courier через !important.',
+        title: 'Журнал: чёрный шрифт и один красный',
+        text: 'Расчёт тиража и расписание хлеба в журнале, который принудительно ставит свой шрифт на каждый абзац и span через !important.',
       },
       kids: {
-        title: 'Детский клуб: пастель и игра',
-        text: 'Погода, отсчёт и опрос со скруглением 36px и розовым акцентом на странице, которая красит каждый span и div в фиолетовый через !important.',
+        title: 'Детский музей: небесно-голубой и солнечный',
+        text: 'Счётчик рядов, индикатор состояния и расчёт тиража на странице из больших округлых форм, которая красит каждый span и div через !important.',
       },
     },
     embedTitle: 'Что делает каждая хост-страница',
@@ -572,34 +648,96 @@ const ru: Messages = {
     embedLead: 'Те же две строки, как бы страница ни выглядела:',
     referenceTitle: 'Пять виджетов',
     referenceLead:
-      'Атрибуты настраивают виджет, события выносят результаты наружу, custom properties его одевают. Все виджеты понимают одни и те же custom properties.',
+      'Атрибуты настраивают виджет, события выносят результаты наружу, custom properties его одевают. У каждого виджета свои; виджет, заменивший виджет первой галереи, хранит якорь старого тега.',
+    former: 'Заменяет <{tag}>, виджет первой галереи.',
     columns: {
-      widget: 'Виджет',
-      property: 'Свойство',
-      attributes: 'Атрибуты',
-      events: 'События',
+      kind: 'Вид',
+      name: 'Имя',
+      default: 'По умолчанию',
       description: 'Что делает',
     },
+    kinds: { attribute: 'атрибут', event: 'событие', property: 'custom property' },
+    empty: 'пусто',
     descriptions: {
-      'price-calculator':
-        'Ползунок количества мест с ценой за месяц и за год и кнопкой запроса расчёта.',
-      'weather-now': 'Текущая погода в городе, из API open-meteo.com.',
-      'repo-card': 'Показатели публичного репозитория GitHub, из GitHub API.',
-      'poll-widget': 'Опрос с одним вопросом, голоса остаются в браузере.',
-      'countdown-timer': 'Обратный отсчёт до момента в стиле перекидных часов.',
+      'print-quote':
+        'Расчёт тиража: ступени цены карточками-радио, краски, бумага и кнопка расчёта.',
+      'moon-dial': 'Фаза луны на выбранный день, кольцо из 29 дней месяца и кнопки для перехода.',
+      'proof-clock':
+        'Расписание хлеба на закваске, рассчитанное назад от момента, когда он выйдет из печи, с ползунком для кухни.',
+      'row-counter': 'Одна большая круглая кнопка считает ряды вязального узора и помнит их.',
+      'feed-lamp': 'Лампа показывает состояние JSON-ленты, каждый сбой - своими словами.',
+    },
+    attributes: {
+      'print-quote.currency':
+        'Код денег по ISO 4217. Пустое значение считается значением по умолчанию; код, которого браузер не знает, показывается как написан.',
+      'print-quote.base':
+        'Цена экземпляра на ступени 100. Пустое или неверное значение считается значением по умолчанию.',
+      'print-quote.heading':
+        'Заголовок билета. Это не `title`, который показал бы подсказку над всем виджетом.',
+      'moon-dial.date':
+        'День, с которого начать, например `2026-11-20`. Сегодня, если не задан или неверен.',
+      'moon-dial.hemisphere':
+        '`north` или `south`, чтобы отразить луну. Любое другое значение считается `north`.',
+      'proof-clock.to':
+        'Когда хлеб выйдет из печи: `2027-01-01`, `2027-01-01T18:00:00` или момент со смещением. Через десять часов от сейчас, если не задан или неверен; момент в прошлом показывает хлеб готовым.',
+      'proof-clock.label': 'Заголовок над часами.',
+      'row-counter.pattern':
+        'Название узора. Под ним счёт хранится в браузере, поэтому после перезагрузки он продолжается.',
+      'row-counter.repeat':
+        'Сколько рядов в повторе, до 24. `0`, отрицательное или неверное значение не показывает повтор.',
+      'feed-lamp.src':
+        'Адрес ленты, он решает, что показано. `#lag=1500` в конце ждёт столько миллисекунд перед запросом, чтобы показать медленный ответ на статичном файле.',
+      'feed-lamp.feeds':
+        'Примеры лент во вкладках, `ok=a.json, missing=b.json`. Первая показывается, когда `src` пуст; смена `src` снимает вкладку.',
+      'feed-lamp.retries':
+        'Сколько ещё попыток получают сбой сети, тайм-аут или статус 5xx, не больше 5. Неверное значение считается значением по умолчанию.',
+      'feed-lamp.slow':
+        'Через сколько миллисекунд лампа скажет, что ответ медленный. Неверное значение считается значением по умолчанию.',
+      'feed-lamp.timeout':
+        'Через сколько миллисекунд попытка считается неудачной. Неверное значение считается значением по умолчанию.',
+    },
+    events: {
+      'print-quote.quote':
+        '`{ copies, inks, stock, perCopy, total, currency }`, когда посетитель просит расчёт.',
+      'moon-dial.change': '`{ date, day, phase }`, когда посетитель переходит на другой день.',
+      'proof-clock.done':
+        'Когда хлеб готов. Снова, если `to` сдвинули на более поздний момент и он тоже прошёл.',
+      'row-counter.row': '`{ pattern, count }`, когда счёт меняется.',
+      'feed-lamp.loaded': '`{ src, title }`, когда лента прочитана.',
     },
     properties: {
-      '--w-accent': 'Цвет кнопок, полос и акцентов.',
-      '--w-bg': 'Фон карточки: цвет или любой CSS-фон.',
-      '--w-fg': 'Цвет текста.',
-      '--w-muted': 'Цвет второстепенного текста.',
-      '--w-border': 'Цвет рамок и разделителей.',
-      '--w-radius': 'Скругление углов.',
-      '--w-font': 'Семейство шрифтов.',
+      'print-quote.--w-bg': 'Цвет билета.',
+      'print-quote.--w-fg': 'Цвет текста и карточек ступеней цены.',
+      'print-quote.--w-accent': 'Выбранная ступень цены и кнопка.',
+      'print-quote.--w-on-accent': 'Текст на выбранной карточке и на кнопке.',
+      'print-quote.--w-font': 'Семейство шрифтов текста.',
+      'print-quote.--w-display': 'Семейство шрифтов цены и чисел на карточках.',
+      'print-quote.--w-radius': 'Скругление билета.',
+      'moon-dial.--w-bg': 'Основной цвет ночного неба.',
+      'moon-dial.--w-fg': 'Цвет текста, делений и кольца.',
+      'moon-dial.--w-accent': 'Ручка, пройденная часть кольца и кнопка «Today».',
+      'moon-dial.--w-on-accent': 'Текст кнопки «Today».',
+      'moon-dial.--w-font': 'Семейство шрифтов.',
+      'proof-clock.--w-bg': 'Цвет карточки.',
+      'proof-clock.--w-fg': 'Цвет текста, пройденные этапы и ручка ползунка.',
+      'proof-clock.--w-accent': 'Большая форма, идущий этап и заливка ползунка.',
+      'proof-clock.--w-on-accent': 'Текст на большой форме и на этапах.',
+      'proof-clock.--w-accent-text':
+        'Температура, которая стоит прямо на карточке: более тёмная форма акцента.',
+      'proof-clock.--w-font': 'Семейство шрифтов.',
+      'row-counter.--w-bg': 'Цвет поля под вязаным узором.',
+      'row-counter.--w-fg': 'Цвет текста и нижний край кнопок.',
+      'row-counter.--w-accent': 'Пунктирное кольцо и точки повтора.',
+      'row-counter.--w-font': 'Семейство шрифтов.',
+      'feed-lamp.--w-bg': 'Цвет панели.',
+      'feed-lamp.--w-fg':
+        'Цвет текста. Лампа сохраняет свои цвета: зелёный, янтарный, красный и пурпурный.',
+      'feed-lamp.--w-font': 'Семейство шрифтов.',
+      'feed-lamp.--w-radius': 'Скругление панели.',
     },
     themeTitle: 'Custom properties',
     themeLead:
-      'Задавайте их на элементе виджета или на любом предке. Виджет читает их со своими значениями по умолчанию, поэтому без них он выглядит исходно. Карточки счётчика countdown-timer тоже закрашиваются из --w-bg, поэтому если --w-bg - градиент, задайте для них ещё и --w-tile простым цветом.',
+      'Задавайте их на элементе виджета или на любом предке. Виджет читает их со своими значениями по умолчанию, поэтому без них он выглядит исходно. Цвет, из-за которого текст трудно читать, - выбор страницы: виджет держит 4.5:1 только со своими цветами или со значениями, которые это дают.',
   },
   demos: {
     exposure: {

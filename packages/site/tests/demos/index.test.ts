@@ -4,16 +4,8 @@ import { describe, expect, it } from 'vitest';
 import { findDoc } from '@site/content/docs/index';
 import { defineAll } from '@site/widgets/index';
 import { inventory } from '@tests/inventory';
-import {
-  cleanSource,
-  demos,
-  findDemo,
-  groups,
-  styleAxes,
-  type Demo,
-  type DemoStyle,
-  type StyleAxis,
-} from '@site/demos/index';
+import { axes, overLimits, tooAlike } from '@tests/looks';
+import { cleanSource, demos, findDemo, groups, styleAxes, type Demo } from '@site/demos/index';
 
 /** Every file of `src/demos`, as the bundler reads it: the text that runs. */
 const raw = import.meta.glob<string>('/src/demos/*.ts', {
@@ -292,43 +284,6 @@ describe('the stages', () => {
     );
   });
 });
-
-/** The six axes of a look, in the order of the style matrix. */
-const axes = Object.keys(styleAxes) as StyleAxis[];
-
-/**
- * Finds the pairs of looks that share more than two values.
- *
- * @param looks - The looks, by the id of the piece.
- * @returns The pairs that are too alike, with what they share.
- */
-const tooAlike = (looks: Record<string, DemoStyle>) => {
-  const ids = Object.keys(looks);
-  return ids.flatMap((a, index) =>
-    ids.slice(index + 1).flatMap((b) => {
-      const same = axes.filter((axis) => looks[a]![axis] === looks[b]![axis]);
-      return same.length > 2 ? [`${a} and ${b} share ${same.join(', ')}`] : [];
-    }),
-  );
-};
-
-/**
- * Counts the pieces that use a value, and says which limit of the matrix a count breaks.
- *
- * @param looks - The looks, by the id of the piece.
- * @param dark - The ids of the pieces whose stage is dark.
- * @param labels - The ids of the pieces that set small uppercase labels in a monospace face.
- * @returns The limits that are broken.
- */
-const overLimits = (looks: Record<string, DemoStyle>, dark: string[], labels: string[] = []) => {
-  const all = Object.values(looks);
-  const broken: string[] = [];
-  if (all.filter((look) => look.shape === 'sharp').length > 2) broken.push('sharp corners');
-  if (dark.length > 5) broken.push('dark stages');
-  if (all.filter((look) => look.type === 'mono').length > 2) broken.push('monospace');
-  if (labels.length > 2) broken.push('uppercase monospace labels');
-  return broken;
-};
 
 /**
  * Names the devices of the first build that must not come back, found in the source of one piece.
@@ -932,10 +887,13 @@ describe('the compatibility inventory', () => {
     inventory.demoIds.forEach((id) => expect(findDemo(id), id).toBeDefined());
   });
 
-  it('lists five widget tags and every one is still registered', () => {
-    expect(inventory.widgetTags).toHaveLength(5);
+  it('lists five former widget tags, and the widget that replaced each is registered', () => {
+    expect(Object.keys(inventory.widgetTags)).toHaveLength(5);
     defineAll();
-    inventory.widgetTags.forEach((tag) => expect(customElements.get(tag), tag).toBeDefined());
+    Object.entries(inventory.widgetTags).forEach(([former, successor]) => {
+      expect(customElements.get(former), former).toBeUndefined();
+      expect(customElements.get(successor), successor).toBeDefined();
+    });
   });
 
   it('lists four host pages and every one is still a file of the site', () => {

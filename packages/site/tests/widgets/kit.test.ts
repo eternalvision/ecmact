@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { compact, money, readNumber, widgetCss } from '@site/widgets/kit';
+import { money, moveIndex, plain, readNumber, widgetCss } from '@site/widgets/kit';
 
 afterEach(() => {
   document.documentElement.lang = '';
@@ -32,16 +32,37 @@ describe('money', () => {
 
   it('falls back to plain text for an unknown currency', () => {
     expect(money(12.4, 'nope')).toBe('12 nope');
+    expect(money(12.4, 'nope', 2)).toBe('12.40 nope');
+  });
+
+  it('shows the decimals that are asked for', () => {
+    expect(money(1.84, 'USD', 2)).toBe('$1.84');
+    expect(money(184, 'USD', 2)).toBe('$184.00');
   });
 });
 
-describe('compact', () => {
-  it('shortens counts, with a unit for every size', () => {
-    expect(compact(950)).toBe('950');
-    expect(compact(1234)).toBe('1.2K');
-    expect(compact(9999)).toBe('10K');
-    expect(compact(999999)).toBe('1M');
-    expect(compact(2500000)).toBe('2.5M');
+describe('plain', () => {
+  it('writes a number the way the language of the page does, with the decimals asked for', () => {
+    expect(plain(1234)).toBe('1,234');
+    expect(plain(1.5, 2)).toBe('1.50');
+    document.documentElement.lang = 'de';
+    expect(plain(1234.5, 1)).toBe('1.234,5');
+  });
+});
+
+describe('moveIndex', () => {
+  it('moves to the next and the previous item, wrapping around, and to the ends', () => {
+    expect(moveIndex('ArrowRight', 0, 3)).toBe(1);
+    expect(moveIndex('ArrowDown', 2, 3)).toBe(0);
+    expect(moveIndex('ArrowLeft', 1, 3)).toBe(0);
+    expect(moveIndex('ArrowUp', 0, 3)).toBe(2);
+    expect(moveIndex('Home', 2, 3)).toBe(0);
+    expect(moveIndex('End', 0, 3)).toBe(2);
+  });
+
+  it('moves nothing for any other key', () => {
+    expect(moveIndex('Enter', 1, 3)).toBeUndefined();
+    expect(moveIndex('a', 1, 3)).toBeUndefined();
   });
 });
 

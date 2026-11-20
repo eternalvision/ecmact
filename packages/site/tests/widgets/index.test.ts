@@ -13,7 +13,7 @@ describe('defineAll', () => {
     defineAll();
     widgets.forEach(({ tag, attributes }) => {
       const element = customElements.get(tag) as unknown as { observedAttributes: string[] };
-      expect(element.observedAttributes).toEqual(attributes);
+      expect(element.observedAttributes).toEqual(attributes.map((attribute) => attribute.name));
     });
   });
 });

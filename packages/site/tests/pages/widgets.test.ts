@@ -2,7 +2,8 @@ import { mount } from 'ecmact';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { hosts, propertyNames, widgets } from '@site/content/widgets';
+import { hosts, widgets } from '@site/content/widgets';
+import { inventory } from '@tests/inventory';
 import { widgetsPage } from '@site/pages/widgets';
 import { resetLocale, useLocale } from '@tests/helpers';
 
@@ -38,38 +39,90 @@ describe('widgets page', () => {
       link.getAttribute('aria-label'),
     );
     expect(new Set(labels).size).toBe(hosts.length);
-    expect(labels[0]).toBe('Open the page on its own: A bistro: serif, cream and gold');
+    expect(labels[0]).toBe('Open the page on its own: A bakery: sage green and white');
   });
 
-  it('shows the embed snippet and the references as tables', () => {
+  it('shows the embed snippet and, for each widget, one reference table', () => {
     const page = widgetsPage();
     expect(page.querySelector('pre')?.textContent).toContain('ecmact-widgets.js');
     expect(page.textContent).toContain('any page');
-    const rows = [...page.querySelectorAll('tbody tr')].map((row) => row.textContent);
-    expect(rows.filter((row) => row?.includes('<poll-widget>'))).toHaveLength(1);
-    expect(rows).toHaveLength(widgets.length + propertyNames.length);
-    expect(page.querySelectorAll('.table-wrap')).toHaveLength(2);
-    expect(page.querySelector('tbody code')?.textContent).toBe('<price-calculator>');
+    expect(page.querySelectorAll('.widget-reference')).toHaveLength(widgets.length);
+    expect(page.querySelectorAll('.table-wrap')).toHaveLength(widgets.length);
+    widgets.forEach((widget) => {
+      const section = page.querySelector(`.widget-reference:has(#${widget.tag})`) as HTMLElement;
+      const rows = [...section.querySelectorAll('tbody tr')].map((row) =>
+        [...row.querySelectorAll('td')].map((cell) => cell.textContent),
+      );
+      expect(rows).toHaveLength(
+        widget.attributes.length + widget.events.length + widget.properties.length,
+      );
+      expect(rows.filter((row) => row[0] === 'attribute').map((row) => row[1])).toEqual(
+        widget.attributes.map((attribute) => attribute.name),
+      );
+      expect(rows.filter((row) => row[0] === 'event').map((row) => row[1])).toEqual(widget.events);
+      expect(rows.filter((row) => row[0] === 'custom property').map((row) => row[1])).toEqual(
+        widget.properties,
+      );
+      expect(section.querySelector('h3 code')?.textContent).toBe(`<${widget.tag}>`);
+    });
   });
 
-  it('lists the heading attribute and the events of each widget', () => {
+  it('shows the default of an attribute, and the word for an empty one', () => {
+    const page = widgetsPage();
+    const rows = [...page.querySelectorAll('tbody tr')].map((row) =>
+      [...row.querySelectorAll('td')].map((cell) => cell.textContent),
+    );
+    expect(rows.find((row) => row[1] === 'currency')?.[2]).toBe('EUR');
+    expect(rows.find((row) => row[1] === 'src')?.[2]).toBe('empty');
+    expect(rows.find((row) => row[1] === 'repeat')?.[2]).toBe('0');
+  });
+
+  it('lists the attributes, events and custom properties that the widgets read', () => {
     const text = widgetsPage().textContent;
-    expect(text).toContain('heading');
-    expect(text).toContain('quote');
-    expect(text).toContain('done');
+    ['heading', 'hemisphere', 'quote', 'done', 'change', 'loaded', 'row', '--w-display'].forEach(
+      (word) => expect(text).toContain(word),
+    );
   });
 
-  it('is in Russian when asked, with no English left in the headers and captions', async () => {
+  it('keeps an anchor for each former tag, and it lands on the widget that replaced it', () => {
+    const page = widgetsPage();
+    mount(document.body, page);
+    Object.entries(inventory.widgetTags).forEach(([former, successor]) => {
+      const anchor = document.getElementById(former) as HTMLElement;
+      expect(anchor, former).not.toBeNull();
+      const section = anchor.closest('.widget-reference') as HTMLElement;
+      expect(section.querySelector('h3')?.id).toBe(successor);
+      expect(section.querySelector('h3')?.getAttribute('tabindex')).toBe('-1');
+      expect(section.textContent).toContain(`Replaces <${former}>`);
+    });
+  });
+
+  it('scrolls to the anchor of a former tag when the address has it', async () => {
+    vi.useFakeTimers();
+    const scroll = vi
+      .spyOn(Element.prototype, 'scrollIntoView')
+      .mockImplementation(() => undefined);
+    window.history.replaceState(null, '', '/widgets#price-calculator');
+    mount(document.body, widgetsPage());
+    await vi.advanceTimersByTimeAsync(0);
+    expect(scroll.mock.contexts).toContain(document.getElementById('price-calculator'));
+    window.history.replaceState(null, '', '/');
+    vi.useRealTimers();
+  });
+
+  it('is in Russian when asked, with the same anchors and no English left in the headers and captions', async () => {
     await useLocale('ru');
     const page = widgetsPage();
     expect(page.querySelector('h1')?.textContent).toBe('Виджеты');
-    expect(page.textContent).toContain('Цвет кнопок, полос и акцентов.');
+    expect(page.textContent).toContain('Цвет билета.');
     expect(page.textContent).toContain('Открыть страницу отдельно');
     const headers = [...page.querySelectorAll('th')].map((cell) => cell.textContent);
-    expect(headers).toContain('Свойство');
-    expect(headers).not.toContain('Property');
+    expect(headers).toContain('Имя');
+    expect(headers).not.toContain('Name');
     expect(page.textContent).toContain('любая страница');
     expect(page.textContent).not.toContain('any page');
+    expect(page.textContent).toContain('Заменяет <price-calculator>');
+    expect(page.querySelectorAll('.widget-reference')).toHaveLength(widgets.length);
   });
 });
 
@@ -90,12 +143,19 @@ describe('host pages', () => {
     host.widgets.forEach((name) => expect(html).toContain(`<${name}`));
   });
 
+  it('keeps the feeds that the status lamps read beside the pages', () => {
+    expect(JSON.parse(readFileSync(join(directory, 'data/kiln.json'), 'utf8'))).toHaveProperty(
+      'title',
+    );
+    expect(() => JSON.parse(readFileSync(join(directory, 'data/broken.txt'), 'utf8'))).toThrow();
+  });
+
   it.each(hosts)(
     '$id has no fixed date that can pass, and no title attribute on a widget',
     (host) => {
       const html = readFileSync(join(directory, `${host.id}.html`), 'utf8');
       expect(html).not.toMatch(/\sto="\d{4}/);
-      expect(html).not.toMatch(/<price-calculator[^>]*\stitle=/);
+      expect(html).not.toMatch(/<print-quote[^>]*\stitle=/);
     },
   );
 

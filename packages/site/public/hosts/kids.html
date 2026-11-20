@@ -75,9 +75,9 @@
         border: 3px dashed #ff4fa3;
         font-size: 0.95rem;
       }
-      weather-now,
-      poll-widget,
-      countdown-timer {
+      feed-lamp,
+      row-counter,
+      print-quote {
         --w-font: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', cursive;
         --w-radius: 36px;
         --w-accent: #c2185b;
@@ -86,14 +86,14 @@
         --w-muted: #6d4fa0;
         --w-border: #ff4fa3;
       }
-      weather-now {
+      feed-lamp {
         --w-fg: #3b1d6a;
         --w-muted: #3b1d6a;
         --w-accent: #3b1d6a;
         --w-border: #3b1d6a;
         --w-bg: linear-gradient(160deg, #ff8ccb, #ffb86b);
       }
-      countdown-timer {
+      print-quote {
         --w-bg: #1f5fbf;
         --w-fg: #fff;
         --w-muted: #e6f1ff;
@@ -116,17 +116,12 @@
       </p>
       <h2>Today at the club</h2>
       <div class="grid">
-        <weather-now city="Lisbon" unit="c"></weather-now>
-        <countdown-timer label="Summer holidays in"></countdown-timer>
+        <feed-lamp src="data/kiln.json"></feed-lamp>
+        <print-quote heading="Summer posters"></print-quote>
       </div>
       <h2>Vote for the mascot</h2>
       <div class="grid">
-        <poll-widget
-          poll="kids-mascot"
-          question="Best club mascot?"
-          options="Cat, Dog, Capybara, Axolotl"
-          seed="9, 11, 24, 17"
-        ></poll-widget>
+        <row-counter pattern="Camp scarf" repeat="6"></row-counter>
         <p><button type="button">Join the club</button></p>
       </div>
     </main>

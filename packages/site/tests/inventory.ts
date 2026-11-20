@@ -18,8 +18,14 @@ export const inventory = {
     'lifecycle',
     'widget',
   ],
-  /** The five widget tags that the host pages use. */
-  widgetTags: ['price-calculator', 'weather-now', 'repo-card', 'poll-widget', 'countdown-timer'],
+  /** The five tags of the first gallery, with the widget that replaced each; the reference keeps an anchor for the old tag. */
+  widgetTags: {
+    'price-calculator': 'print-quote',
+    'weather-now': 'moon-dial',
+    'repo-card': 'feed-lamp',
+    'poll-widget': 'row-counter',
+    'countdown-timer': 'proof-clock',
+  } as Record<string, string>,
   /** The four host pages, under the base path, as files of `public`. */
   hosts: ['/hosts/cafe.html', '/hosts/terminal.html', '/hosts/zine.html', '/hosts/kids.html'],
   /** The addresses that the Pages workflow assembles, under the base path, and the step that writes each. */

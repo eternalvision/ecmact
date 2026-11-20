@@ -82,9 +82,9 @@
         background: #fff;
         box-shadow: 6px 6px 0 #000;
       }
-      price-calculator,
-      countdown-timer,
-      poll-widget {
+      print-quote,
+      proof-clock,
+      print-quote {
         --w-font: 'Courier New', Courier, monospace;
         --w-bg: #fff;
         --w-fg: #000;
@@ -93,13 +93,13 @@
         --w-border: #000;
         --w-radius: 0;
       }
-      countdown-timer {
+      proof-clock {
         --w-bg: #000;
         --w-fg: #ffe600;
         --w-muted: #ffe600;
         --w-border: #000;
       }
-      poll-widget {
+      print-quote {
         --w-accent: #0066cc;
       }
     </style>
@@ -118,21 +118,11 @@
       </p>
       <h2>Subscribe</h2>
       <div class="grid">
-        <price-calculator
-          currency="USD"
-          base="6"
-          heading="Print subscription, per reader"
-        ></price-calculator>
-        <countdown-timer label="Issue 13 drops in"></countdown-timer>
+        <print-quote></print-quote>
+        <proof-clock label="Issue 13 drops in"></proof-clock>
       </div>
       <h2>Vote</h2>
       <div class="grid">
-        <poll-widget
-          poll="zine-cover"
-          question="Cover of issue 13?"
-          options="Photocopy collage, Neon silkscreen, Plain black"
-          seed="12, 8, 3"
-        ></poll-widget>
         <p><button type="button">Buy the issue</button></p>
       </div>
     </main>

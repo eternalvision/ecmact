@@ -1,21 +1,22 @@
 import { tags } from 'ecmact';
 import { text } from '@site/content/messages';
-import { hosts, propertyNames, widgets } from '@site/content/widgets';
+import { hosts, widgets } from '@site/content/widgets';
 import { fitFrame } from '@site/lib/frame';
+import { scrollToHash } from '@site/lib/links';
 import { withBase } from '@site/lib/paths';
 import { renderTable } from '@site/ui/blocks';
 import { CodeBlock } from '@site/ui/codeBlock';
 
-const { a, div, h1, h2, header, iframe, main, p, section } = tags;
+const { a, div, h1, h2, h3, header, iframe, main, p, section, span } = tags;
 
 const embed = `
 <script src="https://example.com/ecmact-widgets.js"></script>
 
-<price-calculator currency="EUR" base="45"></price-calculator>
-<poll-widget poll="dessert" question="Which dessert?" options="Tarte Tatin, Paris-Brest"></poll-widget>
+<print-quote currency="EUR" base="1.84" heading="Flyers"></print-quote>
+<row-counter pattern="Raglan sleeve" repeat="6"></row-counter>
 
 <style>
-  price-calculator { --w-accent: #b8893b; --w-radius: 2px; }
+  print-quote { --w-bg: #0b6b4f; --w-accent: #ffe94a; }
 </style>
 `;
 
@@ -30,15 +31,31 @@ const fitted = (address: string, title: string) =>
   iframe({ class: 'host-frame', src: address, title, loading: 'lazy', ref: fitFrame });
 
 /**
- * The gallery of widgets: four unrelated pages that embed the same widgets, each in an iframe, and the reference of
- * attributes, events and custom properties.
+ * Writes a value as inline code for a cell of a table, or the word for an empty one.
+ *
+ * @param value - The value.
+ * @param empty - What to show when the value is empty.
+ * @returns The text of the cell.
+ */
+const code = (value: string, empty: string) => (value === '' ? empty : `\`${value}\``);
+
+/**
+ * The gallery of widgets: four unrelated pages that embed the widgets, each in an iframe, and the reference of
+ * attributes, events and custom properties of each widget. An address with the old tag of a widget as its hash
+ * opens on the widget that replaced it.
  *
  * @returns The page.
  */
 export const widgetsPage = () => {
   const m = text().widgets;
   return main(
-    { class: 'wrap page-simple' },
+    {
+      class: 'wrap page-simple',
+      /** Scrolls to the section that the address names, once the page is in place. */
+      ref: () => {
+        setTimeout(() => scrollToHash(window.location.hash));
+      },
+    },
     h1(m.title),
     p({ class: 'lead' }, m.lead),
     hosts.map((host) => {
@@ -68,22 +85,40 @@ export const widgetsPage = () => {
     CodeBlock({ code: embed.trim(), language: 'html', title: m.embedCaption }),
     h2(m.referenceTitle),
     p({ class: 'muted' }, m.referenceLead),
-    renderTable({
-      type: 'table',
-      head: [m.columns.widget, m.columns.attributes, m.columns.events, m.columns.description],
-      rows: widgets.map((widget) => [
-        `\`<${widget.tag}>\``,
-        widget.attributes.map((name) => `\`${name}\``).join(', '),
-        widget.events.map((name) => `\`${name}\``).join(', '),
-        m.descriptions[widget.tag],
-      ]),
-    }),
+    widgets.map((widget) =>
+      section(
+        { class: 'widget-reference' },
+        span({ id: widget.former, class: 'anchor', 'aria-hidden': 'true' }),
+        h3({ id: widget.tag, tabindex: -1 }, tags.code(`<${widget.tag}>`)),
+        p({ class: 'muted' }, m.former.replace('{tag}', widget.former)),
+        p(m.descriptions[widget.tag]),
+        renderTable({
+          type: 'table',
+          head: [m.columns.kind, m.columns.name, m.columns.default, m.columns.description],
+          rows: [
+            ...widget.attributes.map((attribute) => [
+              m.kinds.attribute,
+              `\`${attribute.name}\``,
+              code(attribute.default, m.empty),
+              m.attributes[`${widget.tag}.${attribute.name}`],
+            ]),
+            ...widget.events.map((name) => [
+              m.kinds.event,
+              `\`${name}\``,
+              '',
+              m.events[`${widget.tag}.${name}`],
+            ]),
+            ...widget.properties.map((name) => [
+              m.kinds.property,
+              `\`${name}\``,
+              '',
+              m.properties[`${widget.tag}.${name}`],
+            ]),
+          ],
+        }),
+      ),
+    ),
     h2(m.themeTitle),
     p({ class: 'muted' }, m.themeLead),
-    renderTable({
-      type: 'table',
-      head: [m.columns.property, m.columns.description],
-      rows: propertyNames.map((name) => [`\`${name}\``, m.properties[name]]),
-    }),
   );
 };
