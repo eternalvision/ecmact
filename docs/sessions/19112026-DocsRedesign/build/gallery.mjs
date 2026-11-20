@@ -148,6 +148,69 @@ for (const eng of engines) {
       );
       check(`${eng} moon-dial steps a day by ArrowRight`, day0 !== day1, `${day0} -> ${day1}`);
     }
+    if (width === 1280) {
+      const frameOf = (host) => page.frames().find((f) => f.url().includes(`/hosts/${host}.html`));
+      const read = (frame, tag, selector) =>
+        frame.evaluate(
+          ([tag, selector]) =>
+            document.querySelector(tag).shadowRoot.querySelector(selector).textContent,
+          [tag, selector],
+        );
+      const focusIn = (frame, tag, selector) =>
+        frame.evaluate(
+          ([tag, selector]) =>
+            document.querySelector(tag).shadowRoot.querySelector(selector).focus(),
+          [tag, selector],
+        );
+      // print-quote: the arrows move the chosen price break, and the price follows
+      const zine = frameOf('zine');
+      await focusIn(zine, 'print-quote', '.breaks [aria-checked="true"]');
+      const price0 = await read(zine, 'print-quote', '.sr');
+      await page.keyboard.press('ArrowRight');
+      const price1 = await read(zine, 'print-quote', '.sr');
+      const chosen = await zine.evaluate(() =>
+        [
+          ...document
+            .querySelector('print-quote')
+            .shadowRoot.querySelectorAll('.breaks [role=radio]'),
+        ]
+          .map((r) => r.getAttribute('aria-checked'))
+          .join(),
+      );
+      check(
+        `${eng} print-quote moves its price break by ArrowRight`,
+        price0 !== price1 && chosen === 'false,false,true,false',
+        `${price0} -> ${price1} ${chosen}`,
+      );
+      // feed-lamp: End and the arrows move the tabs, and the feed follows
+      const kids = frameOf('kids');
+      await focusIn(kids, 'feed-lamp', '[role=tab][aria-selected="true"]');
+      await page.keyboard.press('End');
+      await page.waitForTimeout(900);
+      const last = await read(kids, 'feed-lamp', '.state');
+      await page.keyboard.press('ArrowLeft');
+      const selected = await kids.evaluate(() =>
+        [...document.querySelector('feed-lamp').shadowRoot.querySelectorAll('[role=tab]')]
+          .map((tab) => tab.getAttribute('aria-selected'))
+          .join(),
+      );
+      check(
+        `${eng} feed-lamp moves its tabs by End and ArrowLeft`,
+        last === 'Not a feed' && selected === 'false,false,true,false',
+        `${last} / ${selected}`,
+      );
+      // proof-clock: the arrows move the temperature
+      const cafe = frameOf('cafe');
+      await focusIn(cafe, 'proof-clock', 'input[type=range]');
+      const temp0 = await read(cafe, 'proof-clock', '.temp b');
+      await page.keyboard.press('ArrowRight');
+      const temp1 = await read(cafe, 'proof-clock', '.temp b');
+      check(
+        `${eng} proof-clock moves its temperature by ArrowRight`,
+        temp0 === '24 °C' && temp1 === '25 °C',
+        `${temp0} -> ${temp1}`,
+      );
+    }
     check(
       `${eng} ${width} no request to another origin`,
       foreign.length === 0,

@@ -88,10 +88,16 @@ export const gather = (hostSel) => {
     if (!visible(el)) continue;
     const r = el.getBoundingClientRect();
     const cs = getComputedStyle(el);
-    // an element that an ancestor clips (a decoration that bleeds out of a card with overflow hidden) does not overflow
+    // a decoration that an ancestor clips (a shape that bleeds out of a card with overflow hidden) does not overflow;
+    // an element with text, or a control, is always held to the stage: clipped content is a defect, not a decoration
+    const decoration =
+      !el.textContent?.trim() &&
+      !el.matches?.(
+        'button,a[href],select,input,textarea,[role=button],[role=slider],[tabindex],summary',
+      );
     let clippedByAncestor = false;
     for (
-      let a = el.parentElement || el.getRootNode().host;
+      let a = decoration ? el.parentElement || el.getRootNode().host : null;
       a && a !== stage;
       a = a.parentElement || a.getRootNode().host
     ) {
