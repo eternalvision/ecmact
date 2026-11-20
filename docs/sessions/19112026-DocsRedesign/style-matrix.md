@@ -111,7 +111,7 @@ Six axes describe a piece: shape language, palette, type, surface, primary contr
 
 - Shape: **squircle**. 26 px wells, pill buttons.
 - Palette: **mono-accent dark**. Field #0A0000 · wells #140101 to #2B0403 · red #FF3B2F · soft red #FF6A5E.
-- Type: **thin**. Helvetica Neue / Segoe UI Light stack, 300, 15-18 px.
+- Type: **thin**. Helvetica Neue / Segoe UI Light stack, 300, 15-18 px. Deviation (D68): in the tray labels at 360 px the built example uses 14 px, so that "Developer" stays whole in a narrow tray.
 - Surface: **neumorphic**. Inset wells lit from below by a red rim.
 - Control: **action bar**. One filled primary pill and two quiet ones.
 - Motion: **develop fade**. The picture gains density with --d.

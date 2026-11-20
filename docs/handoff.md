@@ -8,8 +8,8 @@ After the redesign (D67): the patch 3.0.2 with the bugs #50, #61, #63, #64; then
 
 Risks: the release workflow warns that npm tokens bypassing 2FA are being restricted; publishing may need the owner to move to trusted publishing. `backdrop-filter` in `customs` has a solid fallback; a new font or a changed stack needs the 360 px run again.
 
-Decisions (do not reopen): D50, D56-D67 (full text in `docs/decisions.md`).
+Decisions (do not reopen): D50, D56-D68 (full text in `docs/decisions.md`).
 
-Materials: [plan](plans/2026-11-19-docs-redesign-plan.md) (update 1.3), [specification](plans/2026-11-19-docs-redesign-spec.md), [v2 mocks](sessions/19112026-DocsRedesign/concepts-v2.html), [style matrix](sessions/19112026-DocsRedesign/style-matrix.md), PR #66, PR #67.
+Materials: [plan](plans/2026-11-19-docs-redesign-plan.md) (update 1.3), [specification](plans/2026-11-19-docs-redesign-spec.md), [v2 mocks](sessions/19112026-DocsRedesign/concepts-v2.html), [style matrix](sessions/19112026-DocsRedesign/style-matrix.md), PR #66, PR #67, the measuring scripts in `sessions/19112026-DocsRedesign/build/` (D68).
 
 Earlier state (forms, #30, #31, #34, #40) is in the [decision log](decisions.md) and the [browser-test plan](plans/2026-11-13-browser-tests-plan.md).
