@@ -139,12 +139,12 @@ const css = `
     width: 54px;
     height: 30px;
     border-radius: 999px;
-    background: radial-gradient(circle closest-side, #fff 76%, transparent 82%) 0 0 / 30px 30px no-repeat #aeb7c4;
+    background: radial-gradient(circle closest-side, #fff 76%, transparent 82%) 0 0 / 30px 30px no-repeat #75808f;
     box-shadow: inset 2px 2px 4px rgba(31, 41, 51, 0.28);
   }
   .lock[aria-pressed='true']::after {
     background-position: 24px 0;
-    background-color: #ff5b14;
+    background-color: #e24a08;
   }
   :focus-visible {
     outline: 3px solid #1f2933;

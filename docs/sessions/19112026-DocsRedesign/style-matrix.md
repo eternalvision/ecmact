@@ -41,7 +41,7 @@ Six axes describe a piece: shape language, palette, type, surface, primary contr
 - Palette: **mono-accent light**. Field #E6EAF0 · ink #1F2933 · label #52606D · accent #FF5B14 · accent text #B83A00.
 - Type: **rounded**. Ui-rounded stack, 800, numerals 26-34 px, sentence case.
 - Surface: **neumorphic**. Raised and inset on one colour, two shadows.
-- Control: **stepper**. - / + capsule per value; lock is a switch.
+- Control: **stepper**. - / + capsule per value; lock is a switch. Deviation (D68): the built tracks of the lock are `#75808f` (off) and `#e24a08` (on), so that the switch keeps 3:1.
 - Motion: **key sinks**. The pressed key flips from raised to inset.
 
 ### E2 `setlist` · Setlist for tonight
@@ -86,7 +86,7 @@ Six axes describe a piece: shape language, palette, type, surface, primary contr
 - Palette: **gradient light**. Mesh #FFB3D9 #8FD0FF #8FF0D2 on #EEF0FF · ink #1B1F3B · accent #3B5BFF to #5B5BF0.
 - Type: **grotesk**. System-ui 500-700, 13-20 px.
 - Surface: **glass**. Frosted card: white at 50%, blur 18 px.
-- Control: **toggle switch**. Checkboxes drawn as switches, pill text fields.
+- Control: **toggle switch**. Checkboxes drawn as switches, pill text fields. Deviation (D68): the built fields have a 2 px ring `#6a70a0` and the off track of the switch is `#7a80aa`, so that the edges keep 3:1.
 - Motion: **stamp thud**. The stamp lands scaled down from 1.6 with a turn.
 
 ### E7 `catalog` · Library card catalogue
@@ -111,7 +111,7 @@ Six axes describe a piece: shape language, palette, type, surface, primary contr
 
 - Shape: **squircle**. 26 px wells, pill buttons.
 - Palette: **mono-accent dark**. Field #0A0000 · wells #140101 to #2B0403 · red #FF3B2F · soft red #FF6A5E.
-- Type: **thin**. Helvetica Neue / Segoe UI Light stack, 300, 15-18 px.
+- Type: **thin**. Helvetica Neue / Segoe UI Light stack, 300, 15-18 px. Deviation (D68): in the tray labels at 360 px the built example uses 14 px, so that "Developer" stays whole in a narrow tray.
 - Surface: **neumorphic**. Inset wells lit from below by a red rim.
 - Control: **action bar**. One filled primary pill and two quiet ones.
 - Motion: **develop fade**. The picture gains density with --d.
@@ -131,7 +131,7 @@ Six axes describe a piece: shape language, palette, type, surface, primary contr
 - Palette: **pastel**. Field #EAF8EE · packet #FFFFFF · inks #0E7A46 #C92A1E #6D28D9 · text #14321F.
 - Type: **clarendon**. Superclarendon / Bookman stack, 700, name 30 px.
 - Surface: **pattern**. Scattered seed dots in two colours.
-- Control: **inspector fields**. Select, number and text in a property panel.
+- Control: **inspector fields**. Select, number and text in a property panel. Deviation (D68): the built fields have a 2 px border `#5f7d6b` and the checkbox a 2 px outline, so that the edges keep 3:1.
 - Motion: **flap tilt**. The packet tilts from its top corner when torn.
 
 ### E12 `atlas` · Pocket atlas

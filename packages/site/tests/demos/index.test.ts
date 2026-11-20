@@ -317,14 +317,16 @@ const tooAlike = (looks: Record<string, DemoStyle>) => {
  *
  * @param looks - The looks, by the id of the piece.
  * @param dark - The ids of the pieces whose stage is dark.
+ * @param labels - The ids of the pieces that set small uppercase labels in a monospace face.
  * @returns The limits that are broken.
  */
-const overLimits = (looks: Record<string, DemoStyle>, dark: string[]) => {
+const overLimits = (looks: Record<string, DemoStyle>, dark: string[], labels: string[] = []) => {
   const all = Object.values(looks);
   const broken: string[] = [];
   if (all.filter((look) => look.shape === 'sharp').length > 2) broken.push('sharp corners');
   if (dark.length > 5) broken.push('dark stages');
   if (all.filter((look) => look.type === 'mono').length > 2) broken.push('monospace');
+  if (labels.length > 2) broken.push('uppercase monospace labels');
   return broken;
 };
 
@@ -346,22 +348,142 @@ const forbidden = (id: string, source: string) => {
     found.push('text-transform: uppercase');
   if (/monospace|Courier|Menlo|Consolas|Monaco|SF Mono|Liberation Mono/.test(source))
     found.push('a monospace stack');
-  if (/\b1px solid/.test(source)) found.push('1px solid');
+  if (/(?<![\d.])1px\b[^;{}]*\bsolid\b|\bsolid\b[^;{}]*(?<![\d.])1px\b/.test(source))
+    found.push('1px solid');
   if (/@font-face|\burl\(/.test(source)) found.push('a font or an image by address');
   return found;
 };
 
-const motion = /\b(animation-name|animation|transition-property|transition)\s*:/;
+/**
+ * Finds the pieces that set small labels in capitals in a monospace face: both devices in one source.
+ *
+ * @param all - The source of each piece, by id.
+ * @returns The ids of the pieces that have both.
+ */
+const monoLabels = (all: Record<string, string>) =>
+  Object.entries(all).flatMap(([id, source]) =>
+    /text-transform:\s*uppercase/.test(source) &&
+    /monospace|Courier|Menlo|Consolas|Monaco|SF Mono|Liberation Mono/.test(source)
+      ? [id]
+      : [],
+  );
+
+/**
+ * Reads one template literal. A `css` or `keyframes` template nested in one of its interpolations is a rule of
+ * its own: it is handed to `emit` and left out of the body.
+ *
+ * @param source - The text.
+ * @param start - The index just after the opening backtick.
+ * @param emit - Receives the rule that each nested `css` or `keyframes` template makes.
+ * @returns The body, with each interpolation replaced by `x`, and the index after the closing backtick.
+ */
+const readTemplate = (
+  source: string,
+  start: number,
+  emit: (tag: string, body: string) => void,
+): { body: string; end: number } => {
+  let body = '';
+  let at = start;
+  while (at < source.length && source[at] !== '`') {
+    if (source[at] === '\\') {
+      body += source.slice(at, at + 2);
+      at += 2;
+    } else if (source[at] === '$' && source[at + 1] === '{') {
+      let depth = 1;
+      at += 2;
+      while (depth > 0 && at < source.length) {
+        if (source[at] === '`') {
+          const tag = /\b(css|keyframes)$/.exec(source.slice(Math.max(0, at - 10), at))?.[1] ?? '';
+          const inner = readTemplate(source, at + 1, emit);
+          if (tag) emit(tag, inner.body);
+          at = inner.end;
+        } else {
+          if (source[at] === '{') depth++;
+          if (source[at] === '}') depth--;
+          at++;
+        }
+      }
+      body += 'x';
+    } else body += source[at++];
+  }
+  return { body, end: at + 1 };
+};
+
+/**
+ * Turns the styled, `css` and `keyframes` templates of a source into plain CSS: the body of a template is
+ * wrapped as one rule, a `keyframes` body as an `@keyframes` block, and a `css` or `keyframes` template that
+ * sits in an interpolation as a rule of its own, so that the scan reads declarations at the root of a template.
+ *
+ * @param source - The source of a piece.
+ * @returns The source with each such template replaced by the rules that hold its body.
+ */
+const wrapTemplates = (source: string) => {
+  const tag = /\bstyled(?:\.\w+|\([^)\n]*\))(?:<[^`]*?>)?`|\bcss`|\bkeyframes`/g;
+  let out = '';
+  let last = 0;
+  let count = 0;
+  const wrap = (kind: string, body: string) =>
+    `${kind === 'keyframes' ? '@keyframes x' : `.t${count++}`} {${body}}`;
+  for (let match = tag.exec(source); match; match = tag.exec(source)) {
+    const nested: string[] = [];
+    const { body, end } = readTemplate(source, match.index + match[0].length, (kind, inner) =>
+      nested.push(wrap(kind, inner)),
+    );
+    out += `${source.slice(last, match.index)}${wrap(match[0].startsWith('keyframes') ? 'keyframes' : 'rule', body)}${nested.join('')}`;
+    last = end;
+    tag.lastIndex = end;
+  }
+  return out + source.slice(last);
+};
+
+const motion = /\b(animation-name|animation|transition-property|transition)\s*:\s*([^;}]*)/g;
+
+/**
+ * Names the motion family of a property: `animation` for `animation` and `animation-name`, `transition` for
+ * `transition` and `transition-property`.
+ *
+ * @param property - The property.
+ * @returns The family.
+ */
+const family = (property: string) =>
+  property.startsWith('animation') ? 'animation' : 'transition';
+
+/**
+ * Lists the motion declarations of a body, every one of them.
+ *
+ * @param body - The declarations of one rule.
+ * @returns Property, family and value of each.
+ */
+const declarations = (body: string) =>
+  [...body.matchAll(motion)].map((match) => ({
+    property: match[1]!,
+    family: family(match[1]!),
+    value: match[2]!.trim(),
+  }));
+
+/**
+ * Names the families that a body switches off: a declaration with the value `none`.
+ *
+ * @param body - The declarations of one rule.
+ * @returns The families, once each.
+ */
+const switchedOffFamilies = (body: string) => [
+  ...new Set(
+    declarations(body)
+      .filter((declaration) => /^none\b/.test(declaration.value))
+      .map((declaration) => declaration.family),
+  ),
+];
 
 /**
  * Cuts the blocks of one media query out of a source.
  *
  * @param source - The source of a piece.
  * @param head - The opening of the media query, up to and including its brace.
- * @param mark - What stays in place of a block that is one declaration nested in a rule.
+ * @param mark - What stays in place of a block that is declarations nested in a rule, from the body.
  * @returns The source without the blocks, and the bodies that were cut.
  */
-const cutBlocks = (source: string, head: string, mark = '') => {
+const cutBlocks = (source: string, head: string, mark: (body: string) => string = () => '') => {
   const cut: string[] = [];
   let text = source;
   for (let at = text.indexOf(head); at !== -1; at = text.indexOf(head)) {
@@ -374,42 +496,89 @@ const cutBlocks = (source: string, head: string, mark = '') => {
     }
     const body = text.slice(at + head.length, end - 1);
     cut.push(body);
-    text =
-      text.slice(0, at) + (!body.includes('{') && motion.test(body) ? mark : '') + text.slice(end);
+    text = text.slice(0, at) + (body.includes('{') ? '' : mark(body)) + text.slice(end);
   }
   return { text, cut };
 };
 
 /**
- * Lists the rules of a source that declare motion, as selector and property.
+ * Splits a source into its rules, each with its own declarations: those of a rule nested in it belong to that
+ * nested rule.
  *
  * @param source - The source, or a part of it.
- * @returns One entry for each rule that declares motion.
+ * @returns The selector and the own declarations of each rule.
+ */
+const parseRules = (source: string) => {
+  const rules: { selector: string; own: string }[] = [];
+  const stack: { selector: string; own: string }[] = [{ selector: '', own: '' }];
+  let text = '';
+  for (const char of source.replace(/\$\{[^{}]*\}/g, 'x')) {
+    const top = stack[stack.length - 1]!;
+    if (char === '{') {
+      const cut = text.lastIndexOf(';') + 1;
+      top.own += text.slice(0, cut);
+      stack.push({ selector: text.slice(cut).trim(), own: '' });
+      text = '';
+    } else if (char === '}' && stack.length > 1) {
+      const rule = stack.pop()!;
+      rules.push({ selector: rule.selector, own: rule.own + text });
+      text = '';
+    } else text += char;
+  }
+  return rules;
+};
+
+/**
+ * Lists the motion that the rules of a source declare, one entry for each declaration, unless the rule marks
+ * its family as switched off by a nested block for `reduce`.
+ *
+ * @param source - The source, or a part of it.
+ * @returns Selector, property and family of each declaration.
  */
 const motionRules = (source: string) =>
-  [...source.replace(/\$\{[^{}]*\}/g, 'x').matchAll(/([^{}]+)\{([^{}]*)\}/g)].flatMap((rule) => {
-    const property = motion.exec(rule[2]!)?.[1];
-    return property && !rule[2]!.includes('/*off*/')
-      ? [{ selector: rule[1]!.trim(), property: `${property}:` }]
-      : [];
+  parseRules(source).flatMap((rule) => {
+    const off = [...rule.own.matchAll(/\/\*off:(\w+)\*\//g)].map((match) => match[1]);
+    return declarations(rule.own)
+      .filter((declaration) => !off.includes(declaration.family))
+      .map((declaration) => ({
+        selector: rule.selector,
+        property: `${declaration.property}:`,
+        family: declaration.family,
+      }));
   });
 
 /**
  * Finds motion in a source that no media query on the visitor's preference holds back: it is neither inside
- * a block for `no-preference` nor switched off in a block for `reduce` on the same selector.
+ * a block for `no-preference` nor switched off, with the value `none`, in a block for `reduce` for the same
+ * selector and the same family (`animation` or `transition`); a rule that is switched off for one family still
+ * runs the other.
  *
- * @param source - The source of a piece.
+ * A `keyframes` block alone runs nothing, so it counts only when the source has no `reduce` block at all;
+ * what plays it is an `animation` declaration, and that one is scanned like the others.
+ *
+ * @param text - The source of a piece.
  * @returns The motion that runs for everyone.
  */
-const runsAlways = (source: string) => {
+const runsAlways = (text: string) => {
+  const source = wrapTemplates(text);
   const free = cutBlocks(source, '@media (prefers-reduced-motion: no-preference) {');
-  const reduced = cutBlocks(free.text, '@media (prefers-reduced-motion: reduce) {', '/*off*/');
-  const switchedOff = new Set(reduced.cut.flatMap(motionRules).map((rule) => rule.selector));
+  const reduced = cutBlocks(free.text, '@media (prefers-reduced-motion: reduce) {', (body) =>
+    switchedOffFamilies(body)
+      .map((name) => `/*off:${name}*/`)
+      .join(''),
+  );
+  const off = new Set(
+    reduced.cut.flatMap((body) =>
+      parseRules(body).flatMap((rule) =>
+        switchedOffFamilies(rule.own).map((name) => `${rule.selector}|${name}`),
+      ),
+    ),
+  );
   return [
     ...motionRules(reduced.text)
-      .filter((rule) => !switchedOff.has(rule.selector))
+      .filter((rule) => !off.has(`${rule.selector}|${rule.family}`))
       .map((rule) => rule.property),
-    ...(reduced.text.match(/@keyframes/g) ?? []),
+    ...(reduced.cut.length === 0 ? (reduced.text.match(/@keyframes/g) ?? []) : []),
   ];
 };
 
@@ -445,7 +614,9 @@ describe('the looks of the examples', () => {
     const dark = Object.entries(sources).flatMap(([id, source]) =>
       source.includes('color-scheme: dark;') ? [id] : [],
     );
-    expect(overLimits(looks, dark)).toEqual([]);
+    const labels = monoLabels(sources);
+    expect(overLimits(looks, dark, labels)).toEqual([]);
+    expect(labels).toEqual([]);
     expect(dark.sort()).toEqual(['darkroom', 'gels']);
     expect(
       overLimits(
@@ -469,6 +640,15 @@ describe('the looks of the examples', () => {
         [],
       ),
     ).toEqual(['monospace']);
+    expect(overLimits(looks, [], ['a', 'b'])).toEqual([]);
+    expect(overLimits(looks, [], ['a', 'b', 'c'])).toEqual(['uppercase monospace labels']);
+    expect(
+      monoLabels({
+        a: 'a { font: 12px ui-monospace, monospace; text-transform: uppercase; }',
+        b: 'a { font: 12px monospace; }',
+        c: 'a { text-transform: uppercase; }',
+      }),
+    ).toEqual(['a']);
   });
 });
 
@@ -511,6 +691,15 @@ describe('the sources of the examples keep out the devices of the first build', 
       ]),
     );
     expect(forbidden('atlas', 'a { border: 1px solid #000; }')).toEqual(['1px solid']);
+    expect(forbidden('atlas', 'a { border: solid 1px #000; }')).toEqual(['1px solid']);
+    expect(forbidden('atlas', 'a { border-bottom: #000 solid 1px; }')).toEqual(['1px solid']);
+    expect(forbidden('atlas', 'a { border-top: 1px\n    dashed #000; }')).toEqual([]);
+    expect(forbidden('atlas', 'a { border: 3px solid #000; }')).toEqual([]);
+    expect(forbidden('atlas', 'a { border: 11px solid #000; }')).toEqual([]);
+    expect(forbidden('atlas', 'a { border: 2.1px solid #000; }')).toEqual([]);
+    expect(forbidden('atlas', 'a { box-shadow: 0 0 0 1px #000; border: 3px solid #000; }')).toEqual(
+      [],
+    );
     expect(forbidden('atlas', "a { background: url('x.png'); }")).toEqual([
       'a font or an image by address',
     ]);
@@ -559,6 +748,102 @@ describe('motion in the examples', () => {
     expect(runsAlways('@keyframes x { to { top: 0; } }')).toEqual(['@keyframes']);
   });
 
+  it('switches off a property of a selector, not the selector', () => {
+    // a rule that is switched off for one family still runs the other
+    expect(
+      runsAlways(
+        'a { animation: x 1s; transition: color 1s; } @media (prefers-reduced-motion: reduce) { a { animation: none; } }',
+      ),
+    ).toEqual(['transition:']);
+    expect(
+      runsAlways(
+        'a { animation: x 1s; } @media (prefers-reduced-motion: reduce) { a { transition: none; } }',
+      ),
+    ).toEqual(['animation:']);
+    expect(
+      runsAlways(
+        'a { animation: x 1s; transition: color 1s; } @media (prefers-reduced-motion: reduce) { a { animation: none; transition: none; } }',
+      ),
+    ).toEqual([]);
+    // every motion property of a rule counts, not only the first
+    expect(runsAlways('a { animation: x 1s; transition: color 1s; }')).toEqual([
+      'animation:',
+      'transition:',
+    ]);
+    // the value that switches off is `none`
+    expect(
+      runsAlways(
+        'a { animation: x 1s; } @media (prefers-reduced-motion: reduce) { a { animation: y 1s; } }',
+      ),
+    ).toEqual(['animation:']);
+    expect(
+      runsAlways(
+        'a { animation-name: x; } @media (prefers-reduced-motion: reduce) { a { animation: none; } }',
+      ),
+    ).toEqual([]);
+    expect(
+      runsAlways(
+        'a { animation: x 1s; transition: color 1s; @media (prefers-reduced-motion: reduce) { animation: none; } }',
+      ),
+    ).toEqual(['transition:']);
+  });
+
+  it('finds the motion that sits next to a switched-off animation, in a styled template', () => {
+    const poster = (extra: string, reduce: string) =>
+      `const k = keyframes\`to { top: 0; }\`;\nconst P = styled.div\`animation: \${(p) => (p.on ? k : 'none')} 1s;${extra}\n  @media (prefers-reduced-motion: reduce) { ${reduce} }\`;`;
+    expect(runsAlways(poster('', 'animation: none;'))).toEqual([]);
+    expect(runsAlways(poster(' transition: color 1s;', 'animation: none;'))).toEqual([
+      'transition:',
+    ]);
+    expect(runsAlways(poster('', 'transition: none;'))).toEqual(['animation:']);
+    expect(
+      runsAlways(poster(' transition: color 1s;', 'animation: none; transition: none;')),
+    ).toEqual([]);
+  });
+
+  it('reads a css template inside an interpolation as a rule of its own', () => {
+    const swatch =
+      'const S = styled.button`color: red; ${(p) => p.$on && css`transition: transform 1s;`}`;';
+    expect(runsAlways(swatch)).toEqual(['transition:']);
+    expect(
+      runsAlways('const S = styled.button`color: red; ${(p) => p.$on && css`color: blue;`}`;'),
+    ).toEqual([]);
+    expect(
+      runsAlways(
+        'const S = styled.button`color: ${(p) => (p.$on ? `red` : `blue`)};`;\nconst k = keyframes`to { top: 0; }`;',
+      ),
+    ).toEqual(['@keyframes']);
+    expect(
+      runsAlways(
+        'const S = styled.button`${(p) => p.$on && css`animation: ${k} 1s;`}`;\nconst k = keyframes`to { top: 0; }`;',
+      ),
+    ).toEqual(['animation:', '@keyframes']);
+  });
+
+  it('reads the templates of styled, css and keyframes as rules', () => {
+    const swatch =
+      'const S = styled.button<{ $on: boolean }>`\n  color: ${(p) => p.x};\n  transition: color 1s;\n`;';
+    expect(runsAlways(swatch)).toEqual(['transition:']);
+    expect(runsAlways('const S = styled(Base)`animation: x 1s;`;')).toEqual(['animation:']);
+    expect(runsAlways('const c = css`transition: color 1s;`;')).toEqual(['transition:']);
+    expect(runsAlways('const k = keyframes`to { top: 0; }`;')).toEqual(['@keyframes']);
+    expect(
+      runsAlways(
+        'const k = keyframes`to { top: 0; }`;\nconst P = styled.div`animation: ${(p) => (p.on ? k : `none`)} 1s;\n  @media (prefers-reduced-motion: reduce) { animation: none; }`;',
+      ),
+    ).toEqual([]);
+    expect(
+      runsAlways(
+        'const k = keyframes`to { top: 0; }`;\nconst P = styled.div`animation: x 1s; @media (prefers-reduced-motion: reduce) { animation: none; }`;\nconst S = styled.b`transition: color 1s;`;',
+      ),
+    ).toEqual(['transition:']);
+    expect(
+      runsAlways(
+        'const P = styled.div`@media (prefers-reduced-motion: no-preference) { transition: color 1s; }`;',
+      ),
+    ).toEqual([]);
+  });
+
   it('has an animated example for each of the ones that name a motion', () => {
     const animated = Object.entries(sources).filter(([, source]) =>
       /@keyframes|keyframes`|transition:/.test(source),
@@ -592,12 +877,25 @@ describe('focus and the states of the examples', () => {
 
   it('give the glass of the form a solid card where the blur is not supported', () => {
     const css = sources.customs!;
-    expect(css).toContain('@supports (backdrop-filter: blur(1px))');
-    expect(css.indexOf('background: #ffffff;')).toBeLessThan(css.indexOf('@supports'));
+    const at = css.indexOf('@supports (backdrop-filter: blur(1px))');
+    expect(at).toBeGreaterThan(-1);
+    const fallback = /\n\s*form \{([^}]*)\}/.exec(css.slice(0, at));
+    expect(fallback, 'a form rule before the @supports block').not.toBeNull();
+    expect(fallback![1]).toContain('background: #ffffff;');
+    expect(fallback![1]).not.toMatch(/background:\s*rgba/);
   });
 
   it('draw a control of the darkroom that is not available as one that is not available', () => {
-    expect(sources.darkroom).toContain("button[aria-disabled='true'] {");
+    const rule = /button\[aria-disabled='true'\] \{([^}]*)\}/.exec(sources.darkroom!);
+    expect(rule, "a rule for button[aria-disabled='true']").not.toBeNull();
+    expect(rule![1]).toContain('background: transparent;');
+    expect(rule![1]).toMatch(/(?:^|[\s;])color:\s*#[0-9a-f]{3,8};/i);
+    const all = [...sources.darkroom!.matchAll(/([^{}]*aria-disabled[^{}]*)\{([^}]*)\}/g)];
+    expect(all.length).toBeGreaterThan(0);
+    all.forEach((match) =>
+      expect(match[2], match[1]!.trim()).not.toMatch(/outline:\s*(?:none|0)\b/),
+    );
+    expect(rule![1]).not.toContain('opacity');
     expect(sources.darkroom).not.toContain('opacity: 0.45');
   });
 });

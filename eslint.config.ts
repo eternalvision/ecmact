@@ -84,6 +84,24 @@ export default defineConfig([
     languageOptions: { globals: { console: 'readonly', process: 'readonly', URL: 'readonly' } },
   },
   {
+    // measuring and capture scripts of a session: they run in Node and hand functions to the page of a browser
+    files: ['docs/sessions/*/build/*.mjs'],
+    languageOptions: {
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        URL: 'readonly',
+        document: 'readonly',
+        window: 'readonly',
+        getComputedStyle: 'readonly',
+        NodeFilter: 'readonly',
+        Event: 'readonly',
+        DOMException: 'readonly',
+      },
+    },
+    rules: { '@typescript-eslint/no-empty-function': 'off' },
+  },
+  {
     files: ['src/**/*.ts', 'tests/**/*.ts', 'packages/*/src/**/*.ts', 'packages/*/tests/**/*.ts'],
     rules: {
       'no-restricted-imports': [
